@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/charts.tsx","./src/components.tsx","./src/coremessages.tsx","./src/i18n.tsx","./src/main.tsx","./src/styles.ts","./src/pyodide/bridge.ts","./src/pyodide/runtime.ts"],"version":"5.9.3"}
