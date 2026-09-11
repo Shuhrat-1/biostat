@@ -8,4 +8,4 @@ dist/
 .DS_Store
 
 # Собираемое ядро для браузера (генерируется build_core.py)
-# web/public/core/core.zip
+web/public/core/core.zip

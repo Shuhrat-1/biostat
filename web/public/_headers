@@ -1,0 +1,10 @@
+# Заголовки для Cloudflare Pages.
+#
+# Pyodide грузит WASM с CDN jsdelivr. Проект не использует
+# SharedArrayBuffer, поэтому cross-origin isolation (COOP/COEP) НЕ нужна —
+# и её включение сломало бы загрузку с внешнего CDN. Оставляем заголовки
+# минимальными.
+
+# Ядро кешируем на час — оно меняется только при пересборке.
+/core/*
+  Cache-Control: public, max-age=3600
