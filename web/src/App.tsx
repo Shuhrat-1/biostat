@@ -221,11 +221,11 @@ function AppInner({
               />
             )}
 
-            {table && !table.usability.ok && (
+            {table && table.usability?.ok === false && (
               <UnusableFile table={table} onReset={reset} />
             )}
 
-            {table && table.usability.ok && (
+            {table && table.usability?.ok !== false && (
               <>
                 <QualityPanel table={table} />
                 <PreviewPanel
