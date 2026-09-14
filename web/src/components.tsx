@@ -17,6 +17,145 @@ import { c, s, typeBadgeStyle } from "./styles";
 
 /* ------------------------------ Загрузка ------------------------------ */
 
+/* --------------------- Непригодный файл --------------------- */
+
+export function UnusableFile({
+  table,
+  onReset,
+}: {
+  table: ParsedTable;
+  onReset: () => void;
+}) {
+  const t = useT();
+  const tm = useCoreMessage();
+  const reason = table.usability.reason ?? "no_columns";
+
+  return (
+    <div style={s.panel}>
+      <div
+        style={{
+          padding: "0.85rem 1rem",
+          background: c.warnBg,
+          color: c.warn,
+          borderRadius: 6,
+          fontSize: "0.95rem",
+          lineHeight: 1.5,
+          marginBottom: "1rem",
+        }}
+      >
+        {tm({ code: reason, message: reason })}
+      </div>
+
+      {/* Предупреждения детекции — помогают понять, что пошло не так. */}
+      {table.warnings.length > 0 && (
+        <ul
+          style={{
+            margin: "0 0 1rem",
+            paddingLeft: "1.1rem",
+            fontSize: "0.85rem",
+            color: c.muted,
+          }}
+        >
+          {table.warnings.map((w, i) => (
+            <li key={i}>{tm(w)}</li>
+          ))}
+        </ul>
+      )}
+
+      <button style={s.button} onClick={onReset}>
+        {t("reset")}
+      </button>
+    </div>
+  );
+}
+
+/* ------------------------- Стартовый экран ------------------------- */
+
+export function WelcomeScreen({
+  onFile,
+  onExample,
+  busy,
+}: {
+  onFile: (file: File) => void;
+  onExample: () => void;
+  busy: boolean;
+}) {
+  const t = useT();
+  const points = [
+    t("welcome.point.methods"),
+    t("welcome.point.formats"),
+    t("welcome.point.quality"),
+  ];
+
+  return (
+    <div>
+      <div style={{ maxWidth: 640, marginBottom: "1.5rem" }}>
+        <h2 style={{ fontSize: "1.3rem", margin: "0 0 0.6rem", lineHeight: 1.3 }}>
+          {t("welcome.title")}
+        </h2>
+        <p style={{ color: c.text, lineHeight: 1.55, margin: "0 0 0.9rem" }}>
+          {t("welcome.lead")}
+        </p>
+        <ul
+          style={{
+            margin: "0 0 1rem",
+            paddingLeft: "1.1rem",
+            color: c.muted,
+            fontSize: "0.9rem",
+            lineHeight: 1.6,
+          }}
+        >
+          {points.map((p, i) => (
+            <li key={i}>{p}</li>
+          ))}
+        </ul>
+        <div
+          style={{
+            padding: "0.6rem 0.85rem",
+            background: c.okBg,
+            color: c.ok,
+            borderRadius: 6,
+            fontSize: "0.85rem",
+            lineHeight: 1.5,
+          }}
+        >
+          {t("welcome.privacy")}
+        </div>
+      </div>
+
+      <FileDrop onFile={onFile} busy={busy} />
+
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "0.7rem",
+          margin: "1rem 0 0",
+        }}
+      >
+        <span style={{ color: c.muted, fontSize: "0.85rem" }}>
+          {t("welcome.or")}
+        </span>
+        <button
+          onClick={onExample}
+          disabled={busy}
+          style={{
+            ...s.button,
+            ...(busy ? s.buttonDisabled : {}),
+            background: "transparent",
+            color: c.accent,
+            border: `1px solid ${c.accent}`,
+          }}
+        >
+          {t("welcome.tryExample")}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------ Загрузка ------------------------------ */
+
 export function FileDrop({
   onFile,
   busy,
@@ -128,7 +267,7 @@ export function QualityPanel({ table }: { table: ParsedTable }) {
 
       {table.warnings.map((w, i) => (
         <div key={i} style={{ marginTop: "0.5rem", fontSize: "0.85rem", color: c.warn }}>
-          {w}
+          {tm(w)}
         </div>
       ))}
     </div>

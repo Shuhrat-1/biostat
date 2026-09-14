@@ -126,6 +126,51 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     en: `The X variable does not vary — the regression slope is undefined.`,
     pt: `A variável X não varia — o declive da regressão é indefinido.`,
   },
+  file_empty: {
+    ru: `Файл пустой — в нём нет данных для анализа.`,
+    en: `The file is empty — there is no data to analyze.`,
+    pt: `O ficheiro está vazio — não há dados para analisar.`,
+  },
+  no_data_rows: {
+    ru: `В файле есть заголовок, но нет строк с данными. Проверьте, что файл содержит записи под названиями колонок.`,
+    en: `The file has a header but no data rows. Check that it contains records under the column names.`,
+    pt: `O ficheiro tem cabeçalho mas nenhuma linha de dados. Verifique se contém registos sob os nomes das colunas.`,
+  },
+  no_columns: {
+    ru: `Не удалось распознать колонки. Возможно, это не таблица CSV — проверьте формат файла.`,
+    en: `Could not detect columns. This may not be a CSV table — check the file format.`,
+    pt: `Não foi possível detetar colunas. Pode não ser uma tabela CSV — verifique o formato do ficheiro.`,
+  },
+  no_numeric: {
+    ru: `В таблице нет числовых колонок. Для статистики нужна хотя бы одна колонка с числами. Если числа распознались как текст — измените тип колонки в разделе «Детали по колонкам».`,
+    en: `The table has no numeric columns. Statistics need at least one column of numbers. If numbers were read as text, change the column type under "Column details".`,
+    pt: `A tabela não tem colunas numéricas. A estatística precisa de pelo menos uma coluna de números. Se os números foram lidos como texto, altere o tipo da coluna em "Detalhes das colunas".`,
+  },
+  low_encoding_confidence: {
+    ru: `Кодировка определена с низкой уверенностью — проверьте предпросмотр.`,
+    en: `Encoding detected with low confidence — check the preview.`,
+    pt: `Codificação detetada com baixa confiança — verifique a pré-visualização.`,
+  },
+  unknown_encoding_utf8: {
+    ru: `Неизвестная кодировка, использована UTF-8.`,
+    en: `Unknown encoding, UTF-8 was used.`,
+    pt: `Codificação desconhecida, foi usado UTF-8.`,
+  },
+  unreadable_chars: {
+    ru: `В тексте есть нечитаемые символы — вероятно, кодировка неверна.`,
+    en: `The text has unreadable characters — the encoding is probably wrong.`,
+    pt: `O texto tem caracteres ilegíveis — a codificação está provavelmente errada.`,
+  },
+  unstable_delimiter: {
+    ru: `Разделитель нестабилен по строкам — проверьте предпросмотр.`,
+    en: `The delimiter is inconsistent across rows — check the preview.`,
+    pt: `O separador é inconsistente entre linhas — verifique a pré-visualização.`,
+  },
+  too_many_rows: {
+    ru: `Строк {n_rows} — для браузера это много. Профилирование сделано по первым {limit}.`,
+    en: `{n_rows} rows — that's a lot for the browser. Profiling used the first {limit}.`,
+    pt: `{n_rows} linhas — é muito para o navegador. A análise usou as primeiras {limit}.`,
+  },
 };
 
 /** Подставить {name} из params в шаблон. */

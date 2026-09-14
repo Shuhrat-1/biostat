@@ -43,6 +43,12 @@ export interface StatResult {
   data_quality: Record<string, unknown> | null;
 }
 
+export interface CoreMsg {
+  code: string;
+  message: string;
+  params?: Record<string, unknown>;
+}
+
 export interface DialectInfo {
   encoding: string;
   encoding_confidence: number;
@@ -51,7 +57,7 @@ export interface DialectInfo {
   decimal: string;
   has_header: boolean;
   n_columns: number;
-  notes: string[];
+  notes: CoreMsg[];
 }
 
 export type ColumnType = "numeric" | "date" | "categorical" | "id" | "empty";
@@ -121,9 +127,10 @@ export interface ParsedTable {
   preview_rows: string[][];
   profiles: ColumnProfile[];
   n_rows: number;
-  warnings: string[];
+  warnings: CoreMsg[];
   quality: QualitySummary;
   summary_values: Record<string, Record<string, number>>;
+  usability: { ok: boolean; reason: string | null };
   suggestions: MethodSuggestion[];
 }
 

@@ -15,6 +15,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from core.validation.dialect import DialectInfo, detect_dialect
+from core.validation.messages import msg
 from core.validation.types import (
     ColumnProfile,
     ColumnType,
@@ -38,7 +39,7 @@ class ParsedTable:
     preview_rows: list[list[str]]
     profiles: list[ColumnProfile]
     n_rows: int
-    warnings: list[str] = field(default_factory=list)
+    warnings: list[dict[str, Any]] = field(default_factory=list)
     _rows: list[list[str]] = field(default_factory=list, repr=False)
 
     def to_dict(self) -> dict[str, Any]:
@@ -52,7 +53,27 @@ class ParsedTable:
             "warnings": self.warnings,
             "quality": self.quality_summary(),
             "summary_values": self.summary_values(),
+            "usability": self.usability(),
         }
+
+    def usability(self) -> dict[str, Any]:
+        """Годится ли файл для анализа, и если нет — почему.
+
+        Возвращает {ok, reason}. reason — код причины, фронт переводит его
+        в понятное объяснение вместо показа пустой таблицы.
+        """
+        n_numeric = sum(
+            1 for p in self.profiles if p.detected_type.value == "numeric"
+        )
+        if self.n_rows == 0 and not self.header:
+            return {"ok": False, "reason": "file_empty"}
+        if self.n_rows == 0:
+            return {"ok": False, "reason": "no_data_rows"}
+        if not self.header:
+            return {"ok": False, "reason": "no_columns"}
+        if n_numeric == 0:
+            return {"ok": False, "reason": "no_numeric"}
+        return {"ok": True, "reason": None}
 
     def summary_values(self) -> dict[str, dict[str, float]]:
         """Ключевые метрики по числовым колонкам для подстановки в параметры.
@@ -238,13 +259,14 @@ def parse_file(
     if has_header is not None:
         dialect.has_header = has_header
 
-    warnings: list[str] = list(dialect.notes)
+    warnings: list[dict[str, Any]] = list(dialect.notes)
     try:
         text = raw.decode(dialect.encoding, errors="replace")
     except LookupError:
         text = raw.decode("utf-8", errors="replace")
         dialect.encoding = "utf-8"
-        warnings.append("Неизвестная кодировка, использована UTF-8")
+        warnings.append(msg("unknown_encoding_utf8",
+                            "Неизвестная кодировка, использована UTF-8"))
 
     rows = [
         row
@@ -258,7 +280,8 @@ def parse_file(
             preview_rows=[],
             profiles=[],
             n_rows=0,
-            warnings=warnings + ["Файл пуст или не содержит данных"],
+            warnings=warnings + [msg("file_empty",
+                                      "Файл пуст или не содержит данных")],
         )
 
     if dialect.has_header:
@@ -271,8 +294,10 @@ def parse_file(
     dialect.n_columns = len(header)
     if len(body) > BROWSER_ROW_LIMIT:
         warnings.append(
-            f"Строк {len(body):,} — для браузера это много. "
-            f"Профилирование сделано по первым {BROWSER_ROW_LIMIT:,}."
+            msg("too_many_rows",
+                f"Строк {len(body):,} — для браузера это много. "
+                f"Профилирование сделано по первым {BROWSER_ROW_LIMIT:,}.",
+                n_rows=len(body), limit=BROWSER_ROW_LIMIT)
         )
         body = body[:BROWSER_ROW_LIMIT]
 

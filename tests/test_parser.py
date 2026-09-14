@@ -96,7 +96,7 @@ def test_quality_summary_dirty():
 def test_empty_file():
     t = parse_file(b"")
     assert t.n_rows == 0
-    assert any("пуст" in w for w in t.warnings)
+    assert any(w["code"] == "file_empty" for w in t.warnings)
 
 
 def test_preview_limited():
@@ -191,6 +191,26 @@ def test_paired_columns_both_missing():
     t = parse_file(data)
     before, after = t.paired_columns("b", "a")
     assert len(before) == 2  # только строки 1 и 4 полные
+
+
+def test_usability_good_file():
+    t = parse_file(b"x,y\n1,2\n3,4\n")
+    u = t.usability()
+    assert u["ok"] is True
+    assert u["reason"] is None
+
+
+def test_usability_empty():
+    assert parse_file(b"").usability()["reason"] == "file_empty"
+
+
+def test_usability_header_only():
+    assert parse_file(b"a,b,c\n").usability()["reason"] == "no_data_rows"
+
+
+def test_usability_no_numeric():
+    data = b"name,city\nAnna,Lisbon\nBob,Porto\n"
+    assert parse_file(data).usability()["reason"] == "no_numeric"
 
 
 def test_summary_values():

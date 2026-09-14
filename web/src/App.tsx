@@ -10,12 +10,14 @@
 
 import { lazy, Suspense, useEffect, useState } from "react";
 import {
-  FileDrop,
   MethodPanel,
   PreviewPanel,
   QualityPanel,
   ResultPanel,
+  UnusableFile,
+  WelcomeScreen,
 } from "./components";
+import { exampleFileBytes } from "./exampleData";
 import {
   getPlotData,
   getRows,
@@ -37,6 +39,10 @@ const Plots = lazy(() => import("./charts").then((m) => ({ default: m.Plots })))
 /** Корень: держит выбранный язык и раздаёт его через контекст. */
 export default function App() {
   const [lang, setLang] = useState<Lang>("ru");
+  // Держим <html lang> в синхроне с UI-языком — для SEO и скринридеров.
+  useEffect(() => {
+    document.documentElement.lang = lang;
+  }, [lang]);
   return (
     <I18nContext.Provider value={lang}>
       <AppInner lang={lang} setLang={setLang} />
@@ -107,6 +113,16 @@ function AppInner({
     setPlots(null);
     setTypeOverrides({});
     const bytes = new Uint8Array(await file.arrayBuffer());
+    setFileBytes(bytes);
+    await runParse(bytes, {});
+  };
+
+  // Пример данных идёт тем же путём, что и загруженный файл.
+  const handleExample = async () => {
+    setResult(null);
+    setPlots(null);
+    setTypeOverrides({});
+    const bytes = exampleFileBytes();
     setFileBytes(bytes);
     await runParse(bytes, {});
   };
@@ -197,9 +213,19 @@ function AppInner({
 
         {ready && (
           <>
-            {!table && <FileDrop onFile={handleFile} busy={busy} />}
+            {!table && (
+              <WelcomeScreen
+                onFile={handleFile}
+                onExample={handleExample}
+                busy={busy}
+              />
+            )}
 
-            {table && (
+            {table && !table.usability.ok && (
+              <UnusableFile table={table} onReset={reset} />
+            )}
+
+            {table && table.usability.ok && (
               <>
                 <QualityPanel table={table} />
                 <PreviewPanel

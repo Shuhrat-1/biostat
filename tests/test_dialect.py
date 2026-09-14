@@ -104,7 +104,7 @@ def test_dialect_cp1251_roundtrip():
     assert info.delimiter == ";"
     assert info.n_columns == 3
     # Нет замещающих символов — значит кодировка распознана верно.
-    assert not any("нечитаемые" in n for n in info.notes)
+    assert not any(n["code"] == "unreadable_chars" for n in info.notes)
 
 
 def test_dialect_notes_on_broken_encoding():

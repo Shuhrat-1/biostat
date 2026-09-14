@@ -17,6 +17,8 @@ from typing import Any
 
 from charset_normalizer import from_bytes
 
+from core.validation.messages import msg
+
 # Сколько байт читать для детекции — хватает и для больших файлов.
 _SNIFF_BYTES = 64 * 1024
 # Кандидаты в разделители в порядке приоритета при равенстве.
@@ -36,7 +38,7 @@ class DialectInfo:
     decimal: str
     has_header: bool
     n_columns: int
-    notes: list[str] = field(default_factory=list)
+    notes: list[dict[str, Any]] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         """Сериализовать для передачи в интерфейс."""
@@ -202,25 +204,29 @@ def detect_dialect(raw: bytes) -> DialectInfo:
     Главная точка входа: принимает сырые байты файла, возвращает все
     распознанные параметры с уверенностью и замечаниями.
     """
-    notes: list[str] = []
+    notes: list[dict[str, Any]] = []
     encoding, enc_conf = detect_encoding(raw)
     if enc_conf < 0.5:
         notes.append(
-            "Кодировка определена с низкой уверенностью — проверь предпросмотр"
+            msg("low_encoding_confidence",
+                "Кодировка определена с низкой уверенностью — проверь предпросмотр")
         )
 
     try:
         text = raw[:_SNIFF_BYTES].decode(encoding, errors="replace")
     except LookupError:
         encoding, text = "utf-8", raw[:_SNIFF_BYTES].decode("utf-8", errors="replace")
-        notes.append("Неизвестная кодировка, использована UTF-8")
+        notes.append(msg("unknown_encoding_utf8",
+                          "Неизвестная кодировка, использована UTF-8"))
 
     if "\ufffd" in text:
-        notes.append("В тексте есть нечитаемые символы — вероятно, кодировка неверна")
+        notes.append(msg("unreadable_chars",
+                          "В тексте есть нечитаемые символы — вероятно, кодировка неверна"))
 
     delimiter, delim_conf = detect_delimiter(text)
     if delim_conf < 0.8:
-        notes.append("Разделитель нестабилен по строкам — проверь предпросмотр")
+        notes.append(msg("unstable_delimiter",
+                          "Разделитель нестабилен по строкам — проверь предпросмотр"))
 
     decimal = detect_decimal(text, delimiter)
     has_header = detect_header(text, delimiter)
