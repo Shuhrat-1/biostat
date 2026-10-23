@@ -235,6 +235,31 @@ def test_summary_values_excludes_categorical():
     assert "val" in t.summary_values()
 
 
+def test_numeric_override_excluded_from_summary():
+    """Числовая колонка, переопределённая в категорию/ID, исключается.
+
+    Защита от регрессии: коды-категории (V6=88,98,107), вручную помеченные
+    категорией, не должны считаться как числа в описательной статистике.
+    """
+    data = (
+        "code,yield\n"
+        + "\n".join(f"{[88, 98, 107][i % 3]},{5 + i * 0.1}" for i in range(12))
+        + "\n"
+    ).encode()
+
+    # Без override — числовая колокна попадает.
+    assert "code" in parse_file(data).numeric_columns_all()
+
+    # Override в категорию — исключается из сводной.
+    as_cat = parse_file(data, type_overrides={"code": "categorical"})
+    assert "code" not in as_cat.numeric_columns_all()
+    assert "yield" in as_cat.numeric_columns_all()
+
+    # Override в ID — тоже исключается.
+    as_id = parse_file(data, type_overrides={"code": "id"})
+    assert "code" not in as_id.numeric_columns_all()
+
+
 def test_suggest_methods_numeric_only():
     t = parse_file(b"x,y\n1,2\n3,4\n5,6\n")
     methods = {s["method"] for s in suggest_methods(t.profiles)}

@@ -300,8 +300,8 @@ export function PreviewPanel({
 }) {
   const t = useT();
   const [open, setOpen] = useState(false);
-  const [pageSize, setPageSize] = useState(15);
-  const [rows, setRows] = useState<string[][]>(table.preview_rows.slice(0, 15));
+  const [pageSize, setPageSize] = useState(10);
+  const [rows, setRows] = useState<string[][]>(table.preview_rows.slice(0, 10));
   const [loading, setLoading] = useState(false);
   const byName = new Map(table.profiles.map((p) => [p.name, p]));
 
@@ -364,7 +364,7 @@ export function PreviewPanel({
             onChange={(e) => changePageSize(Number(e.target.value))}
             style={{ ...s.select, minWidth: 70, padding: "0.2rem 0.4rem" }}
           >
-            {[15, 30, 50, 100, 200].map((n) => (
+            {[10, 25, 50, 100].map((n) => (
               <option key={n} value={n}>
                 {n}
               </option>
@@ -377,6 +377,20 @@ export function PreviewPanel({
         <table style={s.table}>
           <thead>
             <tr>
+              {/* Индикатор номера строки */}
+              <th
+                style={{
+                  ...s.th,
+                  position: "sticky",
+                  top: 0,
+                  background: c.panel,
+                  color: c.muted,
+                  textAlign: "right",
+                  width: 1,
+                }}
+              >
+                #
+              </th>
               {table.header.map((h) => {
                 const p = byName.get(h);
                 return (
@@ -398,6 +412,17 @@ export function PreviewPanel({
           <tbody>
             {rows.map((row, i) => (
               <tr key={i}>
+                <td
+                  style={{
+                    ...s.td,
+                    ...s.mono,
+                    color: c.muted,
+                    textAlign: "right",
+                    userSelect: "none",
+                  }}
+                >
+                  {i + 1}
+                </td>
                 {table.header.map((_, j) => (
                   <td key={j} style={{ ...s.td, ...s.mono }}>
                     {row[j] ?? ""}
@@ -413,22 +438,6 @@ export function PreviewPanel({
           </div>
         )}
       </div>
-
-      {hasMore && (
-        <button
-          onClick={loadMore}
-          disabled={loading}
-          style={{
-            ...s.button,
-            background: "transparent",
-            color: c.accent,
-            padding: "0.5rem 0",
-            marginTop: "0.4rem",
-          }}
-        >
-          {t("preview.showMore")} {pageSize}
-        </button>
-      )}
 
       <div>
         <button
@@ -479,7 +488,7 @@ function ColumnDetails({
   const TYPES: ColumnType[] = ["numeric", "categorical", "date", "id"];
 
   return (
-    <div style={{ marginTop: "0.8rem", display: "grid", gap: "0.6rem" }}>
+    <div style={{ marginTop: "0.6rem", display: "grid", gap: "0.35rem" }}>
       {sorted.map((p) => {
         const highlight =
           p.issues.length > 0 || p.likely_categorical || p.likely_id;
@@ -491,7 +500,7 @@ function ColumnDetails({
               border: `1px solid ${highlight ? "#fde68a" : c.border}`,
               background: highlight ? c.warnBg : c.panel,
               borderRadius: 6,
-              padding: "0.6rem 0.8rem",
+              padding: "0.4rem 0.7rem",
             }}
           >
             <div
@@ -540,7 +549,7 @@ function ColumnDetails({
               </label>
             </div>
             {p.issues.map((issue, i) => (
-              <div key={i} style={{ fontSize: "0.85rem", marginTop: "0.35rem" }}>
+              <div key={i} style={{ fontSize: "0.85rem", marginTop: "0.2rem" }}>
                 {tm(issue)}
               </div>
             ))}
@@ -1024,6 +1033,16 @@ function SummaryTable({ result }: { result: StatResult }) {
     | undefined;
   const columns = (result.parameters.columns as string[] | undefined) ?? [];
 
+  const allMetrics = SUMMARY_ROWS.filter((m) =>
+    columns.some((col) => summary?.[col]?.[m] !== undefined),
+  );
+
+  // Транспонирование: колонки сверху (по умолчанию) или метрики сверху.
+  const [transposed, setTransposed] = useState(false);
+  // Какие метрики показывать (галочки). По умолчанию все.
+  const [hidden, setHidden] = useState<Set<string>>(new Set());
+  const [pickerOpen, setPickerOpen] = useState(false);
+
   if (!summary || columns.length === 0) {
     return (
       <div style={s.panel}>
@@ -1033,46 +1052,118 @@ function SummaryTable({ result }: { result: StatResult }) {
     );
   }
 
-  // Показываем только те метрики, что реально есть хотя бы у одной колонки.
-  const rows = SUMMARY_ROWS.filter((m) =>
-    columns.some((col) => summary[col]?.[m] !== undefined),
-  );
+  const metrics = allMetrics.filter((m) => !hidden.has(m));
+  const toggleMetric = (m: string) => {
+    const next = new Set(hidden);
+    next.has(m) ? next.delete(m) : next.add(m);
+    setHidden(next);
+  };
+
+  // Данные таблицы в выбранной ориентации.
+  const rowKeys = transposed ? columns : metrics;
+  const colKeys = transposed ? metrics : columns;
+  const cell = (rowKey: string, colKey: string): number | undefined => {
+    const [colName, metric] = transposed ? [rowKey, colKey] : [colKey, rowKey];
+    return summary[colName]?.[metric];
+  };
+  const colLabel = (k: string) => (transposed ? t(`m.${k}`) : k);
+  const rowLabel = (k: string) => (transposed ? k : t(`m.${k}`));
+
+  const ctrlBtn: React.CSSProperties = {
+    ...s.button,
+    background: "transparent",
+    color: c.accent,
+    border: `1px solid ${c.accent}`,
+    padding: "0.3rem 0.7rem",
+    fontSize: "0.82rem",
+  };
 
   return (
     <div style={s.panel}>
-      <h2 style={s.h2}>{t("summary.title")}</h2>
-      <div style={{ overflowX: "auto" }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          flexWrap: "wrap",
+          gap: "0.5rem",
+        }}
+      >
+        <h2 style={{ ...s.h2, margin: 0 }}>{t("summary.title")}</h2>
+        <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+          <button onClick={() => setTransposed(!transposed)} style={ctrlBtn}>
+            {t("summary.transpose")}
+          </button>
+          <button onClick={() => setPickerOpen(!pickerOpen)} style={ctrlBtn}>
+            {t("summary.columns")}
+          </button>
+        </div>
+      </div>
+
+      {pickerOpen && (
+        <div
+          style={{
+            marginTop: "0.6rem",
+            padding: "0.6rem 0.8rem",
+            border: `1px solid ${c.border}`,
+            borderRadius: 6,
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "0.5rem 1rem",
+          }}
+        >
+          {allMetrics.map((m) => (
+            <label
+              key={m}
+              style={{
+                fontSize: "0.82rem",
+                display: "flex",
+                alignItems: "center",
+                gap: "0.3rem",
+                cursor: "pointer",
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={!hidden.has(m)}
+                onChange={() => toggleMetric(m)}
+              />
+              {t(`m.${m}`)}
+            </label>
+          ))}
+        </div>
+      )}
+
+      <div style={{ overflowX: "auto", marginTop: "0.8rem" }}>
         <table style={s.table}>
           <thead>
             <tr>
-              <th style={{ ...s.th, position: "sticky", left: 0, background: c.panel }}>
-                {""}
-              </th>
-              {columns.map((col) => (
-                <th key={col} style={{ ...s.th, textAlign: "right" }}>
-                  {col}
+              <th style={stickyCol(c)}>{""}</th>
+              {colKeys.map((ck) => (
+                <th key={ck} style={{ ...s.th, textAlign: "right" }}>
+                  {colLabel(ck)}
                 </th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {rows.map((metric) => (
-              <tr key={metric}>
+            {rowKeys.map((rk) => (
+              <tr key={rk}>
                 <td
                   style={{
+                    ...stickyCol(c),
                     ...s.td,
                     position: "sticky",
                     left: 0,
-                    background: c.panel,
                     fontWeight: 500,
                     color: c.muted,
                   }}
                 >
-                  {t(`m.${metric}`)}
+                  {rowLabel(rk)}
                 </td>
-                {columns.map((col) => (
-                  <td key={col} style={{ ...s.td, ...s.mono, textAlign: "right" }}>
-                    {fmtSummary(summary[col]?.[metric])}
+                {colKeys.map((ck) => (
+                  <td key={ck} style={{ ...s.td, ...s.mono, textAlign: "right" }}>
+                    {fmtSummary(cell(rk, ck))}
                   </td>
                 ))}
               </tr>
@@ -1080,16 +1171,199 @@ function SummaryTable({ result }: { result: StatResult }) {
           </tbody>
         </table>
       </div>
-      <ExportButtons result={result} />
+      <SummaryExport
+        summary={summary}
+        columns={columns}
+        metrics={metrics}
+        metricLabel={(m) => t(`m.${m}`)}
+      />
     </div>
   );
 }
 
 /** Округление до 3 знаков; целые — без дробной части. */
+/** Стиль зафиксированного левого столбца: фон, z-index, тень-индикатор
+ *  прокрутки справа (намекает, что таблица шире экрана). */
+function stickyCol(colors: typeof c): React.CSSProperties {
+  return {
+    ...s.th,
+    position: "sticky",
+    left: 0,
+    background: colors.panel,
+    zIndex: 1,
+    boxShadow: "2px 0 4px -2px rgba(0,0,0,0.12)",
+  };
+}
+
 function fmtSummary(v: number | undefined): string {
   if (v === undefined || !Number.isFinite(v)) return "—";
   if (Number.isInteger(v)) return v.toString();
   return v.toFixed(3);
+}
+
+/** Экспорт сводной таблицы: CSV, Excel, PNG. */
+function SummaryExport({
+  summary,
+  columns,
+  metrics,
+  metricLabel,
+}: {
+  summary: Record<string, Record<string, number>>;
+  columns: string[];
+  metrics: string[];
+  metricLabel: (m: string) => string;
+}) {
+  // Матрица для экспорта: первая колонка — метрики, дальше — колонки данных.
+  const buildMatrix = (): (string | number)[][] => {
+    const header = ["", ...columns];
+    const body = metrics.map((m) => [
+      metricLabel(m),
+      ...columns.map((col) => {
+        const v = summary[col]?.[m];
+        return v === undefined || !Number.isFinite(v)
+          ? ""
+          : Number.isInteger(v)
+            ? v
+            : Number(v.toFixed(3));
+      }),
+    ]);
+    return [header, ...body];
+  };
+
+  const downloadBlob = (blob: Blob, filename: string) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const exportCsv = () => {
+    const csv = buildMatrix()
+      .map((row) =>
+        row
+          .map((cell) => {
+            const s = String(cell);
+            return /[",;\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+          })
+          .join(";"),
+      )
+      .join("\n");
+    // BOM для корректной кириллицы в Excel.
+    downloadBlob(
+      new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" }),
+      "biostat_summary.csv",
+    );
+  };
+
+  const exportExcel = async () => {
+    const XLSX = await import("xlsx");
+    const ws = XLSX.utils.aoa_to_sheet(buildMatrix());
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Summary");
+    XLSX.writeFile(wb, "biostat_summary.xlsx");
+  };
+
+  const exportPng = () => renderTablePng(buildMatrix(), "biostat_summary.png");
+
+  const btn: React.CSSProperties = {
+    ...s.button,
+    background: "transparent",
+    color: c.accent,
+    padding: "0.4rem 0.8rem",
+    marginTop: "0.8rem",
+    marginRight: "0.5rem",
+    fontSize: "0.85rem",
+  };
+
+  return (
+    <div>
+      <button onClick={exportCsv} style={btn}>
+        CSV
+      </button>
+      <button onClick={exportExcel} style={btn}>
+        Excel
+      </button>
+      <button onClick={exportPng} style={btn}>
+        PNG
+      </button>
+    </div>
+  );
+}
+
+/** Нарисовать таблицу на canvas и скачать как PNG. */
+function renderTablePng(matrix: (string | number)[][], filename: string): void {
+  const padding = 12;
+  const cellH = 28;
+  const fontSize = 13;
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+
+  ctx.font = `${fontSize}px system-ui, sans-serif`;
+  const nCols = matrix[0].length;
+  const colW: number[] = [];
+  for (let j = 0; j < nCols; j++) {
+    let max = 0;
+    for (const row of matrix) {
+      const w = ctx.measureText(String(row[j] ?? "")).width;
+      if (w > max) max = w;
+    }
+    colW.push(max + padding * 2);
+  }
+  const totalW = colW.reduce((a, b) => a + b, 0);
+  const totalH = matrix.length * cellH;
+
+  // Ретина: рисуем в 2x для чёткости.
+  const scale = 2;
+  canvas.width = totalW * scale;
+  canvas.height = totalH * scale;
+  ctx.scale(scale, scale);
+  ctx.font = `${fontSize}px system-ui, sans-serif`;
+  ctx.textBaseline = "middle";
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, totalW, totalH);
+
+  matrix.forEach((row, i) => {
+    const y = i * cellH;
+    if (i === 0) {
+      ctx.fillStyle = "#f4f4f5";
+      ctx.fillRect(0, y, totalW, cellH);
+    }
+    let x = 0;
+    row.forEach((cellVal, j) => {
+      ctx.fillStyle = i === 0 || j === 0 ? "#18181b" : "#334155";
+      ctx.font =
+        i === 0 || j === 0
+          ? `600 ${fontSize}px system-ui, sans-serif`
+          : `${fontSize}px system-ui, sans-serif`;
+      const text = String(cellVal ?? "");
+      if (j === 0 || i === 0) {
+        ctx.textAlign = "left";
+        ctx.fillText(text, x + padding, y + cellH / 2);
+      } else {
+        ctx.textAlign = "right";
+        ctx.fillText(text, x + colW[j] - padding, y + cellH / 2);
+      }
+      x += colW[j];
+    });
+    ctx.strokeStyle = "#e4e4e7";
+    ctx.beginPath();
+    ctx.moveTo(0, y + cellH);
+    ctx.lineTo(totalW, y + cellH);
+    ctx.stroke();
+  });
+
+  canvas.toBlob((blob) => {
+    if (!blob) return;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, "image/png");
 }
 
 function ExportButtons({ result }: { result: StatResult }) {

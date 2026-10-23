@@ -101,3 +101,39 @@ def test_needs_populated():
     anova = methods["one_way_anova"]
     assert "sort" in anova["needs"]["group"]
     assert "yield" in anova["needs"]["value"]
+
+
+def test_catalog_params_match_function_signatures():
+    """Каждый параметр каталога существует в сигнатуре своей функции.
+
+    Ловит рассинхрон имён (баг: каталог слал 'level', а регрессия
+    принимает 'ci_level').
+    """
+    import importlib
+    import inspect
+
+    # Метод -> модуль ядра (соответствует METHOD_MODULES в мосте).
+    modules = {
+        "describe_all": "core.stats.descriptive",
+        "mean_ci": "core.stats.descriptive",
+        "normality_test": "core.stats.diagnostics",
+        "one_sample_t": "core.stats.hypothesis",
+        "two_sample_t": "core.stats.hypothesis",
+        "mann_whitney": "core.stats.hypothesis",
+        "paired_t": "core.stats.hypothesis",
+        "wilcoxon": "core.stats.hypothesis",
+        "one_way_anova": "core.stats.anova",
+        "tukey_hsd": "core.stats.anova",
+        "kruskal_wallis": "core.stats.anova",
+        "simple_linear_regression": "core.stats.regression",
+    }
+    for spec in CATALOG:
+        if not spec.params:
+            continue
+        fn = getattr(importlib.import_module(modules[spec.method]), spec.method)
+        sig = set(inspect.signature(fn).parameters)
+        for param in spec.params:
+            assert param.name in sig, (
+                f"{spec.method}: параметр '{param.name}' отсутствует "
+                f"в сигнатуре {sorted(sig)}"
+            )

@@ -125,6 +125,15 @@ _CI_LEVEL = Param(
     min=0.5,
     max=0.999,
 )
+# Регрессия принимает параметр под именем ci_level, а не level.
+_REG_CI_LEVEL = Param(
+    name="ci_level",
+    label="Уровень доверия",
+    kind="float",
+    default=0.95,
+    min=0.5,
+    max=0.999,
+)
 
 # Полный каталог методов.
 CATALOG: list[MethodSpec] = [
@@ -242,7 +251,7 @@ CATALOG: list[MethodSpec] = [
         group="Связь переменных",
         slots={"x": _NUM, "y": _NUM},
         slot_labels={"x": "X (независимая)", "y": "Y (зависимая)"},
-        params=[_CI_LEVEL],
+        params=[_REG_CI_LEVEL],
         description="Модель y = b0 + b1·x с оценками и доверительными интервалами.",
     ),
 ]
