@@ -223,6 +223,15 @@ def detect_dialect(raw: bytes) -> DialectInfo:
         notes.append(msg("unreadable_chars",
                           "В тексте есть нечитаемые символы — вероятно, кодировка неверна"))
 
+    # NUL-байт проходит сквозь decode(errors="replace") как валидный
+    # кодпоинт, но ломает csv.reader на Python < 3.13 (line contains NUL).
+    # В нормальном тексте NUL не бывает — всегда артефакт битой кодировки.
+    if "\x00" in text:
+        text = text.replace("\x00", "")
+        if not any(n.get("code") == "unreadable_chars" for n in notes):
+            notes.append(msg("unreadable_chars",
+                              "В тексте есть нечитаемые символы — вероятно, кодировка неверна"))
+
     delimiter, delim_conf = detect_delimiter(text)
     if delim_conf < 0.8:
         notes.append(msg("unstable_delimiter",
