@@ -48,6 +48,8 @@ LABELS: dict[str, dict[str, str]] = {
         "Тест Бартлетта (равенство дисперсий)": "Bartlett's test (equal variances)",
         "Остатки ANOVA и выбросы": "ANOVA residuals and outliers",
         "ANOVA с трансформацией отклика": "ANOVA on a transformed response",
+        "Блочный ANOVA (RCBD)": "Randomized block ANOVA (RCBD)",
+        "Блочный ANOVA с повторными измерениями делянки": "Block ANOVA with repeated measurements per plot",
         "Простая линейная регрессия": "Simple linear regression",
         "Корреляция Пирсона": "Pearson correlation",
     },
@@ -68,6 +70,8 @@ LABELS: dict[str, dict[str, str]] = {
         "Тест Бартлетта (равенство дисперсий)": "Teste de Bartlett (igualdade de variâncias)",
         "Остатки ANOVA и выбросы": "Resíduos da ANOVA e valores atípicos",
         "ANOVA с трансформацией отклика": "ANOVA com resposta transformada",
+        "Блочный ANOVA (RCBD)": "ANOVA em blocos casualizados (RCBD)",
+        "Блочный ANOVA с повторными измерениями делянки": "ANOVA em blocos com medições repetidas por parcela",
         "Простая линейная регрессия": "Regressão linear simples",
         "Корреляция Пирсона": "Correlação de Pearson",
     },
@@ -115,6 +119,12 @@ DESCRIPTIONS: dict[str, dict[str, str]] = {
         ),
         "ANOVA на шкале log, √ или logit; средние и ДИ переведены обратно.": (
             "ANOVA on the log, √ or logit scale; means and CIs back-transformed."
+        ),
+        "Каждый вариант по одному разу в каждом блоке; блоки отделяются от фона.": (
+            "Each treatment once in every block; block differences are separated from background."
+        ),
+        "Несколько измерений на делянку (ряды, растения): варианты против разброса делянок.": (
+            "Several measurements per plot (rows, plants): treatments tested against plot-to-plot variation."
         ),
         "Модель y = b0 + b1·x с оценками и доверительными интервалами.": (
             "Model y = b0 + b1·x with estimates and confidence intervals."
@@ -164,6 +174,12 @@ DESCRIPTIONS: dict[str, dict[str, str]] = {
         "ANOVA на шкале log, √ или logit; средние и ДИ переведены обратно.": (
             "ANOVA na escala log, √ ou logit; médias e IC retransformados."
         ),
+        "Каждый вариант по одному разу в каждом блоке; блоки отделяются от фона.": (
+            "Cada tratamento uma vez em cada bloco; as diferenças entre blocos são separadas do ruído."
+        ),
+        "Несколько измерений на делянку (ряды, растения): варианты против разброса делянок.": (
+            "Várias medições por parcela (linhas, plantas): tratamentos testados contra a variação entre parcelas."
+        ),
         "Модель y = b0 + b1·x с оценками и доверительными интервалами.": (
             "Modelo y = b0 + b1·x com estimativas e intervalos de confiança."
         ),
@@ -182,6 +198,9 @@ LABELS_MISC: dict[str, dict[str, str]] = {
         "Колонка «после»": "After column",
         "X (независимая)": "X (independent)",
         "Y (зависимая)": "Y (dependent)",
+        "Колонка вариантов": "Treatment column",
+        "Колонка блоков": "Block column",
+        "Колонка делянок": "Plot column",
         "Переменная X": "Variable X",
         "Переменная Y": "Variable Y",
         "Гипотеза": "Alternative",
@@ -199,6 +218,9 @@ LABELS_MISC: dict[str, dict[str, str]] = {
         "Колонка «после»": "Coluna «depois»",
         "X (независимая)": "X (independente)",
         "Y (зависимая)": "Y (dependente)",
+        "Колонка вариантов": "Coluna de tratamentos",
+        "Колонка блоков": "Coluna de blocos",
+        "Колонка делянок": "Coluna de parcelas",
         "Переменная X": "Variável X",
         "Переменная Y": "Variável Y",
         "Гипотеза": "Hipótese",

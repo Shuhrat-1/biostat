@@ -142,6 +142,8 @@ export interface ColumnSelection {
   y?: string;
   before?: string;
   after?: string;
+  block?: string;
+  unit?: string;
 }
 
 const METHOD_MODULES: Record<string, string> = {
@@ -160,6 +162,8 @@ const METHOD_MODULES: Record<string, string> = {
   bartlett_test: "core.stats.anova_checks",
   anova_residuals: "core.stats.anova_checks",
   transformed_means: "core.stats.transforms",
+  rcbd_anova: "core.stats.blocking",
+  rcbd_subsampling_anova: "core.stats.blocking",
   simple_linear_regression: "core.stats.regression",
   pearson_correlation: "core.stats.correlation",
   diagnose: "core.stats.diagnostics",
@@ -182,6 +186,9 @@ const GROUPED_METHODS = new Set([
 
 /** Методы, которым нужны две числовые колонки. */
 const XY_METHODS = new Set(["simple_linear_regression", "pearson_correlation"]);
+
+/** Блочные дизайны: отклик, варианты, блоки (и делянки) построчно. */
+const BLOCKED_METHODS = new Set(["rcbd_anova", "rcbd_subsampling_anova"]);
 
 /** Парные методы: две числовые колонки как связанные измерения (до/после). */
 const PAIRED_METHODS = new Set(["paired_t", "wilcoxon"]);
@@ -263,6 +270,8 @@ export async function runMethod(
   const kind =
     method === "describe_all"
       ? "summary"
+      : BLOCKED_METHODS.has(method)
+        ? "blocked"
       : GROUPED_METHODS.has(method)
         ? method === "two_sample_t" || method === "mann_whitney"
           ? "two_groups"
@@ -297,6 +306,12 @@ elif _kind == "two_groups":
             f"Нужно ровно 2 группы, найдено {len(_keys)}: {', '.join(_keys)}"
         )
     _result = _fn(_groups[_keys[0]], _groups[_keys[1]], **_kwargs)
+elif _kind == "blocked":
+    _factor_keys = ["group", "block"] + (["unit"] if "unit" in _cols else [])
+    _values, _factors = _table.factor_columns(
+        _cols["value"], [_cols[k] for k in _factor_keys]
+    )
+    _result = _fn(_values, *_factors, **_kwargs)
 elif _kind == "xy":
     _result = _fn(
         _table.numeric_column(_cols["x"]),
@@ -348,6 +363,8 @@ json.dumps(diagnose(builtins.__biostat_last).to_dict(), ensure_ascii=False)
 export function requiredColumns(method: string): Array<keyof ColumnSelection> {
   if (GROUPED_METHODS.has(method)) return ["value", "group"];
   if (XY_METHODS.has(method)) return ["x", "y"];
+  if (method === "rcbd_subsampling_anova") return ["value", "group", "block", "unit"];
+  if (BLOCKED_METHODS.has(method)) return ["value", "group", "block"];
   return ["value"];
 }
 
@@ -416,6 +433,13 @@ elif _method == "simple_linear_regression":
         _bundle["qq"] = _diag["qq"]
     if "residual_vs_fitted" in _diag:
         _bundle["residual_vs_fitted"] = _diag["residual_vs_fitted"]
+
+elif _method in ("rcbd_anova", "rcbd_subsampling_anova") and "plots" in _res.parameters:
+    # Варианты по группам + графики остатков модели делянок (гл. 5, 7).
+    _bundle["boxplot"] = plotdata.boxplot_data(_t.groups_by(_cols["value"], _cols["group"]))
+    _p = _res.parameters["plots"]
+    _bundle["residual_vs_fitted"] = _p["residual_vs_fitted"]
+    _bundle["qq"] = _p["qq"]
 
 elif _method == "anova_residuals" and "plots" in _res.parameters:
     # Графики допущений по стандартизованным остаткам (гл. 5.2).

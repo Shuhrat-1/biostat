@@ -265,3 +265,15 @@ def test_suggest_methods_numeric_only():
     methods = {s["method"] for s in suggest_methods(t.profiles)}
     assert "describe_all" in methods
     assert "one_way_anova" not in methods  # нет категориальной колонки
+
+
+def test_factor_columns_aligned_with_decimal_comma_and_missing():
+    """Колонки для блочных дизайнов: порядок строк сохранён, «5,24» → 5.24."""
+    from core.validation.parser import parse_file
+
+    table = parse_file("Блок;Вариант;Урожай\n1;A;5,24\n1;B;\n2;A;6,1\n2;;7\n".encode("utf-8"))
+    values, (variants, blocks) = table.factor_columns("Урожай", ["Вариант", "Блок"])
+    assert values[0] == 5.24 and values[2] == 6.1 and values[3] == 7.0
+    assert values[1] != values[1]  # пропуск → NaN, строка не выброшена
+    assert variants == ["A", "B", "A", ""]
+    assert blocks == ["1", "1", "2", "2"]

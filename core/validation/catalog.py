@@ -56,8 +56,9 @@ class MethodSpec:
     method: str
     label: str
     group: str
-    # Слоты колонок: имя слота -> какой тип колонки принимает.
-    slots: dict[str, ColumnType]
+    # Слоты колонок: имя слота -> тип колонки или кортеж допустимых типов
+    # (блоки и делянки часто закодированы числами 1, 2, 3…).
+    slots: dict[str, ColumnType | tuple[ColumnType, ...]]
     slot_labels: dict[str, str]
     params: list[Param] = field(default_factory=list)
     # Сколько групп нужно категориальной колонке: None — любое ≥2.
@@ -78,7 +79,7 @@ class MethodSpec:
 
         by_type = _columns_by_type(profiles)
         needs = {
-            slot: by_type.get(col_type, []) for slot, col_type in self.slots.items()
+            slot: _eligible(by_type, col_type) for slot, col_type in self.slots.items()
         }
         slot_labels = {
             slot: tr(LABELS_MISC, label, lang)
@@ -109,6 +110,8 @@ GROUPS = [
 
 _NUM = ColumnType.NUMERIC
 _CAT = ColumnType.CATEGORICAL
+# Структурный фактор (блок, делянка): категориальный или числовой код.
+_FACTOR = (ColumnType.CATEGORICAL, ColumnType.NUMERIC)
 
 _ALTERNATIVE = Param(
     name="alternative",
@@ -285,6 +288,37 @@ CATALOG: list[MethodSpec] = [
         description="ANOVA на шкале log, √ или logit; средние и ДИ переведены обратно.",
     ),
     MethodSpec(
+        method="rcbd_anova",
+        label="Блочный ANOVA (RCBD)",
+        group="Сравнение нескольких групп",
+        slots={"value": _NUM, "group": _CAT, "block": _FACTOR},
+        slot_labels={
+            "value": "Числовая колонка",
+            "group": "Колонка вариантов",
+            "block": "Колонка блоков",
+        },
+        params=[
+            Param("alpha", "Уровень значимости α", "float", 0.05, min=0.001, max=0.2),
+        ],
+        description="Каждый вариант по одному разу в каждом блоке; блоки отделяются от фона.",
+    ),
+    MethodSpec(
+        method="rcbd_subsampling_anova",
+        label="Блочный ANOVA с повторными измерениями делянки",
+        group="Сравнение нескольких групп",
+        slots={"value": _NUM, "group": _CAT, "block": _FACTOR, "unit": _FACTOR},
+        slot_labels={
+            "value": "Числовая колонка",
+            "group": "Колонка вариантов",
+            "block": "Колонка блоков",
+            "unit": "Колонка делянок",
+        },
+        params=[
+            Param("alpha", "Уровень значимости α", "float", 0.05, min=0.001, max=0.2),
+        ],
+        description="Несколько измерений на делянку (ряды, растения): варианты против разброса делянок.",
+    ),
+    MethodSpec(
         method="paired_t",
         label="Парный t-тест",
         group="Парные измерения",
@@ -331,6 +365,14 @@ def _columns_by_type(profiles: list[ColumnProfile]) -> dict[ColumnType, list[str
     return result
 
 
+def _eligible(
+    by_type: dict[ColumnType, list[str]], col_type: ColumnType | tuple[ColumnType, ...]
+) -> list[str]:
+    """Колонки, подходящие слоту с одним или несколькими допустимыми типами."""
+    types = col_type if isinstance(col_type, tuple) else (col_type,)
+    return [name for t in types for name in by_type.get(t, [])]
+
+
 def _slot_satisfiable(
     spec: MethodSpec, by_type: dict[ColumnType, list[str]]
 ) -> bool:
@@ -348,7 +390,9 @@ def _slot_satisfiable(
         return False
     if _CAT in spec.slots.values() and not by_type.get(_CAT):
         return False
-    return True
+    # Каждому слоту нужна своя колонка: хватает ли подходящих колонок в сумме.
+    eligible = {name for t in spec.slots.values() for name in _eligible(by_type, t)}
+    return len(eligible) >= len(spec.slots)
 
 
 def available_methods(

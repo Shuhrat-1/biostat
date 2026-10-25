@@ -14,6 +14,12 @@ NUMERIC_ONLY = b"x,y\n1,2\n3,4\n5,6\n7,8\n"
 NUM_AND_CAT = (
     "sort,yield\n" + "\n".join(f"{'ab'[i % 2]},{i}" for i in range(20)) + "\n"
 ).encode("utf-8")
+# Блочный дизайн: блоки и делянки закодированы числами, как в файлах книги.
+BLOCKED = (
+    "block,plot,sort,yield\n"
+    + "\n".join(f"{b},{p},{'abcde'[p - 1]},{b * 10 + p}" for b in range(1, 5) for p in range(1, 6))
+    + "\n"
+).encode("utf-8")
 
 
 def test_numeric_only_methods():
@@ -48,7 +54,8 @@ def test_all_catalog_methods_covered():
     """Каждый метод каталога попадает хоть в какой-то состав данных."""
     num = {m["method"] for m in available_methods(_profiles(NUMERIC_ONLY))}
     cat = {m["method"] for m in available_methods(_profiles(NUM_AND_CAT))}
-    covered = num | cat
+    blocked = {m["method"] for m in available_methods(_profiles(BLOCKED))}
+    covered = num | cat | blocked
     all_methods = {spec.method for spec in CATALOG}
     assert all_methods == covered
 
@@ -130,6 +137,8 @@ def test_catalog_params_match_function_signatures():
         "bartlett_test": "core.stats.anova_checks",
         "anova_residuals": "core.stats.anova_checks",
         "transformed_means": "core.stats.transforms",
+        "rcbd_anova": "core.stats.blocking",
+        "rcbd_subsampling_anova": "core.stats.blocking",
         "simple_linear_regression": "core.stats.regression",
         "pearson_correlation": "core.stats.correlation",
     }
@@ -143,3 +152,18 @@ def test_catalog_params_match_function_signatures():
                 f"{spec.method}: параметр '{param.name}' отсутствует "
                 f"в сигнатуре {sorted(sig)}"
             )
+
+
+def test_blocked_methods_accept_numeric_block_codes():
+    """Блоки 1…4 типизируются как числа — слот блока должен их предлагать."""
+    methods = {m["method"]: m for m in available_methods(_profiles(BLOCKED))}
+    rcbd = methods["rcbd_anova"]
+    assert "block" in rcbd["needs"]["block"]
+    assert rcbd["needs"]["group"] == ["sort"]
+    assert "rcbd_subsampling_anova" in methods
+
+
+def test_blocked_methods_hidden_without_enough_columns():
+    """Двух колонок мало для блочного анализа (нужны отклик, варианты, блоки)."""
+    methods = {m["method"] for m in available_methods(_profiles(NUM_AND_CAT))}
+    assert "rcbd_anova" not in methods

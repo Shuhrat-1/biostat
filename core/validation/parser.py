@@ -215,6 +215,27 @@ class ParsedTable:
             if p.detected_type == _CT.NUMERIC
         }
 
+    def factor_columns(
+        self, value_column: str, factor_columns: list[str]
+    ) -> tuple[list[float], list[list[str]]]:
+        """Числовая колонка и колонки-факторы, выровненные по строкам.
+
+        Для дизайнов со структурой (блоки, делянки): строки не группируются,
+        порядок сохраняется. Число разбирается по диалекту файла (десятичная
+        запятая); пропуск или нечисло → NaN, пропуск в факторе → "".
+        Удаление неполных строк — на стороне метода.
+        """
+        decimal = self.dialect.decimal
+        values: list[float] = []
+        for raw in self.column_values(value_column):
+            number = None if is_missing(raw) else parse_number(raw, decimal)
+            values.append(float("nan") if number is None else number)
+        factors = [
+            ["" if is_missing(v) else v.strip() for v in self.column_values(col)]
+            for col in factor_columns
+        ]
+        return values, factors
+
     def groups_by(self, value_column: str, group_column: str) -> dict[str, list[float]]:
         """Разбить числовую колонку на группы по категориальной.
 

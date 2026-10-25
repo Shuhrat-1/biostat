@@ -126,6 +126,31 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     en: `The X variable does not vary — the regression slope is undefined.`,
     pt: `A variável X não varia — o declive da regressão é indefinido.`,
   },
+  rcbd_duplicate_cells: {
+    ru: `Несколько наблюдений на один вариант в блоке. Если это измерения одной делянки (ряды, растения) — выбери анализ с повторными измерениями делянки и укажи колонку делянок.`,
+    en: `Several observations per treatment within a block. If these are measurements of one plot (rows, plants), choose the analysis with repeated measurements per plot and select the plot column.`,
+    pt: `Várias observações por tratamento dentro de um bloco. Se forem medições da mesma parcela (linhas, plantas), escolha a análise com medições repetidas por parcela e indique a coluna de parcelas.`,
+  },
+  rcbd_unit_mixed: {
+    ru: `В одной делянке встречаются разные варианты — проверь колонки делянок и вариантов.`,
+    en: `One plot contains different treatments — check the plot and treatment columns.`,
+    pt: `Uma parcela contém tratamentos diferentes — verifique as colunas de parcelas e de tratamentos.`,
+  },
+  rcbd_unequal_subsamples: {
+    ru: `Число измерений на делянку разное — для такого (несбалансированного) случая нужны смешанные модели.`,
+    en: `The number of measurements per plot differs — this unbalanced case needs mixed models.`,
+    pt: `O número de medições por parcela difere — este caso não equilibrado requer modelos mistos.`,
+  },
+  rcbd_incomplete: {
+    ru: `Не каждый вариант встречается ровно один раз в каждом блоке: дизайн неполный или несбалансированный.`,
+    en: `Not every treatment appears exactly once in every block: the design is incomplete or unbalanced.`,
+    pt: `Nem todos os tratamentos aparecem exatamente uma vez em cada bloco: o delineamento está incompleto ou desequilibrado.`,
+  },
+  rcbd_too_small: {
+    ru: `Нужно не меньше 2 блоков и 2 вариантов.`,
+    en: `At least 2 blocks and 2 treatments are required.`,
+    pt: `São necessários pelo menos 2 blocos e 2 tratamentos.`,
+  },
   levene_undefined: {
     ru: `Тест Левене не определён: в группах слишком мало наблюдений. Равенство дисперсий не проверено.`,
     en: `Levene's test is undefined: the groups have too few observations. Equality of variances was not checked.`,
