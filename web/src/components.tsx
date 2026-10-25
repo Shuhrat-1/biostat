@@ -791,6 +791,20 @@ function ParamField({
   // Источник подстановки: "" = ручной ввод, иначе имя колонки.
   const [source, setSource] = useState<string>("");
 
+  if (param.kind === "text") {
+    return (
+      <div style={{ flex: "1 1 18rem" }}>
+        <label style={s.label}>{param.label}</label>
+        <input
+          type="text"
+          style={{ ...s.select, width: "100%" }}
+          value={String(value ?? param.default ?? "")}
+          onChange={(e) => onChange(e.target.value)}
+        />
+      </div>
+    );
+  }
+
   if (param.kind === "select") {
     return (
       <div>

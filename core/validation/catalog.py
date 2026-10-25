@@ -27,7 +27,7 @@ class Param:
 
     name: str
     label: str
-    kind: str  # "number" | "select" | "float"
+    kind: str  # "number" | "select" | "float" | "text"
     default: Any
     options: list[str] = field(default_factory=list)
     min: float | None = None
@@ -108,6 +108,9 @@ _TRANSFORM_NONE = Param(
     "none",
     options=["none", "log10", "ln", "sqrt", "logit", "logit_pct"],
 )
+
+# Контрасты: «A + C vs B; A vs C» или «F1=0.5, F2=-0.5, …», через «;».
+_CONTRASTS = Param("contrasts", "Контрасты (A + C vs B; A vs C)", "text", "")
 
 # Группы витрины в порядке показа.
 GROUPS = [
@@ -347,6 +350,7 @@ CATALOG: list[MethodSpec] = [
             Param("alpha", "Уровень значимости α", "float", 0.05, min=0.001, max=0.2),
             _TRANSFORM_NONE,
             Param("offset", "Сдвиг c", "float", 0.0, min=0.0, max=1000.0),
+            _CONTRASTS,
         ],
         description="Главные эффекты и взаимодействия; средние по членам, отобранным по маргинальности.",
         optional_slots=("factor_c", "block"),
@@ -368,6 +372,69 @@ CATALOG: list[MethodSpec] = [
             Param("offset", "Сдвиг c", "float", 0.0, min=0.0, max=1000.0),
         ],
         description="Различия между группами и между членами внутри групп (контроль против остальных).",
+        optional_slots=("block",),
+    ),
+    MethodSpec(
+        method="treatment_contrasts",
+        label="Контрасты вариантов",
+        group="Сравнение нескольких групп",
+        slots={"value": _NUM, "group": _FACTOR, "block": _FACTOR},
+        slot_labels={
+            "value": "Числовая колонка",
+            "group": "Колонка вариантов",
+            "block": "Колонка блоков (необязательно)",
+        },
+        params=[
+            _CONTRASTS,
+            Param("adjustment", "Поправка на множественность", "select", "none",
+                  options=["none", "bonferroni", "fdr"]),
+            Param("alpha", "Уровень значимости α", "float", 0.05, min=0.001, max=0.2),
+            _TRANSFORM_NONE,
+            Param("offset", "Сдвиг c", "float", 0.0, min=0.0, max=1000.0),
+        ],
+        description="Заранее заданные сравнения групп вариантов (A + C vs B) с разбиением SS вариантов.",
+        optional_slots=("block",),
+    ),
+    MethodSpec(
+        method="polynomial_contrasts",
+        label="Полиномиальный тренд по уровням",
+        group="Сравнение нескольких групп",
+        slots={"value": _NUM, "group": _FACTOR, "block": _FACTOR},
+        slot_labels={
+            "value": "Числовая колонка",
+            "group": "Колонка уровней (дозы, числа)",
+            "block": "Колонка блоков (необязательно)",
+        },
+        params=[
+            Param("degree", "Степень полинома", "number", 2, min=1, max=4),
+            Param("alpha", "Уровень значимости α", "float", 0.05, min=0.001, max=0.2),
+            _TRANSFORM_NONE,
+            Param("offset", "Сдвиг c", "float", 0.0, min=0.0, max=1000.0),
+        ],
+        description="Линейный и квадратичный тренд по количественным уровням и проверка остатка.",
+        optional_slots=("block",),
+    ),
+    MethodSpec(
+        method="mean_comparisons",
+        label="Сравнения средних с поправкой (Тьюки, Даннет, FDR)",
+        group="Сравнение нескольких групп",
+        slots={"value": _NUM, "group": _FACTOR, "block": _FACTOR},
+        slot_labels={
+            "value": "Числовая колонка",
+            "group": "Колонка вариантов",
+            "block": "Колонка блоков (необязательно)",
+        },
+        params=[
+            Param("procedure", "Процедура", "select", "tukey",
+                  options=["tukey", "dunnett", "bonferroni", "fdr", "lsd", "alsd"]),
+            Param("control", "Контрольный уровень (для сравнений с контролем)", "text", ""),
+            Param("alternative", "Гипотеза", "select", "two-sided",
+                  options=["two-sided", "greater", "less"]),
+            Param("alpha", "Уровень значимости α", "float", 0.05, min=0.001, max=0.2),
+            _TRANSFORM_NONE,
+            Param("offset", "Сдвиг c", "float", 0.0, min=0.0, max=1000.0),
+        ],
+        description="Все пары или каждый вариант против контроля с контролем ошибки I рода.",
         optional_slots=("block",),
     ),
     MethodSpec(

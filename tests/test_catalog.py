@@ -141,6 +141,9 @@ def test_catalog_params_match_function_signatures():
         "rcbd_subsampling_anova": "core.stats.blocking",
         "factorial_anova": "core.stats.factorial",
         "nested_anova": "core.stats.factorial",
+        "treatment_contrasts": "core.stats.contrasts",
+        "polynomial_contrasts": "core.stats.contrasts",
+        "mean_comparisons": "core.stats.multcomp",
         "simple_linear_regression": "core.stats.regression",
         "pearson_correlation": "core.stats.correlation",
     }
@@ -186,3 +189,13 @@ def test_structured_methods_hidden_with_two_columns():
     methods = {m["method"] for m in available_methods(_profiles(NUM_AND_CAT))}
     assert "factorial_anova" not in methods
     assert "nested_anova" not in methods
+
+
+def test_contrast_methods_available_with_two_columns():
+    """Контрасты и сравнения средних: отклик + варианты, блок необязателен."""
+    methods = {m["method"]: m for m in available_methods(_profiles(NUM_AND_CAT))}
+    for name in ("treatment_contrasts", "polynomial_contrasts", "mean_comparisons"):
+        assert methods[name]["optional_slots"] == ["block"]
+    params = {p["name"]: p for p in methods["mean_comparisons"]["params"]}
+    assert params["control"]["kind"] == "text"
+    assert "dunnett" in params["procedure"]["options"]

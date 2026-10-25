@@ -102,7 +102,7 @@ export interface QualitySummary {
 export interface MethodParam {
   name: string;
   label: string;
-  kind: "number" | "select" | "float";
+  kind: "number" | "select" | "float" | "text";
   default: string | number;
   options: string[];
   min: number | null;
@@ -172,6 +172,9 @@ const METHOD_MODULES: Record<string, string> = {
   rcbd_subsampling_anova: "core.stats.blocking",
   factorial_anova: "core.stats.factorial",
   nested_anova: "core.stats.factorial",
+  treatment_contrasts: "core.stats.contrasts",
+  polynomial_contrasts: "core.stats.contrasts",
+  mean_comparisons: "core.stats.multcomp",
   simple_linear_regression: "core.stats.regression",
   pearson_correlation: "core.stats.correlation",
   diagnose: "core.stats.diagnostics",
@@ -199,7 +202,13 @@ const XY_METHODS = new Set(["simple_linear_regression", "pearson_correlation"]);
 const BLOCKED_METHODS = new Set(["rcbd_anova", "rcbd_subsampling_anova"]);
 
 /** Структуры вариантов (гл. 8): слоты передаются по имени, пустые — пропускаются. */
-const STRUCTURED_METHODS = new Set(["factorial_anova", "nested_anova"]);
+const STRUCTURED_METHODS = new Set([
+  "factorial_anova",
+  "nested_anova",
+  "treatment_contrasts",
+  "polynomial_contrasts",
+  "mean_comparisons",
+]);
 
 /** Парные методы: две числовые колонки как связанные измерения (до/после). */
 const PAIRED_METHODS = new Set(["paired_t", "wilcoxon"]);
@@ -386,6 +395,7 @@ export function requiredColumns(method: string): Array<keyof ColumnSelection> {
   if (method === "rcbd_subsampling_anova") return ["value", "group", "block", "unit"];
   if (method === "factorial_anova") return ["value", "factor_a", "factor_b"];
   if (method === "nested_anova") return ["value", "group", "member"];
+  if (STRUCTURED_METHODS.has(method)) return ["value", "group"];
   if (BLOCKED_METHODS.has(method)) return ["value", "group", "block"];
   return ["value"];
 }
@@ -463,7 +473,10 @@ elif _method in ("rcbd_anova", "rcbd_subsampling_anova") and "plots" in _res.par
     _bundle["residual_vs_fitted"] = _p["residual_vs_fitted"]
     _bundle["qq"] = _p["qq"]
 
-elif _method in ("factorial_anova", "nested_anova") and "plots" in _res.parameters:
+elif _method in (
+    "factorial_anova", "nested_anova", "treatment_contrasts",
+    "polynomial_contrasts", "mean_comparisons",
+) and "plots" in _res.parameters:
     # Графики остатков модели со всеми членами (гл. 5, 8).
     _p = _res.parameters["plots"]
     _bundle["residual_vs_fitted"] = _p["residual_vs_fitted"]

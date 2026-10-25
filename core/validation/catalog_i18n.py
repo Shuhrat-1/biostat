@@ -52,6 +52,9 @@ LABELS: dict[str, dict[str, str]] = {
         "Блочный ANOVA с повторными измерениями делянки": "Block ANOVA with repeated measurements per plot",
         "Факторный ANOVA (A×B, A×B×C)": "Factorial ANOVA (A×B, A×B×C)",
         "Вложенный ANOVA (группа / член, контроль)": "Nested ANOVA (group / member, controls)",
+        "Контрасты вариантов": "Treatment contrasts",
+        "Полиномиальный тренд по уровням": "Polynomial trend across levels",
+        "Сравнения средних с поправкой (Тьюки, Даннет, FDR)": "Adjusted mean comparisons (Tukey, Dunnett, FDR)",
         "Простая линейная регрессия": "Simple linear regression",
         "Корреляция Пирсона": "Pearson correlation",
     },
@@ -76,6 +79,9 @@ LABELS: dict[str, dict[str, str]] = {
         "Блочный ANOVA с повторными измерениями делянки": "ANOVA em blocos com medições repetidas por parcela",
         "Факторный ANOVA (A×B, A×B×C)": "ANOVA fatorial (A×B, A×B×C)",
         "Вложенный ANOVA (группа / член, контроль)": "ANOVA hierárquica (grupo / membro, controlos)",
+        "Контрасты вариантов": "Contrastes de tratamentos",
+        "Полиномиальный тренд по уровням": "Tendência polinomial entre níveis",
+        "Сравнения средних с поправкой (Тьюки, Даннет, FDR)": "Comparações de médias com correção (Tukey, Dunnett, FDR)",
         "Простая линейная регрессия": "Regressão linear simples",
         "Корреляция Пирсона": "Correlação de Pearson",
     },
@@ -136,6 +142,9 @@ DESCRIPTIONS: dict[str, dict[str, str]] = {
         "Различия между группами и между членами внутри групп (контроль против остальных).": (
             "Differences between groups and between members within groups (control vs the rest)."
         ),
+        "Заранее заданные сравнения групп вариантов (A + C vs B) с разбиением SS вариантов.": "Pre-planned comparisons of treatment sets (A + C vs B) partitioning the treatment SS.",
+        "Линейный и квадратичный тренд по количественным уровням и проверка остатка.": "Linear and quadratic trend across quantitative levels, with a lack-of-fit test.",
+        "Все пары или каждый вариант против контроля с контролем ошибки I рода.": "All pairs or each treatment against a control, with Type I error control.",
         "Модель y = b0 + b1·x с оценками и доверительными интервалами.": (
             "Model y = b0 + b1·x with estimates and confidence intervals."
         ),
@@ -196,6 +205,9 @@ DESCRIPTIONS: dict[str, dict[str, str]] = {
         "Различия между группами и между членами внутри групп (контроль против остальных).": (
             "Diferenças entre grupos e entre membros dentro dos grupos (controlo contra os restantes)."
         ),
+        "Заранее заданные сравнения групп вариантов (A + C vs B) с разбиением SS вариантов.": "Comparações planeadas de conjuntos de tratamentos (A + C vs B), com partição da SS de tratamentos.",
+        "Линейный и квадратичный тренд по количественным уровням и проверка остатка.": "Tendência linear e quadrática entre níveis quantitativos, com teste da falta de ajuste.",
+        "Все пары или каждый вариант против контроля с контролем ошибки I рода.": "Todos os pares ou cada tratamento contra um controlo, com controlo do erro de tipo I.",
         "Модель y = b0 + b1·x с оценками и доверительными интервалами.": (
             "Modelo y = b0 + b1·x com estimativas e intervalos de confiança."
         ),
@@ -222,6 +234,12 @@ LABELS_MISC: dict[str, dict[str, str]] = {
         "Фактор C (необязательно)": "Factor C (optional)",
         "Колонка блоков (необязательно)": "Block column (optional)",
         "Колонка членов группы": "Group member column",
+        "Контрасты (A + C vs B; A vs C)": "Contrasts (A + C vs B; A vs C)",
+        "Поправка на множественность": "Multiplicity adjustment",
+        "Степень полинома": "Polynomial degree",
+        "Процедура": "Procedure",
+        "Контрольный уровень (для сравнений с контролем)": "Control level (for comparisons with a control)",
+        "Колонка уровней (дозы, числа)": "Level column (doses, numbers)",
         "Переменная X": "Variable X",
         "Переменная Y": "Variable Y",
         "Гипотеза": "Alternative",
@@ -247,6 +265,12 @@ LABELS_MISC: dict[str, dict[str, str]] = {
         "Фактор C (необязательно)": "Fator C (opcional)",
         "Колонка блоков (необязательно)": "Coluna de blocos (opcional)",
         "Колонка членов группы": "Coluna de membros do grupo",
+        "Контрасты (A + C vs B; A vs C)": "Contrastes (A + C vs B; A vs C)",
+        "Поправка на множественность": "Correção para multiplicidade",
+        "Степень полинома": "Grau do polinómio",
+        "Процедура": "Procedimento",
+        "Контрольный уровень (для сравнений с контролем)": "Nível de controlo (para comparações com controlo)",
+        "Колонка уровней (дозы, числа)": "Coluna de níveis (doses, números)",
         "Переменная X": "Variável X",
         "Переменная Y": "Variável Y",
         "Гипотеза": "Hipótese",

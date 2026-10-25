@@ -300,12 +300,13 @@ def factorial_anova(
     alpha: float = 0.05,
     transform_kind: str = _NONE,
     offset: float = 0.0,
+    contrasts: str = "",
     column_names: dict[str, str] | None = None,
 ) -> StatResult:
-    """Факторный ANOVA A*B или A*B*C с необязательным блоком (гл. 8.2–8.3).
+    """Факторный ANOVA A*B(*C) с блоком (гл. 8.2–8.3); члены — по маргинальности.
 
-    Члены для предсказания выбираются по маргинальности на уровне alpha;
-    средние и SE — по исходному ResMS без перегонки модели (стр. 160).
+    Средние и SE — по исходному ResMS (стр. 160). ``contrasts`` — ортогональные
+    контрасты уровней A, разбивают A и его взаимодействия (Example 8.5).
     """
     settings = _settings(alpha, transform_kind, offset)
     factors = {"fa": factor_a, "fb": factor_b, "fc": factor_c}
@@ -319,7 +320,29 @@ def factorial_anova(
         _factorial_fit(frame, keys, names, block is not None, result)
         if result.statistics.get("df_resid", 0) > 0:
             _factorial_predict(frame, keys, names, settings, result)
+            if contrasts.strip():
+                _factorial_contrasts(frame, keys, names, contrasts, result)
     return result
+
+
+def _factorial_contrasts(frame: pd.DataFrame, keys: list[str], names: dict[str, str],
+                         spec: str, result: StatResult) -> None:
+    """Строки контрастов фактора A и их взаимодействий — внутрь таблицы ANOVA."""
+    from core.stats.contrasts import add_remainders, factorial_contrast_rows
+
+    table = result.parameters["anova_table"]
+    try:
+        parts, estimates = factorial_contrast_rows(
+            frame, keys, names, spec, result.statistics["ms_resid"],
+            result.statistics["df_resid"])
+    except ValueError as exc:
+        result.add_warning("contrast_invalid", str(exc), Severity.ERROR)
+        return
+    for part in add_remainders(table, parts):
+        pos = max(i for i, r in enumerate(table)
+                  if r["term"] == part["parent"] or r.get("parent") == part["parent"])
+        table.insert(pos + 1, part)
+    result.parameters["contrasts"] = estimates
 
 
 def _names(column_names: dict[str, str] | None, slots: dict[str, str],

@@ -161,6 +161,26 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     en: `No model term is significant: the prediction is the overall mean.`,
     pt: `Nenhum termo do modelo é significativo: a previsão é a média geral.`,
   },
+  contrast_invalid: {
+    ru: `Контраст задан неверно. Формат: «A + C vs B; A vs C» или «F1=0.5, F2=-0.5»; коэффициенты в сумме 0, уровни — как в данных. В факторном анализе контрасты должны быть ортогональны.`,
+    en: `Invalid contrast. Use "A + C vs B; A vs C" or "F1=0.5, F2=-0.5"; coefficients must sum to 0 and levels must match the data. In a factorial analysis the contrasts must be orthogonal.`,
+    pt: `Contraste inválido. Use «A + C vs B; A vs C» ou «F1=0.5, F2=-0.5»; os coeficientes devem somar 0 e os níveis devem coincidir com os dados. Na análise fatorial os contrastes devem ser ortogonais.`,
+  },
+  contrasts_not_orthogonal: {
+    ru: `Контрасты неортогональны: их суммы квадратов не складываются, вклад каждого зависит от остальных. Остаток посчитан по совместной подгонке.`,
+    en: `The contrasts are not orthogonal: their sums of squares do not add up and each one's contribution depends on the others. The remainder uses the joint fit.`,
+    pt: `Os contrastes não são ortogonais: as somas de quadrados não se somam e o contributo de cada um depende dos outros. O resto usa o ajustamento conjunto.`,
+  },
+  levels_not_numeric: {
+    ru: `Для полиномиального тренда уровни фактора должны быть числами (дозы, концентрации).`,
+    en: `For a polynomial trend the factor levels must be numbers (doses, concentrations).`,
+    pt: `Para uma tendência polinomial os níveis do fator devem ser números (doses, concentrações).`,
+  },
+  comparison_invalid: {
+    ru: `Настройки сравнений несовместимы: Даннету нужен контрольный уровень; Тьюки и aLSD — только двусторонние; односторонняя гипотеза — только против контроля; контроль должен быть уровнем из данных.`,
+    en: `Incompatible comparison settings: Dunnett needs a control level; Tukey and aLSD are two-sided only; a one-sided alternative needs a control; the control must be a level in the data.`,
+    pt: `Definições de comparação incompatíveis: Dunnett requer um nível de controlo; Tukey e aLSD são apenas bilaterais; a hipótese unilateral requer um controlo; o controlo tem de ser um nível dos dados.`,
+  },
   rcbd_unequal_subsamples: {
     ru: `Число измерений на делянку разное — для такого (несбалансированного) случая нужны смешанные модели.`,
     en: `The number of measurements per plot differs — this unbalanced case needs mixed models.`,
