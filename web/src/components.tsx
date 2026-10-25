@@ -617,7 +617,10 @@ export function MethodPanel({
 
   const suggestion = table.suggestions.find((x) => x.method === method);
   const slots = suggestion ? Object.keys(suggestion.needs) : [];
-  const ready = slots.every((slot) => columns[slot as keyof ColumnSelection]);
+  const optional = new Set(suggestion?.optional_slots ?? []);
+  const ready = slots.every(
+    (slot) => optional.has(slot) || columns[slot as keyof ColumnSelection],
+  );
 
   const selectMethod = (next: string) => {
     setMethod(next);

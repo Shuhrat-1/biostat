@@ -64,6 +64,8 @@ class MethodSpec:
     # Сколько групп нужно категориальной колонке: None — любое ≥2.
     n_groups: int | None = None
     description: str = ""
+    # Необязательные слоты (третий фактор, блок): форма не требует их заполнения.
+    optional_slots: tuple[str, ...] = ()
 
     def to_dict(
         self, profiles: list[ColumnProfile], lang: str = "ru"
@@ -94,8 +96,18 @@ class MethodSpec:
             "params": [p.to_dict(lang) for p in self.params],
             "n_groups": self.n_groups,
             "description": tr(DESCRIPTIONS, self.description, lang),
+            "optional_slots": list(self.optional_slots),
         }
 
+
+# Трансформация отклика для факторных структур: по умолчанию без неё.
+_TRANSFORM_NONE = Param(
+    "transform_kind",
+    "Трансформация",
+    "select",
+    "none",
+    options=["none", "log10", "ln", "sqrt", "logit", "logit_pct"],
+)
 
 # Группы витрины в порядке показа.
 GROUPS = [
@@ -319,6 +331,46 @@ CATALOG: list[MethodSpec] = [
         description="Несколько измерений на делянку (ряды, растения): варианты против разброса делянок.",
     ),
     MethodSpec(
+        method="factorial_anova",
+        label="Факторный ANOVA (A×B, A×B×C)",
+        group="Сравнение нескольких групп",
+        slots={"value": _NUM, "factor_a": _FACTOR, "factor_b": _FACTOR,
+               "factor_c": _FACTOR, "block": _FACTOR},
+        slot_labels={
+            "value": "Числовая колонка",
+            "factor_a": "Фактор A",
+            "factor_b": "Фактор B",
+            "factor_c": "Фактор C (необязательно)",
+            "block": "Колонка блоков (необязательно)",
+        },
+        params=[
+            Param("alpha", "Уровень значимости α", "float", 0.05, min=0.001, max=0.2),
+            _TRANSFORM_NONE,
+            Param("offset", "Сдвиг c", "float", 0.0, min=0.0, max=1000.0),
+        ],
+        description="Главные эффекты и взаимодействия; средние по членам, отобранным по маргинальности.",
+        optional_slots=("factor_c", "block"),
+    ),
+    MethodSpec(
+        method="nested_anova",
+        label="Вложенный ANOVA (группа / член, контроль)",
+        group="Сравнение нескольких групп",
+        slots={"value": _NUM, "group": _FACTOR, "member": _FACTOR, "block": _FACTOR},
+        slot_labels={
+            "value": "Числовая колонка",
+            "group": "Колонка групп",
+            "member": "Колонка членов группы",
+            "block": "Колонка блоков (необязательно)",
+        },
+        params=[
+            Param("alpha", "Уровень значимости α", "float", 0.05, min=0.001, max=0.2),
+            _TRANSFORM_NONE,
+            Param("offset", "Сдвиг c", "float", 0.0, min=0.0, max=1000.0),
+        ],
+        description="Различия между группами и между членами внутри групп (контроль против остальных).",
+        optional_slots=("block",),
+    ),
+    MethodSpec(
         method="paired_t",
         label="Парный t-тест",
         group="Парные измерения",
@@ -385,14 +437,15 @@ def _slot_satisfiable(
     have_numeric = len(by_type.get(_NUM, []))
     if spec.method == "describe_all":
         return have_numeric >= 1
-    needed_numeric = sum(1 for t in spec.slots.values() if t == _NUM)
+    required = {k: t for k, t in spec.slots.items() if k not in spec.optional_slots}
+    needed_numeric = sum(1 for t in required.values() if t == _NUM)
     if have_numeric < needed_numeric:
         return False
-    if _CAT in spec.slots.values() and not by_type.get(_CAT):
+    if _CAT in required.values() and not by_type.get(_CAT):
         return False
-    # Каждому слоту нужна своя колонка: хватает ли подходящих колонок в сумме.
-    eligible = {name for t in spec.slots.values() for name in _eligible(by_type, t)}
-    return len(eligible) >= len(spec.slots)
+    # Каждому обязательному слоту нужна своя колонка: хватает ли подходящих в сумме.
+    eligible = {name for t in required.values() for name in _eligible(by_type, t)}
+    return len(eligible) >= len(required)
 
 
 def available_methods(

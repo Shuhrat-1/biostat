@@ -139,6 +139,8 @@ def test_catalog_params_match_function_signatures():
         "transformed_means": "core.stats.transforms",
         "rcbd_anova": "core.stats.blocking",
         "rcbd_subsampling_anova": "core.stats.blocking",
+        "factorial_anova": "core.stats.factorial",
+        "nested_anova": "core.stats.factorial",
         "simple_linear_regression": "core.stats.regression",
         "pearson_correlation": "core.stats.correlation",
     }
@@ -167,3 +169,20 @@ def test_blocked_methods_hidden_without_enough_columns():
     """Двух колонок мало для блочного анализа (нужны отклик, варианты, блоки)."""
     methods = {m["method"] for m in available_methods(_profiles(NUM_AND_CAT))}
     assert "rcbd_anova" not in methods
+
+
+def test_structured_methods_optional_slots():
+    """Третий фактор и блок необязательны: отклик + 2 фактора достаточно."""
+    data = b"a,b,y\n" + b"".join(f"{i % 2},{i % 3},{i}\n".encode() for i in range(12))
+    methods = {m["method"]: m for m in available_methods(_profiles(data))}
+    fac = methods["factorial_anova"]
+    assert fac["optional_slots"] == ["factor_c", "block"]
+    assert set(fac["needs"]) == {"value", "factor_a", "factor_b", "factor_c", "block"}
+    assert methods["nested_anova"]["optional_slots"] == ["block"]
+    assert methods["mean_ci"]["optional_slots"] == []
+
+
+def test_structured_methods_hidden_with_two_columns():
+    methods = {m["method"] for m in available_methods(_profiles(NUM_AND_CAT))}
+    assert "factorial_anova" not in methods
+    assert "nested_anova" not in methods

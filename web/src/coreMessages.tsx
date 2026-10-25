@@ -136,6 +136,31 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     en: `One plot contains different treatments — check the plot and treatment columns.`,
     pt: `Uma parcela contém tratamentos diferentes — verifique as colunas de parcelas e de tratamentos.`,
   },
+  factorial_unbalanced: {
+    ru: `Не все комбинации уровней присутствуют с одинаковой повторностью (в каждом блоке): структура неортогональна, такой анализ здесь не поддерживается.`,
+    en: `Not all level combinations are present with equal replication (within each block): the structure is non-orthogonal and is not supported here.`,
+    pt: `Nem todas as combinações de níveis estão presentes com igual repetição (em cada bloco): a estrutura não é ortogonal e não é suportada aqui.`,
+  },
+  factor_one_level: {
+    ru: `У одного из факторов меньше 2 уровней.`,
+    en: `One of the factors has fewer than 2 levels.`,
+    pt: `Um dos fatores tem menos de 2 níveis.`,
+  },
+  nested_no_members: {
+    ru: `Ни в одной группе нет двух членов — вложенный член пуст. Для простого сравнения групп выбери однофакторный ANOVA.`,
+    en: `No group has two members, so the nested term is empty. To compare groups only, use one-way ANOVA.`,
+    pt: `Nenhum grupo tem dois membros, pelo que o termo hierárquico está vazio. Para comparar apenas grupos, use a ANOVA de um fator.`,
+  },
+  interaction_borderline: {
+    ru: `Взаимодействие {term} исключено из предсказания, но P = {p} близко к порогу: сравни его вклад (доля SS) с главными эффектами и реши, можно ли им пренебречь.`,
+    en: `The interaction {term} was dropped from prediction, but P = {p} is close to the threshold: compare its contribution (SS share) with the main effects and decide whether it can be ignored.`,
+    pt: `A interação {term} foi excluída da previsão, mas P = {p} está perto do limiar: compare a sua contribuição (fração da SS) com os efeitos principais e decida se pode ser ignorada.`,
+  },
+  no_significant_terms: {
+    ru: `Ни один член модели не значим: предсказание — общее среднее.`,
+    en: `No model term is significant: the prediction is the overall mean.`,
+    pt: `Nenhum termo do modelo é significativo: a previsão é a média geral.`,
+  },
   rcbd_unequal_subsamples: {
     ru: `Число измерений на делянку разное — для такого (несбалансированного) случая нужны смешанные модели.`,
     en: `The number of measurements per plot differs — this unbalanced case needs mixed models.`,

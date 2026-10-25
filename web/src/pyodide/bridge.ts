@@ -119,6 +119,8 @@ export interface MethodSuggestion {
   params: MethodParam[];
   n_groups: number | null;
   description: string;
+  /** Слоты, которые можно оставить пустыми (третий фактор, блок). */
+  optional_slots: string[];
 }
 
 export interface ParsedTable {
@@ -144,6 +146,10 @@ export interface ColumnSelection {
   after?: string;
   block?: string;
   unit?: string;
+  factor_a?: string;
+  factor_b?: string;
+  factor_c?: string;
+  member?: string;
 }
 
 const METHOD_MODULES: Record<string, string> = {
@@ -164,6 +170,8 @@ const METHOD_MODULES: Record<string, string> = {
   transformed_means: "core.stats.transforms",
   rcbd_anova: "core.stats.blocking",
   rcbd_subsampling_anova: "core.stats.blocking",
+  factorial_anova: "core.stats.factorial",
+  nested_anova: "core.stats.factorial",
   simple_linear_regression: "core.stats.regression",
   pearson_correlation: "core.stats.correlation",
   diagnose: "core.stats.diagnostics",
@@ -189,6 +197,9 @@ const XY_METHODS = new Set(["simple_linear_regression", "pearson_correlation"]);
 
 /** Блочные дизайны: отклик, варианты, блоки (и делянки) построчно. */
 const BLOCKED_METHODS = new Set(["rcbd_anova", "rcbd_subsampling_anova"]);
+
+/** Структуры вариантов (гл. 8): слоты передаются по имени, пустые — пропускаются. */
+const STRUCTURED_METHODS = new Set(["factorial_anova", "nested_anova"]);
 
 /** Парные методы: две числовые колонки как связанные измерения (до/после). */
 const PAIRED_METHODS = new Set(["paired_t", "wilcoxon"]);
@@ -272,6 +283,8 @@ export async function runMethod(
       ? "summary"
       : BLOCKED_METHODS.has(method)
         ? "blocked"
+      : STRUCTURED_METHODS.has(method)
+        ? "structured"
       : GROUPED_METHODS.has(method)
         ? method === "two_sample_t" || method === "mann_whitney"
           ? "two_groups"
@@ -312,6 +325,13 @@ elif _kind == "blocked":
         _cols["value"], [_cols[k] for k in _factor_keys]
     )
     _result = _fn(_values, *_factors, **_kwargs)
+elif _kind == "structured":
+    _slots = [k for k, v in _cols.items() if k != "value" and v]
+    _values, _factors = _table.factor_columns(_cols["value"], [_cols[k] for k in _slots])
+    _result = _fn(
+        _values, **dict(zip(_slots, _factors)),
+        column_names={k: _cols[k] for k in _slots}, **_kwargs,
+    )
 elif _kind == "xy":
     _result = _fn(
         _table.numeric_column(_cols["x"]),
@@ -364,6 +384,8 @@ export function requiredColumns(method: string): Array<keyof ColumnSelection> {
   if (GROUPED_METHODS.has(method)) return ["value", "group"];
   if (XY_METHODS.has(method)) return ["x", "y"];
   if (method === "rcbd_subsampling_anova") return ["value", "group", "block", "unit"];
+  if (method === "factorial_anova") return ["value", "factor_a", "factor_b"];
+  if (method === "nested_anova") return ["value", "group", "member"];
   if (BLOCKED_METHODS.has(method)) return ["value", "group", "block"];
   return ["value"];
 }
@@ -437,6 +459,12 @@ elif _method == "simple_linear_regression":
 elif _method in ("rcbd_anova", "rcbd_subsampling_anova") and "plots" in _res.parameters:
     # Варианты по группам + графики остатков модели делянок (гл. 5, 7).
     _bundle["boxplot"] = plotdata.boxplot_data(_t.groups_by(_cols["value"], _cols["group"]))
+    _p = _res.parameters["plots"]
+    _bundle["residual_vs_fitted"] = _p["residual_vs_fitted"]
+    _bundle["qq"] = _p["qq"]
+
+elif _method in ("factorial_anova", "nested_anova") and "plots" in _res.parameters:
+    # Графики остатков модели со всеми членами (гл. 5, 8).
     _p = _res.parameters["plots"]
     _bundle["residual_vs_fitted"] = _p["residual_vs_fitted"]
     _bundle["qq"] = _p["qq"]

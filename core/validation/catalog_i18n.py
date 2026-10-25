@@ -50,6 +50,8 @@ LABELS: dict[str, dict[str, str]] = {
         "ANOVA с трансформацией отклика": "ANOVA on a transformed response",
         "Блочный ANOVA (RCBD)": "Randomized block ANOVA (RCBD)",
         "Блочный ANOVA с повторными измерениями делянки": "Block ANOVA with repeated measurements per plot",
+        "Факторный ANOVA (A×B, A×B×C)": "Factorial ANOVA (A×B, A×B×C)",
+        "Вложенный ANOVA (группа / член, контроль)": "Nested ANOVA (group / member, controls)",
         "Простая линейная регрессия": "Simple linear regression",
         "Корреляция Пирсона": "Pearson correlation",
     },
@@ -72,6 +74,8 @@ LABELS: dict[str, dict[str, str]] = {
         "ANOVA с трансформацией отклика": "ANOVA com resposta transformada",
         "Блочный ANOVA (RCBD)": "ANOVA em blocos casualizados (RCBD)",
         "Блочный ANOVA с повторными измерениями делянки": "ANOVA em blocos com medições repetidas por parcela",
+        "Факторный ANOVA (A×B, A×B×C)": "ANOVA fatorial (A×B, A×B×C)",
+        "Вложенный ANOVA (группа / член, контроль)": "ANOVA hierárquica (grupo / membro, controlos)",
         "Простая линейная регрессия": "Regressão linear simples",
         "Корреляция Пирсона": "Correlação de Pearson",
     },
@@ -125,6 +129,12 @@ DESCRIPTIONS: dict[str, dict[str, str]] = {
         ),
         "Несколько измерений на делянку (ряды, растения): варианты против разброса делянок.": (
             "Several measurements per plot (rows, plants): treatments tested against plot-to-plot variation."
+        ),
+        "Главные эффекты и взаимодействия; средние по членам, отобранным по маргинальности.": (
+            "Main effects and interactions; means for the terms selected by marginality."
+        ),
+        "Различия между группами и между членами внутри групп (контроль против остальных).": (
+            "Differences between groups and between members within groups (control vs the rest)."
         ),
         "Модель y = b0 + b1·x с оценками и доверительными интервалами.": (
             "Model y = b0 + b1·x with estimates and confidence intervals."
@@ -180,6 +190,12 @@ DESCRIPTIONS: dict[str, dict[str, str]] = {
         "Несколько измерений на делянку (ряды, растения): варианты против разброса делянок.": (
             "Várias medições por parcela (linhas, plantas): tratamentos testados contra a variação entre parcelas."
         ),
+        "Главные эффекты и взаимодействия; средние по членам, отобранным по маргинальности.": (
+            "Efeitos principais e interações; médias dos termos selecionados pela marginalidade."
+        ),
+        "Различия между группами и между членами внутри групп (контроль против остальных).": (
+            "Diferenças entre grupos e entre membros dentro dos grupos (controlo contra os restantes)."
+        ),
         "Модель y = b0 + b1·x с оценками и доверительными интервалами.": (
             "Modelo y = b0 + b1·x com estimativas e intervalos de confiança."
         ),
@@ -201,6 +217,11 @@ LABELS_MISC: dict[str, dict[str, str]] = {
         "Колонка вариантов": "Treatment column",
         "Колонка блоков": "Block column",
         "Колонка делянок": "Plot column",
+        "Фактор A": "Factor A",
+        "Фактор B": "Factor B",
+        "Фактор C (необязательно)": "Factor C (optional)",
+        "Колонка блоков (необязательно)": "Block column (optional)",
+        "Колонка членов группы": "Group member column",
         "Переменная X": "Variable X",
         "Переменная Y": "Variable Y",
         "Гипотеза": "Alternative",
@@ -221,6 +242,11 @@ LABELS_MISC: dict[str, dict[str, str]] = {
         "Колонка вариантов": "Coluna de tratamentos",
         "Колонка блоков": "Coluna de blocos",
         "Колонка делянок": "Coluna de parcelas",
+        "Фактор A": "Fator A",
+        "Фактор B": "Fator B",
+        "Фактор C (необязательно)": "Fator C (opcional)",
+        "Колонка блоков (необязательно)": "Coluna de blocos (opcional)",
+        "Колонка членов группы": "Coluna de membros do grupo",
         "Переменная X": "Variável X",
         "Переменная Y": "Variável Y",
         "Гипотеза": "Hipótese",
