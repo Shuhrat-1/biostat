@@ -8,6 +8,7 @@
 from __future__ import annotations
 
 import json
+import math
 from dataclasses import asdict, dataclass, field
 from enum import Enum
 from typing import Any
@@ -96,7 +97,13 @@ class StatResult:
 
 
 def _enum_safe(obj: Any) -> Any:
-    """Рекурсивно заменить Enum на их значения для JSON-сериализации."""
+    """Рекурсивно подготовить к JSON: Enum → значение, NaN/±inf → None.
+
+    json.dumps пишет NaN/Infinity, которые JSON.parse в браузере не
+    принимает; None фронт показывает как «—».
+    """
+    if isinstance(obj, float) and not math.isfinite(obj):
+        return None
     if isinstance(obj, dict):
         return {k: _enum_safe(v) for k, v in obj.items()}
     if isinstance(obj, list):

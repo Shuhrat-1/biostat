@@ -26,6 +26,49 @@ def _clean(data: np.ndarray | list[float]) -> np.ndarray:
     return arr[~np.isnan(arr)]
 
 
+def levene_p_value(*groups: np.ndarray) -> float | None:
+    """p теста Левене или None, если тест вырожден.
+
+    При группах из 2 наблюдений модули отклонений от медианы внутри
+    группы равны, W = inf и p = 0 — ложный сигнал неравных дисперсий.
+    """
+    with np.errstate(divide="ignore", invalid="ignore"):
+        res = stats.levene(*groups)
+    if not (np.isfinite(res.statistic) and np.isfinite(res.pvalue)):
+        return None
+    return float(res.pvalue)
+
+
+def _choose_equal_var(
+    arr_a: np.ndarray, arr_b: np.ndarray, equal_var: bool | None, result: StatResult
+) -> bool:
+    """Выбрать Стьюдента или Уэлча по Левене; при вырожденном Левене — Стьюдент.
+
+    Объединённая дисперсия — вариант книги по умолчанию (гл. 2.4.2).
+    """
+    levene_p = levene_p_value(arr_a, arr_b)
+    if levene_p is None:
+        result.add_warning(
+            "levene_undefined",
+            "Тест Левене не определён (слишком мало наблюдений в группах); "
+            "равенство дисперсий не проверено.",
+            Severity.INFO,
+        )
+        return True if equal_var is None else equal_var
+    result.statistics["levene_p"] = levene_p
+    if equal_var is None:
+        return levene_p >= _ASSUMPTION_ALPHA
+    if equal_var and levene_p < _ASSUMPTION_ALPHA:
+        result.add_warning(
+            "unequal_variance",
+            f"Тест Левене указывает на неравенство дисперсий "
+            f"(p={levene_p:.4f}), но задан equal_var=True. "
+            f"Рассмотри поправку Уэлча.",
+            Severity.WARNING,
+        )
+    return equal_var
+
+
 def _check_normality(
     arr: np.ndarray, result: StatResult, label: str
 ) -> None:
@@ -104,18 +147,7 @@ def two_sample_t(
         return result
 
     # Проверка равенства дисперсий (Левене) — определяет выбор варианта.
-    levene_p = float(stats.levene(arr_a, arr_b).pvalue)
-    result.statistics["levene_p"] = levene_p
-    if equal_var is None:
-        equal_var = levene_p >= _ASSUMPTION_ALPHA
-    elif equal_var and levene_p < _ASSUMPTION_ALPHA:
-        result.add_warning(
-            "unequal_variance",
-            f"Тест Левене указывает на неравенство дисперсий "
-            f"(p={levene_p:.4f}), но задан equal_var=True. "
-            f"Рассмотри поправку Уэлча.",
-            Severity.WARNING,
-        )
+    equal_var = _choose_equal_var(arr_a, arr_b, equal_var, result)
 
     res = stats.ttest_ind(
         arr_a, arr_b, equal_var=equal_var, alternative=alternative

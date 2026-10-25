@@ -15,6 +15,7 @@ from scipy import stats
 
 from core.report.schema import Severity, StatResult
 from core.stats.anova import _clean_group, _pooled_variance, _resolve_labels
+from core.stats.hypothesis import levene_p_value
 
 _ALPHA = 0.05
 _OUTLIER_CUTOFF = 2.0  # |r| > 2 — кандидаты в выбросы (стр. 95)
@@ -244,14 +245,11 @@ def _n_arrangements(groups: list[np.ndarray]) -> int:
 def _check_permutation_variances(groups: list[np.ndarray], result: StatResult) -> None:
     """Перестановочный тест требует сопоставимых дисперсий (стр. 102).
 
-    При группах по 2 наблюдения Левене вырожден (деление на 0) — пропуск,
-    иначе NaN попал бы в JSON.
+    Вырожденный Левене (группы по 2 наблюдения) пропускается.
     """
-    with np.errstate(divide="ignore", invalid="ignore"):
-        res = stats.levene(*groups)
-    if not (np.isfinite(res.statistic) and np.isfinite(res.pvalue)):
-        return  # вырожденный случай: W = inf даёт ложное p = 0
-    levene_p = float(res.pvalue)
+    levene_p = levene_p_value(*groups)
+    if levene_p is None:
+        return
     result.statistics["levene_p"] = levene_p
     if levene_p < _ALPHA:
         result.add_warning(

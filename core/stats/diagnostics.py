@@ -66,8 +66,22 @@ def diagnose(source: StatResult) -> StatResult:
 
     _test_normality(resid, result)
     _test_independence(resid, result)
-    result.parameters["plots"] = _build_plot_data(resid, fitted)
+    std_resid = _standardized(source, resid)
+    result.parameters["plots"] = _build_plot_data(resid, fitted, std_resid)
     return result
+
+
+def _standardized(source: StatResult, resid: np.ndarray) -> np.ndarray:
+    """Стандартизованные остатки e/SE(e) по определению книги (стр. 95–96).
+
+    Берутся сохранённые моделью (internally studentized); если их нет,
+    запасной вариант — деление на SD остатков (только для старых результатов).
+    """
+    stored = source.parameters.get("std_residuals")
+    if stored is not None and len(stored) == resid.size:
+        return np.asarray(stored, dtype=float)
+    std = resid.std(ddof=1)
+    return resid / std if std > 0 else np.zeros_like(resid)
 
 
 def _test_normality(resid: np.ndarray, result: StatResult) -> None:
@@ -99,17 +113,18 @@ def _test_independence(resid: np.ndarray, result: StatResult) -> None:
         )
 
 
-def _build_plot_data(resid: np.ndarray, fitted: np.ndarray) -> dict:
+def _build_plot_data(
+    resid: np.ndarray, fitted: np.ndarray, std_resid: np.ndarray
+) -> dict:
     """Собрать числовые ряды для четырёх диагностических графиков.
 
-    Ядро отдаёт данные, фронтенд рисует. Стандартизация остатков — для
-    сопоставимости шкал между графиками.
+    Ядро отдаёт данные, фронтенд рисует. Q-Q строится по стандартизованным
+    остаткам с позициями (i − 0.375)/(n + 0.25) (стр. 101): точки должны
+    лечь на линию 1:1.
     """
-    std = resid.std(ddof=1)
-    std_resid = resid / std if std > 0 else np.zeros_like(resid)
-
-    # Q-Q: теоретические (osm) и упорядоченные выборочные (osr) квантили.
-    osm, osr = stats.probplot(resid, dist="norm", fit=False)
+    n = std_resid.size
+    osm = stats.norm.ppf((np.arange(1, n + 1) - 0.375) / (n + 0.25))
+    osr = np.sort(std_resid)
 
     return {
         # 1. Residual vs Fitted — линейность и случайность разброса.

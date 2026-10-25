@@ -126,6 +126,11 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     en: `The X variable does not vary — the regression slope is undefined.`,
     pt: `A variável X não varia — o declive da regressão é indefinido.`,
   },
+  levene_undefined: {
+    ru: `Тест Левене не определён: в группах слишком мало наблюдений. Равенство дисперсий не проверено.`,
+    en: `Levene's test is undefined: the groups have too few observations. Equality of variances was not checked.`,
+    pt: `O teste de Levene não está definido: os grupos têm poucas observações. A igualdade de variâncias não foi verificada.`,
+  },
   transform_domain_log: {
     ru: `Логарифм определён только для положительных значений. Добавь сдвиг c (предложение по данным: c = {suggested_offset}).`,
     en: `The logarithm is defined only for positive values. Add an offset c (suggested from the data: c = {suggested_offset}).`,

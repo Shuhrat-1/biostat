@@ -15,6 +15,7 @@ from scipy import stats
 from statsmodels.stats.multicomp import pairwise_tukeyhsd
 
 from core.report.schema import Estimate, Severity, StatResult
+from core.stats.hypothesis import levene_p_value
 
 _ASSUMPTION_ALPHA = 0.05
 _SHAPIRO_MIN = 3
@@ -101,9 +102,23 @@ def one_way_anova(
 
 def _check_anova_assumptions(groups: list[np.ndarray], result: StatResult) -> None:
     """Проверить гомогенность дисперсий и нормальность остатков."""
-    levene_p = float(stats.levene(*groups).pvalue)
-    result.statistics["levene_p"] = levene_p
-    if levene_p < _ASSUMPTION_ALPHA:
+    _check_variances(groups, result)
+    _check_residual_normality(groups, result)
+
+
+def _check_variances(groups: list[np.ndarray], result: StatResult) -> None:
+    """Левене; при вырожденном тесте (группы по 2) — пометка вместо ложного сигнала."""
+    levene_p = levene_p_value(*groups)
+    if levene_p is None:
+        result.add_warning(
+            "levene_undefined",
+            "Тест Левене не определён (слишком мало наблюдений в группах); "
+            "равенство дисперсий не проверено.",
+            Severity.INFO,
+        )
+    else:
+        result.statistics["levene_p"] = levene_p
+    if levene_p is not None and levene_p < _ASSUMPTION_ALPHA:
         result.add_warning(
             "variance_heterogeneity",
             f"Тест Левене указывает на неравенство дисперсий (p={levene_p:.4f}). "
@@ -111,6 +126,9 @@ def _check_anova_assumptions(groups: list[np.ndarray], result: StatResult) -> No
             Severity.WARNING,
         )
 
+
+def _check_residual_normality(groups: list[np.ndarray], result: StatResult) -> None:
+    """Шапиро-Уилк по объединённым остаткам."""
     residuals = _pooled_residuals(groups)
     if _SHAPIRO_MIN <= residuals.size <= _SHAPIRO_MAX:
         shapiro_p = float(stats.shapiro(residuals).pvalue)
