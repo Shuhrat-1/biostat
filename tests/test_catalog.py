@@ -126,6 +126,7 @@ def test_catalog_params_match_function_signatures():
         "tukey_hsd": "core.stats.anova",
         "kruskal_wallis": "core.stats.anova",
         "simple_linear_regression": "core.stats.regression",
+        "pearson_correlation": "core.stats.correlation",
     }
     for spec in CATALOG:
         if not spec.params:

@@ -254,6 +254,15 @@ CATALOG: list[MethodSpec] = [
         params=[_REG_CI_LEVEL],
         description="Модель y = b0 + b1·x с оценками и доверительными интервалами.",
     ),
+    MethodSpec(
+        method="pearson_correlation",
+        label="Корреляция Пирсона",
+        group="Связь переменных",
+        slots={"x": _NUM, "y": _NUM},
+        slot_labels={"x": "Переменная X", "y": "Переменная Y"},
+        params=[_ALTERNATIVE, _REG_CI_LEVEL],
+        description="Сила и направление линейной связи двух переменных (r) и тест ρ = 0.",
+    ),
 ]
 
 

@@ -126,6 +126,21 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     en: `The X variable does not vary — the regression slope is undefined.`,
     pt: `A variável X não varia — o declive da regressão é indefinido.`,
   },
+  no_variation_corr: {
+    ru: `Одна из переменных не варьирует — корреляция не определена.`,
+    en: `One of the variables does not vary — the correlation is undefined.`,
+    pt: `Uma das variáveis não varia — a correlação é indefinida.`,
+  },
+  perfect_correlation: {
+    ru: `Точки лежат точно на одной прямой (|r| = 1): t-статистика не определена.`,
+    en: `The points lie exactly on a straight line (|r| = 1): the t-statistic is undefined.`,
+    pt: `Os pontos estão exatamente numa reta (|r| = 1): a estatística t é indefinida.`,
+  },
+  correlation_linear_only: {
+    ru: `r измеряет только линейную связь: r ≈ 0 не исключает нелинейной зависимости, а корреляция не означает причинности. Смотри диаграмму рассеяния.`,
+    en: `r measures only linear association: r ≈ 0 does not rule out a nonlinear relationship, and correlation does not imply causation. Check the scatter plot.`,
+    pt: `r mede apenas associação linear: r ≈ 0 não exclui uma relação não linear, e correlação não implica causalidade. Veja o diagrama de dispersão.`,
+  },
   file_empty: {
     ru: `Файл пустой — в нём нет данных для анализа.`,
     en: `The file is empty — there is no data to analyze.`,

@@ -156,6 +156,7 @@ const METHOD_MODULES: Record<string, string> = {
   tukey_hsd: "core.stats.anova",
   kruskal_wallis: "core.stats.anova",
   simple_linear_regression: "core.stats.regression",
+  pearson_correlation: "core.stats.correlation",
   diagnose: "core.stats.diagnostics",
   normality_test: "core.stats.diagnostics",
 };
@@ -170,7 +171,7 @@ const GROUPED_METHODS = new Set([
 ]);
 
 /** Методы, которым нужны две числовые колонки. */
-const XY_METHODS = new Set(["simple_linear_regression"]);
+const XY_METHODS = new Set(["simple_linear_regression", "pearson_correlation"]);
 
 /** Парные методы: две числовые колонки как связанные измерения (до/после). */
 const PAIRED_METHODS = new Set(["paired_t", "wilcoxon"]);
@@ -402,6 +403,15 @@ elif _method == "simple_linear_regression":
         _bundle["qq"] = _diag["qq"]
     if "residual_vs_fitted" in _diag:
         _bundle["residual_vs_fitted"] = _diag["residual_vs_fitted"]
+
+elif _method == "pearson_correlation" and "x" in _res.parameters:
+    # Пары уже очищены от NaN в ядре; линия МНК лишь показывает линейный тренд.
+    from scipy import stats as _st
+    _x, _y = _res.parameters["x"], _res.parameters["y"]
+    _lr = _st.linregress(_x, _y)
+    _bundle["scatter"] = plotdata.scatter_regression_data(
+        _x, _y, float(_lr.slope), float(_lr.intercept)
+    )
 
 json.dumps(_bundle, ensure_ascii=False)
 `;

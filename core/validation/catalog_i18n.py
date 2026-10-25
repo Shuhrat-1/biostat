@@ -44,6 +44,7 @@ LABELS: dict[str, dict[str, str]] = {
         "Пост-хок Tukey HSD": "Post-hoc Tukey HSD",
         "Тест Краскела-Уоллиса (непараметрический)": "Kruskal-Wallis test (nonparametric)",
         "Простая линейная регрессия": "Simple linear regression",
+        "Корреляция Пирсона": "Pearson correlation",
     },
     "pt": {
         "Описательная статистика": "Estatística descritiva",
@@ -58,6 +59,7 @@ LABELS: dict[str, dict[str, str]] = {
         "Пост-хок Tukey HSD": "Pós-hoc Tukey HSD",
         "Тест Краскела-Уоллиса (непараметрический)": "Teste de Kruskal-Wallis (não paramétrico)",
         "Простая линейная регрессия": "Regressão linear simples",
+        "Корреляция Пирсона": "Correlação de Pearson",
     },
 }
 
@@ -92,6 +94,9 @@ DESCRIPTIONS: dict[str, dict[str, str]] = {
         "Модель y = b0 + b1·x с оценками и доверительными интервалами.": (
             "Model y = b0 + b1·x with estimates and confidence intervals."
         ),
+        "Сила и направление линейной связи двух переменных (r) и тест ρ = 0.": (
+            "Strength and direction of the linear relationship between two variables (r) and a test of ρ = 0."
+        ),
     },
     "pt": {
         "Центр, разброс, форма, квартили.": "Centro, dispersão, forma, quartis.",
@@ -122,6 +127,9 @@ DESCRIPTIONS: dict[str, dict[str, str]] = {
         "Модель y = b0 + b1·x с оценками и доверительными интервалами.": (
             "Modelo y = b0 + b1·x com estimativas e intervalos de confiança."
         ),
+        "Сила и направление линейной связи двух переменных (r) и тест ρ = 0.": (
+            "Força e direção da relação linear entre duas variáveis (r) e teste de ρ = 0."
+        ),
     },
 }
 
@@ -134,6 +142,8 @@ LABELS_MISC: dict[str, dict[str, str]] = {
         "Колонка «после»": "After column",
         "X (независимая)": "X (independent)",
         "Y (зависимая)": "Y (dependent)",
+        "Переменная X": "Variable X",
+        "Переменная Y": "Variable Y",
         "Гипотеза": "Alternative",
         "Уровень доверия": "Confidence level",
         "Эталонное среднее μ": "Reference mean μ",
@@ -146,6 +156,8 @@ LABELS_MISC: dict[str, dict[str, str]] = {
         "Колонка «после»": "Coluna «depois»",
         "X (независимая)": "X (independente)",
         "Y (зависимая)": "Y (dependente)",
+        "Переменная X": "Variável X",
+        "Переменная Y": "Variável Y",
         "Гипотеза": "Hipótese",
         "Уровень доверия": "Nível de confiança",
         "Эталонное среднее μ": "Média de referência μ",
