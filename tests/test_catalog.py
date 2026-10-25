@@ -126,6 +126,9 @@ def test_catalog_params_match_function_signatures():
         "tukey_hsd": "core.stats.anova",
         "kruskal_wallis": "core.stats.anova",
         "treatment_means": "core.stats.anova",
+        "anova_permutation_test": "core.stats.anova_checks",
+        "bartlett_test": "core.stats.anova_checks",
+        "anova_residuals": "core.stats.anova_checks",
         "simple_linear_regression": "core.stats.regression",
         "pearson_correlation": "core.stats.correlation",
     }

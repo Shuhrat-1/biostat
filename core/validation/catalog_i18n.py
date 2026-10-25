@@ -44,6 +44,9 @@ LABELS: dict[str, dict[str, str]] = {
         "Пост-хок Tukey HSD": "Post-hoc Tukey HSD",
         "Тест Краскела-Уоллиса (непараметрический)": "Kruskal-Wallis test (nonparametric)",
         "Средние групп с SED и LSD": "Group means with SED and LSD",
+        "Перестановочный F-тест (ANOVA)": "Permutation F-test (ANOVA)",
+        "Тест Бартлетта (равенство дисперсий)": "Bartlett's test (equal variances)",
+        "Остатки ANOVA и выбросы": "ANOVA residuals and outliers",
         "Простая линейная регрессия": "Simple linear regression",
         "Корреляция Пирсона": "Pearson correlation",
     },
@@ -60,6 +63,9 @@ LABELS: dict[str, dict[str, str]] = {
         "Пост-хок Tukey HSD": "Pós-hoc Tukey HSD",
         "Тест Краскела-Уоллиса (непараметрический)": "Teste de Kruskal-Wallis (não paramétrico)",
         "Средние групп с SED и LSD": "Médias dos grupos com SED e LSD",
+        "Перестановочный F-тест (ANOVA)": "Teste F de permutação (ANOVA)",
+        "Тест Бартлетта (равенство дисперсий)": "Teste de Bartlett (igualdade de variâncias)",
+        "Остатки ANOVA и выбросы": "Resíduos da ANOVA e valores atípicos",
         "Простая линейная регрессия": "Regressão linear simples",
         "Корреляция Пирсона": "Correlação de Pearson",
     },
@@ -95,6 +101,15 @@ DESCRIPTIONS: dict[str, dict[str, str]] = {
         ),
         "Средние с ДИ по общей дисперсии ANOVA, SED, LSD и ДИ разностей.": (
             "Means with CIs from the pooled ANOVA variance, SED, LSD and CIs of differences."
+        ),
+        "F-тест без предположения о нормальности: p по случайным перестановкам.": (
+            "F-test without assuming normality: p from random permutations."
+        ),
+        "Проверяет, равны ли дисперсии групп перед ANOVA.": (
+            "Tests whether group variances are equal before ANOVA."
+        ),
+        "Стандартизованные остатки, графики допущений и кандидаты в выбросы.": (
+            "Standardized residuals, assumption plots and outlier candidates."
         ),
         "Модель y = b0 + b1·x с оценками и доверительными интервалами.": (
             "Model y = b0 + b1·x with estimates and confidence intervals."
@@ -132,6 +147,15 @@ DESCRIPTIONS: dict[str, dict[str, str]] = {
         "Средние с ДИ по общей дисперсии ANOVA, SED, LSD и ДИ разностей.": (
             "Médias com IC da variância conjunta da ANOVA, SED, LSD e IC das diferenças."
         ),
+        "F-тест без предположения о нормальности: p по случайным перестановкам.": (
+            "Teste F sem assumir normalidade: p a partir de permutações aleatórias."
+        ),
+        "Проверяет, равны ли дисперсии групп перед ANOVA.": (
+            "Verifica se as variâncias dos grupos são iguais antes da ANOVA."
+        ),
+        "Стандартизованные остатки, графики допущений и кандидаты в выбросы.": (
+            "Resíduos padronizados, gráficos de pressupostos e candidatos a valores atípicos."
+        ),
         "Модель y = b0 + b1·x с оценками и доверительными интервалами.": (
             "Modelo y = b0 + b1·x com estimativas e intervalos de confiança."
         ),
@@ -156,6 +180,7 @@ LABELS_MISC: dict[str, dict[str, str]] = {
         "Уровень доверия": "Confidence level",
         "Эталонное среднее μ": "Reference mean μ",
         "Уровень значимости α": "Significance level α",
+        "Число перестановок": "Number of permutations",
     },
     "pt": {
         "Числовая колонка": "Coluna numérica",
@@ -170,6 +195,7 @@ LABELS_MISC: dict[str, dict[str, str]] = {
         "Уровень доверия": "Nível de confiança",
         "Эталонное среднее μ": "Média de referência μ",
         "Уровень значимости α": "Nível de significância α",
+        "Число перестановок": "Número de permutações",
     },
 }
 

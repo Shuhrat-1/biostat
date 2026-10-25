@@ -156,6 +156,9 @@ const METHOD_MODULES: Record<string, string> = {
   tukey_hsd: "core.stats.anova",
   kruskal_wallis: "core.stats.anova",
   treatment_means: "core.stats.anova",
+  anova_permutation_test: "core.stats.anova_checks",
+  bartlett_test: "core.stats.anova_checks",
+  anova_residuals: "core.stats.anova_checks",
   simple_linear_regression: "core.stats.regression",
   pearson_correlation: "core.stats.correlation",
   diagnose: "core.stats.diagnostics",
@@ -166,6 +169,9 @@ const METHOD_MODULES: Record<string, string> = {
 const GROUPED_METHODS = new Set([
   "one_way_anova",
   "treatment_means",
+  "anova_permutation_test",
+  "bartlett_test",
+  "anova_residuals",
   "kruskal_wallis",
   "tukey_hsd",
   "two_sample_t",
@@ -384,7 +390,10 @@ if _method in ("normality_test", "mean_ci", "one_sample_t"):
     _vals = _t.numeric_column(_cols["value"])
     _bundle["histogram"] = plotdata.histogram_data(_vals)
 
-elif _method in ("one_way_anova", "kruskal_wallis", "tukey_hsd", "treatment_means"):
+elif _method in (
+    "one_way_anova", "kruskal_wallis", "tukey_hsd", "treatment_means",
+    "anova_permutation_test", "bartlett_test",
+):
     _groups = _t.groups_by(_cols["value"], _cols["group"])
     _bundle["boxplot"] = plotdata.boxplot_data(_groups)
     _bundle["bar_means"] = plotdata.bar_means_data(_groups)
@@ -405,6 +414,13 @@ elif _method == "simple_linear_regression":
         _bundle["qq"] = _diag["qq"]
     if "residual_vs_fitted" in _diag:
         _bundle["residual_vs_fitted"] = _diag["residual_vs_fitted"]
+
+elif _method == "anova_residuals" and "plots" in _res.parameters:
+    # Графики допущений по стандартизованным остаткам (гл. 5.2).
+    _p = _res.parameters["plots"]
+    _bundle["residual_vs_fitted"] = _p["residual_vs_fitted"]
+    _bundle["qq"] = _p["qq"]
+    _bundle["histogram"] = plotdata.histogram_data(_p["std_residuals"])
 
 elif _method == "pearson_correlation" and "x" in _res.parameters:
     # Пары уже очищены от NaN в ядре; линия МНК лишь показывает линейный тренд.

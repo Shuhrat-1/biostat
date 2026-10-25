@@ -126,6 +126,26 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     en: `The X variable does not vary — the regression slope is undefined.`,
     pt: `A variável X não varia — o declive da regressão é indefinido.`,
   },
+  zero_group_variance: {
+    ru: `В одной из групп все значения одинаковы — тест Бартлетта неприменим.`,
+    en: `All values in one of the groups are identical — Bartlett's test cannot be applied.`,
+    pt: `Todos os valores de um dos grupos são iguais — o teste de Bartlett não se aplica.`,
+  },
+  bartlett_unequal_variances: {
+    ru: `Дисперсии групп различаются (тест Бартлетта). Если дисперсия растёт вместе со средним — попробуй трансформацию отклика; тест чувствителен и к ненормальности.`,
+    en: `Group variances differ (Bartlett's test). If the variance grows with the mean, try transforming the response; the test is also sensitive to non-normality.`,
+    pt: `As variâncias dos grupos diferem (teste de Bartlett). Se a variância cresce com a média, experimente transformar a resposta; o teste também é sensível à não normalidade.`,
+  },
+  potential_outliers: {
+    ru: `Наблюдений с |стандартизованным остатком| > 2: {count} (при нормальности ожидается около {expected}). Проверь их по первичным записям; удалять без найденной причины нельзя.`,
+    en: `Observations with |standardized residual| > 2: {count} (about {expected} expected under normality). Check them against the original records; do not remove them without a found cause.`,
+    pt: `Observações com |resíduo padronizado| > 2: {count} (cerca de {expected} esperadas sob normalidade). Verifique-as nos registos originais; não as remova sem causa identificada.`,
+  },
+  permutation_unequal_variances: {
+    ru: `Дисперсии групп неоднородны (тест Левене); перестановочный тест предполагает однородные дисперсии.`,
+    en: `Group variances are heterogeneous (Levene's test); the permutation test assumes homogeneous variances.`,
+    pt: `As variâncias dos grupos são heterogéneas (teste de Levene); o teste de permutação pressupõe variâncias homogéneas.`,
+  },
   no_residual_variation: {
     ru: `Внутри групп нет вариации — стандартные ошибки равны нулю, доверительные интервалы не определены.`,
     en: `There is no variation within groups — standard errors are zero and confidence intervals are undefined.`,

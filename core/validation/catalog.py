@@ -239,6 +239,33 @@ CATALOG: list[MethodSpec] = [
         description="Средние с ДИ по общей дисперсии ANOVA, SED, LSD и ДИ разностей.",
     ),
     MethodSpec(
+        method="anova_permutation_test",
+        label="Перестановочный F-тест (ANOVA)",
+        group="Сравнение нескольких групп",
+        slots={"value": _NUM, "group": _CAT},
+        slot_labels={"value": "Числовая колонка", "group": "Колонка групп"},
+        params=[
+            Param("n_permutations", "Число перестановок", "number", 999, min=99, max=9999),
+        ],
+        description="F-тест без предположения о нормальности: p по случайным перестановкам.",
+    ),
+    MethodSpec(
+        method="bartlett_test",
+        label="Тест Бартлетта (равенство дисперсий)",
+        group="Проверка допущений",
+        slots={"value": _NUM, "group": _CAT},
+        slot_labels={"value": "Числовая колонка", "group": "Колонка групп"},
+        description="Проверяет, равны ли дисперсии групп перед ANOVA.",
+    ),
+    MethodSpec(
+        method="anova_residuals",
+        label="Остатки ANOVA и выбросы",
+        group="Проверка допущений",
+        slots={"value": _NUM, "group": _CAT},
+        slot_labels={"value": "Числовая колонка", "group": "Колонка групп"},
+        description="Стандартизованные остатки, графики допущений и кандидаты в выбросы.",
+    ),
+    MethodSpec(
         method="paired_t",
         label="Парный t-тест",
         group="Парные измерения",
