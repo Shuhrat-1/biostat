@@ -126,6 +126,16 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     en: `The X variable does not vary — the regression slope is undefined.`,
     pt: `A variável X não varia — o declive da regressão é indefinido.`,
   },
+  no_residual_variation: {
+    ru: `Внутри групп нет вариации — стандартные ошибки равны нулю, доверительные интервалы не определены.`,
+    en: `There is no variation within groups — standard errors are zero and confidence intervals are undefined.`,
+    pt: `Não há variação dentro dos grupos — os erros padrão são nulos e os intervalos de confiança indefinidos.`,
+  },
+  unadjusted_comparisons: {
+    ru: `Попарные p и интервалы разностей без поправки на множественность. Для всех попарных сравнений используй Tukey HSD.`,
+    en: `Pairwise p-values and difference intervals are not adjusted for multiplicity. For all pairwise comparisons use Tukey HSD.`,
+    pt: `Os valores p e intervalos das diferenças não estão ajustados para multiplicidade. Para todas as comparações par a par use Tukey HSD.`,
+  },
   no_variation_corr: {
     ru: `Одна из переменных не варьирует — корреляция не определена.`,
     en: `One of the variables does not vary — the correlation is undefined.`,

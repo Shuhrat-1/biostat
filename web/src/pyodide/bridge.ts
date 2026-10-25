@@ -155,6 +155,7 @@ const METHOD_MODULES: Record<string, string> = {
   one_way_anova: "core.stats.anova",
   tukey_hsd: "core.stats.anova",
   kruskal_wallis: "core.stats.anova",
+  treatment_means: "core.stats.anova",
   simple_linear_regression: "core.stats.regression",
   pearson_correlation: "core.stats.correlation",
   diagnose: "core.stats.diagnostics",
@@ -164,6 +165,7 @@ const METHOD_MODULES: Record<string, string> = {
 /** Методы, которым нужна числовая колонка + колонка групп. */
 const GROUPED_METHODS = new Set([
   "one_way_anova",
+  "treatment_means",
   "kruskal_wallis",
   "tukey_hsd",
   "two_sample_t",
@@ -382,7 +384,7 @@ if _method in ("normality_test", "mean_ci", "one_sample_t"):
     _vals = _t.numeric_column(_cols["value"])
     _bundle["histogram"] = plotdata.histogram_data(_vals)
 
-elif _method in ("one_way_anova", "kruskal_wallis", "tukey_hsd"):
+elif _method in ("one_way_anova", "kruskal_wallis", "tukey_hsd", "treatment_means"):
     _groups = _t.groups_by(_cols["value"], _cols["group"])
     _bundle["boxplot"] = plotdata.boxplot_data(_groups)
     _bundle["bar_means"] = plotdata.bar_means_data(_groups)

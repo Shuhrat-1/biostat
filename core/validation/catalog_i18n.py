@@ -43,6 +43,7 @@ LABELS: dict[str, dict[str, str]] = {
         "Тест Уилкоксона (непараметрический)": "Wilcoxon test (nonparametric)",
         "Пост-хок Tukey HSD": "Post-hoc Tukey HSD",
         "Тест Краскела-Уоллиса (непараметрический)": "Kruskal-Wallis test (nonparametric)",
+        "Средние групп с SED и LSD": "Group means with SED and LSD",
         "Простая линейная регрессия": "Simple linear regression",
         "Корреляция Пирсона": "Pearson correlation",
     },
@@ -58,6 +59,7 @@ LABELS: dict[str, dict[str, str]] = {
         "Тест Уилкоксона (непараметрический)": "Teste de Wilcoxon (não paramétrico)",
         "Пост-хок Tukey HSD": "Pós-hoc Tukey HSD",
         "Тест Краскела-Уоллиса (непараметрический)": "Teste de Kruskal-Wallis (não paramétrico)",
+        "Средние групп с SED и LSD": "Médias dos grupos com SED e LSD",
         "Простая линейная регрессия": "Regressão linear simples",
         "Корреляция Пирсона": "Correlação de Pearson",
     },
@@ -91,6 +93,9 @@ DESCRIPTIONS: dict[str, dict[str, str]] = {
         "Сравнение нескольких групп без предположения о нормальности.": (
             "Compares several groups without assuming normality."
         ),
+        "Средние с ДИ по общей дисперсии ANOVA, SED, LSD и ДИ разностей.": (
+            "Means with CIs from the pooled ANOVA variance, SED, LSD and CIs of differences."
+        ),
         "Модель y = b0 + b1·x с оценками и доверительными интервалами.": (
             "Model y = b0 + b1·x with estimates and confidence intervals."
         ),
@@ -123,6 +128,9 @@ DESCRIPTIONS: dict[str, dict[str, str]] = {
         ),
         "Сравнение нескольких групп без предположения о нормальности.": (
             "Compara vários grupos sem assumir normalidade."
+        ),
+        "Средние с ДИ по общей дисперсии ANOVA, SED, LSD и ДИ разностей.": (
+            "Médias com IC da variância conjunta da ANOVA, SED, LSD e IC das diferenças."
         ),
         "Модель y = b0 + b1·x с оценками и доверительными интервалами.": (
             "Modelo y = b0 + b1·x com estimativas e intervalos de confiança."

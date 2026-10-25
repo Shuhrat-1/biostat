@@ -125,6 +125,7 @@ def test_catalog_params_match_function_signatures():
         "one_way_anova": "core.stats.anova",
         "tukey_hsd": "core.stats.anova",
         "kruskal_wallis": "core.stats.anova",
+        "treatment_means": "core.stats.anova",
         "simple_linear_regression": "core.stats.regression",
         "pearson_correlation": "core.stats.correlation",
     }

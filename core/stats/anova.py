@@ -217,3 +217,145 @@ def kruskal_wallis(
             Estimate(name=f"median_{lab}", value=float(np.median(g)))
         )
     return result
+
+
+def treatment_means(
+    *groups: np.ndarray | list[float],
+    labels: list[str] | None = None,
+    alpha: float = 0.05,
+) -> StatResult:
+    """Средние групп с SEM и ДИ по объединённой дисперсии, SED и LSD (гл. 4.4).
+
+    Фон s² = ResMS однофакторного ANOVA на N − t df (стр. 84–87):
+    SEM_j = √(s²/n_j), SED_jk = √(s²(1/n_j + 1/n_k)), LSD = t[α/2] × SED.
+    Попарные p — без поправки на множественность (unprotected LSD).
+    """
+    if not 0.0 < alpha < 1.0:
+        raise ValueError("alpha должен быть в (0, 1)")
+    clean = [_clean_group(g) for g in groups]
+    labels = _resolve_labels(labels, len(clean))
+    result = StatResult(
+        method="treatment_means",
+        n=int(sum(g.size for g in clean)),
+        parameters={"alpha": alpha, "labels": labels},
+    )
+    if not _means_guard(clean, result):
+        return result
+
+    s2, df = _pooled_variance(clean)
+    t_crit = float(stats.t.ppf(1 - alpha / 2, df))
+    result.statistics = {"residual_ms": s2, "df_resid": df, "t_crit": t_crit}
+    _add_mean_estimates(clean, labels, s2, t_crit, 1 - alpha, result)
+    result.parameters["comparisons"] = _lsd_comparisons(clean, labels, s2, df, t_crit)
+    _add_common_lsd(clean, s2, t_crit, result)
+    _check_anova_assumptions(clean, result)
+    return result
+
+
+def _add_common_lsd(
+    groups: list[np.ndarray], s2: float, t_crit: float, result: StatResult
+) -> None:
+    """Общие SED и LSD при равной повторности; предупреждение о множественности."""
+    sizes = {g.size for g in groups}
+    if len(sizes) == 1:  # равная повторность → один SED на все пары (стр. 86)
+        sed = float(np.sqrt(2 * s2 / sizes.pop()))
+        result.statistics.update({"sed": sed, "lsd": t_crit * sed})
+    if len(groups) > 2:
+        result.add_warning(
+            "unadjusted_comparisons",
+            "Попарные p и ДИ разностей без поправки на множественность; "
+            "для всех попарных сравнений используй Tukey HSD.",
+            Severity.INFO,
+        )
+
+
+def _resolve_labels(labels: list[str] | None, k: int) -> list[str]:
+    """Метки групп по умолчанию g1…gk; проверить длину заданных."""
+    if labels is None:
+        return [f"g{i + 1}" for i in range(k)]
+    if len(labels) != k:
+        raise ValueError("Число меток не совпадает с числом групп")
+    return list(labels)
+
+
+def _means_guard(groups: list[np.ndarray], result: StatResult) -> bool:
+    """≥ 2 групп, n_j ≥ 2 и ненулевая остаточная дисперсия, иначе ошибка."""
+    if len(groups) < 2:
+        result.add_warning("too_few_groups", "Нужно ≥ 2 групп", Severity.ERROR)
+        return False
+    if any(g.size < 2 for g in groups):
+        result.add_warning(
+            "n_too_small", "Каждая группа должна иметь n ≥ 2", Severity.ERROR
+        )
+        return False
+    if _pooled_variance(groups)[0] == 0:
+        result.add_warning(
+            "no_residual_variation",
+            "Внутри групп нет вариации — SEM и SED равны нулю, ДИ не определены",
+            Severity.ERROR,
+        )
+        return False
+    return True
+
+
+def _pooled_variance(groups: list[np.ndarray]) -> tuple[float, int]:
+    """ResMS = Σ(y − ȳ_j)² / (N − t) и его df (стр. 80–81)."""
+    df = int(sum(g.size for g in groups)) - len(groups)
+    ss = float(sum(((g - g.mean()) ** 2).sum() for g in groups))
+    return ss / df, df
+
+
+def _add_mean_estimates(
+    groups: list[np.ndarray],
+    labels: list[str],
+    s2: float,
+    t_crit: float,
+    level: float,
+    result: StatResult,
+) -> None:
+    """Среднее каждой группы с SEM и ДИ на df остатка (стр. 85)."""
+    for lab, g in zip(labels, groups):
+        mean = float(g.mean())
+        sem = float(np.sqrt(s2 / g.size))
+        result.estimates.append(
+            Estimate(
+                name=f"mean_{lab}",
+                value=mean,
+                ci_lower=mean - t_crit * sem,
+                ci_upper=mean + t_crit * sem,
+                ci_level=level,
+                std_error=sem,
+            )
+        )
+
+
+def _lsd_comparisons(
+    groups: list[np.ndarray],
+    labels: list[str],
+    s2: float,
+    df: int,
+    t_crit: float,
+) -> list[dict[str, float | str]]:
+    """Все пары: разность, SED, LSD, ДИ и p t-теста на df остатка (стр. 86–87).
+
+    Знак как в tukey_hsd: mean_diff = mean(group2) − mean(group1).
+    """
+    rows = []
+    for i, j in ((i, j) for i in range(len(groups)) for j in range(i + 1, len(groups))):
+        diff = float(groups[j].mean() - groups[i].mean())
+        sed = float(np.sqrt(s2 * (1 / groups[i].size + 1 / groups[j].size)))
+        t_stat = diff / sed
+        rows.append(
+            {
+                "group1": labels[i],
+                "group2": labels[j],
+                "mean_diff": diff,
+                "sed": sed,
+                "lsd": t_crit * sed,
+                "ci_lower": diff - t_crit * sed,
+                "ci_upper": diff + t_crit * sed,
+                "t": t_stat,
+                "p_unadjusted": float(2 * stats.t.sf(abs(t_stat), df)),
+            }
+        )
+    return rows

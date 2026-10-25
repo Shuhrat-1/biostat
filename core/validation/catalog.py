@@ -228,6 +228,17 @@ CATALOG: list[MethodSpec] = [
         description="Сравнение нескольких групп без предположения о нормальности.",
     ),
     MethodSpec(
+        method="treatment_means",
+        label="Средние групп с SED и LSD",
+        group="Сравнение нескольких групп",
+        slots={"value": _NUM, "group": _CAT},
+        slot_labels={"value": "Числовая колонка", "group": "Колонка групп"},
+        params=[
+            Param("alpha", "Уровень значимости α", "float", 0.05, min=0.001, max=0.2),
+        ],
+        description="Средние с ДИ по общей дисперсии ANOVA, SED, LSD и ДИ разностей.",
+    ),
+    MethodSpec(
         method="paired_t",
         label="Парный t-тест",
         group="Парные измерения",
