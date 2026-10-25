@@ -129,6 +129,7 @@ def test_catalog_params_match_function_signatures():
         "anova_permutation_test": "core.stats.anova_checks",
         "bartlett_test": "core.stats.anova_checks",
         "anova_residuals": "core.stats.anova_checks",
+        "transformed_means": "core.stats.transforms",
         "simple_linear_regression": "core.stats.regression",
         "pearson_correlation": "core.stats.correlation",
     }

@@ -47,6 +47,7 @@ LABELS: dict[str, dict[str, str]] = {
         "Перестановочный F-тест (ANOVA)": "Permutation F-test (ANOVA)",
         "Тест Бартлетта (равенство дисперсий)": "Bartlett's test (equal variances)",
         "Остатки ANOVA и выбросы": "ANOVA residuals and outliers",
+        "ANOVA с трансформацией отклика": "ANOVA on a transformed response",
         "Простая линейная регрессия": "Simple linear regression",
         "Корреляция Пирсона": "Pearson correlation",
     },
@@ -66,6 +67,7 @@ LABELS: dict[str, dict[str, str]] = {
         "Перестановочный F-тест (ANOVA)": "Teste F de permutação (ANOVA)",
         "Тест Бартлетта (равенство дисперсий)": "Teste de Bartlett (igualdade de variâncias)",
         "Остатки ANOVA и выбросы": "Resíduos da ANOVA e valores atípicos",
+        "ANOVA с трансформацией отклика": "ANOVA com resposta transformada",
         "Простая линейная регрессия": "Regressão linear simples",
         "Корреляция Пирсона": "Correlação de Pearson",
     },
@@ -110,6 +112,9 @@ DESCRIPTIONS: dict[str, dict[str, str]] = {
         ),
         "Стандартизованные остатки, графики допущений и кандидаты в выбросы.": (
             "Standardized residuals, assumption plots and outlier candidates."
+        ),
+        "ANOVA на шкале log, √ или logit; средние и ДИ переведены обратно.": (
+            "ANOVA on the log, √ or logit scale; means and CIs back-transformed."
         ),
         "Модель y = b0 + b1·x с оценками и доверительными интервалами.": (
             "Model y = b0 + b1·x with estimates and confidence intervals."
@@ -156,6 +161,9 @@ DESCRIPTIONS: dict[str, dict[str, str]] = {
         "Стандартизованные остатки, графики допущений и кандидаты в выбросы.": (
             "Resíduos padronizados, gráficos de pressupostos e candidatos a valores atípicos."
         ),
+        "ANOVA на шкале log, √ или logit; средние и ДИ переведены обратно.": (
+            "ANOVA na escala log, √ ou logit; médias e IC retransformados."
+        ),
         "Модель y = b0 + b1·x с оценками и доверительными интервалами.": (
             "Modelo y = b0 + b1·x com estimativas e intervalos de confiança."
         ),
@@ -181,6 +189,8 @@ LABELS_MISC: dict[str, dict[str, str]] = {
         "Эталонное среднее μ": "Reference mean μ",
         "Уровень значимости α": "Significance level α",
         "Число перестановок": "Number of permutations",
+        "Трансформация": "Transformation",
+        "Сдвиг c": "Offset c",
     },
     "pt": {
         "Числовая колонка": "Coluna numérica",
@@ -196,6 +206,8 @@ LABELS_MISC: dict[str, dict[str, str]] = {
         "Эталонное среднее μ": "Média de referência μ",
         "Уровень значимости α": "Nível de significância α",
         "Число перестановок": "Número de permutações",
+        "Трансформация": "Transformação",
+        "Сдвиг c": "Desvio c",
     },
 }
 

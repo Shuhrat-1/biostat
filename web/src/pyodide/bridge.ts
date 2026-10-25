@@ -159,6 +159,7 @@ const METHOD_MODULES: Record<string, string> = {
   anova_permutation_test: "core.stats.anova_checks",
   bartlett_test: "core.stats.anova_checks",
   anova_residuals: "core.stats.anova_checks",
+  transformed_means: "core.stats.transforms",
   simple_linear_regression: "core.stats.regression",
   pearson_correlation: "core.stats.correlation",
   diagnose: "core.stats.diagnostics",
@@ -172,6 +173,7 @@ const GROUPED_METHODS = new Set([
   "anova_permutation_test",
   "bartlett_test",
   "anova_residuals",
+  "transformed_means",
   "kruskal_wallis",
   "tukey_hsd",
   "two_sample_t",
@@ -392,7 +394,7 @@ if _method in ("normality_test", "mean_ci", "one_sample_t"):
 
 elif _method in (
     "one_way_anova", "kruskal_wallis", "tukey_hsd", "treatment_means",
-    "anova_permutation_test", "bartlett_test",
+    "anova_permutation_test", "bartlett_test", "transformed_means",
 ):
     _groups = _t.groups_by(_cols["value"], _cols["group"])
     _bundle["boxplot"] = plotdata.boxplot_data(_groups)

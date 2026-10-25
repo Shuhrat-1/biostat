@@ -266,6 +266,25 @@ CATALOG: list[MethodSpec] = [
         description="Стандартизованные остатки, графики допущений и кандидаты в выбросы.",
     ),
     MethodSpec(
+        method="transformed_means",
+        label="ANOVA с трансформацией отклика",
+        group="Сравнение нескольких групп",
+        slots={"value": _NUM, "group": _CAT},
+        slot_labels={"value": "Числовая колонка", "group": "Колонка групп"},
+        params=[
+            Param(
+                "transform_kind",
+                "Трансформация",
+                "select",
+                "log10",
+                options=["log10", "ln", "sqrt", "logit", "logit_pct"],
+            ),
+            Param("offset", "Сдвиг c", "float", 0.0, min=0.0, max=1000.0),
+            Param("alpha", "Уровень значимости α", "float", 0.05, min=0.001, max=0.2),
+        ],
+        description="ANOVA на шкале log, √ или logit; средние и ДИ переведены обратно.",
+    ),
+    MethodSpec(
         method="paired_t",
         label="Парный t-тест",
         group="Парные измерения",

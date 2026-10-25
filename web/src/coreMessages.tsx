@@ -126,6 +126,21 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     en: `The X variable does not vary — the regression slope is undefined.`,
     pt: `A variável X não varia — o declive da regressão é indefinido.`,
   },
+  transform_domain_log: {
+    ru: `Логарифм определён только для положительных значений. Добавь сдвиг c (предложение по данным: c = {suggested_offset}).`,
+    en: `The logarithm is defined only for positive values. Add an offset c (suggested from the data: c = {suggested_offset}).`,
+    pt: `O logaritmo só está definido para valores positivos. Adicione um desvio c (sugestão a partir dos dados: c = {suggested_offset}).`,
+  },
+  transform_domain: {
+    ru: `Значения вне области трансформации (√ — неотрицательные; logit — строго между 0 и 1 или 0 и 100). Проверь данные или задай сдвиг c.`,
+    en: `Values are outside the transformation's domain (√ needs non-negative values; logit needs values strictly between 0 and 1 or 0 and 100). Check the data or set an offset c.`,
+    pt: `Valores fora do domínio da transformação (√ exige valores não negativos; logit exige valores estritamente entre 0 e 1 ou 0 e 100). Verifique os dados ou defina um desvio c.`,
+  },
+  back_transform_out_of_range: {
+    ru: `После обратного преобразования границы интервала вышли за допустимую шкалу (например, отрицательные счёты). Для таких данных лучше обобщённая линейная модель (GLM).`,
+    en: `After back-transformation the interval limits fall outside the valid scale (e.g. negative counts). A generalized linear model (GLM) is better suited to such data.`,
+    pt: `Após a retransformação, os limites do intervalo saem da escala válida (por exemplo, contagens negativas). Um modelo linear generalizado (GLM) é mais adequado a estes dados.`,
+  },
   zero_group_variance: {
     ru: `В одной из групп все значения одинаковы — тест Бартлетта неприменим.`,
     en: `All values in one of the groups are identical — Bartlett's test cannot be applied.`,
