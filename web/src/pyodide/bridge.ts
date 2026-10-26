@@ -150,6 +150,9 @@ export interface ColumnSelection {
   factor_b?: string;
   factor_c?: string;
   member?: string;
+  row?: string;
+  column?: string;
+  whole_plot?: string;
 }
 
 const METHOD_MODULES: Record<string, string> = {
@@ -175,6 +178,9 @@ const METHOD_MODULES: Record<string, string> = {
   treatment_contrasts: "core.stats.contrasts",
   polynomial_contrasts: "core.stats.contrasts",
   mean_comparisons: "core.stats.multcomp",
+  latin_square_anova: "core.stats.designs",
+  split_plot_anova: "core.stats.designs",
+  bibd_anova: "core.stats.designs",
   simple_linear_regression: "core.stats.regression",
   pearson_correlation: "core.stats.correlation",
   diagnose: "core.stats.diagnostics",
@@ -208,6 +214,9 @@ const STRUCTURED_METHODS = new Set([
   "treatment_contrasts",
   "polynomial_contrasts",
   "mean_comparisons",
+  "latin_square_anova",
+  "split_plot_anova",
+  "bibd_anova",
 ]);
 
 /** Парные методы: две числовые колонки как связанные измерения (до/после). */
@@ -395,6 +404,9 @@ export function requiredColumns(method: string): Array<keyof ColumnSelection> {
   if (method === "rcbd_subsampling_anova") return ["value", "group", "block", "unit"];
   if (method === "factorial_anova") return ["value", "factor_a", "factor_b"];
   if (method === "nested_anova") return ["value", "group", "member"];
+  if (method === "latin_square_anova") return ["value", "factor_a", "row", "column"];
+  if (method === "split_plot_anova") return ["value", "factor_a", "factor_b"];
+  if (method === "bibd_anova") return ["value", "group", "block"];
   if (STRUCTURED_METHODS.has(method)) return ["value", "group"];
   if (BLOCKED_METHODS.has(method)) return ["value", "group", "block"];
   return ["value"];
@@ -475,7 +487,8 @@ elif _method in ("rcbd_anova", "rcbd_subsampling_anova") and "plots" in _res.par
 
 elif _method in (
     "factorial_anova", "nested_anova", "treatment_contrasts",
-    "polynomial_contrasts", "mean_comparisons",
+    "polynomial_contrasts", "mean_comparisons", "latin_square_anova",
+    "split_plot_anova", "bibd_anova",
 ) and "plots" in _res.parameters:
     # Графики остатков модели со всеми членами (гл. 5, 8).
     _p = _res.parameters["plots"]

@@ -181,6 +181,36 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     en: `Incompatible comparison settings: Dunnett needs a control level; Tukey and aLSD are two-sided only; a one-sided alternative needs a control; the control must be a level in the data.`,
     pt: `Definições de comparação incompatíveis: Dunnett requer um nível de controlo; Tukey e aLSD são apenas bilaterais; a hipótese unilateral requer um controlo; o controlo tem de ser um nível dos dados.`,
   },
+  latin_square_invalid: {
+    ru: `Не латинский квадрат: нужно одинаковое число рядов, колонок и вариантов, и каждый вариант ровно один раз в каждом ряду и каждой колонке.`,
+    en: `Not a Latin square: the numbers of rows, columns and treatments must be equal, with each treatment exactly once in every row and every column.`,
+    pt: `Não é um quadrado latino: o número de linhas, colunas e tratamentos deve ser igual, com cada tratamento exatamente uma vez em cada linha e coluna.`,
+  },
+  split_plot_no_units: {
+    ru: `Для расщеплённых делянок укажи колонку блоков или колонку целых делянок.`,
+    en: `For a split-plot analysis select the block column or the whole-plot column.`,
+    pt: `Para parcelas subdivididas indique a coluna de blocos ou a coluna de parcelas principais.`,
+  },
+  split_plot_invalid: {
+    ru: `Не стандартные расщеплённые делянки: в целой делянке должен быть один уровень A и каждый уровень B ровно один раз; у всех уровней A — одинаковое число целых делянок.`,
+    en: `Not a standard split-plot: each whole plot must have one level of A and every level of B exactly once; all levels of A need the same number of whole plots.`,
+    pt: `Não é um split-plot padrão: cada parcela principal deve ter um nível de A e cada nível de B exatamente uma vez; todos os níveis de A precisam do mesmo número de parcelas principais.`,
+  },
+  bibd_invalid: {
+    ru: `Не BIBD: вариант не должен повторяться в блоке, блоки одного размера, повторность равная и каждая пара вариантов встречается в блоках одинаковое число раз (λ). Для других неполных блоков нужен общий анализ (гл. 11, 16).`,
+    en: `Not a BIBD: no treatment may repeat within a block, blocks must be the same size, replication equal and every pair of treatments must share blocks equally often (λ). Other incomplete-block designs need a general analysis (ch. 11, 16).`,
+    pt: `Não é um BIBD: nenhum tratamento pode repetir-se num bloco, os blocos devem ter o mesmo tamanho, a repetição deve ser igual e cada par de tratamentos deve partilhar blocos o mesmo número de vezes (λ). Outros delineamentos em blocos incompletos requerem uma análise geral (cap. 11, 16).`,
+  },
+  bibd_complete_blocks: {
+    ru: `Блоки содержат все варианты — это RCBD: используй блочный ANOVA.`,
+    en: `Blocks contain all treatments: this is an RCBD, use the randomized block ANOVA.`,
+    pt: `Os blocos contêm todos os tratamentos: é um RCBD, use a ANOVA em blocos.`,
+  },
+  bibd_no_block_residual: {
+    ru: `Число блоков равно числу вариантов: в страте блоков нет остаточных df, межблочный F не строится. Объединение внутри- и межблочной информации — смешанная модель (гл. 16).`,
+    en: `The number of blocks equals the number of treatments: the block stratum has no residual df, so no between-block F. Combining intra- and inter-block information needs a mixed model (ch. 16).`,
+    pt: `O número de blocos é igual ao de tratamentos: o estrato de blocos não tem df residuais, pelo que não há F entre blocos. Combinar a informação intra e interblocos requer um modelo misto (cap. 16).`,
+  },
   rcbd_unequal_subsamples: {
     ru: `Число измерений на делянку разное — для такого (несбалансированного) случая нужны смешанные модели.`,
     en: `The number of measurements per plot differs — this unbalanced case needs mixed models.`,

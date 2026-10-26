@@ -150,7 +150,7 @@ def _rows_to_statistics(rows: list[dict], total_ss: float, result: StatResult) -
         if row["term"] == "Residual":
             result.statistics.update({"df_resid": row["df"], "ms_resid": row["ms"],
                                       "ss_resid": row["ss"]})
-        else:
+        elif "F" in row:
             result.statistics.update({f"F_{row['term']}": row["F"], f"p_{row['term']}": row["p"]})
     result.statistics["ss_total"] = total_ss
     result.parameters["anova_table"] = rows

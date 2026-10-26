@@ -144,6 +144,9 @@ def test_catalog_params_match_function_signatures():
         "treatment_contrasts": "core.stats.contrasts",
         "polynomial_contrasts": "core.stats.contrasts",
         "mean_comparisons": "core.stats.multcomp",
+        "latin_square_anova": "core.stats.designs",
+        "split_plot_anova": "core.stats.designs",
+        "bibd_anova": "core.stats.designs",
         "simple_linear_regression": "core.stats.regression",
         "pearson_correlation": "core.stats.correlation",
     }
@@ -199,3 +202,13 @@ def test_contrast_methods_available_with_two_columns():
     params = {p["name"]: p for p in methods["mean_comparisons"]["params"]}
     assert params["control"]["kind"] == "text"
     assert "dunnett" in params["procedure"]["options"]
+
+
+def test_design_methods_need_structure_columns():
+    """Латинский квадрат и split-plot: ≥ 4 и ≥ 3 колонок; BIBD — отклик, варианты, блоки."""
+    two = {m["method"] for m in available_methods(_profiles(NUM_AND_CAT))}
+    assert not {"latin_square_anova", "split_plot_anova", "bibd_anova"} & two
+    blocked = {m["method"]: m for m in available_methods(_profiles(BLOCKED))}
+    assert blocked["split_plot_anova"]["optional_slots"] == ["block", "whole_plot"]
+    assert blocked["latin_square_anova"]["optional_slots"] == ["factor_b"]
+    assert "bibd_anova" in blocked
