@@ -181,6 +181,8 @@ const METHOD_MODULES: Record<string, string> = {
   latin_square_anova: "core.stats.designs",
   split_plot_anova: "core.stats.designs",
   bibd_anova: "core.stats.designs",
+  replication_power: "core.stats.power",
+  equivalence_test: "core.stats.power",
   simple_linear_regression: "core.stats.regression",
   pearson_correlation: "core.stats.correlation",
   diagnose: "core.stats.diagnostics",
@@ -217,6 +219,8 @@ const STRUCTURED_METHODS = new Set([
   "latin_square_anova",
   "split_plot_anova",
   "bibd_anova",
+  "replication_power",
+  "equivalence_test",
 ]);
 
 /** Парные методы: две числовые колонки как связанные измерения (до/после). */
@@ -488,7 +492,7 @@ elif _method in ("rcbd_anova", "rcbd_subsampling_anova") and "plots" in _res.par
 elif _method in (
     "factorial_anova", "nested_anova", "treatment_contrasts",
     "polynomial_contrasts", "mean_comparisons", "latin_square_anova",
-    "split_plot_anova", "bibd_anova",
+    "split_plot_anova", "bibd_anova", "replication_power", "equivalence_test",
 ) and "plots" in _res.parameters:
     # Графики остатков модели со всеми членами (гл. 5, 8).
     _p = _res.parameters["plots"]

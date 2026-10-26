@@ -211,6 +211,31 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     en: `The number of blocks equals the number of treatments: the block stratum has no residual df, so no between-block F. Combining intra- and inter-block information needs a mixed model (ch. 16).`,
     pt: `O número de blocos é igual ao de tratamentos: o estrato de blocos não tem df residuais, pelo que não há F entre blocos. Combinar a informação intra e interblocos requer um modelo misto (cap. 16).`,
   },
+  power_invalid: {
+    ru: `Задай разность δ > 0, которую опыт должен обнаружить, и целевую мощность между 0 и 1.`,
+    en: `Set a difference δ > 0 that the experiment should detect and a target power between 0 and 1.`,
+    pt: `Defina uma diferença δ > 0 que a experiência deve detetar e uma potência pretendida entre 0 e 1.`,
+  },
+  power_not_reached: {
+    ru: `Целевая мощность не достигнута до {n_max} повторностей: уменьши число вариантов, снизь фоновую вариацию или повтори опыт.`,
+    en: `The target power is not reached within {n_max} replicates: reduce the number of treatments, lower the background variation or repeat the experiment.`,
+    pt: `A potência pretendida não é atingida até {n_max} repetições: reduza o número de tratamentos, diminua a variação de fundo ou repita a experiência.`,
+  },
+  few_residual_df: {
+    ru: `При малом числе повторностей меньше 10 остаточных df — оценка фоновой вариации будет ненадёжной.`,
+    en: `With few replicates there are fewer than 10 residual df, so the background variance estimate will be unreliable.`,
+    pt: `Com poucas repetições há menos de 10 df residuais, pelo que a estimativa da variação de fundo será pouco fiável.`,
+  },
+  equivalence_invalid: {
+    ru: `Укажи стандарт (уровень или комбинацию уровней, как в данных) и границу эквивалентности c > 0.`,
+    en: `Specify the standard (a level or combination of levels as in the data) and an equivalence margin c > 0.`,
+    pt: `Indique o padrão (um nível ou combinação de níveis como nos dados) e uma margem de equivalência c > 0.`,
+  },
+  equivalence_inconclusive: {
+    ru: `Ни эквивалентность, ни неэквивалентность не доказаны: опыту не хватает точности для выбранной границы c.`,
+    en: `Neither equivalence nor inequivalence is shown: the experiment is not precise enough for the chosen margin c.`,
+    pt: `Não se demonstra equivalência nem não equivalência: a experiência não é suficientemente precisa para a margem c escolhida.`,
+  },
   rcbd_unequal_subsamples: {
     ru: `Число измерений на делянку разное — для такого (несбалансированного) случая нужны смешанные модели.`,
     en: `The number of measurements per plot differs — this unbalanced case needs mixed models.`,

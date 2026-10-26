@@ -147,6 +147,8 @@ def test_catalog_params_match_function_signatures():
         "latin_square_anova": "core.stats.designs",
         "split_plot_anova": "core.stats.designs",
         "bibd_anova": "core.stats.designs",
+        "replication_power": "core.stats.power",
+        "equivalence_test": "core.stats.power",
         "simple_linear_regression": "core.stats.regression",
         "pearson_correlation": "core.stats.correlation",
     }
@@ -212,3 +214,9 @@ def test_design_methods_need_structure_columns():
     assert blocked["split_plot_anova"]["optional_slots"] == ["block", "whole_plot"]
     assert blocked["latin_square_anova"]["optional_slots"] == ["factor_b"]
     assert "bibd_anova" in blocked
+
+
+def test_power_and_equivalence_available_with_two_columns():
+    methods = {m["method"]: m for m in available_methods(_profiles(NUM_AND_CAT))}
+    assert methods["replication_power"]["optional_slots"] == ["block"]
+    assert methods["equivalence_test"]["optional_slots"] == ["factor_b", "factor_c", "block"]
