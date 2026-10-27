@@ -29,6 +29,7 @@ def test_numeric_only_methods():
     assert "mean_ci" in methods
     assert "one_sample_t" in methods
     assert "simple_linear_regression" in methods  # две числовые
+    assert {"regression_details", "inverse_prediction"} <= methods  # гл. 12
     assert "one_way_anova" not in methods
     assert "two_sample_t" not in methods
 
@@ -48,6 +49,7 @@ def test_single_numeric_no_regression():
     methods = {m["method"] for m in available_methods(_profiles(b"x\n1\n2\n3\n"))}
     assert "describe_all" in methods
     assert "simple_linear_regression" not in methods
+    assert "regression_details" not in methods
 
 
 def test_all_catalog_methods_covered():
@@ -151,6 +153,8 @@ def test_catalog_params_match_function_signatures():
         "equivalence_test": "core.stats.power",
         "unbalanced_anova": "core.stats.unbalanced",
         "simple_linear_regression": "core.stats.regression",
+        "regression_details": "core.stats.linear_regression",
+        "inverse_prediction": "core.stats.linear_regression",
         "pearson_correlation": "core.stats.correlation",
     }
     for spec in CATALOG:

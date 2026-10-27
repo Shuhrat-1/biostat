@@ -184,6 +184,8 @@ const METHOD_MODULES: Record<string, string> = {
   bibd_anova: "core.stats.designs",
   replication_power: "core.stats.power",
   equivalence_test: "core.stats.power",
+  regression_details: "core.stats.linear_regression",
+  inverse_prediction: "core.stats.linear_regression",
   unbalanced_anova: "core.stats.unbalanced",
   simple_linear_regression: "core.stats.regression",
   pearson_correlation: "core.stats.correlation",
@@ -206,7 +208,12 @@ const GROUPED_METHODS = new Set([
 ]);
 
 /** Методы, которым нужны две числовые колонки. */
-const XY_METHODS = new Set(["simple_linear_regression", "pearson_correlation"]);
+const XY_METHODS = new Set([
+  "simple_linear_regression",
+  "pearson_correlation",
+  "regression_details",
+  "inverse_prediction",
+]);
 
 /** Блочные дизайны: отклик, варианты, блоки (и делянки) построчно. */
 const BLOCKED_METHODS = new Set(["rcbd_anova", "rcbd_subsampling_anova"]);
@@ -503,6 +510,17 @@ elif _method in (
     _p = _res.parameters["plots"]
     _bundle["residual_vs_fitted"] = _p["residual_vs_fitted"]
     _bundle["qq"] = _p["qq"]
+
+elif _method in ("regression_details", "inverse_prediction") and "points" in _res.parameters:
+    # Данные (в шкале анализа) с подогнанной прямой; остатки — гл. 12.
+    _pts, _line = _res.parameters["points"], _res.parameters["line"]
+    _bundle["scatter"] = plotdata.scatter_regression_data(
+        _pts["x"], _pts["y"], _line["slope"], _line["intercept"]
+    )
+    if "plots" in _res.parameters:
+        _p = _res.parameters["plots"]
+        _bundle["residual_vs_fitted"] = _p["residual_vs_fitted"]
+        _bundle["qq"] = _p["qq"]
 
 elif _method == "anova_residuals" and "plots" in _res.parameters:
     # Графики допущений по стандартизованным остаткам (гл. 5.2).

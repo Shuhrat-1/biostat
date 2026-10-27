@@ -62,6 +62,8 @@ LABELS: dict[str, dict[str, str]] = {
         "Тест эквивалентности (TOST)": "Equivalence test (TOST)",
         "Неортогональный ANOVA (неравная повторность)": "Non-orthogonal ANOVA (unequal replication)",
         "Простая линейная регрессия": "Simple linear regression",
+        "Регрессия: ANOVA, тесты, предсказания": "Regression: ANOVA, tests, predictions",
+        "Калибровка (обратное предсказание)": "Calibration (inverse prediction)",
         "Корреляция Пирсона": "Pearson correlation",
     },
     "pt": {
@@ -95,6 +97,8 @@ LABELS: dict[str, dict[str, str]] = {
         "Тест эквивалентности (TOST)": "Teste de equivalência (TOST)",
         "Неортогональный ANOVA (неравная повторность)": "ANOVA não ortogonal (repetição desigual)",
         "Простая линейная регрессия": "Regressão linear simples",
+        "Регрессия: ANOVA, тесты, предсказания": "Regressão: ANOVA, testes, previsões",
+        "Калибровка (обратное предсказание)": "Calibração (previsão inversa)",
         "Корреляция Пирсона": "Correlação de Pearson",
     },
 }
@@ -163,6 +167,8 @@ DESCRIPTIONS: dict[str, dict[str, str]] = {
         "Сколько повторностей нужно, чтобы обнаружить разность δ с нужной мощностью.": "How many replicates are needed to detect a difference δ with the target power.",
         "Доказать, что варианты не отличаются от стандарта больше чем на c.": "Show that treatments differ from the standard by no more than c.",
         "Факторы с неравной повторностью или пустыми ячейками: порядок подгонки, отбор модели.": "Factors with unequal replication or empty cells: fitting order and model selection.",
+        "Таблица ANOVA, t-тесты параметров, ДИ предсказаний, R², неадекватность.": "ANOVA table, parameter t-tests, prediction intervals, R², lack of fit.",
+        "Оценить x по новому измерению y с пределами Филлера.": "Estimate x from a new measurement of y with Fieller limits.",
         "Модель y = b0 + b1·x с оценками и доверительными интервалами.": (
             "Model y = b0 + b1·x with estimates and confidence intervals."
         ),
@@ -232,6 +238,8 @@ DESCRIPTIONS: dict[str, dict[str, str]] = {
         "Сколько повторностей нужно, чтобы обнаружить разность δ с нужной мощностью.": "Quantas repetições são necessárias para detetar uma diferença δ com a potência pretendida.",
         "Доказать, что варианты не отличаются от стандарта больше чем на c.": "Mostrar que os tratamentos não diferem do padrão mais do que c.",
         "Факторы с неравной повторностью или пустыми ячейками: порядок подгонки, отбор модели.": "Fatores com repetição desigual ou células vazias: ordem de ajustamento e seleção do modelo.",
+        "Таблица ANOVA, t-тесты параметров, ДИ предсказаний, R², неадекватность.": "Tabela ANOVA, testes t dos parâmetros, intervalos de previsão, R², falta de ajustamento.",
+        "Оценить x по новому измерению y с пределами Филлера.": "Estimar x a partir de uma nova medição de y com limites de Fieller.",
         "Модель y = b0 + b1·x с оценками и доверительными интервалами.": (
             "Modelo y = b0 + b1·x com estimativas e intervalos de confiança."
         ),
@@ -290,6 +298,18 @@ LABELS_MISC: dict[str, dict[str, str]] = {
         "Число перестановок": "Number of permutations",
         "Трансформация": "Transformation",
         "Сдвиг c": "Offset c",
+        "X (объясняющая)": "X (explanatory)",
+        "Y (отклик)": "Y (response)",
+        "Через начало координат (α = 0)": "Through the origin (α = 0)",
+        "Проверяемое значение наклона": "Slope value under H0",
+        "Проверяемое значение α": "Intercept value under H0",
+        "Точки предсказания x (через ;)": "Prediction points x (separated by ;)",
+        "Параметризация": "Parameterization",
+        "Проверить неадекватность (повторы x)": "Test lack of fit (replicated x)",
+        "X (целевая величина)": "X (target variable)",
+        "Y (замена, измерение)": "Y (substitute measurement)",
+        "Новые значения y (через ;)": "New y values (separated by ;)",
+        "Повторов на новый образец r": "Replicates per new sample r",
     },
     "pt": {
         "Числовая колонка": "Coluna numérica",
@@ -338,6 +358,18 @@ LABELS_MISC: dict[str, dict[str, str]] = {
         "Число перестановок": "Número de permutações",
         "Трансформация": "Transformação",
         "Сдвиг c": "Desvio c",
+        "X (объясняющая)": "X (explicativa)",
+        "Y (отклик)": "Y (resposta)",
+        "Через начало координат (α = 0)": "Pela origem (α = 0)",
+        "Проверяемое значение наклона": "Valor do declive sob H0",
+        "Проверяемое значение α": "Valor da ordenada sob H0",
+        "Точки предсказания x (через ;)": "Pontos de previsão x (separados por ;)",
+        "Параметризация": "Parametrização",
+        "Проверить неадекватность (повторы x)": "Testar falta de ajustamento (x repetidos)",
+        "X (целевая величина)": "X (variável alvo)",
+        "Y (замена, измерение)": "Y (medição substituta)",
+        "Новые значения y (через ;)": "Novos valores de y (separados por ;)",
+        "Повторов на новый образец r": "Repetições por nova amostra r",
     },
 }
 

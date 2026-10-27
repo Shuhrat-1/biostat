@@ -236,6 +236,31 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     en: `Neither equivalence nor inequivalence is shown: the experiment is not precise enough for the chosen margin c.`,
     pt: `Não se demonstra equivalência nem não equivalência: a experiência não é suficientemente precisa para a margem c escolhida.`,
   },
+  lack_of_fit: {
+    ru: `Отклонения средних по уровням x от прямой значимы: прямая не описывает зависимость.`,
+    en: `Deviations of the group means at each x from the fitted line are significant: a straight line does not describe the relationship.`,
+    pt: `Os desvios das médias em cada x em relação à reta são significativos: a reta não descreve a relação.`,
+  },
+  lack_of_fit_unavailable: {
+    ru: `Проверка неадекватности требует модели со свободным членом, не менее 3 уровней x и повторённых значений x.`,
+    en: `The lack-of-fit test needs a model with an intercept, at least 3 levels of x and replicated x values.`,
+    pt: `O teste de falta de ajustamento requer um modelo com ordenada na origem, pelo menos 3 níveis de x e valores de x repetidos.`,
+  },
+  extrapolation: {
+    ru: `Вне наблюдённого диапазона x [{low}; {high}]: {values} — форма связи там не проверена (экстраполяция).`,
+    en: `Outside the observed range of x [{low}; {high}]: {values} — the form of the relationship there is unchecked (extrapolation).`,
+    pt: `Fora do intervalo observado de x [{low}; {high}]: {values} — a forma da relação aí não foi verificada (extrapolação).`,
+  },
+  calibration_no_values: {
+    ru: `Укажи новые значения y через «;».`,
+    en: `Enter the new y values separated by “;”.`,
+    pt: `Indique os novos valores de y separados por “;”.`,
+  },
+  fieller_undefined: {
+    ru: `Наклон не отличается значимо от нуля (g = {g} ≥ 1): пределы Филлера не существуют.`,
+    en: `The slope is not significantly different from zero (g = {g} ≥ 1): Fieller limits do not exist.`,
+    pt: `O declive não difere significativamente de zero (g = {g} ≥ 1): os limites de Fieller não existem.`,
+  },
   nonorthogonal_design: {
     ru: `Факторы неортогональны ({pairs}): суммы квадратов зависят от порядка подгонки — сравни последовательные таблицы и SS типа II.`,
     en: `The factors are non-orthogonal ({pairs}): sums of squares depend on the fitting order — compare the sequential tables and Type II SS.`,
