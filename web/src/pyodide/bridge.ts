@@ -186,6 +186,8 @@ const METHOD_MODULES: Record<string, string> = {
   equivalence_test: "core.stats.power",
   regression_details: "core.stats.linear_regression",
   inverse_prediction: "core.stats.linear_regression",
+  regression_diagnostics: "core.stats.regression_checks",
+  regression_cross_validation: "core.stats.regression_checks",
   unbalanced_anova: "core.stats.unbalanced",
   simple_linear_regression: "core.stats.regression",
   pearson_correlation: "core.stats.correlation",
@@ -213,6 +215,8 @@ const XY_METHODS = new Set([
   "pearson_correlation",
   "regression_details",
   "inverse_prediction",
+  "regression_diagnostics",
+  "regression_cross_validation",
 ]);
 
 /** Блочные дизайны: отклик, варианты, блоки (и делянки) построчно. */
@@ -511,7 +515,10 @@ elif _method in (
     _bundle["residual_vs_fitted"] = _p["residual_vs_fitted"]
     _bundle["qq"] = _p["qq"]
 
-elif _method in ("regression_details", "inverse_prediction") and "points" in _res.parameters:
+elif _method in (
+    "regression_details", "inverse_prediction", "regression_diagnostics",
+    "regression_cross_validation",
+) and "points" in _res.parameters:
     # Данные (в шкале анализа) с подогнанной прямой; остатки — гл. 12.
     _pts, _line = _res.parameters["points"], _res.parameters["line"]
     _bundle["scatter"] = plotdata.scatter_regression_data(
@@ -519,8 +526,11 @@ elif _method in ("regression_details", "inverse_prediction") and "points" in _re
     )
     if "plots" in _res.parameters:
         _p = _res.parameters["plots"]
-        _bundle["residual_vs_fitted"] = _p["residual_vs_fitted"]
-        _bundle["qq"] = _p["qq"]
+        if "residual_vs_fitted" in _p:
+            _bundle["residual_vs_fitted"] = _p["residual_vs_fitted"]
+            _bundle["qq"] = _p["qq"]
+        if "deletion_residuals" in _p:
+            _bundle["histogram"] = plotdata.histogram_data(_p["deletion_residuals"])
 
 elif _method == "anova_residuals" and "plots" in _res.parameters:
     # Графики допущений по стандартизованным остаткам (гл. 5.2).

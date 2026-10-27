@@ -261,6 +261,16 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     en: `The slope is not significantly different from zero (g = {g} ≥ 1): Fieller limits do not exist.`,
     pt: `O declive não difere significativamente de zero (g = {g} ≥ 1): os limites de Fieller não existem.`,
   },
+  deletion_outliers: {
+    ru: `Наблюдений с |удалённым остатком| > 2: {count} (при нормальности ожидается около {expected}), строки {rows}. Проверь их по первичным записям; удалять без найденной причины нельзя.`,
+    en: `Observations with |deletion residual| > 2: {count} (about {expected} expected under normality), rows {rows}. Check them against the original records; do not remove them without a found cause.`,
+    pt: `Observações com |resíduo de eliminação| > 2: {count} (cerca de {expected} esperadas sob normalidade), linhas {rows}. Verifique-as nos registos originais; não as remova sem causa identificada.`,
+  },
+  influential_points: {
+    ru: `Влиятельных наблюдений (модифицированная статистика Кука выше порога): {count}, строки {rows}. Сравни подгонку с ними и без них; удалять без найденной ошибки нельзя.`,
+    en: `Influential observations (modified Cook's statistic above the threshold): {count}, rows {rows}. Compare the fit with and without them; do not remove them without a found error.`,
+    pt: `Observações influentes (estatística de Cook modificada acima do limiar): {count}, linhas {rows}. Compare o ajustamento com e sem elas; não as remova sem um erro identificado.`,
+  },
   nonorthogonal_design: {
     ru: `Факторы неортогональны ({pairs}): суммы квадратов зависят от порядка подгонки — сравни последовательные таблицы и SS типа II.`,
     en: `The factors are non-orthogonal ({pairs}): sums of squares depend on the fitting order — compare the sequential tables and Type II SS.`,

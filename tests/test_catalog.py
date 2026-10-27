@@ -30,6 +30,7 @@ def test_numeric_only_methods():
     assert "one_sample_t" in methods
     assert "simple_linear_regression" in methods  # две числовые
     assert {"regression_details", "inverse_prediction"} <= methods  # гл. 12
+    assert {"regression_diagnostics", "regression_cross_validation"} <= methods  # гл. 13
     assert "one_way_anova" not in methods
     assert "two_sample_t" not in methods
 
@@ -155,6 +156,8 @@ def test_catalog_params_match_function_signatures():
         "simple_linear_regression": "core.stats.regression",
         "regression_details": "core.stats.linear_regression",
         "inverse_prediction": "core.stats.linear_regression",
+        "regression_diagnostics": "core.stats.regression_checks",
+        "regression_cross_validation": "core.stats.regression_checks",
         "pearson_correlation": "core.stats.correlation",
     }
     for spec in CATALOG:

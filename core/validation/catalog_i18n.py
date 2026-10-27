@@ -64,6 +64,8 @@ LABELS: dict[str, dict[str, str]] = {
         "Простая линейная регрессия": "Simple linear regression",
         "Регрессия: ANOVA, тесты, предсказания": "Regression: ANOVA, tests, predictions",
         "Калибровка (обратное предсказание)": "Calibration (inverse prediction)",
+        "Регрессия: выбросы, рычаги, влияние": "Regression: outliers, leverage, influence",
+        "Регрессия: кросс-валидация": "Regression: cross-validation",
         "Корреляция Пирсона": "Pearson correlation",
     },
     "pt": {
@@ -99,6 +101,8 @@ LABELS: dict[str, dict[str, str]] = {
         "Простая линейная регрессия": "Regressão linear simples",
         "Регрессия: ANOVA, тесты, предсказания": "Regressão: ANOVA, testes, previsões",
         "Калибровка (обратное предсказание)": "Calibração (previsão inversa)",
+        "Регрессия: выбросы, рычаги, влияние": "Regressão: outliers, alavancagem, influência",
+        "Регрессия: кросс-валидация": "Regressão: validação cruzada",
         "Корреляция Пирсона": "Correlação de Pearson",
     },
 }
@@ -169,6 +173,8 @@ DESCRIPTIONS: dict[str, dict[str, str]] = {
         "Факторы с неравной повторностью или пустыми ячейками: порядок подгонки, отбор модели.": "Factors with unequal replication or empty cells: fitting order and model selection.",
         "Таблица ANOVA, t-тесты параметров, ДИ предсказаний, R², неадекватность.": "ANOVA table, parameter t-tests, prediction intervals, R², lack of fit.",
         "Оценить x по новому измерению y с пределами Филлера.": "Estimate x from a new measurement of y with Fieller limits.",
+        "Удалённые остатки, рычаги и статистика Кука по наблюдениям с порогами.": "Deletion residuals, leverages and Cook's statistics per observation with thresholds.",
+        "Предсказательная способность: смещение PB, MAD, RMSE на проверочных данных.": "Predictive ability: bias PB, MAD and RMSE on validation data.",
         "Модель y = b0 + b1·x с оценками и доверительными интервалами.": (
             "Model y = b0 + b1·x with estimates and confidence intervals."
         ),
@@ -240,6 +246,8 @@ DESCRIPTIONS: dict[str, dict[str, str]] = {
         "Факторы с неравной повторностью или пустыми ячейками: порядок подгонки, отбор модели.": "Fatores com repetição desigual ou células vazias: ordem de ajustamento e seleção do modelo.",
         "Таблица ANOVA, t-тесты параметров, ДИ предсказаний, R², неадекватность.": "Tabela ANOVA, testes t dos parâmetros, intervalos de previsão, R², falta de ajustamento.",
         "Оценить x по новому измерению y с пределами Филлера.": "Estimar x a partir de uma nova medição de y com limites de Fieller.",
+        "Удалённые остатки, рычаги и статистика Кука по наблюдениям с порогами.": "Resíduos de eliminação, alavancagens e estatísticas de Cook por observação, com limiares.",
+        "Предсказательная способность: смещение PB, MAD, RMSE на проверочных данных.": "Capacidade preditiva: enviesamento PB, MAD e RMSE nos dados de validação.",
         "Модель y = b0 + b1·x с оценками и доверительными интервалами.": (
             "Modelo y = b0 + b1·x com estimativas e intervalos de confiança."
         ),
@@ -298,6 +306,12 @@ LABELS_MISC: dict[str, dict[str, str]] = {
         "Число перестановок": "Number of permutations",
         "Трансформация": "Transformation",
         "Сдвиг c": "Offset c",
+        "Трансформация x": "Transformation of x",
+        "Сдвиг c для x": "Offset c for x",
+        "Схема": "Scheme",
+        "Доля обучающей выборки": "Training fraction",
+        "Число блоков k": "Number of folds k",
+        "Зерно случайного разбиения": "Random split seed",
         "X (объясняющая)": "X (explanatory)",
         "Y (отклик)": "Y (response)",
         "Через начало координат (α = 0)": "Through the origin (α = 0)",
@@ -358,6 +372,12 @@ LABELS_MISC: dict[str, dict[str, str]] = {
         "Число перестановок": "Número de permutações",
         "Трансформация": "Transformação",
         "Сдвиг c": "Desvio c",
+        "Трансформация x": "Transformação de x",
+        "Сдвиг c для x": "Desvio c para x",
+        "Схема": "Esquema",
+        "Доля обучающей выборки": "Fração de treino",
+        "Число блоков k": "Número de partições k",
+        "Зерно случайного разбиения": "Semente da partição aleatória",
         "X (объясняющая)": "X (explicativa)",
         "Y (отклик)": "Y (resposta)",
         "Через начало координат (α = 0)": "Pela origem (α = 0)",
