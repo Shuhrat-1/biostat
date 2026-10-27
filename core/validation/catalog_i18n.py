@@ -60,6 +60,7 @@ LABELS: dict[str, dict[str, str]] = {
         "Неполные блоки (BIBD)": "Incomplete blocks (BIBD)",
         "Повторность и мощность (по пилоту)": "Replication and power (from a pilot)",
         "Тест эквивалентности (TOST)": "Equivalence test (TOST)",
+        "Неортогональный ANOVA (неравная повторность)": "Non-orthogonal ANOVA (unequal replication)",
         "Простая линейная регрессия": "Simple linear regression",
         "Корреляция Пирсона": "Pearson correlation",
     },
@@ -92,6 +93,7 @@ LABELS: dict[str, dict[str, str]] = {
         "Неполные блоки (BIBD)": "Blocos incompletos (BIBD)",
         "Повторность и мощность (по пилоту)": "Repetição e potência (a partir de um piloto)",
         "Тест эквивалентности (TOST)": "Teste de equivalência (TOST)",
+        "Неортогональный ANOVA (неравная повторность)": "ANOVA não ortogonal (repetição desigual)",
         "Простая линейная регрессия": "Regressão linear simples",
         "Корреляция Пирсона": "Correlação de Pearson",
     },
@@ -160,6 +162,7 @@ DESCRIPTIONS: dict[str, dict[str, str]] = {
         "Блок меньше числа вариантов: внутриблочные средние, эффективность EF.": "Blocks smaller than the number of treatments: intra-block means and efficiency factor.",
         "Сколько повторностей нужно, чтобы обнаружить разность δ с нужной мощностью.": "How many replicates are needed to detect a difference δ with the target power.",
         "Доказать, что варианты не отличаются от стандарта больше чем на c.": "Show that treatments differ from the standard by no more than c.",
+        "Факторы с неравной повторностью или пустыми ячейками: порядок подгонки, отбор модели.": "Factors with unequal replication or empty cells: fitting order and model selection.",
         "Модель y = b0 + b1·x с оценками и доверительными интервалами.": (
             "Model y = b0 + b1·x with estimates and confidence intervals."
         ),
@@ -228,6 +231,7 @@ DESCRIPTIONS: dict[str, dict[str, str]] = {
         "Блок меньше числа вариантов: внутриблочные средние, эффективность EF.": "Blocos menores que o número de tratamentos: médias intrabloco e fator de eficiência.",
         "Сколько повторностей нужно, чтобы обнаружить разность δ с нужной мощностью.": "Quantas repetições são necessárias para detetar uma diferença δ com a potência pretendida.",
         "Доказать, что варианты не отличаются от стандарта больше чем на c.": "Mostrar que os tratamentos não diferem do padrão mais do que c.",
+        "Факторы с неравной повторностью или пустыми ячейками: порядок подгонки, отбор модели.": "Fatores com repetição desigual ou células vazias: ordem de ajustamento e seleção do modelo.",
         "Модель y = b0 + b1·x с оценками и доверительными интервалами.": (
             "Modelo y = b0 + b1·x com estimativas e intervalos de confiança."
         ),
@@ -274,6 +278,9 @@ LABELS_MISC: dict[str, dict[str, str]] = {
         "Стандарт (уровень или комбинация)": "Standard (level or combination)",
         "Граница эквивалентности c": "Equivalence margin c",
         "Граница в единицах": "Margin units",
+        "Посторонний фактор (необязательно)": "Extraneous factor (optional)",
+        "Модель": "Model",
+        "Сравнить с Хили–Уэстмакоттом": "Compare with Healy–Westmacott",
         "Переменная X": "Variable X",
         "Переменная Y": "Variable Y",
         "Гипотеза": "Alternative",
@@ -319,6 +326,9 @@ LABELS_MISC: dict[str, dict[str, str]] = {
         "Стандарт (уровень или комбинация)": "Padrão (nível ou combinação)",
         "Граница эквивалентности c": "Margem de equivalência c",
         "Граница в единицах": "Unidades da margem",
+        "Посторонний фактор (необязательно)": "Fator estranho (opcional)",
+        "Модель": "Modelo",
+        "Сравнить с Хили–Уэстмакоттом": "Comparar com Healy–Westmacott",
         "Переменная X": "Variável X",
         "Переменная Y": "Variável Y",
         "Гипотеза": "Hipótese",

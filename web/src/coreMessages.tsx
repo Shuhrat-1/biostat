@@ -236,6 +236,26 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     en: `Neither equivalence nor inequivalence is shown: the experiment is not precise enough for the chosen margin c.`,
     pt: `Não se demonstra equivalência nem não equivalência: a experiência não é suficientemente precisa para a margem c escolhida.`,
   },
+  nonorthogonal_design: {
+    ru: `Факторы неортогональны ({pairs}): суммы квадратов зависят от порядка подгонки — сравни последовательные таблицы и SS типа II.`,
+    en: `The factors are non-orthogonal ({pairs}): sums of squares depend on the fitting order — compare the sequential tables and Type II SS.`,
+    pt: `Os fatores não são ortogonais ({pairs}): as somas de quadrados dependem da ordem de ajustamento — compare as tabelas sequenciais e as SS de tipo II.`,
+  },
+  prediction_not_estimable: {
+    ru: `Часть комбинаций не оценивается итоговой моделью (пустые ячейки при взаимодействии): их предсказания пропущены.`,
+    en: `Some combinations cannot be estimated by the final model (empty cells with an interaction): their predictions are omitted.`,
+    pt: `Algumas combinações não são estimáveis pelo modelo final (células vazias com interação): as previsões foram omitidas.`,
+  },
+  healy_westmacott_approximate: {
+    ru: `Таблица Хили–Уэстмакотта приближённая: SS вариантов завышены, SE занижены; при многих пропусках она преувеличивает значимость. Точная таблица — основная.`,
+    en: `The Healy–Westmacott table is approximate: treatment SS are inflated and SEs too small; with many missing values it overstates significance. The exact table is the main one.`,
+    pt: `A tabela de Healy–Westmacott é aproximada: as SS de tratamentos estão inflacionadas e os EP subestimados; com muitos valores em falta exagera a significância. A tabela exata é a principal.`,
+  },
+  healy_westmacott_unavailable: {
+    ru: `Хили–Уэстмакотт доступен только для полной факторной модели без блока и без пустых ячеек.`,
+    en: `Healy–Westmacott is available only for a full factorial model without blocks or empty cells.`,
+    pt: `Healy–Westmacott só está disponível para um modelo fatorial completo sem blocos nem células vazias.`,
+  },
   rcbd_unequal_subsamples: {
     ru: `Число измерений на делянку разное — для такого (несбалансированного) случая нужны смешанные модели.`,
     en: `The number of measurements per plot differs — this unbalanced case needs mixed models.`,

@@ -153,6 +153,7 @@ export interface ColumnSelection {
   row?: string;
   column?: string;
   whole_plot?: string;
+  extraneous?: string;
 }
 
 const METHOD_MODULES: Record<string, string> = {
@@ -183,6 +184,7 @@ const METHOD_MODULES: Record<string, string> = {
   bibd_anova: "core.stats.designs",
   replication_power: "core.stats.power",
   equivalence_test: "core.stats.power",
+  unbalanced_anova: "core.stats.unbalanced",
   simple_linear_regression: "core.stats.regression",
   pearson_correlation: "core.stats.correlation",
   diagnose: "core.stats.diagnostics",
@@ -221,6 +223,7 @@ const STRUCTURED_METHODS = new Set([
   "bibd_anova",
   "replication_power",
   "equivalence_test",
+  "unbalanced_anova",
 ]);
 
 /** Парные методы: две числовые колонки как связанные измерения (до/после). */
@@ -411,6 +414,7 @@ export function requiredColumns(method: string): Array<keyof ColumnSelection> {
   if (method === "latin_square_anova") return ["value", "factor_a", "row", "column"];
   if (method === "split_plot_anova") return ["value", "factor_a", "factor_b"];
   if (method === "bibd_anova") return ["value", "group", "block"];
+  if (method === "unbalanced_anova") return ["value", "factor_a"];
   if (STRUCTURED_METHODS.has(method)) return ["value", "group"];
   if (BLOCKED_METHODS.has(method)) return ["value", "group", "block"];
   return ["value"];
@@ -493,6 +497,7 @@ elif _method in (
     "factorial_anova", "nested_anova", "treatment_contrasts",
     "polynomial_contrasts", "mean_comparisons", "latin_square_anova",
     "split_plot_anova", "bibd_anova", "replication_power", "equivalence_test",
+    "unbalanced_anova",
 ) and "plots" in _res.parameters:
     # Графики остатков модели со всеми членами (гл. 5, 8).
     _p = _res.parameters["plots"]

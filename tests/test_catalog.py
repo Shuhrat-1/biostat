@@ -149,6 +149,7 @@ def test_catalog_params_match_function_signatures():
         "bibd_anova": "core.stats.designs",
         "replication_power": "core.stats.power",
         "equivalence_test": "core.stats.power",
+        "unbalanced_anova": "core.stats.unbalanced",
         "simple_linear_regression": "core.stats.regression",
         "pearson_correlation": "core.stats.correlation",
     }
@@ -220,3 +221,9 @@ def test_power_and_equivalence_available_with_two_columns():
     methods = {m["method"]: m for m in available_methods(_profiles(NUM_AND_CAT))}
     assert methods["replication_power"]["optional_slots"] == ["block"]
     assert methods["equivalence_test"]["optional_slots"] == ["factor_b", "factor_c", "block"]
+
+
+def test_unbalanced_anova_needs_only_value_and_factor():
+    methods = {m["method"]: m for m in available_methods(_profiles(NUM_AND_CAT))}
+    assert methods["unbalanced_anova"]["optional_slots"] == [
+        "factor_b", "factor_c", "block", "extraneous"]
