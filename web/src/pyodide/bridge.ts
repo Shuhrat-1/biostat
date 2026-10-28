@@ -188,6 +188,10 @@ const METHOD_MODULES: Record<string, string> = {
   inverse_prediction: "core.stats.linear_regression",
   regression_diagnostics: "core.stats.regression_checks",
   regression_cross_validation: "core.stats.regression_checks",
+  multiple_regression: "core.stats.multiple_regression",
+  regression_subsets: "core.stats.multiple_regression",
+  stepwise_selection: "core.stats.multiple_regression",
+  model_cross_validation: "core.stats.multiple_regression",
   unbalanced_anova: "core.stats.unbalanced",
   simple_linear_regression: "core.stats.regression",
   pearson_correlation: "core.stats.correlation",
@@ -235,6 +239,14 @@ const STRUCTURED_METHODS = new Set([
   "replication_power",
   "equivalence_test",
   "unbalanced_anova",
+]);
+
+/** Множественная регрессия (гл. 14): отклик y и все числовые колонки, выровненные по строкам. */
+const MULTI_METHODS = new Set([
+  "multiple_regression",
+  "regression_subsets",
+  "stepwise_selection",
+  "model_cross_validation",
 ]);
 
 /** Парные методы: две числовые колонки как связанные измерения (до/после). */
@@ -321,6 +333,8 @@ export async function runMethod(
         ? "blocked"
       : STRUCTURED_METHODS.has(method)
         ? "structured"
+      : MULTI_METHODS.has(method)
+        ? "multi"
       : GROUPED_METHODS.has(method)
         ? method === "two_sample_t" || method === "mann_whitney"
           ? "two_groups"
@@ -368,6 +382,10 @@ elif _kind == "structured":
         _values, **dict(zip(_slots, _factors)),
         column_names={k: _cols[k] for k in _slots}, **_kwargs,
     )
+elif _kind == "multi":
+    _names = list(_table.numeric_columns_all())
+    _all = dict(zip(_names, _table.aligned_numeric(_names)))
+    _result = _fn(_all[_cols["y"]], _all, response_name=_cols["y"], **_kwargs)
 elif _kind == "xy":
     # Пары по строкам: пропуск → NaN, неполные строки удаляет метод.
     _x, _y = _table.aligned_numeric([_cols["x"], _cols["y"]])
@@ -417,6 +435,7 @@ json.dumps(diagnose(builtins.__biostat_last).to_dict(), ensure_ascii=False)
 export function requiredColumns(method: string): Array<keyof ColumnSelection> {
   if (GROUPED_METHODS.has(method)) return ["value", "group"];
   if (XY_METHODS.has(method)) return ["x", "y"];
+  if (MULTI_METHODS.has(method)) return ["y"];
   if (method === "rcbd_subsampling_anova") return ["value", "group", "block", "unit"];
   if (method === "factorial_anova") return ["value", "factor_a", "factor_b"];
   if (method === "nested_anova") return ["value", "group", "member"];
@@ -528,6 +547,13 @@ elif _method in (
             _bundle["qq"] = _p["qq"]
         if "deletion_residuals" in _p:
             _bundle["histogram"] = plotdata.histogram_data(_p["deletion_residuals"])
+
+elif _method in ("multiple_regression",) and "plots" in _res.parameters:
+    # Остатки МЛР по стандартизованным остаткам (гл. 14.6).
+    _p = _res.parameters["plots"]
+    _bundle["residual_vs_fitted"] = _p["residual_vs_fitted"]
+    _bundle["qq"] = _p["qq"]
+    _bundle["histogram"] = plotdata.histogram_data(_p["std_residuals"])
 
 elif _method == "anova_residuals" and "plots" in _res.parameters:
     # Графики допущений по стандартизованным остаткам (гл. 5.2).

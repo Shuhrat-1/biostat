@@ -672,6 +672,73 @@ CATALOG: list[MethodSpec] = [
         description="Предсказательная способность: смещение PB, MAD, RMSE на проверочных данных.",
     ),
     MethodSpec(
+        method="multiple_regression",
+        label="Множественная регрессия",
+        group="Связь переменных",
+        slots={"y": _NUM},
+        slot_labels={"y": "Y (отклик)"},
+        params=[
+            Param("variables", "Объясняющие переменные (через запятую; пусто — все)", "text", ""),
+            Param("x_predict", "Точки предсказания (x1=…, x2=…; …)", "text", ""),
+            Param("alpha", "Уровень значимости α", "float", 0.05, min=0.001, max=0.2),
+            _TRANSFORM_NONE,
+            Param("offset", "Сдвиг c", "float", 0.0, min=0.0, max=1000.0),
+        ],
+        description="Несколько x: ANOVA типов I и III, параметры, VIF, R², AIC, частные остатки.",
+    ),
+    MethodSpec(
+        method="regression_subsets",
+        label="Регрессия: все подмножества переменных",
+        group="Связь переменных",
+        slots={"y": _NUM},
+        slot_labels={"y": "Y (отклик)"},
+        params=[
+            Param("variables", "Объясняющие переменные (через запятую; пусто — все)", "text", ""),
+            Param("always_include", "Обязательные переменные (через запятую)", "text", ""),
+            Param("alpha", "Уровень значимости α", "float", 0.05, min=0.001, max=0.2),
+            _TRANSFORM_NONE,
+            Param("offset", "Сдвиг c", "float", 0.0, min=0.0, max=1000.0),
+        ],
+        description="Все подмодели: R²adj, AIC, SBC, Cp Мэллоуза и лучшая модель по каждому критерию.",
+    ),
+    MethodSpec(
+        method="stepwise_selection",
+        label="Регрессия: пошаговый отбор",
+        group="Связь переменных",
+        slots={"y": _NUM},
+        slot_labels={"y": "Y (отклик)"},
+        params=[
+            Param("variables", "Объясняющие переменные (через запятую; пусто — все)", "text", ""),
+            Param("strategy", "Стратегия", "select", "forward_stepwise",
+                  options=["forward", "backward", "forward_stepwise", "backward_stepwise"]),
+            Param("f_in", "Порог Fin (добавление)", "float", 2.0, min=0.01, max=100.0),
+            Param("f_out", "Порог Fout (исключение)", "float", 4.0, min=0.01, max=100.0),
+            Param("always_include", "Обязательные переменные (через запятую)", "text", ""),
+            Param("alpha", "Уровень значимости α", "float", 0.05, min=0.001, max=0.2),
+            _TRANSFORM_NONE,
+            Param("offset", "Сдвиг c", "float", 0.0, min=0.0, max=1000.0),
+        ],
+        description="Прямой отбор, обратное исключение и пошаговые варианты по F-тестам.",
+    ),
+    MethodSpec(
+        method="model_cross_validation",
+        label="Регрессия: сравнение моделей кросс-валидацией",
+        group="Связь переменных",
+        slots={"y": _NUM},
+        slot_labels={"y": "Y (отклик)"},
+        params=[
+            Param("models", "Модели (x1 + x2 | x1 | …)", "text", ""),
+            Param("scheme", "Схема", "select", "kfold", options=["split", "loo", "kfold"]),
+            Param("train_fraction", "Доля обучающей выборки", "float", 0.5, min=0.1, max=0.9),
+            Param("k_folds", "Число блоков k", "number", 5, min=2, max=100),
+            Param("seed", "Зерно случайного разбиения", "number", 1, min=0, max=999999),
+            Param("alpha", "Уровень значимости α", "float", 0.05, min=0.001, max=0.2),
+            _TRANSFORM_NONE,
+            Param("offset", "Сдвиг c", "float", 0.0, min=0.0, max=1000.0),
+        ],
+        description="Какая из моделей-кандидатов лучше предсказывает: MSEP, MAD, PB.",
+    ),
+    MethodSpec(
         method="pearson_correlation",
         label="Корреляция Пирсона",
         group="Связь переменных",
@@ -699,6 +766,10 @@ def _eligible(
     return [name for t in types for name in by_type.get(t, [])]
 
 
+_MULTI_VARIATE = frozenset({"multiple_regression", "regression_subsets", "stepwise_selection",
+                            "model_cross_validation"})
+
+
 def _slot_satisfiable(
     spec: MethodSpec, by_type: dict[ColumnType, list[str]]
 ) -> bool:
@@ -711,6 +782,8 @@ def _slot_satisfiable(
     have_numeric = len(by_type.get(_NUM, []))
     if spec.method == "describe_all":
         return have_numeric >= 1
+    if spec.method in _MULTI_VARIATE:  # отклик и не меньше двух x (гл. 14)
+        return have_numeric >= 3
     required = {k: t for k, t in spec.slots.items() if k not in spec.optional_slots}
     needed_numeric = sum(1 for t in required.values() if t == _NUM)
     if have_numeric < needed_numeric:

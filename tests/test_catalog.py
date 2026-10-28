@@ -45,6 +45,14 @@ def test_grouped_methods_appear():
     assert "tukey_hsd" in methods
 
 
+def test_multiple_regression_needs_three_numeric():
+    """Множественная регрессия — отклик и минимум две x (гл. 14)."""
+    two = {m["method"] for m in available_methods(_profiles(NUMERIC_ONLY))}
+    three = {m["method"] for m in available_methods(_profiles(b"a,b,c\n1,2,3\n4,5,7\n7,9,8\n"))}
+    assert "multiple_regression" not in two
+    assert {"multiple_regression", "stepwise_selection"} <= three
+
+
 def test_single_numeric_no_regression():
     """Одна числовая колонка — регрессия недоступна (нужно две)."""
     methods = {m["method"] for m in available_methods(_profiles(b"x\n1\n2\n3\n"))}
@@ -158,6 +166,10 @@ def test_catalog_params_match_function_signatures():
         "inverse_prediction": "core.stats.linear_regression",
         "regression_diagnostics": "core.stats.regression_checks",
         "regression_cross_validation": "core.stats.regression_checks",
+        "multiple_regression": "core.stats.multiple_regression",
+        "regression_subsets": "core.stats.multiple_regression",
+        "stepwise_selection": "core.stats.multiple_regression",
+        "model_cross_validation": "core.stats.multiple_regression",
         "pearson_correlation": "core.stats.correlation",
     }
     for spec in CATALOG:

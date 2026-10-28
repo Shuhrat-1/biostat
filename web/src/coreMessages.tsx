@@ -271,6 +271,31 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     en: `Influential observations (modified Cook's statistic above the threshold): {count}, rows {rows}. Compare the fit with and without them; do not remove them without a found error.`,
     pt: `Observações influentes (estatística de Cook modificada acima do limiar): {count}, linhas {rows}. Compare o ajustamento com e sem elas; não as remova sem um erro identificado.`,
   },
+  collinearity: {
+    ru: `VIF > 10: {variables}. Изучи коллинеарность и реши, нужны ли все эти переменные; порог — не правило удаления.`,
+    en: `VIF > 10: {variables}. Investigate the collinearity and decide whether all these variables are needed; the threshold is not a deletion rule.`,
+    pt: `VIF > 10: {variables}. Investigue a colinearidade e decida se todas estas variáveis são necessárias; o limiar não é uma regra de remoção.`,
+  },
+  perfect_collinearity: {
+    ru: `Переменные линейно зависимы: удали одну из совпадающих (или суммирующихся) переменных.`,
+    en: `The variables are linearly dependent: remove one of the duplicated (or summing) variables.`,
+    pt: `As variáveis são linearmente dependentes: remova uma das variáveis duplicadas (ou que se somam).`,
+  },
+  extrapolation_multi: {
+    ru: `Точки предсказания вне диапазона данных по: {variables} — это экстраполяция. Учти и совместный разброс переменных.`,
+    en: `Prediction points lie outside the data range for: {variables} — this is extrapolation. Also consider the joint spread of the variables.`,
+    pt: `Os pontos de previsão estão fora do intervalo dos dados para: {variables} — isto é extrapolação. Considere também a dispersão conjunta das variáveis.`,
+  },
+  selection_cycle: {
+    ru: `Отбор зациклился на {variables}: переменная исключена — проверь её маргинальный F-тест.`,
+    en: `Selection cycled on {variables}: the variable was excluded — check its marginal F-test.`,
+    pt: `A seleção entrou em ciclo em {variables}: a variável foi excluída — verifique o seu teste F marginal.`,
+  },
+  selection_caution: {
+    ru: `Автоматический отбор — первый шаг: сравни моделей-кандидатов, проверь остатки и биологический смысл.`,
+    en: `Automatic selection is a first step: compare candidate models, check residuals and biological meaning.`,
+    pt: `A seleção automática é um primeiro passo: compare modelos candidatos, verifique resíduos e o significado biológico.`,
+  },
   nonorthogonal_design: {
     ru: `Факторы неортогональны ({pairs}): суммы квадратов зависят от порядка подгонки — сравни последовательные таблицы и SS типа II.`,
     en: `The factors are non-orthogonal ({pairs}): sums of squares depend on the fitting order — compare the sequential tables and Type II SS.`,
