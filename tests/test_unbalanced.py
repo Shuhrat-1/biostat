@@ -69,6 +69,7 @@ def cross():
 
 
 def test_orthogonality_condition_example_11_1b_and_11_2a(cross) -> None:
+    """Книга: Examples 11.1B и 11.2A (стр. 259)."""
     beetle = pd.DataFrame([(s, m) for (s, m), v in BEETLES.items() for _ in v],
                           columns=["a", "b"])
     assert orthogonality(beetle, ["a", "b"], {"a": "S", "b": "M"})[0]["orthogonal"]
@@ -94,6 +95,7 @@ def test_orthogonal_design_order_invariant() -> None:
 
 
 def test_sequential_tables_11_13(cross) -> None:
+    """Книга: Table 11.13 (стр. 268), Example 11.2E."""
     seq = _rows(cross.parameters["anova_table"])
     assert (seq["Female"]["df"], seq["Female"]["ss"]) == (4, pytest.approx(610.62, abs=6e-3))
     assert seq["Male"]["ss"] == pytest.approx(136.48, abs=5e-3)
@@ -110,6 +112,7 @@ def test_sequential_tables_11_13(cross) -> None:
 
 
 def test_type2_sums_of_squares(cross) -> None:
+    """Книга: Table 11.13 (стр. 268): SS Female | Male, Male | Female, Female.Male."""
     t2 = _rows(cross.parameters["type2"])
     assert t2["Female"]["ss"] == pytest.approx(393.02, abs=5e-3)  # Female | Male
     assert t2["Male"]["ss"] == pytest.approx(136.48, abs=5e-3)  # Male | Female
@@ -117,11 +120,13 @@ def test_type2_sums_of_squares(cross) -> None:
 
 
 def test_selection_drops_interaction_example_11_2f(cross) -> None:
+    """Книга: Example 11.2F (стр. 271)."""
     assert cross.parameters["final_terms"] == ["Female", "Male"]
     assert cross.parameters["selection_steps"][0]["dropped"] == "Female.Male"
 
 
 def test_predictions_table_11_15(cross) -> None:
+    """Книга: Table 11.15 (стр. 271)."""
     tables = {t["term"]: t for t in cross.parameters["tables"]}
     cells = {r["label"]: r for r in tables["Female.Male"]["rows"]}
     expected = {"Female=F1 × Male=M1": (85.1, 0.81), "Female=F1 × Male=M2": (80.3, 1.03),
@@ -163,6 +168,7 @@ def cuttings():
 
 
 def test_cuttings_sequential_table_11_23(cuttings) -> None:
+    """Книга: Table 11.23 (стр. 283)."""
     rows = _rows(cuttings.parameters["anova_table"])
     expected = {"Block": (4, 186.4298, 7.385, 0.009), "Size": (2, 49.0181, 3.883, 0.066),
                 "Type": (4, 96.9158, 3.839, 0.050), "Size.Type": (6, 21.0791, 0.557, 0.754)}
@@ -174,12 +180,16 @@ def test_cuttings_sequential_table_11_23(cuttings) -> None:
 
 
 def test_cuttings_selection_keeps_extraneous(cuttings) -> None:
-    """Size.Type удалено, Size (посторонний фактор) сохранён при P = 0.066 (стр. 283)."""
+    """Книга: Example 11.5 (стр. 283).
+
+    Size.Type удалено, Size (посторонний фактор) сохранён при P = 0.066 (стр. 283).
+    """
     assert cuttings.parameters["final_terms"] == ["Size", "Type"]
     assert cuttings.statistics["df_resid_final"] == 14
 
 
 def test_cuttings_size_predictions_table_11_24(cuttings) -> None:
+    """Книга: Table 11.24 (стр. 284)."""
     size = next(t for t in cuttings.parameters["tables"] if t["term"] == "Size")
     rows = {r["label"]: r for r in size["rows"]}
     expected = {"Size=S": (22.394, 0.9889), "Size=M": (20.109, 0.6667),
@@ -190,7 +200,10 @@ def test_cuttings_size_predictions_table_11_24(cuttings) -> None:
 
 
 def test_cuttings_type_sed_range_fig_11_6(cuttings) -> None:
-    """Книга: SED 1.449–1.538; минимальный SED (C–D) по расчёту 1.430."""
+    """Книга: Fig. 11.6 (стр. 283).
+
+    Книга: SED 1.449–1.538; минимальный SED (C–D) по расчёту 1.430.
+    """
     types = next(t for t in cuttings.parameters["tables"] if t["term"] == "Type")
     assert types["sed_max"] == pytest.approx(1.538, abs=5e-4)
     assert types["sed_min"] == pytest.approx(1.430, abs=5e-4)
@@ -212,6 +225,7 @@ def test_cuttings_empty_cells_not_estimable() -> None:
 
 
 def test_heights_eliminating_columns_table_11_20() -> None:
+    """Книга: Table 11.20 (стр. 279)."""
     plants = [(c + 1, cell.split()) for row in HEIGHTS for c, cell in enumerate(row.split("|"))]
     y, dose, col = [float(p[1][1]) for p in plants], [p[1][0] for p in plants], [
         str(p[0]) for p in plants]
@@ -231,6 +245,7 @@ def test_heights_eliminating_columns_table_11_20() -> None:
 
 
 def test_elisa_one_missing_table_11_17() -> None:
+    """Книга: Table 11.17 (стр. 276)."""
     result = _elisa()
     exact, hw = _rows(result.parameters["anova_table"]), _rows(result.parameters["healy_westmacott"])
     assert (exact["Prep"]["ss"], exact["Prep"]["F"]) == pytest.approx((0.159, 7.21), abs=6e-3)
@@ -240,6 +255,7 @@ def test_elisa_one_missing_table_11_17() -> None:
 
 
 def test_elisa_six_missing_table_11_18() -> None:
+    """Книга: Table 11.18 (стр. 276)."""
     result = _elisa(exclude=(4, 11, 15, 17, 20))
     exact, hw = _rows(result.parameters["anova_table"]), _rows(result.parameters["healy_westmacott"])
     assert (exact["Prep"]["F"], exact["Prep"]["p"]) == pytest.approx((4.52, 0.064), abs=6e-3)
@@ -264,7 +280,10 @@ def test_healy_westmacott_unavailable_with_block() -> None:
 
 
 def test_backward_selection_respects_marginality(cross) -> None:
-    """Первый шаг проверяет только взаимодействие (не главные эффекты)."""
+    """Книга: Правило маргинальности, стр. 270.
+
+    Первый шаг проверяет только взаимодействие (не главные эффекты).
+    """
     first = cross.parameters["selection_steps"][0]["tests"]
     assert [t["term"] for t in first] == ["Female.Male"]
     assert callable(backward_selection)

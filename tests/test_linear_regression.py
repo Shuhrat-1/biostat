@@ -24,6 +24,7 @@ def _seeds():
 
 
 def test_slr_anova_table_12_3():
+    """Книга: Table 12.3 (стр. 299)."""
     r = regression_details(*_seeds())
     model, resid, total = r.parameters["anova_table"]
     assert model["ss"] == pytest.approx(5683.1753, abs=1e-4)
@@ -35,6 +36,7 @@ def test_slr_anova_table_12_3():
 
 
 def test_parameters_table_12_4_and_cis():
+    """Книга: Table 12.4 и ДИ (стр. 301), Example 12.1D."""
     r = regression_details(*_seeds())
     icept, slope = r.parameters["parameter_tests"]
     assert icept["estimate"] == pytest.approx(-27.931, abs=1e-3)
@@ -49,6 +51,7 @@ def test_parameters_table_12_4_and_cis():
 
 
 def test_predictions_example_12_1e():
+    """Книга: Example 12.1E (стр. 303–304)."""
     x, y = _seeds()
     r = regression_details(x, y, x_predict="2.45; 4,13")
     low, high = r.parameters["predictions"]
@@ -63,18 +66,21 @@ def test_predictions_example_12_1e():
 
 
 def test_prediction_at_mean_has_smallest_se():
+    """Книга: Example 12.1E (стр. 303): SE при x̄ = 0.2124."""
     x, y = _seeds()
     r = regression_details(x, y, x_predict=str(x.mean()))
     assert r.parameters["predictions"][0]["se_mean"] == pytest.approx(0.2124, abs=1e-4)
 
 
 def test_goodness_of_fit_example_12_1f():
+    """Книга: Example 12.1F (стр. 306)."""
     r = regression_details(*_seeds())
     assert r.statistics["r_squared"] == pytest.approx(0.779, abs=5e-4)
     assert r.statistics["adj_r_squared"] == pytest.approx(0.778, abs=5e-4)
 
 
 def test_lack_of_fit_table_12_7():
+    """Книга: Table 12.7 (стр. 312), Example 12.2B."""
     x, counts = np.array(TRANSECT, float).T
     r = regression_details(x, counts, transform_kind="log10", lack_of_fit="yes")
     rows = {row["term"]: row for row in r.parameters["anova_table"]}
@@ -91,6 +97,7 @@ def test_lack_of_fit_table_12_7():
 
 
 def test_transect_slr_example_12_2a():
+    """Книга: Example 12.2A (стр. 309), F и R²adj — стр. 312."""
     x, counts = np.array(TRANSECT, float).T
     r = regression_details(x, counts, transform_kind="log10")
     assert r.statistics["F_model"] == pytest.approx(13.764, abs=1e-3)
@@ -105,6 +112,7 @@ def test_lack_of_fit_needs_replication():
 
 
 def test_through_origin_table_12_10():
+    """Книга: Table 12.10 (стр. 318), Example 12.3."""
     a = np.array(AIRTEMP)
     r = regression_details(a[:, 1], a[:, 2], through_origin="yes", slope_null=1.0)
     model, resid, total = r.parameters["anova_table"]
@@ -122,6 +130,7 @@ def test_through_origin_table_12_10():
 
 
 def test_air_temperature_intercept_example_12_3():
+    """Книга: Example 12.3 (стр. 317–318)."""
     a = np.array(AIRTEMP)
     r = regression_details(a[:, 1], a[:, 2])
     icept, slope = r.parameters["parameter_tests"]
@@ -133,6 +142,7 @@ def test_air_temperature_intercept_example_12_3():
 
 
 def test_scaling_relationships():
+    """Книга: Раздел 12.9.1 (стр. 313–314): α* = ȳ, β* = s_x·β̂."""
     x, y = _seeds()
     std = regression_details(x, y, scaling="standardized").parameters["scaled"]
     s_x = np.std(x, ddof=1)
@@ -164,6 +174,7 @@ def _band_root(fit, y_new, r, alpha, side):
 
 @pytest.mark.parametrize("y_new, r", [(20.0, 1), (30.5, 3), (45.0, 2)])
 def test_fieller_limits_match_band_inversion(y_new, r):
+    """Книга: Раздел 12.9.3 (стр. 321): пределы Филлера; эталон — обращение доверительной полосы."""
     x, y = _seeds()
     res = inverse_prediction(x, y, y_new=str(y_new), replicates=r)
     (row,) = res.parameters["calibration"]

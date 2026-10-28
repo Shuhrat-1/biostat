@@ -42,6 +42,7 @@ def _fit(variables, **kw):
 
 
 def test_correlations_table_14_1():
+    """Книга: Table 14.1 (стр. 347)."""
     r = _fit("Length, Diameter, Moisture, Hardness")
     corr = {(c["var1"], c["var2"]): c for c in r.parameters["correlations"]}
     assert corr[("Length", "Diameter")]["r"] == pytest.approx(0.999, abs=5e-4)
@@ -51,6 +52,7 @@ def test_correlations_table_14_1():
 
 
 def test_summary_anova_table_14_3_and_parameters_14_8():
+    """Книга: Tables 14.3 (стр. 353) и 14.8 (стр. 359)."""
     r = _fit("Length, Hardness")
     model, resid, total = r.parameters["anova_table"]
     assert (model["ss"], resid["ss"], total["ss"]) == pytest.approx(
@@ -68,6 +70,7 @@ def test_summary_anova_table_14_3_and_parameters_14_8():
 
 
 def test_sequential_both_orders_table_14_5():
+    """Книга: Table 14.5 (стр. 356)."""
     a = _fit("Length, Hardness").parameters["sequential"]
     b = _fit("Hardness, Length").parameters["sequential"]
     assert [row["ss"] for row in a] == pytest.approx([5683.18, 70.30], abs=5e-3)
@@ -77,6 +80,7 @@ def test_sequential_both_orders_table_14_5():
 
 
 def test_marginal_table_14_7_equals_t_squared():
+    """Книга: Table 14.7 (стр. 357)."""
     r = _fit("Length, Hardness")
     marg = r.parameters["marginal"]
     assert [row["ss"] for row in marg] == pytest.approx([5440.6436, 70.2985], abs=1e-4)
@@ -86,6 +90,7 @@ def test_marginal_table_14_7_equals_t_squared():
 
 
 def test_four_variates_table_14_10_and_vif():
+    """Книга: Tables 14.9–14.10 (стр. 363)."""
     r = _fit("Length, Hardness, Moisture, Diameter")
     est = {row["term"]: row for row in r.parameters["parameter_tests"]}
     assert (est["[1]"]["estimate"], est["[1]"]["se"]) == pytest.approx((-12.970, 10.1545), abs=5e-4)
@@ -109,12 +114,14 @@ def test_four_variates_table_14_10_and_vif():
 
 
 def test_incremental_moisture_example_14_1j():
+    """Книга: Example 14.1J (стр. 368)."""
     seq = _fit("Length, Hardness, Moisture").parameters["sequential"]
     assert seq[2]["F"] == pytest.approx(2.57, abs=5e-3)
     assert seq[2]["p"] == pytest.approx(0.111, abs=5e-4)
 
 
 def test_all_subsets_table_14_12():
+    """Книга: Table 14.12 (стр. 367)."""
     cols = _wheat()
     r = regression_subsets(cols["Weight"], cols, "Weight", variables="Length, Hardness, Moisture")
     rows = {tuple(row["terms"]): row for row in r.parameters["subsets"]}
@@ -134,6 +141,7 @@ def test_all_subsets_table_14_12():
 
 
 def test_subsets_with_forced_terms_table_14_16():
+    """Книга: Table 14.16 (стр. 375)."""
     cols = _examine()
     r = regression_subsets(cols["JDay"], cols, "JDay",
                            variables=_BASE + ", C30Day, F60Day, Altitude, Latitude",
@@ -153,6 +161,7 @@ def test_subsets_with_forced_terms_table_14_16():
 
 
 def test_forward_selection_example_14_2():
+    """Книга: Example 14.2 (стр. 372), Table 14.14 (стр. 373)."""
     cols = _examine()
     r = stepwise_selection(cols["JDay"], cols, "JDay", strategy="forward_stepwise")
     order = ["F60Day", "MayRain", "OctRain", "FebRain", "Urban", "DecForest", "Longitude",
@@ -172,6 +181,7 @@ def test_forward_selection_example_14_2():
 
 
 def test_backward_selection_example_14_2():
+    """Книга: Example 14.2 (стр. 372), Table 14.14 (стр. 373)."""
     cols = _examine()
     r = stepwise_selection(cols["JDay"], cols, "JDay", strategy="backward_stepwise")
     assert set(r.parameters["selected"]) == {
@@ -192,6 +202,7 @@ def test_forced_terms_are_never_dropped():
 
 
 def test_partial_residuals_and_prediction():
+    """Книга: Частные остатки (стр. 360), предсказания (стр. 359)."""
     r = _fit("Length, Hardness", x_predict="Length=3.2, Hardness=-10")
     part = r.parameters["plots"]["partial_residuals"]["Length"]
     resid = np.array(r.parameters["plots"]["observed_vs_fitted"]["observed"]) - np.array(
@@ -206,6 +217,7 @@ def test_partial_residuals_and_prediction():
 
 
 def test_perfect_collinearity_is_reported():
+    """Книга: Совершенная коллинеарность (стр. 361)."""
     cols = _wheat()
     cols["Twice"] = [2 * v for v in cols["Length"]]
     r = multiple_regression(cols["Weight"], cols, "Weight", variables="Length, Twice")
@@ -213,6 +225,7 @@ def test_perfect_collinearity_is_reported():
 
 
 def test_model_cross_validation():
+    """Книга: Кросс-валидация для выбора модели (стр. 377)."""
     cols = _wheat()
     assert parse_models("Length + Hardness | Length") == [["Length", "Hardness"], ["Length"]]
     r = model_cross_validation(cols["Weight"], cols, "Weight",

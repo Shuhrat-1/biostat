@@ -120,6 +120,7 @@ def beetle():
 
 
 def test_beetle_anova_table_8_4(beetle) -> None:
+    """Книга: Table 8.4 (стр. 160): ANOVA log10 для beetle mating."""
     rows = _rows(beetle)
     assert rows["Species"]["ss"] == pytest.approx(0.90307, abs=5e-5)
     assert rows["MateType"]["ss"] == pytest.approx(0.38073, abs=5e-5)
@@ -136,6 +137,7 @@ def test_beetle_anova_table_8_4(beetle) -> None:
 
 
 def test_beetle_effects_table_8_2(beetle) -> None:
+    """Книга: Tables 8.2a–c (стр. 157): средние и эффекты beetle mating."""
     eff = beetle.parameters["effects"]
     assert eff["Species"]["vit"] == pytest.approx(-0.1503, abs=5e-5)
     assert eff["MateType"]["intra"] == pytest.approx(0.0976, abs=5e-5)
@@ -144,7 +146,10 @@ def test_beetle_effects_table_8_2(beetle) -> None:
 
 
 def test_beetle_prediction_table_8_5(beetle) -> None:
-    """α = 0.05: взаимодействие исключено, предсказание по главным эффектам."""
+    """Книга: Table 8.5 (стр. 162).
+
+    α = 0.05: взаимодействие исключено, предсказание по главным эффектам.
+    """
     assert beetle.parameters["prediction_terms"] == ["Species", "MateType"]
     species = _table(beetle, "Species")
     assert _means(species) == pytest.approx(
@@ -161,12 +166,14 @@ def test_beetle_prediction_table_8_5(beetle) -> None:
 
 
 def test_beetle_borderline_interaction_flagged(beetle) -> None:
+    """Книга: Table 8.4 (стр. 160): P взаимодействия 0.058; пограничный случай — стр. 159–160."""
     flag = next(w for w in beetle.warnings if w.code == "interaction_borderline")
     assert flag.severity == Severity.INFO
     assert flag.params == {"term": "Species.MateType", "p": 0.058}
 
 
 def test_beetle_interaction_kept_at_alpha_010() -> None:
+    """Книга: Table 8.2 (стр. 157): средние ячеек log10 1.5129 и 2.0085."""
     y, sp, mt = _beetles()
     result = factorial_anova(y, sp, mt, transform_kind="log10", alpha=0.10)
     assert result.parameters["prediction_terms"] == ["A.B"]
@@ -188,6 +195,7 @@ def ladybird():
 
 
 def test_ladybird_multistratum_table_8_8(ladybird) -> None:
+    """Книга: Table 8.8 (стр. 169)."""
     rows = _rows(ladybird)
     expected = {"Block": (1, 0.0677, 0.294), "Host": (1, 13.5992, 59.172),
                 "Cadaver": (2, 17.0274, 37.044), "Ladybird": (1, 11.0907, 48.257),
@@ -205,6 +213,7 @@ def test_ladybird_multistratum_table_8_8(ladybird) -> None:
 
 
 def test_ladybird_predictions_table_8_9(ladybird) -> None:
+    """Книга: Table 8.9 (стр. 170)."""
     assert ladybird.parameters["prediction_terms"] == ["Host", "Cadaver.Ladybird"]
     host = _table(ladybird, "Host")
     assert _means(host) == pytest.approx({"Host=bean": -0.772, "Host=trefoil": -1.641}, abs=5e-4)
@@ -289,6 +298,7 @@ def brassica():
 
 
 def test_brassica_nested_anova_table_8_12(brassica) -> None:
+    """Книга: Table 8.12 (стр. 176)."""
     rows = _rows(brassica)
     assert (rows["Block"]["df"], rows["Block"]["F"]) == (2, pytest.approx(6.492, abs=5e-4))
     assert rows["Species"]["ss"] == pytest.approx(4.2896, abs=5e-5)
@@ -301,6 +311,7 @@ def test_brassica_nested_anova_table_8_12(brassica) -> None:
 
 
 def test_brassica_within_group_partition_table_8_14(brassica) -> None:
+    """Книга: Table 8.14 (стр. 178), Example 8.3B."""
     rows = _rows(brassica)
     a, b = rows["Species.Isolate[A]"], rows["Species.Isolate[B]"]
     assert (a["df"], b["df"]) == (8, 3)
@@ -312,6 +323,7 @@ def test_brassica_within_group_partition_table_8_14(brassica) -> None:
 
 
 def test_brassica_effects_table_8_11(brassica) -> None:
+    """Книга: Table 8.11 (стр. 176)."""
     eff = brassica.parameters["effects"]
     assert eff["Species"]["A"] == pytest.approx(0.221, abs=5e-4)
     # −0.498 в книге — среднее округлённых эффектов (−1.990 / 4 = −0.4975).
@@ -324,7 +336,10 @@ def test_brassica_effects_table_8_11(brassica) -> None:
 
 
 def test_brassica_group_means(brassica) -> None:
-    """Средние видов −1.341 (20.7%) и −2.060 (11.3%), SED = 0.1315 (стр. 176)."""
+    """Книга: Example 8.3 (стр. 176).
+
+    Средние видов −1.341 (20.7%) и −2.060 (11.3%), SED = 0.1315 (стр. 176).
+    """
     species = _table(brassica, "Species")
     assert _means(species) == pytest.approx({"Species=A": -1.341, "Species=B": -2.060}, abs=5e-4)
     assert [e.value for e in brassica.estimates] == pytest.approx([20.7, 11.3], abs=0.05)
@@ -336,6 +351,7 @@ def test_brassica_group_means(brassica) -> None:
 
 
 def test_potato_control_vs_treated_table_8_16() -> None:
+    """Книга: Table 8.16 (стр. 182)."""
     y, typ, trt, blk = _potato()
     result = nested_anova(y, typ, trt, block=blk,
                           column_names={"group": "Type", "member": "Fungicide"})

@@ -33,6 +33,7 @@ def _seeds():
 
 
 def test_elisa_table_13_2():
+    """Книга: Tables 13.1–13.2 (стр. 326–327), Example 13.1."""
     x = np.log10(np.array(ELISA_CONC) + 1)
     r = regression_details(x, ELISA_ABS)
     icept, slope = r.parameters["parameter_tests"]
@@ -45,12 +46,14 @@ def test_elisa_table_13_2():
 
 
 def test_x_transform_in_diagnostics_matches_pretransformed():
+    """Книга: Table 13.2 (стр. 327)."""
     r = regression_diagnostics(ELISA_CONC, ELISA_ABS, x_transform="log10", x_offset=1)
     assert r.parameters["line"] == pytest.approx({"intercept": 0.54580, "slope": 1.52837},
                                                  abs=1e-5)
 
 
 def test_leverage_example_13_2b():
+    """Книга: Example 13.2B (стр. 334)."""
     r = regression_diagnostics(*_seeds())
     assert r.parameters["thresholds"]["leverage"] == pytest.approx(0.021, abs=5e-4)
     assert r.statistics["max_leverage"] == pytest.approx(0.042, abs=5e-4)
@@ -59,6 +62,7 @@ def test_leverage_example_13_2b():
 
 
 def test_influence_example_13_2c():
+    """Книга: Example 13.2C (стр. 337–338)."""
     r = regression_diagnostics(*_seeds())
     assert r.parameters["thresholds"]["modified_cook"] == pytest.approx(1.99, abs=5e-3)
     assert r.statistics["n_influential"] == 8
@@ -71,6 +75,7 @@ def test_influence_example_13_2c():
 
 
 def test_largest_residual_example_13_2a():
+    """Книга: Example 13.2A (стр. 331)."""
     r = regression_diagnostics(*_seeds())
     obs = max(r.parameters["observations"], key=lambda o: abs(o["deletion_residual"]))
     assert 36 < obs["fitted"] < 37  # «fitted value of just under 37»
@@ -99,6 +104,7 @@ def test_prediction_and_deletion_residuals_by_refitting():
 
 
 def test_modified_cook_formula():
+    """Книга: Формула C_i (стр. 336)."""
     x, y = _seeds()
     m = influence_measures(sm.add_constant(x), y)
     n, p, h = y.size, 2, m["leverage"]
@@ -107,6 +113,7 @@ def test_modified_cook_formula():
 
 
 def test_half_normal_quantiles():
+    """Книга: Квантили полунормального графика (стр. 104)."""
     q = half_normal_quantiles(4)
     assert q[0] == pytest.approx(0.1854, abs=1e-4)  # Φ⁻¹(0.5 + 0.5·0.625/4.25) = Φ⁻¹(0.5735)
     assert np.all(np.diff(q) > 0)
@@ -130,6 +137,7 @@ def test_warnings_list_original_rows():
 
 
 def test_prediction_summary_formulas():
+    """Книга: Формулы PB, MAD, MSEP, RMSE (стр. 340)."""
     s = prediction_summary([10.0, 12.0, 14.0], [11.0, 11.0, 16.0])
     assert s["pb"] == pytest.approx(-2 / 3)
     assert s["mad"] == pytest.approx(4 / 3)
@@ -139,6 +147,7 @@ def test_prediction_summary_formulas():
 
 
 def test_loo_equals_prediction_residuals():
+    """Книга: Leave-1-out и PRESS (стр. 339, 342)."""
     x, y = _seeds()
     cv = regression_cross_validation(x, y, scheme="loo")
     m = influence_measures(sm.add_constant(x), y)
@@ -149,6 +158,7 @@ def test_loo_equals_prediction_residuals():
 
 
 def test_split_example_13_2d_structure():
+    """Книга: Example 13.2D (стр. 341): разбиение 95/95; случайное разбиение книги не воспроизводимо."""
     x, y = _seeds()
     cv = regression_cross_validation(x, y, scheme="split", train_fraction=0.5, seed=7)
     train = cv.parameters["training"]

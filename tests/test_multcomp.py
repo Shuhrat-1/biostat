@@ -61,7 +61,10 @@ def _range(result) -> tuple[float, float]:
 
 
 def test_dunnett_quantile_book_value() -> None:
-    """d[0.025] для 13 вариантов и 26 df = 3.004 (стр. 203; в формуле опечатка 16 df)."""
+    """Книга: Example 8.7 (стр. 203).
+
+    d[0.025] для 13 вариантов и 26 df = 3.004 (стр. 203; в формуле опечатка 16 df).
+    """
     assert dunnett_quantile(0.05, np.ones(13), 26) == pytest.approx(3.004, abs=5e-4)
 
 
@@ -92,6 +95,7 @@ def test_dunnett_one_sided_smaller_than_two_sided() -> None:
 
 
 def test_lupin_means_and_sed_table_8_28() -> None:
+    """Книга: Table 8.28 (стр. 203)."""
     result = _run("lsd")
     means = {e.name: e.value for e in result.estimates}
     assert means["DTN108"] == pytest.approx(0.560, abs=5e-4)
@@ -102,19 +106,24 @@ def test_lupin_means_and_sed_table_8_28() -> None:
 
 
 def test_lupin_dunnett_range() -> None:
+    """Книга: Example 8.7 (стр. 203): интервал Даннета 0.207–0.513."""
     result = _run("dunnett")
     assert _range(result) == pytest.approx((0.207, 0.513), abs=5e-4)
     assert _different(result) == {"DTN108", "DTN31"}
 
 
 def test_lupin_bonferroni_range() -> None:
+    """Книга: Example 8.7, Fig. 8.10 (стр. 204): интервал Бонферрони 0.199–0.521."""
     result = _run("bonferroni")
     assert _range(result) == pytest.approx((0.199, 0.521), abs=5e-4)
     assert _different(result) == {"DTN108", "DTN31"}
 
 
 def test_lupin_tukey_and_alsd() -> None:
-    """Тьюки учитывает все 91 пару: отличается только DTN108; aLSD близок к Тьюки."""
+    """Книга: Example 8.7, Fig. 8.10 (стр. 204).
+
+    Тьюки учитывает все 91 пару: отличается только DTN108; aLSD близок к Тьюки.
+    """
     tukey, alsd = _run("tukey"), _run("alsd")
     assert _different(tukey) == {"DTN108"}
     assert _different(alsd) == {"DTN108"}
@@ -126,6 +135,7 @@ def test_lupin_tukey_and_alsd() -> None:
 
 
 def test_lupin_lsd_and_observed_fdr() -> None:
+    """Книга: Example 8.7, Fig. 8.10 (стр. 204): LSD без поправки; наблюдаемый FDR — расчёт BioStat."""
     result = _run("lsd")
     assert _different(result) == {"DTN31", "DTN19A", "CH304-70", "DTN108"}
     assert result.statistics["observed_fdr"] == pytest.approx(0.1625)
@@ -133,6 +143,7 @@ def test_lupin_lsd_and_observed_fdr() -> None:
 
 
 def test_lupin_fdr_table_8_29() -> None:
+    """Книга: Table 8.29 (стр. 205)."""
     result = _run("fdr")
     rows = {c["group2"]: c for c in result.parameters["comparisons"]}
     assert rows["DTN108"]["t"] == pytest.approx(3.933, abs=5e-3)

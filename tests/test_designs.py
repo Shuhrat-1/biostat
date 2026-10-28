@@ -89,6 +89,7 @@ def lupin():
 
 
 def test_latin_square_single_factor_table_9_4() -> None:
+    """Книга: Table 9.4 (стр. 215)."""
     d = _lupin()
     trt = [s + w for s, w in zip(d["soil"], d["water"])]
     rows = _rows(latin_square_anova(d["y"], trt, d["row"], d["col"]))
@@ -101,6 +102,7 @@ def test_latin_square_single_factor_table_9_4() -> None:
 
 
 def test_latin_square_factorial_table_9_5(lupin) -> None:
+    """Книга: Table 9.5 (стр. 215)."""
     rows = _rows(lupin)
     expected = {"Soil": (5.881, 9.062, 0.024), "Water": (2.176, 3.352, 0.117),
                 "Soil.Water": (16.606, 25.588, 0.002)}
@@ -112,12 +114,14 @@ def test_latin_square_factorial_table_9_5(lupin) -> None:
 
 
 def test_latin_square_effects_table_9_2(lupin) -> None:
+    """Книга: Table 9.2 (стр. 213)."""
     eff = lupin.parameters["effects"]
     assert list(eff["Row"].values()) == pytest.approx([-0.04, -0.89, 0.86, 0.08], abs=6e-3)
     assert list(eff["Column"].values()) == pytest.approx([-2.64, 1.31, 2.81, -1.47], abs=6e-3)
 
 
 def test_latin_square_predictions_table_9_6(lupin) -> None:
+    """Книга: Table 9.6 (стр. 217)."""
     assert lupin.parameters["prediction_terms"] == ["Soil.Water"]
     table = lupin.parameters["tables"][0]
     means = {r["label"]: r["mean"] for r in table["rows"]}
@@ -146,6 +150,7 @@ def competition():
 
 
 def test_split_plot_anova_table_9_12(competition) -> None:
+    """Книга: Table 9.12 (стр. 225)."""
     rows = _rows(competition)
     expected = {"Block": (3, 6.6473, 1.476, 0.378), "Irrigation": (1, 14.2311, 9.480, 0.054),
                 "WholePlot residual": (3, 4.5035, 5.751, 0.006),
@@ -161,6 +166,7 @@ def test_split_plot_anova_table_9_12(competition) -> None:
 
 
 def test_split_plot_predictions_table_9_14(competition) -> None:
+    """Книга: Table 9.14 (стр. 227)."""
     table = competition.parameters["tables"][0]
     means = {r["label"]: r["mean"] for r in table["rows"]}
     assert means["Irrigation=no × Species=-"] == pytest.approx(8.117, abs=6e-4)
@@ -176,6 +182,7 @@ def test_split_plot_predictions_table_9_14(competition) -> None:
 
 
 def test_satterthwaite_example_9_5c() -> None:
+    """Книга: Example 9.5C (стр. 227)."""
     assert satterthwaite_df(1.5012, 0.2610, 4, 3, 18) == pytest.approx(6.64, abs=5e-3)
 
 
@@ -187,7 +194,10 @@ def test_split_plot_whole_plot_column_matches_block_a(competition) -> None:
 
 
 def test_split_plot_without_blocks_example_9_6() -> None:
-    """Без блоков: целые делянки — колонка ``whole_plot``; df как в Table 9.16."""
+    """Книга: Example 9.6, Table 9.16 (стр. 229–230).
+
+    Без блоков: целые делянки — колонка ``whole_plot``; df как в Table 9.16.
+    """
     rng = np.random.default_rng(2)
     temp = ["20", "20", "15", "15", "15", "20"]
     y, a, b, bed = [], [], [], []
@@ -204,7 +214,10 @@ def test_split_plot_without_blocks_example_9_6() -> None:
 
 
 def test_split_plot_main_effect_tables_use_stratum_errors() -> None:
-    """Без взаимодействия: A — по s_w² на df целых делянок, B — по s² на df субделянок."""
+    """Книга: Table 9.13 (стр. 225): SE и df по стратам.
+
+    Без взаимодействия: A — по s_w² на df целых делянок, B — по s² на df субделянок.
+    """
     d = _competition()
     rng = np.random.default_rng(0)
     wp_noise = {(b, w): rng.normal(scale=0.3) for b, w in zip(d["block"], d["wp"])}
@@ -242,6 +255,7 @@ def test_split_plot_rejects_mixed_whole_plot() -> None:
 @pytest.mark.parametrize(("design", "ef", "factor", "res_df"), [
     (BIBD_A, 7 / 9, 0.93, 8), (BIBD_B, 7 / 8, 0.76, 15)])
 def test_bibd_design_example_9_9b(design, ef, factor, res_df) -> None:
+    """Книга: Example 9.9B (стр. 237)."""
     y, trt, block = _bibd(design)
     result = bibd_anova(y, trt, block)
     info = result.parameters["design"]

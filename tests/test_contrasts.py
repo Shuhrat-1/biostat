@@ -104,6 +104,7 @@ def test_parse_rejects_bad_contrasts(spec: str) -> None:
 
 
 def test_potato_single_contrast_with_remainder_table_8_17() -> None:
+    """Книга: Table 8.17 (стр. 185)."""
     y, _, trt, blk = _potato()
     result = treatment_contrasts(y, trt, block=blk, contrasts="AvB: F1+F4 vs F2+F3")
     contrast = result.parameters["contrasts"][0]
@@ -120,6 +121,7 @@ def test_potato_single_contrast_with_remainder_table_8_17() -> None:
 
 
 def test_potato_four_orthogonal_contrasts_table_8_19() -> None:
+    """Книга: Table 8.19 (стр. 186)."""
     y, _, trt, blk = _potato()
     result = treatment_contrasts(y, trt, block=blk, contrasts=_FOUR)
     ss = [c["ss"] for c in result.parameters["contrasts"]]
@@ -132,7 +134,9 @@ def test_potato_four_orthogonal_contrasts_table_8_19() -> None:
 
 
 def test_potato_psi1_standardized_matches_book() -> None:
-    """Книга печатает ψ1 = −177.0 (SE 29.51): это стандартизованный контраст (Σl² = 1).
+    """Книга: Example 8.4E (стр. 187).
+
+    Книга печатает ψ1 = −177.0 (SE 29.51): это стандартизованный контраст (Σl² = 1).
 
     Разность контроль − среднее фунгицидов равна −197.9 (SE 32.99); t одинаковый.
     """
@@ -186,6 +190,7 @@ def test_contrast_unequal_replication_crd() -> None:
 
 
 def test_herbicide_factorial_contrasts_table_8_22() -> None:
+    """Книга: Table 8.22 (стр. 189)."""
     y, herb, pop, rep = _herbicide()
     result = factorial_anova(
         y, herb, pop, block=rep, transform_kind="sqrt",
@@ -206,6 +211,7 @@ def test_herbicide_factorial_contrasts_table_8_22() -> None:
 
 
 def test_herbicide_contrast_estimates_table_8_21() -> None:
+    """Книга: Table 8.21 (стр. 189)."""
     y, herb, pop, rep = _herbicide()
     result = factorial_anova(y, herb, pop, block=rep, transform_kind="sqrt",
                              contrasts="A+C vs B; A vs C")
@@ -217,6 +223,7 @@ def test_herbicide_contrast_estimates_table_8_21() -> None:
 
 
 def test_factorial_single_contrast_leaves_remainders() -> None:
+    """Книга: Example 8.5 (стр. 189): остаток Remainder[A] = 1.6434."""
     y, herb, pop, rep = _herbicide()
     result = factorial_anova(y, herb, pop, block=rep, transform_kind="sqrt",
                              contrasts="A+C vs B")
@@ -242,6 +249,7 @@ def voltage():
 
 
 def test_orthogonal_polynomial_coefficients_table_8_24() -> None:
+    """Книга: Table 8.24 (стр. 194)."""
     x = np.arange(-160, 1, 20, dtype=float)
     lin, quad = orthogonal_polynomials(x, np.full(9, 2.0), 2)
     assert lin.tolist() == pytest.approx(list(range(-80, 81, 20)))
@@ -257,6 +265,7 @@ def test_orthogonal_polynomials_respect_replication() -> None:
 
 
 def test_voltage_polynomial_anova_table_8_25(voltage) -> None:
+    """Книга: Table 8.25 (стр. 194)."""
     rows = _rows(voltage)
     assert rows["Block"]["F"] == pytest.approx(12.185, abs=5e-4)
     assert rows["Voltage"]["ss"] == pytest.approx(2.33653, abs=5e-6)
@@ -271,7 +280,10 @@ def test_voltage_polynomial_anova_table_8_25(voltage) -> None:
 
 
 def test_voltage_raw_contrasts_and_linear_fit(voltage) -> None:
-    """Σ l·τ̂ = 162.6 и 1218.8 (стр. 193); линейный тренд −0.434 + 0.0068·V (стр. 195)."""
+    """Книга: Example 8.6 (стр. 193, 195).
+
+    Σ l·τ̂ = 162.6 и 1218.8 (стр. 193); линейный тренд −0.434 + 0.0068·V (стр. 195).
+    """
     est = [c["estimate"] for c in voltage.parameters["contrasts"]]
     assert est == pytest.approx([162.6, 1218.8], abs=0.05)
     linear = voltage.parameters["trend_fits"][0]["coefficients"]
