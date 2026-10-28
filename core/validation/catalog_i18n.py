@@ -67,6 +67,7 @@ LABELS: dict[str, dict[str, str]] = {
         "Регрессия: выбросы, рычаги, влияние": "Regression: outliers, leverage, influence",
         "Регрессия: кросс-валидация": "Regression: cross-validation",
         "Множественная регрессия": "Multiple regression",
+        "Регрессия с группами (параллельные линии)": "Regression with groups (parallel lines)",
         "Регрессия: все подмножества переменных": "Regression: all subsets",
         "Регрессия: пошаговый отбор": "Regression: stepwise selection",
         "Регрессия: сравнение моделей кросс-валидацией": "Regression: model comparison by cross-validation",
@@ -108,6 +109,7 @@ LABELS: dict[str, dict[str, str]] = {
         "Регрессия: выбросы, рычаги, влияние": "Regressão: outliers, alavancagem, influência",
         "Регрессия: кросс-валидация": "Regressão: validação cruzada",
         "Множественная регрессия": "Regressão múltipla",
+        "Регрессия с группами (параллельные линии)": "Regressão com grupos (retas paralelas)",
         "Регрессия: все подмножества переменных": "Regressão: todos os subconjuntos",
         "Регрессия: пошаговый отбор": "Regressão: seleção passo a passo",
         "Регрессия: сравнение моделей кросс-валидацией": "Regressão: comparação de modelos por validação cruzada",
@@ -187,6 +189,7 @@ DESCRIPTIONS: dict[str, dict[str, str]] = {
         "Все подмодели: R²adj, AIC, SBC, Cp Мэллоуза и лучшая модель по каждому критерию.": "All sub-models: adjusted R², AIC, SBC, Mallows' Cp and the best model by each criterion.",
         "Прямой отбор, обратное исключение и пошаговые варианты по F-тестам.": "Forward selection, backward elimination and stepwise variants using F-tests.",
         "Какая из моделей-кандидатов лучше предсказывает: MSEP, MAD, PB.": "Which candidate model predicts best: MSEP, MAD, PB.",
+        "Отдельные, параллельные или одна линия по группам: ANOVA и выбор модели.": "Separate, parallel or a single line across groups: ANOVA and model choice.",
         "Модель y = b0 + b1·x с оценками и доверительными интервалами.": (
             "Model y = b0 + b1·x with estimates and confidence intervals."
         ),
@@ -264,6 +267,7 @@ DESCRIPTIONS: dict[str, dict[str, str]] = {
         "Все подмодели: R²adj, AIC, SBC, Cp Мэллоуза и лучшая модель по каждому критерию.": "Todos os submodelos: R² ajustado, AIC, SBC, Cp de Mallows e o melhor modelo por critério.",
         "Прямой отбор, обратное исключение и пошаговые варианты по F-тестам.": "Seleção progressiva, eliminação regressiva e variantes passo a passo com testes F.",
         "Какая из моделей-кандидатов лучше предсказывает: MSEP, MAD, PB.": "Que modelo candidato prevê melhor: MSEP, MAD, PB.",
+        "Отдельные, параллельные или одна линия по группам: ANOVA и выбор модели.": "Retas separadas, paralelas ou única entre grupos: ANOVA e escolha do modelo.",
         "Модель y = b0 + b1·x с оценками и доверительными интервалами.": (
             "Modelo y = b0 + b1·x com estimativas e intervalos de confiança."
         ),
@@ -322,6 +326,7 @@ LABELS_MISC: dict[str, dict[str, str]] = {
         "Число перестановок": "Number of permutations",
         "Трансформация": "Transformation",
         "Сдвиг c": "Offset c",
+        "Группы первыми в последовательной ANOVA": "Groups first in the sequential ANOVA",
         "Объясняющие переменные (через запятую; пусто — все)": "Explanatory variables (comma-separated; empty = all)",
         "Точки предсказания (x1=…, x2=…; …)": "Prediction points (x1=…, x2=…; …)",
         "Обязательные переменные (через запятую)": "Always-included variables (comma-separated)",
@@ -395,6 +400,7 @@ LABELS_MISC: dict[str, dict[str, str]] = {
         "Число перестановок": "Número de permutações",
         "Трансформация": "Transformação",
         "Сдвиг c": "Desvio c",
+        "Группы первыми в последовательной ANOVA": "Grupos primeiro na ANOVA sequencial",
         "Объясняющие переменные (через запятую; пусто — все)": "Variáveis explicativas (separadas por vírgula; vazio = todas)",
         "Точки предсказания (x1=…, x2=…; …)": "Pontos de previsão (x1=…, x2=…; …)",
         "Обязательные переменные (через запятую)": "Variáveis sempre incluídas (separadas por vírgula)",

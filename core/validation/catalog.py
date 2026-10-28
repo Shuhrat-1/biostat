@@ -739,6 +739,22 @@ CATALOG: list[MethodSpec] = [
         description="Какая из моделей-кандидатов лучше предсказывает: MSEP, MAD, PB.",
     ),
     MethodSpec(
+        method="regression_with_groups",
+        label="Регрессия с группами (параллельные линии)",
+        group="Связь переменных",
+        slots={"y": _NUM, "group": _FACTOR},
+        slot_labels={"y": "Y (отклик)", "group": "Колонка групп"},
+        params=[
+            Param("variables", "Объясняющие переменные (через запятую; пусто — все)", "text", ""),
+            Param("group_first", "Группы первыми в последовательной ANOVA", "select", "no",
+                  options=["no", "yes"]),
+            Param("alpha", "Уровень значимости α", "float", 0.05, min=0.001, max=0.2),
+            _TRANSFORM_NONE,
+            Param("offset", "Сдвиг c", "float", 0.0, min=0.0, max=1000.0),
+        ],
+        description="Отдельные, параллельные или одна линия по группам: ANOVA и выбор модели.",
+    ),
+    MethodSpec(
         method="pearson_correlation",
         label="Корреляция Пирсона",
         group="Связь переменных",
@@ -784,6 +800,8 @@ def _slot_satisfiable(
         return have_numeric >= 1
     if spec.method in _MULTI_VARIATE:  # отклик и не меньше двух x (гл. 14)
         return have_numeric >= 3
+    if spec.method == "regression_with_groups":  # отклик, x и группы (гл. 15)
+        return have_numeric >= 2 and (bool(by_type.get(_CAT)) or have_numeric >= 3)
     required = {k: t for k, t in spec.slots.items() if k not in spec.optional_slots}
     needed_numeric = sum(1 for t in required.values() if t == _NUM)
     if have_numeric < needed_numeric:

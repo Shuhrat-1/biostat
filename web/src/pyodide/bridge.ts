@@ -192,6 +192,7 @@ const METHOD_MODULES: Record<string, string> = {
   regression_subsets: "core.stats.multiple_regression",
   stepwise_selection: "core.stats.multiple_regression",
   model_cross_validation: "core.stats.multiple_regression",
+  regression_with_groups: "core.stats.regression_groups",
   unbalanced_anova: "core.stats.unbalanced",
   simple_linear_regression: "core.stats.regression",
   pearson_correlation: "core.stats.correlation",
@@ -248,6 +249,9 @@ const MULTI_METHODS = new Set([
   "stepwise_selection",
   "model_cross_validation",
 ]);
+
+/** Регрессия с группами (гл. 15): как multi, плюс колонка групп по строкам. */
+const MULTI_GROUP_METHODS = new Set(["regression_with_groups"]);
 
 /** Парные методы: две числовые колонки как связанные измерения (до/после). */
 const PAIRED_METHODS = new Set(["paired_t", "wilcoxon"]);
@@ -335,6 +339,8 @@ export async function runMethod(
         ? "structured"
       : MULTI_METHODS.has(method)
         ? "multi"
+      : MULTI_GROUP_METHODS.has(method)
+        ? "multi_group"
       : GROUPED_METHODS.has(method)
         ? method === "two_sample_t" || method === "mann_whitney"
           ? "two_groups"
@@ -386,6 +392,15 @@ elif _kind == "multi":
     _names = list(_table.numeric_columns_all())
     _all = dict(zip(_names, _table.aligned_numeric(_names)))
     _result = _fn(_all[_cols["y"]], _all, response_name=_cols["y"], **_kwargs)
+elif _kind == "multi_group":
+    # Колонка групп не участвует как x, даже если она числовая.
+    _names = [n for n in _table.numeric_columns_all() if n != _cols["group"]]
+    _all = dict(zip(_names, _table.aligned_numeric(_names)))
+    _, (_grp,) = _table.factor_columns(_cols["y"], [_cols["group"]])
+    _result = _fn(
+        _all[_cols["y"]], _all, _grp, response_name=_cols["y"],
+        column_names={"group": _cols["group"]}, **_kwargs,
+    )
 elif _kind == "xy":
     # Пары по строкам: пропуск → NaN, неполные строки удаляет метод.
     _x, _y = _table.aligned_numeric([_cols["x"], _cols["y"]])
@@ -436,6 +451,7 @@ export function requiredColumns(method: string): Array<keyof ColumnSelection> {
   if (GROUPED_METHODS.has(method)) return ["value", "group"];
   if (XY_METHODS.has(method)) return ["x", "y"];
   if (MULTI_METHODS.has(method)) return ["y"];
+  if (MULTI_GROUP_METHODS.has(method)) return ["y", "group"];
   if (method === "rcbd_subsampling_anova") return ["value", "group", "block", "unit"];
   if (method === "factorial_anova") return ["value", "factor_a", "factor_b"];
   if (method === "nested_anova") return ["value", "group", "member"];
@@ -548,7 +564,7 @@ elif _method in (
         if "deletion_residuals" in _p:
             _bundle["histogram"] = plotdata.histogram_data(_p["deletion_residuals"])
 
-elif _method in ("multiple_regression",) and "plots" in _res.parameters:
+elif _method in ("multiple_regression", "regression_with_groups") and "plots" in _res.parameters:
     # Остатки МЛР по стандартизованным остаткам (гл. 14.6).
     _p = _res.parameters["plots"]
     _bundle["residual_vs_fitted"] = _p["residual_vs_fitted"]

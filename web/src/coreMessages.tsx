@@ -296,6 +296,16 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     en: `Automatic selection is a first step: compare candidate models, check residuals and biological meaning.`,
     pt: `A seleção automática é um primeiro passo: compare modelos candidatos, verifique resíduos e o significado biológico.`,
   },
+  group_too_small: {
+    ru: `В группе {group} меньше {min} наблюдений — сравнение линий между группами ненадёжно.`,
+    en: `Group {group} has fewer than {min} observations — comparing lines across groups is unreliable.`,
+    pt: `O grupo {group} tem menos de {min} observações — comparar retas entre grupos não é fiável.`,
+  },
+  groups_poor_overlap: {
+    ru: `Диапазоны x групп мало перекрываются ({pairs}): различия сдвигов и наклон могут смешиваться.`,
+    en: `The x ranges of the groups overlap little ({pairs}): intercept differences and the slope may be confounded.`,
+    pt: `Os intervalos de x dos grupos sobrepõem-se pouco ({pairs}): diferenças de ordenada e o declive podem confundir-se.`,
+  },
   nonorthogonal_design: {
     ru: `Факторы неортогональны ({pairs}): суммы квадратов зависят от порядка подгонки — сравни последовательные таблицы и SS типа II.`,
     en: `The factors are non-orthogonal ({pairs}): sums of squares depend on the fitting order — compare the sequential tables and Type II SS.`,

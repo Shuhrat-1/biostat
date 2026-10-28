@@ -51,6 +51,8 @@ def test_multiple_regression_needs_three_numeric():
     three = {m["method"] for m in available_methods(_profiles(b"a,b,c\n1,2,3\n4,5,7\n7,9,8\n"))}
     assert "multiple_regression" not in two
     assert {"multiple_regression", "stepwise_selection"} <= three
+    assert "regression_with_groups" in three  # группы числовыми кодами
+    assert "regression_with_groups" not in two
 
 
 def test_single_numeric_no_regression():
@@ -170,6 +172,7 @@ def test_catalog_params_match_function_signatures():
         "regression_subsets": "core.stats.multiple_regression",
         "stepwise_selection": "core.stats.multiple_regression",
         "model_cross_validation": "core.stats.multiple_regression",
+        "regression_with_groups": "core.stats.regression_groups",
         "pearson_correlation": "core.stats.correlation",
     }
     for spec in CATALOG:
