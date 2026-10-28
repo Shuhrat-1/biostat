@@ -369,11 +369,9 @@ elif _kind == "structured":
         column_names={k: _cols[k] for k in _slots}, **_kwargs,
     )
 elif _kind == "xy":
-    _result = _fn(
-        _table.numeric_column(_cols["x"]),
-        _table.numeric_column(_cols["y"]),
-        **_kwargs,
-    )
+    # Пары по строкам: пропуск → NaN, неполные строки удаляет метод.
+    _x, _y = _table.aligned_numeric([_cols["x"], _cols["y"]])
+    _result = _fn(_x, _y, **_kwargs)
 elif _kind == "paired":
     _before, _after = _table.paired_columns(_cols["before"], _cols["after"])
     _result = _fn(_before, _after, **_kwargs)
@@ -485,8 +483,7 @@ elif _method in ("two_sample_t", "mann_whitney"):
     _bundle["boxplot"] = plotdata.boxplot_data(_groups)
 
 elif _method == "simple_linear_regression":
-    _x = _t.numeric_column(_cols["x"])
-    _y = _t.numeric_column(_cols["y"])
+    _x, _y = _t.aligned_numeric([_cols["x"], _cols["y"]])
     _slope = next(e["value"] for e in _res.to_dict()["estimates"] if e["name"] == "slope")
     _icept = next(e["value"] for e in _res.to_dict()["estimates"] if e["name"] == "intercept")
     _bundle["scatter"] = plotdata.scatter_regression_data(_x, _y, _slope, _icept)

@@ -201,6 +201,23 @@ class ParsedTable:
             aligned_after.append(na)
         return aligned_before, aligned_after
 
+    def aligned_numeric(self, names: list[str]) -> list[list[float]]:
+        """Несколько числовых колонок, выровненных по строкам.
+
+        Пропуск или нечисло → NaN на своём месте, строки не выбрасываются:
+        иначе при пропусках в разных строках пары (x, y) разъедутся.
+        Удаление неполных строк — на стороне метода.
+        """
+        decimal = self.dialect.decimal
+        out: list[list[float]] = []
+        for name in names:
+            column = []
+            for raw in self.column_values(name):
+                number = None if is_missing(raw) else parse_number(raw, decimal)
+                column.append(float("nan") if number is None else number)
+            out.append(column)
+        return out
+
     def numeric_columns_all(self) -> dict[str, list[float]]:
         """Все числовые колонки как словарь имя -> значения без пропусков.
 
