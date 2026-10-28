@@ -306,6 +306,21 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     en: `The x ranges of the groups overlap little ({pairs}): intercept differences and the slope may be confounded.`,
     pt: `Os intervalos de x dos grupos sobrepõem-se pouco ({pairs}): diferenças de ordenada e o declive podem confundir-se.`,
   },
+  blocked_regression_invalid: {
+    ru: `Нужно не меньше 2 блоков и 3 уровней x, чтобы проверить неадекватность прямой.`,
+    en: `At least 2 blocks and 3 levels of x are needed to test the straight line for lack of fit.`,
+    pt: `São necessários pelo menos 2 blocos e 3 níveis de x para testar a falta de ajustamento da reta.`,
+  },
+  covariate_related: {
+    ru: `Ковариата различается между обработками ({terms}): спроси, почему, и интерпретируй скорректированные средние осторожно.`,
+    en: `The covariate differs between treatments ({terms}): ask why, and interpret the adjusted means with care.`,
+    pt: `A covariável difere entre tratamentos ({terms}): pergunte porquê e interprete as médias ajustadas com cautela.`,
+  },
+  ancova_few_per_group: {
+    ru: `В некоторых группах не больше {n} наблюдений: проверка отдельных линий ненадёжна.`,
+    en: `Some groups have at most {n} observations: the separate-lines check is unreliable.`,
+    pt: `Alguns grupos têm no máximo {n} observações: a verificação de retas separadas não é fiável.`,
+  },
   nonorthogonal_design: {
     ru: `Факторы неортогональны ({pairs}): суммы квадратов зависят от порядка подгонки — сравни последовательные таблицы и SS типа II.`,
     en: `The factors are non-orthogonal ({pairs}): sums of squares depend on the fitting order — compare the sequential tables and Type II SS.`,

@@ -154,6 +154,7 @@ export interface ColumnSelection {
   column?: string;
   whole_plot?: string;
   extraneous?: string;
+  covariate?: string;
 }
 
 const METHOD_MODULES: Record<string, string> = {
@@ -193,6 +194,8 @@ const METHOD_MODULES: Record<string, string> = {
   stepwise_selection: "core.stats.multiple_regression",
   model_cross_validation: "core.stats.multiple_regression",
   regression_with_groups: "core.stats.regression_groups",
+  blocked_regression: "core.stats.ancova",
+  ancova: "core.stats.ancova",
   unbalanced_anova: "core.stats.unbalanced",
   simple_linear_regression: "core.stats.regression",
   pearson_correlation: "core.stats.correlation",
@@ -240,6 +243,8 @@ const STRUCTURED_METHODS = new Set([
   "replication_power",
   "equivalence_test",
   "unbalanced_anova",
+  "blocked_regression",
+  "ancova",
 ]);
 
 /** Множественная регрессия (гл. 14): отклик y и все числовые колонки, выровненные по строкам. */
@@ -459,6 +464,8 @@ export function requiredColumns(method: string): Array<keyof ColumnSelection> {
   if (method === "split_plot_anova") return ["value", "factor_a", "factor_b"];
   if (method === "bibd_anova") return ["value", "group", "block"];
   if (method === "unbalanced_anova") return ["value", "factor_a"];
+  if (method === "blocked_regression") return ["value", "x", "block"];
+  if (method === "ancova") return ["value", "group", "covariate"];
   if (STRUCTURED_METHODS.has(method)) return ["value", "group"];
   if (BLOCKED_METHODS.has(method)) return ["value", "group", "block"];
   return ["value"];
@@ -540,7 +547,7 @@ elif _method in (
     "factorial_anova", "nested_anova", "treatment_contrasts",
     "polynomial_contrasts", "mean_comparisons", "latin_square_anova",
     "split_plot_anova", "bibd_anova", "replication_power", "equivalence_test",
-    "unbalanced_anova",
+    "unbalanced_anova", "blocked_regression", "ancova",
 ) and "plots" in _res.parameters:
     # Графики остатков модели со всеми членами (гл. 5, 8).
     _p = _res.parameters["plots"]

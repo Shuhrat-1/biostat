@@ -173,6 +173,8 @@ def test_catalog_params_match_function_signatures():
         "stepwise_selection": "core.stats.multiple_regression",
         "model_cross_validation": "core.stats.multiple_regression",
         "regression_with_groups": "core.stats.regression_groups",
+        "blocked_regression": "core.stats.ancova",
+        "ancova": "core.stats.ancova",
         "pearson_correlation": "core.stats.correlation",
     }
     for spec in CATALOG:
