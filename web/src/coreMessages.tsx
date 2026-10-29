@@ -297,12 +297,12 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     pt: `Não foi possível ajustar: {models} (transformação inadmissível, ordem demasiado alta ou sem convergência).`,
   },
   surface_no_pure_error: {
-    ru: `Нет повторов комбинаций (x1, x2): задай ResMS и df чистой ошибки из анализа исходных данных.`,
-    en: `There are no replicated (x1, x2) combinations: give the pure-error ResMS and df from the analysis of the raw data.`,
-    pt: `Não há combinações (x1, x2) repetidas: indique o ResMS e os gl do erro puro da análise dos dados originais.`,
+    ru: `Нет повторов комбинаций переменных: задай ResMS и df чистой ошибки из анализа исходных данных.`,
+    en: `There are no replicated combinations of the variates: give the pure-error ResMS and df from the analysis of the raw data.`,
+    pt: `Não há combinações repetidas das variáveis: indique o ResMS e os gl do erro puro da análise dos dados originais.`,
   },
   surface_too_few_cells: {
-    ru: `Различных комбинаций (x1, x2) должно быть больше числа членов поверхности.`,
+    ru: `Различных комбинаций переменных должно быть больше числа членов поверхности.`,
     en: `There must be more distinct (x1, x2) combinations than surface terms.`,
     pt: `Tem de haver mais combinações (x1, x2) distintas do que termos da superfície.`,
   },
@@ -410,6 +410,11 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     ru: `Схемы {schemes}: меньше 10 остаточных df в страте вариантов — мощность мала; добавь блоки или варианты (правило 10–20 df).`,
     en: `Schemes {schemes}: fewer than 10 residual df in the treatment stratum — power is low; add blocks or treatments (10–20 df rule).`,
     pt: `Esquemas {schemes}: menos de 10 gl residuais no estrato dos tratamentos — a potência é baixa; acrescente blocos ou tratamentos (regra 10–20 gl).`,
+  },
+  trig_period_bound: {
+    ru: `Оценка периода на границе поиска [ω₀/2; 2ω₀]: задай другое начальное значение периода.`,
+    en: `The period estimate lies on the search boundary [ω₀/2; 2ω₀]: give a different starting period.`,
+    pt: `A estimativa do período está no limite da pesquisa [ω₀/2; 2ω₀]: indique outro período inicial.`,
   },
   lack_of_fit: {
     ru: `Отклонения средних по уровням x от прямой значимы: прямая не описывает зависимость.`,

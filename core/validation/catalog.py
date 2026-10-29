@@ -715,6 +715,8 @@ CATALOG: list[MethodSpec] = [
             Param("period", "Период цикла ω", "float", 12.0, min=1e-6, max=1e9),
             Param("harmonics", "Число гармоник", "number", 1, min=1, max=5),
             Param("x_predict", "Точки предсказания x (через ;)", "text", ""),
+            Param("estimate_period", "Оценивать период (ω — начальное значение)", "select", "no",
+                  options=["no", "yes"]),
             Param("alpha", "Уровень значимости α", "float", 0.05, min=0.001, max=0.2),
             _TRANSFORM_NONE,
             Param("offset", "Сдвиг c", "float", 0.0, min=0.0, max=1000.0),
@@ -822,12 +824,12 @@ CATALOG: list[MethodSpec] = [
     ),
     MethodSpec(
         method="response_surface",
-        label="Поверхность отклика (две переменные)",
+        label="Поверхность отклика (2–4 переменные)",
         group="Связь переменных",
         slots={"y": _NUM},
         slot_labels={"y": "Y (отклик)"},
         params=[
-            Param("variables", "Две объясняющие переменные (через запятую)", "text", ""),
+            Param("variables", "Две–четыре объясняющие переменные (через запятую)", "text", ""),
             Param("order", "Порядок поверхности", "select", "quadratic",
                   options=["linear", "interaction", "quadratic", "cubic"]),
             Param("centre", "Центрировать переменные", "select", "mean", options=["mean", "none"]),

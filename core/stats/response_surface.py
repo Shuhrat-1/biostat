@@ -1,8 +1,10 @@
-"""Поверхности отклика от двух переменных (гл. 17.2 книги).
+"""Поверхности отклика от двух–четырёх переменных (гл. 17.2 книги).
 
 ``response_surface`` — полиномиальная поверхность порядка q ≤ 3 в простых или
 центрированных переменных (уравнения 17.3, 17.5, 17.6). Члены упорядочены по
-степени: x1, x2, x1², x1.x2, x2², x1³, x1².x2, x1.x2², x2³ (Table 17.10).
+степени, внутри степени — по убыванию степеней первых переменных: x1, x2,
+x1², x1.x2, x2², x1³, x1².x2, x1.x2², x2³ (Table 17.10). Для трёх и более
+переменных — та же схема (стр. 470–472: «can be extended to three or more»).
 
 Остаток — чистая ошибка: по повторам комбинаций (x1, x2) в данных или
 заданный пользователем ResMS на df (если в таблице средние вариантов, как
@@ -27,20 +29,30 @@ _SELECTIONS = ("none", "backward")
 _CENTRES = ("none", "mean")
 _SURFACE_GRID = 21
 ORDERS = {"linear": 1, "interaction": 1, "quadratic": 2, "cubic": 3}
+_MAX_VARIABLES = 4
 
-Term = tuple[int, int]
+Term = tuple[int, ...]
 
 
-def surface_terms(order: str) -> list[Term]:
-    """Степени (a, b) с 1 ≤ a + b ≤ q по степени, затем по убыванию степени x1;
-    interaction — x1 + x2 + x1.x2 (уравнение 17.3)."""
+def _compositions(total: int, k: int) -> list[Term]:
+    """Все (a1 … ak) ≥ 0 с суммой total, по убыванию лексикографически."""
+    if k == 1:
+        return [(total,)]
+    return [(a, *rest) for a in range(total, -1, -1) for rest in _compositions(total - a, k - 1)]
+
+
+def surface_terms(order: str, k: int = 2) -> list[Term]:
+    """Мономы степени 1 … q по возрастанию степени; interaction — главные + все попарные
+    произведения (уравнение 17.3)."""
     if order == "interaction":
-        return [(1, 0), (0, 1), (1, 1)]
-    q = ORDERS[order]
-    return [(d - b, b) for d in range(1, q + 1) for b in range(d + 1)]
+        mains = [tuple(int(i == j) for i in range(k)) for j in range(k)]
+        pairs = [tuple(int(i in (a, b)) for i in range(k))
+                 for a in range(k) for b in range(a + 1, k)]
+        return mains + pairs
+    return [t for d in range(1, ORDERS[order] + 1) for t in _compositions(d, k)]
 
 
-def term_name(term: Term, names: tuple[str, str]) -> str:
+def term_name(term: Term, names: tuple[str, ...]) -> str:
     """(2, 1) → «H^2.I»."""
     parts = [n if p == 1 else f"{n}^{p}" for n, p in zip(names, term) if p]
     return ".".join(parts)
@@ -48,12 +60,23 @@ def term_name(term: Term, names: tuple[str, str]) -> str:
 
 def is_subterm(small: Term, big: Term) -> bool:
     """small маргинален big: все степени не больше и члены различны (стр. 468)."""
-    return small != big and small[0] <= big[0] and small[1] <= big[1]
+    return small != big and all(a <= b for a, b in zip(small, big))
 
 
-def _design(u: np.ndarray, v: np.ndarray, terms: list[Term]) -> np.ndarray:
-    """[1, u^a·v^b …]."""
-    return np.column_stack([np.ones_like(u)] + [u ** a * v ** b for a, b in terms])
+def _u(frame: pd.DataFrame) -> np.ndarray:
+    """Матрица (центрированных) переменных u1 … uk."""
+    return frame[[c for c in frame.columns if c.startswith("u")]].to_numpy(float)
+
+
+def _design_u(u: np.ndarray, terms: list[Term]) -> np.ndarray:
+    """[1, Π u_i^(a_i) …]."""
+    cols = [np.prod(u ** np.asarray(t, float), axis=1) for t in terms]
+    return np.column_stack([np.ones(len(u))] + cols)
+
+
+def _xcols(frame: pd.DataFrame) -> list[str]:
+    """Имена исходных переменных x1 … xk."""
+    return [c for c in frame.columns if c.startswith("x")]
 
 
 # --- Данные -------------------------------------------------------------------
@@ -61,23 +84,26 @@ def _design(u: np.ndarray, v: np.ndarray, terms: list[Term]) -> np.ndarray:
 
 def _frame(y: list[float], columns: dict[str, list[float]], names: list[str],
            centre: str) -> tuple[pd.DataFrame, dict[str, float], int]:
-    """Полные строки; u, v — переменные после центрирования (cH = H − H̄, Example 17.3B)."""
-    frame = pd.DataFrame({"y": np.asarray(y, float), "x1": np.asarray(columns[names[0]], float),
-                          "x2": np.asarray(columns[names[1]], float)})
+    """Полные строки; u_i — переменные после центрирования (cH = H − H̄, Example 17.3B)."""
+    data = {"y": np.asarray(y, float)}
+    data.update({f"x{i + 1}": np.asarray(columns[n], float) for i, n in enumerate(names)})
+    frame = pd.DataFrame(data)
     clean = frame.dropna().reset_index(drop=True)
-    shift = {"x1": 0.0, "x2": 0.0}
-    if centre == "mean":
-        shift = {k: float(clean[k].mean()) for k in shift}
-    clean["u"], clean["v"] = clean["x1"] - shift["x1"], clean["x2"] - shift["x2"]
+    xs = _xcols(clean)
+    shift = {k: (float(clean[k].mean()) if centre == "mean" else 0.0) for k in xs}
+    for k in xs:
+        clean["u" + k[1:]] = clean[k] - shift[k]
     return clean, shift, len(frame) - len(clean)
 
 
 def _variables(columns: dict[str, list[float]], response_name: str, variables: str) -> list[str]:
-    """Ровно две объясняющие переменные, отличные от отклика."""
+    """Две–четыре объясняющие переменные, отличные от отклика."""
     names = parse_names(variables) or [n for n in columns if n != response_name][:2]
-    if len(names) != 2 or response_name in names or any(n not in columns for n in names):
-        raise ValueError("Нужны ровно две числовые объясняющие переменные (variables = «x1, x2»)")
-    return names
+    if not 2 <= len(names) <= _MAX_VARIABLES or response_name in names or \
+            any(n not in columns for n in names):
+        raise ValueError(f"Нужны 2–{_MAX_VARIABLES} числовые объясняющие переменные "
+                         "(variables = «x1, x2[, x3 …]»)")
+    return list(dict.fromkeys(names))
 
 
 # --- Ошибка и подгонка ---------------------------------------------------------
@@ -86,7 +112,7 @@ def _variables(columns: dict[str, list[float]], response_name: str, variables: s
 def _error_term(frame: pd.DataFrame, weights: np.ndarray, error_ms: float,
                 error_df: int) -> dict | None:
     """Чистая ошибка: заданная (ResMS, df) или по повторам комбинаций (x1, x2)."""
-    cells = frame.groupby(["x1", "x2"])["y"]
+    cells = frame.groupby(_xcols(frame))["y"]
     if error_ms > 0 and error_df > 0:
         return {"ms": float(error_ms), "df": int(error_df), "ss": float(error_ms * error_df),
                 "source": "given"}
@@ -99,7 +125,7 @@ def _error_term(frame: pd.DataFrame, weights: np.ndarray, error_ms: float,
 
 def _rss(frame: pd.DataFrame, w: np.ndarray, terms: list[Term]) -> tuple[float, np.ndarray, np.ndarray]:
     """Взвешенный МНК: RSS, β̂ и (XᵀWX)⁻¹."""
-    design = _design(frame["u"].to_numpy(float), frame["v"].to_numpy(float), terms)
+    design = _design_u(_u(frame), terms)
     xtwx = design.T @ (w[:, None] * design)
     inv = np.linalg.pinv(xtwx)
     beta = inv @ design.T @ (w * frame["y"].to_numpy(float))
@@ -114,7 +140,7 @@ def _f_row(term: str, ss: float, df: int, error: dict) -> dict:
             "p": float(stats.f.sf(f, df, error["df"]))}
 
 
-def _sequential(frame: pd.DataFrame, w: np.ndarray, terms: list[Term], names: tuple[str, str],
+def _sequential(frame: pd.DataFrame, w: np.ndarray, terms: list[Term], names: tuple[str, ...],
                 error: dict) -> tuple[list[dict], dict]:
     """Таблица 17.8/17.10: члены по порядку, Remainder, Residual, Total."""
     y = frame["y"].to_numpy(float)
@@ -137,7 +163,7 @@ def _sequential(frame: pd.DataFrame, w: np.ndarray, terms: list[Term], names: tu
 def _variation(frame: pd.DataFrame, tot: float, error: dict) -> dict:
     """SS вариантов (между комбинациями) и общая SS с чистой ошибкой (Table 17.8)."""
     within = error["ss"] if error["source"] == "replicates" else 0.0
-    n_cells = frame.groupby(["x1", "x2"]).ngroups
+    n_cells = frame.groupby(_xcols(frame)).ngroups
     total_ss = tot + (error["ss"] if error["source"] == "given" else 0.0)
     return {"within": within, "trt_ss": tot - within, "n_cells": n_cells,
             "total_ss": total_ss, "total_df": n_cells - 1 + error["df"]}
@@ -165,7 +191,7 @@ def _marginal(frame: pd.DataFrame, w: np.ndarray, terms: list[Term], term: Term,
     return _f_row("", reduced - full, 1, error)
 
 
-def backward(frame: pd.DataFrame, w: np.ndarray, terms: list[Term], names: tuple[str, str],
+def backward(frame: pd.DataFrame, w: np.ndarray, terms: list[Term], names: tuple[str, ...],
              error: dict, alpha: float) -> tuple[list[Term], list[dict]]:
     """Исключать наименее значимый допустимый член, пока у всех P ≤ α (Example 17.3B)."""
     current, steps = list(terms), []
@@ -185,7 +211,7 @@ def backward(frame: pd.DataFrame, w: np.ndarray, terms: list[Term], names: tuple
 # --- Параметры и сводки ---------------------------------------------------------
 
 
-def _parameters(frame: pd.DataFrame, w: np.ndarray, terms: list[Term], names: tuple[str, str],
+def _parameters(frame: pd.DataFrame, w: np.ndarray, terms: list[Term], names: tuple[str, ...],
                 error: dict, alpha: float) -> tuple[list[dict], np.ndarray]:
     """Оценки с SE = √(σ²·(XᵀWX)⁻¹), t на df чистой ошибки (Tables 17.9, 17.11)."""
     _, beta, inv = _rss(frame, w, terms)
@@ -219,34 +245,37 @@ def _fit_summary(frame: pd.DataFrame, w: np.ndarray, terms: list[Term], error: d
 
 
 def _raw_coefficients(frame: pd.DataFrame, w: np.ndarray, terms: list[Term],
-                      names: tuple[str, str]) -> list[dict]:
+                      names: tuple[str, ...]) -> list[dict]:
     """Та же модель в нецентрированных переменных (раскрытие скобок, стр. 469)."""
-    raw = frame.assign(u=frame["x1"], v=frame["x2"])
+    raw = frame.assign(**{"u" + k[1:]: frame[k] for k in _xcols(frame)})
     _, beta, _ = _rss(raw, w, terms)
     labels = ["[1]", *[term_name(t, names) for t in terms]]
     return [{"term": lab, "estimate": float(b)} for lab, b in zip(labels, beta)]
 
 
 def _surface(frame: pd.DataFrame, beta: np.ndarray, terms: list[Term], shift: dict) -> dict:
-    """Подогнанная поверхность на сетке 21 × 21 для контурного графика."""
+    """Поверхность на сетке 21 × 21 по x1, x2 (прочие переменные — при их среднем)."""
+    xs = _xcols(frame)
     g1 = np.linspace(frame["x1"].min(), frame["x1"].max(), _SURFACE_GRID)
     g2 = np.linspace(frame["x2"].min(), frame["x2"].max(), _SURFACE_GRID)
-    u, v = np.meshgrid(g1 - shift["x1"], g2 - shift["x2"], indexing="ij")
-    z = _design(u.ravel(), v.ravel(), terms) @ beta
-    return {"x1": g1.tolist(), "x2": g2.tolist(),
-            "fitted": z.reshape(u.shape).tolist()}
+    a, b = np.meshgrid(g1 - shift["x1"], g2 - shift["x2"], indexing="ij")
+    rest = [np.full(a.size, frame[k].mean() - shift[k]) for k in xs[2:]]
+    z = _design_u(np.column_stack([a.ravel(), b.ravel(), *rest]), terms) @ beta
+    return {"x1": g1.tolist(), "x2": g2.tolist(), "fitted": z.reshape(a.shape).tolist(),
+            "others_at_mean": xs[2:]}
 
 
 def _plots(frame: pd.DataFrame, beta: np.ndarray, terms: list[Term], error: dict) -> dict:
     """Остатки (y − μ̂)/√σ² против подгонки, по x1 и x2, QQ."""
-    fitted = _design(frame["u"].to_numpy(float), frame["v"].to_numpy(float), terms) @ beta
+    fitted = _design_u(_u(frame), terms) @ beta
     r = (frame["y"].to_numpy(float) - fitted) / np.sqrt(error["ms"])
     n = r.size
     blom = stats.norm.ppf((np.arange(1, n + 1) - 0.375) / (n + 0.25))
-    return {"residual_vs_fitted": {"fitted": fitted.tolist(), "residuals": r.tolist()},
-            "qq": {"theoretical_quantiles": blom.tolist(), "sample_quantiles": np.sort(r).tolist()},
-            "std_residuals": r.tolist(), "residual_vs_x1": frame["x1"].tolist(),
-            "residual_vs_x2": frame["x2"].tolist()}
+    out = {"residual_vs_fitted": {"fitted": fitted.tolist(), "residuals": r.tolist()},
+           "qq": {"theoretical_quantiles": blom.tolist(), "sample_quantiles": np.sort(r).tolist()},
+           "std_residuals": r.tolist()}
+    out.update({f"residual_vs_{k}": frame[k].tolist() for k in _xcols(frame)})
+    return out
 
 
 # --- response_surface -----------------------------------------------------------
@@ -275,11 +304,11 @@ def _setup(y: list[float], columns: dict[str, list[float]], response_name: str, 
 def _check_cells(frame: pd.DataFrame, order: str, error: dict | None, result: StatResult) -> bool:
     """Нужны чистая ошибка и вариантов больше, чем членов поверхности."""
     if error is None:
-        result.add_warning("surface_no_pure_error", "Нет повторов комбинаций (x1, x2): задай "
+        result.add_warning("surface_no_pure_error", "Нет повторов комбинаций переменных: задай "
                            "ResMS и df чистой ошибки из анализа исходных данных.", Severity.ERROR)
         return False
-    if frame.groupby(["x1", "x2"]).ngroups <= len(surface_terms(order)):
-        result.add_warning("surface_too_few_cells", "Различных комбинаций (x1, x2) должно быть "
+    if frame.groupby(_xcols(frame)).ngroups <= len(surface_terms(order, len(_xcols(frame)))):
+        result.add_warning("surface_too_few_cells", "Различных комбинаций переменных должно быть "
                            "больше числа членов поверхности.", Severity.ERROR)
         return False
     return True
@@ -310,8 +339,8 @@ def response_surface(
     if not ok or not _check_cells(frame, options["order"], error, result):
         return result
     prefix = "c" if centre == "mean" else ""
-    names = (prefix + var_names[0], prefix + var_names[1])
-    terms = surface_terms(options["order"])
+    names = tuple(prefix + v for v in var_names)
+    terms = surface_terms(options["order"], len(var_names))
     rows, summary = _sequential(frame, w, terms, names, error)
     final, steps = (backward(frame, w, terms, names, error, alpha) if selection == "backward"
                     else (terms, []))
@@ -321,8 +350,8 @@ def response_surface(
     return result
 
 
-def _report(frame: pd.DataFrame, w: np.ndarray, terms: list[Term], names: tuple[str, str],
-            error: dict, summary: dict, raw_names: tuple[str, str], result: StatResult) -> None:
+def _report(frame: pd.DataFrame, w: np.ndarray, terms: list[Term], names: tuple[str, ...],
+            error: dict, summary: dict, raw_names: tuple[str, ...], result: StatResult) -> None:
     """Параметры итоговой модели, сводка подгонки, поверхность, остатки."""
     alpha = result.parameters["alpha"]
     params, beta = _parameters(frame, w, terms, names, error, alpha)

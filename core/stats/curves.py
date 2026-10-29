@@ -19,7 +19,7 @@ from collections.abc import Callable
 
 import numpy as np
 import pandas as pd
-from scipy import stats
+from scipy import optimize, stats
 
 from core.report.schema import Estimate, Severity, StatResult
 from core.stats.factorial import _new_result, _settings
@@ -464,28 +464,77 @@ def _trig_tables(basis: Basis, fit: dict, y: np.ndarray, period: float, harmonic
     return params
 
 
+def profile_rss(t: np.ndarray, y: np.ndarray, period: float, harmonics: int) -> float:
+    """RSS линейной модели при фиксированном ω (модель частично линейна)."""
+    return fit_basis(trig_basis(period, harmonics)(t), y)["rss"]
+
+
+def _free_period(t: np.ndarray, y: np.ndarray, guess: float, harmonics: int,
+                 result: StatResult) -> float:
+    """ω̂: профиль RSS по сетке [ω₀/2, 2ω₀], затем уточнение (стр. 462 — модель нелинейна)."""
+    grid = np.geomspace(guess / 2, guess * 2, 801)
+    rss = np.array([profile_rss(t, y, w, harmonics) for w in grid])
+    k = int(np.argmin(rss))
+    lo, hi = grid[max(k - 1, 0)], grid[min(k + 1, grid.size - 1)]
+    best = optimize.minimize_scalar(lambda w: profile_rss(t, y, w, harmonics), bounds=(lo, hi),
+                                    method="bounded", options={"xatol": 1e-10 * guess})
+    if k in (0, grid.size - 1):
+        result.add_warning("trig_period_bound", "Оценка периода на границе поиска [ω₀/2; 2ω₀]: "
+                           "задай другое начальное ω₀.")
+    result.parameters["period_fixed_rss"] = profile_rss(t, y, guess, harmonics)
+    return float(best.x)
+
+
+def _with_period_uncertainty(fit: dict, t: np.ndarray, y: np.ndarray, period: float,
+                             harmonics: int, result: StatResult) -> dict:
+    """Ковариация (α, β…, ω) по якобиану полной нелинейной модели; SE и df учитывают ω̂."""
+    arg = 2 * np.pi * t[:, None] * np.arange(1, harmonics + 1) / period
+    b_sin, b_cos = fit["beta"][1::2], fit["beta"][2::2]
+    d_omega = ((b_sin * np.cos(arg) - b_cos * np.sin(arg)) * (-arg / period)).sum(axis=1)
+    jac = np.column_stack([fit["design"], d_omega])
+    df = len(y) - jac.shape[1]
+    s2 = fit["rss"] / df
+    cov = s2 * np.linalg.pinv(jac.T @ jac)
+    se = float(np.sqrt(cov[-1, -1]))
+    crit = float(stats.t.ppf(1 - result.parameters["alpha"] / 2, df))
+    f = (result.parameters.pop("period_fixed_rss") - fit["rss"]) / s2
+    result.parameters["period_estimate"] = {
+        "estimate": period, "se": se, "ci_lower": period - crit * se, "ci_upper": period + crit * se,
+        "df": df, "F_vs_fixed": float(f), "p_vs_fixed": float(stats.f.sf(f, 1, df))}
+    result.statistics["period"] = period
+    return {**fit, "cov": cov[:-1, :-1], "df": df, "s2": s2}
+
+
 def trigonometric_regression(
     x: list[float],
     y: list[float],
     period: float = 12.0,
     harmonics: int = 1,
     x_predict: str = "",
+    estimate_period: str = "no",
     alpha: float = 0.05,
     transform_kind: str = "none",
     offset: float = 0.0,
 ) -> StatResult:
-    """Периодическая регрессия с известным периодом ω; x — время измерения (17.1.3)."""
+    """Периодическая регрессия; период ω известен или оценивается (17.1.3, стр. 462)."""
     harmonics = int(harmonics)
-    if period <= 0 or not 1 <= harmonics <= _MAX_HARMONICS:
-        raise ValueError(f"period > 0, harmonics ∈ [1, {_MAX_HARMONICS}]")
+    if period <= 0 or not 1 <= harmonics <= _MAX_HARMONICS or estimate_period not in ("no", "yes"):
+        raise ValueError(f"period > 0, harmonics ∈ [1, {_MAX_HARMONICS}], estimate_period ∈ "
+                         "(no, yes)")
+    extra = 1 if estimate_period == "yes" else 0
     frame, result, ok = _prepare("trigonometric_regression", x, y, alpha, transform_kind,
-                                 offset, 2 * harmonics + 2, period=period, harmonics=harmonics)
+                                 offset, 2 * harmonics + 2 + extra, period=period,
+                                 harmonics=harmonics, estimate_period=estimate_period)
     if not ok:
         return result
-    basis = trig_basis(period, harmonics)
     t, y_arr = frame["x"].to_numpy(float), frame["y"].to_numpy(float)
+    if extra:
+        period = _free_period(t, y_arr, period, harmonics, result)
+    basis = trig_basis(period, harmonics)
     design = basis(t)
     fit = fit_basis(design, y_arr)
+    if extra and fit["rank"] == fit["p"]:
+        fit = _with_period_uncertainty(fit, t, y_arr, period, harmonics, result)
     if fit["rank"] < fit["p"]:
         result.add_warning("trig_rank", "sin и cos линейно зависимы на этих временах: мало "
                            "различных фаз для заданного числа гармоник.", Severity.ERROR)
