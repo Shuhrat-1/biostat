@@ -159,6 +159,9 @@ export interface ColumnSelection {
   stratum_2?: string;
   stratum_3?: string;
   trials?: string;
+  exposure?: string;
+  count?: string;
+  response?: string;
 }
 
 const METHOD_MODULES: Record<string, string> = {
@@ -208,6 +211,9 @@ const METHOD_MODULES: Record<string, string> = {
   ancova: "core.stats.ancova",
   mixed_model: "core.stats.mixed",
   glm_analysis: "core.stats.glm",
+  count_regression: "core.stats.counts",
+  ordinal_regression: "core.stats.categorical",
+  contingency_test: "core.stats.categorical",
   unbalanced_anova: "core.stats.unbalanced",
   simple_linear_regression: "core.stats.regression",
   pearson_correlation: "core.stats.correlation",
@@ -264,7 +270,11 @@ const STRUCTURED_METHODS = new Set([
   "ancova",
   "mixed_model",
   "glm_analysis",
+  "count_regression",
 ]);
+
+/** Методы, где все слоты — метки строк (категории, частоты как текст): гл. 18.4. */
+const CATEGORICAL_METHODS = new Set(["contingency_test", "ordinal_regression"]);
 
 /** Множественная регрессия (гл. 14): отклик y и все числовые колонки, выровненные по строкам. */
 const MULTI_METHODS = new Set([
@@ -362,6 +372,8 @@ export async function runMethod(
         ? "blocked"
       : STRUCTURED_METHODS.has(method)
         ? "structured"
+      : CATEGORICAL_METHODS.has(method)
+        ? "categorical"
       : MULTI_METHODS.has(method)
         ? "multi"
       : MULTI_GROUP_METHODS.has(method)
@@ -412,6 +424,13 @@ elif _kind == "structured":
     _result = _fn(
         _values, **dict(zip(_slots, _factors)),
         column_names={k: _cols[k] for k in _slots}, **_kwargs,
+    )
+elif _kind == "categorical":
+    # Все слоты — колонки меток по строкам; числа (частоты, ковариата) разбирает метод.
+    _slots = [k for k, v in _cols.items() if v]
+    _, _factors = _table.factor_columns(_cols[_slots[0]], [_cols[k] for k in _slots])
+    _result = _fn(
+        **dict(zip(_slots, _factors)), column_names={k: _cols[k] for k in _slots}, **_kwargs,
     )
 elif _kind == "multi":
     _names = list(_table.numeric_columns_all())
@@ -487,7 +506,9 @@ export function requiredColumns(method: string): Array<keyof ColumnSelection> {
   if (method === "blocked_regression") return ["value", "x", "block"];
   if (method === "ancova") return ["value", "group", "covariate"];
   if (method === "mixed_model") return ["value", "factor_a", "stratum_1"];
-  if (method === "glm_analysis") return ["value"];
+  if (method === "glm_analysis" || method === "count_regression") return ["value"];
+  if (method === "contingency_test") return ["factor_a", "factor_b"];
+  if (method === "ordinal_regression") return ["response"];
   if (STRUCTURED_METHODS.has(method)) return ["value", "group"];
   if (BLOCKED_METHODS.has(method)) return ["value", "group", "block"];
   return ["value"];

@@ -61,11 +61,13 @@ def glm_fit(frame: pd.DataFrame, x: np.ndarray, family: sm.families.Family) -> d
     y = frame["y"].to_numpy(float)
     binomial = "m" in frame
     endog = np.column_stack([y, frame["m"] - y]) if binomial else y
-    res = sm.GLM(endog, x, family=family).fit(tol=1e-10, maxiter=200)
+    offset = frame["off"].to_numpy(float) if "off" in frame else None
+    res = sm.GLM(endog, x, family=family, offset=offset).fit(tol=1e-10, maxiter=200)
     scale = frame["m"].to_numpy(float) if binomial else np.ones_like(y)
+    eta = x @ np.asarray(res.params) + (0.0 if offset is None else offset)
     return {"res": res, "beta": np.asarray(res.params), "cov1": np.asarray(res.cov_params()),
             "deviance": float(res.deviance), "pearson": float(res.pearson_chi2),
-            "df": len(y) - x.shape[1], "x": x, "eta": x @ np.asarray(res.params),
+            "df": len(y) - x.shape[1], "x": x, "eta": eta,
             "mu": np.asarray(res.fittedvalues) * scale, "converged": bool(res.converged)}
 
 
@@ -332,14 +334,29 @@ def residual_plots(fit: dict, disp: dict) -> dict:
 def _collect(values: list[float], slots: dict[str, list | None], trials: list | None,
              n_trials: int) -> tuple[pd.DataFrame, int]:
     """Полные строки: успехи/счёты, число испытаний, ковариата и факторы."""
-    numeric = {k: v for k, v in (("x", slots["x"]), ("m", trials)) if v is not None}
+    numeric = {k: v for k, v in (("x", slots["x"]), ("m", trials), ("e", slots.get("e")))
+               if v is not None}
     factors = {k: slots[k] for k in ("blk", "A", "B")}
     frame, dropped = _frame(values, numeric, factors)
     if "x" in frame:
         frame["x_raw"] = frame["x"]
     if trials is None and n_trials > 0:
         frame["m"] = float(n_trials)
+    if "e" in frame and (frame["e"] > 0).all():
+        frame["off"] = np.log(frame["e"])  # смещение log(экспозиция), гл. 18.3 и Exercise 18.10
     return frame, dropped
+
+
+def _check_exposure(frame: pd.DataFrame, distribution: str, result: StatResult) -> bool:
+    """Экспозиция (время, площадь, объём) — только для пуассоновской модели и только > 0."""
+    if "e" not in frame:
+        return True
+    if distribution != "poisson" or "off" not in frame:
+        result.add_warning("glm_bad_exposure", "Экспозиция (смещение log e) — только для "
+                           "пуассоновской модели и только положительная.", Severity.ERROR)
+        return False
+    result.parameters["offset"] = "log(exposure)"
+    return True
 
 
 def _check_response(frame: pd.DataFrame, distribution: str, result: StatResult) -> bool:
@@ -406,6 +423,7 @@ def glm_analysis(
     covariate: list | None = None,
     block: list[str] | None = None,
     trials: list | None = None,
+    exposure: list | None = None,
     distribution: str = "binomial",
     link: str = "canonical",
     n_trials: int = 0,
@@ -424,7 +442,7 @@ def glm_analysis(
     link = _check_options(distribution, link, dispersion_method, interactions, alpha)
     if lack_of_fit not in _YES_NO or selection not in _SELECTIONS:
         raise ValueError(f"lack_of_fit ∈ {_YES_NO}, selection ∈ {_SELECTIONS}")
-    slots = {"blk": block, "A": factor_a, "B": factor_b, "x": covariate}
+    slots = {"blk": block, "A": factor_a, "B": factor_b, "x": covariate, "e": exposure}
     frame, dropped = _collect(values, slots, trials, int(n_trials))
     factors = [k for k in ("blk", "A", "B") if slots[k] is not None]
     variates = ["x"] if covariate is not None else []
@@ -439,7 +457,8 @@ def glm_analysis(
     if dropped:
         result.add_warning("missing_dropped", f"Удалено строк с пропусками: {dropped}",
                            Severity.INFO)
-    ok = (_check_response(frame, distribution, result)
+    ok = (_check_exposure(frame, distribution, result)
+          and _check_response(frame, distribution, result)
           and _check_terms(frame, factors, variates, result)
           and (not variates or _transform_column(frame, "x", covariate_transform,
                                                  covariate_offset, result)))

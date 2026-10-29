@@ -366,6 +366,46 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     en: `The covariate slopes differ between groups: a single dose (LD50) does not capture the differences between groups.`,
     pt: `Os declives da covariável diferem entre grupos: uma única dose (DL50) não descreve as diferenças entre grupos.`,
   },
+  glm_bad_exposure: {
+    ru: `Экспозиция (смещение log e) — только для пуассоновской модели и только положительная.`,
+    en: `Exposure (log e offset) applies only to the Poisson model and must be positive.`,
+    pt: `A exposição (desvio log e) aplica-se apenas ao modelo de Poisson e tem de ser positiva.`,
+  },
+  contingency_small_expected: {
+    ru: `Ожидаемые частоты малы ({share} ячеек < 5): χ² ненадёжен; для 2 × 2 смотри точный тест Фишера, иначе объедини уровни.`,
+    en: `Expected frequencies are small ({share} of cells < 5): χ² is unreliable; for 2 × 2 use Fisher's exact test, otherwise merge levels.`,
+    pt: `As frequências esperadas são pequenas ({share} das células < 5): o χ² não é fiável; para 2 × 2 use o teste exato de Fisher, caso contrário junte níveis.`,
+  },
+  contingency_too_small: {
+    ru: `Нужно не меньше 2 уровней в каждой классификации.`,
+    en: `Each classification needs at least 2 levels.`,
+    pt: `Cada classificação precisa de pelo menos 2 níveis.`,
+  },
+  ordinal_two_categories: {
+    ru: `Нужно не меньше 3 упорядоченных категорий; для двух — биномиальная GLM.`,
+    en: `At least 3 ordered categories are needed; for two use a binomial GLM.`,
+    pt: `São necessárias pelo menos 3 categorias ordenadas; para duas use um GLM binomial.`,
+  },
+  ordinal_not_converged: {
+    ru: `Оптимизация не сошлась: возможно полное разделение категорий. Оценки ненадёжны.`,
+    en: `The optimisation did not converge: possibly complete separation of categories. Estimates are unreliable.`,
+    pt: `A otimização não convergiu: possivelmente separação completa das categorias. As estimativas não são fiáveis.`,
+  },
+  count_not_converged: {
+    ru: `Оптимизация не сошлась или ковариация не определена: оценки ненадёжны (мало ненулевых счётов или избыточная модель).`,
+    en: `The optimisation did not converge or the covariance is undefined: estimates are unreliable (few non-zero counts or an over-parameterised model).`,
+    pt: `A otimização não convergiu ou a covariância não está definida: as estimativas não são fiáveis (poucas contagens não nulas ou modelo sobreparametrizado).`,
+  },
+  count_no_zero_inflation: {
+    ru: `Доля структурных нулей π → 0: нулевого раздувания нет, используй модель без него.`,
+    en: `The share of structural zeros π → 0: there is no zero inflation, use the model without it.`,
+    pt: `A proporção de zeros estruturais π → 0: não há inflação de zeros, use o modelo sem ela.`,
+  },
+  count_poisson_sufficient: {
+    ru: `Пуассоновская модель не хуже (LR = {lr}, P = {p}): дополнительный параметр не нужен.`,
+    en: `The Poisson model is no worse (LR = {lr}, P = {p}): the extra parameter is not needed.`,
+    pt: `O modelo de Poisson não é pior (LR = {lr}, P = {p}): o parâmetro adicional não é necessário.`,
+  },
   lack_of_fit: {
     ru: `Отклонения средних по уровням x от прямой значимы: прямая не описывает зависимость.`,
     en: `Deviations of the group means at each x from the fitted line are significant: a straight line does not describe the relationship.`,
