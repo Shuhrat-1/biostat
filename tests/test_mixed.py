@@ -162,3 +162,78 @@ def test_guards_and_json():
     assert flat.warnings[-1].code == "mixed_no_structure"
     json.dumps(_weed().to_dict())
     json.dumps(_fse().to_dict())
+
+
+def _fse_covariate(selection: str = "backward"):
+    d = sosr_long()
+    return mixed_model(d["weeds"], d["year"], d["farm"], factor_b=d["trt"], stratum_2=d["field"],
+                       covariate=d["seedbank"], covariate_transform="log10", selection=selection,
+                       transform_kind="log10",
+                       column_names={"factor_a": "Year", "factor_b": "Treatment",
+                                     "stratum_1": "Farm", "stratum_2": "Field",
+                                     "covariate": "LogSeedbank"})
+
+
+def test_backward_selection_table_16_8():
+    """Книга: Table 16.8 (стр. 442): маргинальные F с переподгонкой REML."""
+    steps = _fse_covariate().parameters["selection_steps"]
+    m1 = _rows(steps[0]["tests"])["LogSeedbank.Year.Treatment"]
+    assert (m1["F"], m1["ddf"], m1["p"]) == pytest.approx((0.262, 60.3, 0.770), abs=0.05)
+    assert m1["F"] == pytest.approx(0.262, abs=5e-4)
+    m2 = _rows(steps[1]["tests"])
+    assert [m2[t]["F"] for t in ("Year.Treatment", "LogSeedbank.Year", "LogSeedbank.Treatment")] \
+        == pytest.approx([0.103, 0.075, 0.081], abs=5e-4)
+    assert [m2[t]["ddf"] for t in ("Year.Treatment", "LogSeedbank.Year",
+                                   "LogSeedbank.Treatment")] == pytest.approx(
+        [61.0, 75.5, 63.7], abs=0.05)
+    m3 = _rows(steps[4]["tests"])
+    assert steps[4]["terms"] == ["LogSeedbank", "Year", "Treatment"]
+    assert (m3["LogSeedbank"]["F"], m3["LogSeedbank"]["ddf"]) == pytest.approx((31.797, 85.3),
+                                                                                abs=0.05)
+    assert m3["Year"]["F"] == pytest.approx(0.698, abs=1.5e-3)  # по расчёту 0.699
+    assert m3["Year"]["ddf"] == pytest.approx(43.5, abs=0.05)
+    assert (m3["Treatment"]["F"], m3["Treatment"]["ddf"], m3["Treatment"]["p"]) == \
+        pytest.approx((7.969, 57.8, 0.007), abs=0.05)
+
+
+def test_final_model_table_16_9():
+    """Книга: Table 16.9 (стр. 443) и Example 16.2: μ̂1 1.297 (0.2205), β̂ 0.612 (0.1055)."""
+    r = _fse_covariate()
+    assert r.parameters["selected_terms"] == ["LogSeedbank", "Treatment"]
+    vc = [(v["estimate"], v["se"]) for v in r.parameters["variance_components"]]
+    assert [v[0] for v in vc] == pytest.approx([0.0040, 0.0494, 0.109], abs=5e-4)
+    # SE по матрице средней информации: 0.0225, 0.0305, 0.0205 (книга: 0.023, 0.031, 0.021).
+    assert [v[1] for v in vc] == pytest.approx([0.023, 0.031, 0.021], abs=1e-3)
+    fe = _rows(r.parameters["fixed_effects"])
+    assert (fe["[1]"]["estimate"], fe["[1]"]["se"]) == pytest.approx((1.297, 0.2205), abs=5e-4)
+    assert (fe["LogSeedbank"]["estimate"], fe["LogSeedbank"]["se"]) == pytest.approx(
+        (0.612, 0.1055), abs=5e-4)
+    assert (fe["Treatment GM"]["estimate"], fe["Treatment GM"]["se"]) == pytest.approx(
+        (-0.173, 0.0611), abs=5e-4)
+
+
+def test_variance_accounted_example_16_2():
+    """Книга: стр. 444: базовые компоненты 0.0542, 0.0589, 0.1187 (сумма 0.2318) → 30 %.
+
+    В формуле книги знаменатель напечатан 0.2328 вместо 0.2318; точно 29.8 %.
+    """
+    r = _fse_covariate()
+    assert r.parameters["variance_components_null"] == pytest.approx([0.0542, 0.0589, 0.1187],
+                                                                     abs=5e-5)
+    assert r.statistics["total_variance_null"] == pytest.approx(0.2318, abs=5e-5)
+    assert r.statistics["variance_accounted_pct"] == pytest.approx(29.8, abs=0.05)
+
+
+def test_covariate_prediction_at_mean():
+    """Предсказания с ковариатой — при её среднем; разность обработок = эффект (стр. 443)."""
+    r = _fse_covariate()
+    (diff,) = _rows(r.parameters["factor_means"], "factor")["Treatment"]["differences"]
+    assert (diff["difference"], diff["sed"]) == pytest.approx((0.173, 0.0611), abs=5e-4)
+
+
+def test_selection_none_keeps_full_model_and_bad_option():
+    r = _fse_covariate("none")
+    assert "selection_steps" not in r.parameters
+    assert len(r.parameters["fixed_effects"]) == 12  # [1] + L + 2Y + T + 2LY + LT + 2YT + 2LYT
+    with pytest.raises(ValueError):
+        _fse_covariate("forward")

@@ -26,6 +26,8 @@ from core.stats.reml import blups, kenward_roger_df, refit_fixed, reml_fit, wald
 _MAX_N = 2000  # плотные матрицы N × N в браузере
 _FIXED = ("A", "B", "C")
 _STRATA = ("s1", "s2", "s3")
+_COV = "cov"
+_SELECTIONS = ("none", "backward")
 
 
 # --- Матрицы плана ------------------------------------------------------------
@@ -107,8 +109,8 @@ def marginal_tests(fit: dict, info: dict, terms: list[tuple[str, ...]],
 
 
 def variance_table(fit: dict, labels: list[str]) -> list[dict]:
-    """Оценки компонент и SE из ожидаемой информации (Table 16.3)."""
-    se = np.sqrt(np.abs(np.diag(np.linalg.pinv(fit["info"]))))
+    """Оценки компонент и SE по матрице средней информации, как в GenStat (Tables 16.3, 16.9)."""
+    se = np.sqrt(np.abs(np.diag(np.linalg.pinv(fit["ai"]))))
     return [{"term": lab, "estimate": float(t), "se": float(s)}
             for lab, t, s in zip(labels, fit["theta"], se)]
 
@@ -151,6 +153,8 @@ def _prediction_rows(model: Terms, terms: list[tuple[str, ...]], info: dict, fit
     rows = []
     for combo in product(*(model.levels[f] for f in factors)):
         one = pd.DataFrame({f: [lev] for f, lev in zip(factors, combo)})
+        for v in model.variates:  # ковариата — при её среднем (стр. 417)
+            one[v] = float(model.frame[v].mean())
         probe = Terms.__new__(Terms)
         probe.frame, probe.levels, probe.variates = one, model.levels, model.variates
         full = probe.design(terms)[0]
@@ -192,19 +196,18 @@ def _sed_rows(preds: list[dict], fit: dict) -> list[dict]:
 # --- Подготовка данных ----------------------------------------------------------
 
 
-def _collect(values: list[float], factor_a: list[str], factor_b: list[str] | None,
-             factor_c: list[str] | None, strata: list[list[str] | None]) -> tuple[pd.DataFrame, int]:
-    """Полные строки: отклик, фиксированные факторы, структурные факторы."""
-    factors = {"A": factor_a, "B": factor_b, "C": factor_c}
-    factors.update({s: v for s, v in zip(_STRATA, strata)})
-    return _frame(values, {}, factors)
+def _collect(values: list[float], factors: dict[str, list[str] | None],
+             covariate: list | None) -> tuple[pd.DataFrame, int]:
+    """Полные строки: отклик, ковариата, фиксированные и структурные факторы."""
+    numeric = {_COV: covariate} if covariate is not None else {}
+    return _frame(values, numeric, factors)
 
 
 def _names(column_names: dict[str, str] | None, used: list[str]) -> dict[str, str]:
     """Имена колонок пользователя для членов модели."""
     cn = column_names or {}
     slot = {"A": "factor_a", "B": "factor_b", "C": "factor_c", "s1": "stratum_1",
-            "s2": "stratum_2", "s3": "stratum_3"}
+            "s2": "stratum_2", "s3": "stratum_3", _COV: "covariate"}
     return {k: cn.get(slot[k], k) for k in used}
 
 
@@ -235,38 +238,49 @@ def mixed_model(
     factor_c: list[str] | None = None,
     stratum_2: list[str] | None = None,
     stratum_3: list[str] | None = None,
+    covariate: list | None = None,
+    covariate_transform: str = "none",
+    selection: str = "none",
     alpha: float = 0.05,
     transform_kind: str = "none",
     offset: float = 0.0,
     column_names: dict[str, str] | None = None,
 ) -> StatResult:
-    """Смешанная модель: фиксированные факторы и вложенная случайная структура (гл. 16)."""
+    """Смешанная модель: фиксированные факторы (и ковариата) и вложенная структура (гл. 16)."""
     settings = _settings(alpha, transform_kind, offset)
-    frame, dropped = _collect(values, factor_a, factor_b, factor_c,
-                              [stratum_1, stratum_2, stratum_3])
-    fixed = [f for f, v in zip(_FIXED, (factor_a, factor_b, factor_c)) if v is not None]
-    strata = [s for s, v in zip(_STRATA, (stratum_1, stratum_2, stratum_3)) if v is not None]
-    names = _names(column_names, fixed + strata)
-    result = _new_result("mixed_model", frame, settings, column_names=names)
+    if selection not in _SELECTIONS:
+        raise ValueError(f"selection ∈ {_SELECTIONS}")
+    factors = dict(zip(_FIXED + _STRATA, (factor_a, factor_b, factor_c, stratum_1, stratum_2,
+                                          stratum_3)))
+    frame, dropped = _collect(values, factors, covariate)
+    fixed = [f for f in _FIXED if factors[f] is not None]
+    strata = [s for s in _STRATA if factors[s] is not None]
+    variates = [_COV] if covariate is not None else []
+    names = _names(column_names, variates + fixed + strata)
+    result = _new_result("mixed_model", frame, settings, column_names=names, selection=selection)
     if dropped:
         result.add_warning("missing_dropped", f"Удалено строк с пропусками: {dropped}",
                            Severity.INFO)
-    if not _transform_column(frame, "y", transform_kind, offset, result) or not _guard(
-            frame, fixed, strata, result):
+    ok = _transform_column(frame, "y", transform_kind, offset, result) and (
+        not variates or _transform_column(frame, _COV, covariate_transform, 0.0, result))
+    if not ok or not _guard(frame, fixed, strata, result):
         return result
-    _fit_and_fill(frame, fixed, strata, names, result)
+    _fit_and_fill(frame, variates, fixed, strata, names, result)
     return result
 
 
-def _fit_and_fill(frame: pd.DataFrame, fixed: list[str], strata: list[str],
-                  names: dict[str, str], result: StatResult) -> None:
-    """REML, тесты, компоненты, предсказания и остатки."""
+def _fit_and_fill(frame: pd.DataFrame, variates: list[str], fixed: list[str],
+                  strata: list[str], names: dict[str, str], result: StatResult) -> None:
+    """REML, отбор, тесты, компоненты, предсказания и остатки."""
     y = frame["y"].to_numpy(float)
-    model = Terms(frame, fixed, [])
-    terms = fixed_terms(fixed)
-    x, info = fixed_design(model, terms)
+    model = Terms(frame, fixed, variates)
+    terms = fixed_terms(variates + fixed)
     zs = random_design(frame, strata)
-    fit = reml_fit(y, x, [z @ z.T for z in zs] + [np.eye(len(y))])
+    vs = [z @ z.T for z in zs] + [np.eye(len(y))]
+    if result.parameters["selection"] == "backward":
+        terms = _backward(model, terms, vs, y, names, result)
+    x, info = fixed_design(model, terms)
+    fit = reml_fit(y, x, vs)
     if not fit["converged"]:
         result.add_warning("reml_not_converged", "REML не сошёлся: проверь структуру "
                            "(тот же член в фиксированной и случайной модели, 0 df страты).",
@@ -276,6 +290,36 @@ def _fit_and_fill(frame: pd.DataFrame, fixed: list[str], strata: list[str],
     _fill_random(frame, strata, fit, labels + ["Residual"], result)
     _fill_fixed(model, terms, x, info, fit, y, names, result)
     _fill_residuals(fit, y, zs, result)
+    _variance_accounted(fit, y, vs, result)
+
+
+def _backward(model: Terms, terms: list[tuple[str, ...]], vs: list[np.ndarray], y: np.ndarray,
+              names: dict[str, str], result: StatResult) -> list[tuple[str, ...]]:
+    """Маргинальные F с переподгонкой REML, исключение наименее значимого (Table 16.8)."""
+    alpha, current, history = result.parameters["alpha"], list(terms), []
+    while current:
+        x, info = fixed_design(model, current)
+        fit = reml_fit(y, x, vs)
+        eligible = [t for t in current if not _marginal(t, current) and info["index"][t]]
+        tests = [(t, _test_row(fit, info["index"][t], _label(t, names))) for t in eligible]
+        history.append({"terms": [_label(t, names) for t in current],
+                        "tests": [row for _, row in tests]})
+        worst = max(tests, key=lambda tr: tr[1]["p"], default=None)
+        if worst is None or worst[1]["p"] <= alpha:
+            break
+        current.remove(worst[0])
+    result.parameters["selection_steps"] = history
+    result.parameters["selected_terms"] = [_label(t, names) for t in current]
+    return current
+
+
+def _variance_accounted(fit: dict, y: np.ndarray, vs: list[np.ndarray], result: StatResult) -> None:
+    """% дисперсии, объяснённой фиксированной моделью: по сумме компонент (стр. 437–438)."""
+    base = reml_fit(y, np.ones((len(y), 1)), vs)
+    total_base, total = float(base["theta"].sum()), float(fit["theta"].sum())
+    result.statistics.update({"total_variance_null": total_base,
+                              "variance_accounted_pct": 100 * (total_base - total) / total_base})
+    result.parameters["variance_components_null"] = [float(t) for t in base["theta"]]
 
 
 def _fill_random(frame: pd.DataFrame, strata: list[str], fit: dict, labels: list[str],
@@ -302,16 +346,17 @@ def _fill_fixed(model: Terms, terms: list[tuple[str, ...]], x: np.ndarray, info:
                         for j in info["keep"][1:]]
     effects = [{"term": lab, "estimate": float(b), "se": float(s)}
                for lab, b, s in zip(labels, fit["beta"], se)]
-    preds = _prediction_rows(model, terms, info, fit, list(model.levels))
-    seds = _sed_rows(preds, fit)
+    factors = [f for f in model.levels if any(f in t for t in terms)]
+    preds = _prediction_rows(model, terms, info, fit, factors) if factors else []
+    seds = _sed_rows(preds, fit) if len(preds) > 1 else []
     result.parameters.update({
         "fixed_effects": effects, "incremental": incremental_tests(model, terms, fit, y, names),
         "marginal": marginal_tests(fit, info, terms, names),
         "predictions": [{k: v for k, v in p.items() if k != "row"} for p in preds],
-        "sed": seds, "factor_means": factor_means(preds, list(model.levels), model.levels, fit,
-                                                  names)})
-    result.statistics.update({"sed_min": min(s["sed"] for s in seds),
-                              "sed_max": max(s["sed"] for s in seds)})
+        "sed": seds, "factor_means": factor_means(preds, factors, model.levels, fit, names)})
+    if seds:
+        result.statistics.update({"sed_min": min(s["sed"] for s in seds),
+                                  "sed_max": max(s["sed"] for s in seds)})
     for e in effects:
         result.estimates.append(Estimate(e["term"], e["estimate"], std_error=e["se"]))
 
