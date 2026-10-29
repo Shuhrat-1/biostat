@@ -41,6 +41,8 @@ _DISPERSIONS = ("auto", "fixed", "deviance", "pearson")
 _YES_NO = ("yes", "no")
 _GRID = 101
 _SLOTS = {"blk": "block", "A": "factor_a", "B": "factor_b", "x": "covariate"}
+_ALL_FACTORS = ("blk", "A", "B", "lof")
+_SELECTIONS = ("none", "backward")
 
 
 # --- Семейство и подгонка ------------------------------------------------------
@@ -75,6 +77,7 @@ class Model:
         self.terms = Terms(frame, factors, variates)
         self.frame, self.family = frame, family
         self._cache: dict[tuple, dict] = {}
+        self.lof_x = (frame.groupby("lof")["x"].first().to_dict() if "lof" in frame else {})
 
     def fit(self, terms: list[tuple[str, ...]]) -> dict:
         """Подгонка [1] + члены без вырожденных столбцов (кэш по набору членов)."""
@@ -193,12 +196,17 @@ def _factors_in(fit: dict, candidates: tuple[str, ...]) -> list[str]:
 
 def averaged_rows(model: Model, fit: dict, fixed: dict[str, object]) -> list[np.ndarray]:
     """Строки плана для всех уровней прочих факторов модели (ковариата — среднее)."""
-    others = [f for f in _factors_in(fit, ("blk", "A", "B")) if f not in fixed]
+    others = [f for f in _factors_in(fit, _ALL_FACTORS) if f not in fixed]
     base = dict(fixed)
     if "x" in model.terms.variates and "x" not in base:
         base["x"] = float(model.frame["x"].mean())
-    combos = product(*(model.terms.levels[f] for f in others))
-    return [design_row(model, fit, {**base, **dict(zip(others, c))}) for c in combos]
+    rows = []
+    for combo in product(*(model.terms.levels[f] for f in others)):
+        setting = {**base, **dict(zip(others, combo))}
+        if "lof" in setting:  # уровень фактора неадекватности задаёт и значение ковариаты
+            setting["x"] = model.lof_x[setting["lof"]]
+        rows.append(design_row(model, fit, setting))
+    return rows
 
 
 def _natural(link: sm.families.links.Link, eta: float, grad: np.ndarray, cov: np.ndarray) -> dict:
@@ -230,9 +238,8 @@ def prediction(model: Model, fit: dict, disp: dict, rows: list[np.ndarray], alph
 def factor_predictions(model: Model, fit: dict, disp: dict, names: dict[str, str],
                        alpha: float) -> list[dict]:
     """Уровни каждого фактора обработок (и их комбинации), усреднённые по блокам (Example 18.2E)."""
-    factors = _factors_in(fit, ("A", "B"))
-    sets = [(f,) for f in factors] + ([tuple(factors)] if len(factors) == 2 and
-                                       ("A", "B") in fit["terms"] else [])
+    factors = _factors_in(fit, ("A", "B", "lof"))
+    sets = [(f,) for f in factors] + ([("A", "B")] if ("A", "B") in fit["terms"] else [])
     out = []
     for group in sets:
         for combo in product(*(model.terms.levels[f] for f in group)):
@@ -265,7 +272,7 @@ def comparisons(preds: list[dict], fit: dict, disp: dict, link: str, alpha: floa
 
 def cell_predictions(model: Model, fit: dict) -> list[dict]:
     """Предсказания для всех комбинаций уровней факторов модели (Table 18.9)."""
-    factors = _factors_in(fit, ("blk", "A", "B"))
+    factors = _factors_in(fit, _ALL_FACTORS)
     if not factors:
         return []
     out = []
@@ -369,15 +376,24 @@ def _check_terms(frame: pd.DataFrame, factors: list[str], variates: list[str],
 
 def model_terms(factors: list[str], variates: list[str], interactions: bool,
                 reverse: bool = False) -> list[tuple[str, ...]]:
-    """Блок, ковариата, факторы (A, B или B, A), A.B, ковариата × факторы (стр. 491, 510)."""
-    treat = [f for f in factors if f != "blk"]
+    """Блок, ковариата, фактор неадекватности, факторы (A, B или B, A), A.B, ковариата ×
+    факторы и неадекватность × факторы (стр. 491, 510)."""
+    treat = [f for f in factors if f not in ("blk", "lof")]
     treat = treat[::-1] if reverse else treat
+    lof = ["lof"] if "lof" in factors else []
     terms = [("blk",)] if "blk" in factors else []
-    terms += [(v,) for v in variates] + [(f,) for f in treat]
+    terms += [(v,) for v in [*variates, *lof]] + [(f,) for f in treat]
     if interactions:
         terms += [tuple(treat)] if len(treat) == 2 else []
-        terms += [(v, f) for v in variates for f in treat]
+        terms += [(v, f) for v in [*variates, *lof] for f in treat]
     return terms
+
+
+def contains(small: tuple[str, ...], big: tuple[str, ...]) -> bool:
+    """small маргинален big; фактор неадекватности включает ковариату (стр. 510, Table 18.13)."""
+    def expand(t: tuple[str, ...]) -> set[str]:
+        return set(t) | ({"x"} if "lof" in t else set())
+    return small != big and expand(small) <= expand(big)
 
 
 # --- Метод каталога -------------------------------------------------------------
@@ -396,23 +412,30 @@ def glm_analysis(
     covariate_transform: str = "none",
     covariate_offset: float = 0.0,
     interactions: str = "yes",
+    lack_of_fit: str = "no",
+    selection: str = "none",
     dispersion_method: str = "auto",
     x_predict: str = "",
+    dose_for_p: str = "",
     alpha: float = 0.05,
     column_names: dict[str, str] | None = None,
 ) -> StatResult:
     """Биномиальная или пуассоновская GLM с ANODEV, сверхдисперсией и предсказаниями (гл. 18)."""
     link = _check_options(distribution, link, dispersion_method, interactions, alpha)
+    if lack_of_fit not in _YES_NO or selection not in _SELECTIONS:
+        raise ValueError(f"lack_of_fit ∈ {_YES_NO}, selection ∈ {_SELECTIONS}")
     slots = {"blk": block, "A": factor_a, "B": factor_b, "x": covariate}
     frame, dropped = _collect(values, slots, trials, int(n_trials))
     factors = [k for k in ("blk", "A", "B") if slots[k] is not None]
     variates = ["x"] if covariate is not None else []
-    cn = column_names or {}
-    names = {k: cn.get(_SLOTS[k], k) for k in (*factors, *variates)}
+    names = _names(column_names, factors, variates)
+    if variates and lack_of_fit == "yes":
+        frame["lof"] = [f"{v:g}" for v in frame["x_raw"]]
+        factors.append("lof")
     result = _new_result("glm_analysis", frame, {"alpha": alpha, "transform_kind": "none",
                                                  "offset": 0.0},
                          distribution=distribution, link=link, column_names=names,
-                         dispersion_method=dispersion_method)
+                         dispersion_method=dispersion_method, selection=selection)
     if dropped:
         result.add_warning("missing_dropped", f"Удалено строк с пропусками: {dropped}",
                            Severity.INFO)
@@ -424,9 +447,19 @@ def glm_analysis(
         model = Model(frame, factors, variates, _family(distribution, link))
         spec = {"factors": factors, "variates": variates, "interactions": interactions == "yes",
                 "transform": (covariate_transform, covariate_offset), "x_predict": x_predict,
-                "raw_x": _raw_covariate(covariate, frame)}
+                "raw_x": _raw_covariate(covariate, frame), "dose_for_p": dose_for_p}
         _analyse(model, spec, names, result)
     return result
+
+
+def _names(column_names: dict[str, str] | None, factors: list[str],
+           variates: list[str]) -> dict[str, str]:
+    """Имена колонок пользователя; фактор неадекватности — «Fac» + имя ковариаты."""
+    cn = column_names or {}
+    names = {k: cn.get(_SLOTS[k], k) for k in (*factors, *variates)}
+    if variates:
+        names["lof"] = "Fac" + names["x"]
+    return names
 
 
 def _check_options(distribution: str, link: str, dispersion_method: str, interactions: str,
@@ -466,7 +499,20 @@ def _analyse(model: Model, spec: dict, names: dict[str, str], result: StatResult
         rev = model_terms(spec["factors"], spec["variates"], spec["interactions"], reverse=True)
         result.parameters["sequential_reverse"] = sequential(model, rev, disp, names)
     _dispersion_warnings(disp, binary, mode, result)
-    report(model, full, disp, spec, names, result)
+    final, final_disp = full, disp
+    if result.parameters["selection"] == "backward":
+        chosen, steps = backward(model, terms, (mode, binary, alpha), names)
+        final = model.fit(chosen)
+        final_disp = dispersion(final, mode, binary, alpha)
+        result.parameters.update({"selection_steps": steps, "final_terms":
+                                  [_label(t, names) for t in chosen],
+                                  "final_anodev": anodev(model, chosen, final_disp),
+                                  "final_dispersion": final_disp})
+    result.parameters["marginal"] = marginal_tests(model, final["terms"], final_disp, names)
+    report(model, final, final_disp, spec, names, result)
+    if spec["dose_for_p"].strip():
+        result.parameters["doses"] = effective_doses(model, final, final_disp, spec, names,
+                                                     result)
 
 
 def _dispersion_warnings(disp: dict, binary: bool, mode: str, result: StatResult) -> None:
@@ -499,7 +545,7 @@ def report(model: Model, fit: dict, disp: dict, spec: dict, names: dict[str, str
         "comparisons": comparisons(preds, fit, disp, result.parameters["link"], alpha),
         "factor_predictions": [{k: v for k, v in p.items() if k != "row"} for p in preds],
         "plots": residual_plots(fit, disp)})
-    if any("x" in t for t in fit["terms"]):
+    if any("x" in t for t in fit["terms"]) and not any("lof" in t for t in fit["terms"]):
         points = parse_numbers(spec["x_predict"])
         result.parameters["predictions"] = covariate_predictions(
             model, fit, disp, points, spec["transform"], alpha)
@@ -525,3 +571,118 @@ def _statistics(model: Model, fit: dict, disp: dict, result: StatResult) -> None
         "p_overdispersion": disp["p_overdispersion"], "model_deviance": test["deviance"],
         "model_df": test["df"], "p_model": test["p"], **({"F_model": test["F"]} if "F" in test
                                                         else {})})
+
+
+# --- Отбор членов -----------------------------------------------------------------
+
+
+def eligible(terms: list[tuple[str, ...]]) -> list[tuple[str, ...]]:
+    """Члены, доступные для проверки: не блок и не подчлен другого члена (Table 18.13)."""
+    return [t for t in terms if t != ("blk",) and not any(contains(t, o) for o in terms)]
+
+
+def marginal_tests(model: Model, terms: list[tuple[str, ...]], disp: dict,
+                   names: dict[str, str]) -> list[dict]:
+    """Изменение отклонения при исключении каждого допустимого члена (стр. 493)."""
+    fit, rows = model.fit(terms), []
+    for t in eligible(terms):
+        reduced = model.fit([o for o in terms if o != t])
+        df = reduced["df"] - fit["df"]
+        if df > 0:
+            rows.append({"term": "- " + _label(t, names), "key": t,
+                         **_test(reduced["deviance"] - fit["deviance"], df, disp, fit["df"])})
+    return rows
+
+
+def backward(model: Model, terms: list[tuple[str, ...]], options: tuple[str, bool, float],
+             names: dict[str, str]) -> tuple[list[tuple[str, ...]], list[dict]]:
+    """Обратный отбор по маргинальным тестам с переоценкой φ в каждой модели (Example 18.4)."""
+    mode, binary, alpha = options
+    current, steps = list(terms), []
+    while True:
+        fit = model.fit(current)
+        disp = dispersion(fit, mode, binary, alpha)
+        tests = marginal_tests(model, current, disp, names)
+        if not tests:
+            break
+        worst = max(tests, key=lambda r: r["p"])
+        drop = worst["p"] > alpha
+        steps.append({"step": len(steps) + 1, "terms": [_label(t, names) for t in current],
+                      "phi": disp["phi"], "df_resid": fit["df"], "deviance": fit["deviance"],
+                      "tests": [{k: v for k, v in r.items() if k != "key"} for r in tests],
+                      "dropped": worst["term"][2:] if drop else None})
+        if not drop:
+            break
+        current.remove(worst["key"])
+    return current, steps
+
+
+# --- Доза для заданной вероятности (LD50) --------------------------------------------
+
+
+def fieller_ratio(num: float, den: float, v_nn: float, v_dd: float, v_nd: float,
+                  crit: float) -> tuple[float, float] | None:
+    """Пределы Филлера для num/den; None — интервал неограничен (g ≥ 1)."""
+    g = crit ** 2 * v_dd / den ** 2
+    if g >= 1:
+        return None
+    rho = num / den
+    centre = rho - g * v_nd / v_dd
+    half = crit / abs(den) * np.sqrt(max(v_nn - 2 * rho * v_nd + rho ** 2 * v_dd
+                                         - g * (v_nn - v_nd ** 2 / v_dd), 0.0))
+    return (centre - half) / (1 - g), (centre + half) / (1 - g)
+
+
+def _inverse_transform(w: float, transform: tuple[str, float]) -> float:
+    """Ковариата с шкалы модели обратно на исходную."""
+    kind, c = transform
+    inverse = {"none": lambda v: v, "ln": np.exp, "log10": lambda v: 10 ** v,
+               "sqrt": lambda v: v ** 2 if v >= 0 else float("nan")}
+    value = inverse[kind](w)
+    return float(value - c) if kind != "none" else float(value)
+
+
+def _dose_rows(model: Model, fit: dict, disp: dict, rows0: list[np.ndarray],
+               rows1: list[np.ndarray], p: float, spec: dict, crit: float) -> dict:
+    """η(w) = a + b·w для группы; w₀ = (g(p) − a)/b с пределами Филлера (стр. 502)."""
+    cov = _scaled_cov(fit, disp)
+    r0, r1 = np.mean(rows0, axis=0), np.mean(rows1, axis=0)
+    d = r1 - r0
+    a, b = float(r0 @ fit["beta"]), float(d @ fit["beta"])
+    target = float(model.family.link(np.array([p]))[0])
+    limits = fieller_ratio(target - a, b, float(r0 @ cov @ r0), float(d @ cov @ d),
+                           -float(r0 @ cov @ d), crit)
+    w0 = (target - a) / b
+    out = {"p": p, "dose_model": w0, "dose": _inverse_transform(w0, spec["transform"]),
+           "intercept": a, "slope": b}
+    if limits:
+        lo, hi = sorted(_inverse_transform(v, spec["transform"]) for v in limits)
+        out.update({"model_lower": limits[0], "model_upper": limits[1], "lower": lo, "upper": hi})
+    return out
+
+
+def effective_doses(model: Model, fit: dict, disp: dict, spec: dict, names: dict[str, str],
+                    result: StatResult) -> list[dict]:
+    """Доза для вероятностей p по группам факторов обработок (усреднение по блокам)."""
+    terms = fit["terms"]
+    if result.parameters["distribution"] != "binomial" or ("x",) not in terms or \
+            any("lof" in t for t in terms):
+        result.add_warning("glm_dose_unavailable", "Доза для заданной вероятности считается для "
+                           "биномиальной модели с ковариатой без фактора неадекватности.")
+        return []
+    crit, _ = _critical(disp, fit["df"], result.parameters["alpha"])
+    groups = _factors_in(fit, ("A", "B"))
+    out = []
+    for combo in product(*(model.terms.levels[f] for f in groups)):
+        fixed = dict(zip(groups, combo))
+        rows0 = averaged_rows(model, fit, {**fixed, "x": 0.0})
+        rows1 = averaged_rows(model, fit, {**fixed, "x": 1.0})
+        for p in parse_numbers(spec["dose_for_p"]):
+            if not 0 < p < 1:
+                raise ValueError("Вероятности для дозы — в (0, 1)")
+            row = _dose_rows(model, fit, disp, rows0, rows1, p, spec, crit)
+            out.append({"group": " × ".join(combo) or "all", **row})
+    if any(("x", f) in terms for f in groups):
+        result.add_warning("glm_dose_nonparallel", "Наклоны по ковариате различаются между "
+                           "группами: одна доза не описывает различия (стр. 502).")
+    return out

@@ -356,6 +356,16 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     en: `The estimate of φ is below 1 (under-dispersion): φ is kept at 1 to avoid inflating significance.`,
     pt: `A estimativa de φ é inferior a 1 (subdispersão): φ é mantido em 1 para não inflacionar a significância.`,
   },
+  glm_dose_unavailable: {
+    ru: `Доза для заданной вероятности считается только для биномиальной модели с ковариатой без фактора неадекватности.`,
+    en: `The dose for a given probability is computed only for a binomial model with a covariate and no lack-of-fit factor.`,
+    pt: `A dose para uma probabilidade dada só é calculada num modelo binomial com covariável e sem fator de falta de ajustamento.`,
+  },
+  glm_dose_nonparallel: {
+    ru: `Наклоны по ковариате различаются между группами: одна доза (LD50) не описывает различия групп.`,
+    en: `The covariate slopes differ between groups: a single dose (LD50) does not capture the differences between groups.`,
+    pt: `Os declives da covariável diferem entre grupos: uma única dose (DL50) não descreve as diferenças entre grupos.`,
+  },
   lack_of_fit: {
     ru: `Отклонения средних по уровням x от прямой значимы: прямая не описывает зависимость.`,
     en: `Deviations of the group means at each x from the fitted line are significant: a straight line does not describe the relationship.`,
