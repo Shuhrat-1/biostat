@@ -158,6 +158,7 @@ export interface ColumnSelection {
   stratum_1?: string;
   stratum_2?: string;
   stratum_3?: string;
+  trials?: string;
 }
 
 const METHOD_MODULES: Record<string, string> = {
@@ -206,6 +207,7 @@ const METHOD_MODULES: Record<string, string> = {
   blocked_regression: "core.stats.ancova",
   ancova: "core.stats.ancova",
   mixed_model: "core.stats.mixed",
+  glm_analysis: "core.stats.glm",
   unbalanced_anova: "core.stats.unbalanced",
   simple_linear_regression: "core.stats.regression",
   pearson_correlation: "core.stats.correlation",
@@ -261,6 +263,7 @@ const STRUCTURED_METHODS = new Set([
   "blocked_regression",
   "ancova",
   "mixed_model",
+  "glm_analysis",
 ]);
 
 /** Множественная регрессия (гл. 14): отклик y и все числовые колонки, выровненные по строкам. */
@@ -484,6 +487,7 @@ export function requiredColumns(method: string): Array<keyof ColumnSelection> {
   if (method === "blocked_regression") return ["value", "x", "block"];
   if (method === "ancova") return ["value", "group", "covariate"];
   if (method === "mixed_model") return ["value", "factor_a", "stratum_1"];
+  if (method === "glm_analysis") return ["value"];
   if (STRUCTURED_METHODS.has(method)) return ["value", "group"];
   if (BLOCKED_METHODS.has(method)) return ["value", "group", "block"];
   return ["value"];
@@ -612,6 +616,19 @@ elif _method in (
     _bundle["residual_vs_fitted"] = _p["residual_vs_fitted"]
     _bundle["qq"] = _p["qq"]
     _bundle["histogram"] = plotdata.histogram_data(_p["std_residuals"])
+
+elif _method == "glm_analysis" and "plots" in _res.parameters:
+    # Стандартизованные остатки отклонения; кривая по ковариате (гл. 18).
+    _p = _res.parameters["plots"]
+    _bundle["residual_vs_fitted"] = _p["residual_vs_fitted"]
+    _bundle["qq"] = _p["qq"]
+    _bundle["histogram"] = plotdata.histogram_data(_p["std_residuals"])
+    if "curve" in _res.parameters:
+        _pts, _cv = _res.parameters["points"], _res.parameters["curve"]
+        _bundle["scatter"] = {
+            "points": [[a, b] for a, b in zip(_pts["x"], _pts["y"])],
+            "line": [[a, b] for a, b in zip(_cv["x"], _cv["fitted"])],
+        }
 
 elif _method == "anova_residuals" and "plots" in _res.parameters:
     # Графики допущений по стандартизованным остаткам (гл. 5.2).

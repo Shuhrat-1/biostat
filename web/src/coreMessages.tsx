@@ -311,6 +311,51 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     en: `The treatment means deviate significantly from the surface: add higher-order terms.`,
     pt: `As médias dos tratamentos desviam-se significativamente da superfície: acrescente termos de ordem superior.`,
   },
+  glm_no_trials: {
+    ru: `Для биномиальной GLM нужна колонка числа испытаний m или постоянное число испытаний.`,
+    en: `A binomial GLM needs a column with the number of trials m or a constant number of trials.`,
+    pt: `Um GLM binomial precisa de uma coluna com o número de ensaios m ou de um número constante de ensaios.`,
+  },
+  glm_bad_response: {
+    ru: `Отклик должен быть неотрицательным (и не больше числа испытаний m для биномиальной GLM).`,
+    en: `The response must be non-negative (and no larger than the number of trials m for a binomial GLM).`,
+    pt: `A resposta tem de ser não negativa (e não maior do que o número de ensaios m num GLM binomial).`,
+  },
+  glm_non_integer: {
+    ru: `Отклик не целый: биномиальная и пуассоновская GLM рассчитаны на счёты.`,
+    en: `The response is not integer: binomial and Poisson GLMs are designed for counts.`,
+    pt: `A resposta não é inteira: os GLM binomial e de Poisson destinam-se a contagens.`,
+  },
+  glm_no_terms: {
+    ru: `Нужен фактор обработок или ковариата (блок сам по себе не модель).`,
+    en: `A treatment factor or a covariate is required (a block alone is not a model).`,
+    pt: `É necessário um fator de tratamento ou uma covariável (um bloco por si só não é um modelo).`,
+  },
+  glm_not_converged: {
+    ru: `Итерации IRLS не сошлись: возможно полное разделение (доли 0 или 1 во всей группе). Оценки и SE ненадёжны.`,
+    en: `The IRLS iterations did not converge: possibly complete separation (proportions of 0 or 1 in a whole group). Estimates and SEs are unreliable.`,
+    pt: `As iterações IRLS não convergiram: possivelmente separação completa (proporções 0 ou 1 num grupo inteiro). As estimativas e os erros-padrão não são fiáveis.`,
+  },
+  glm_binary: {
+    ru: `Бинарные данные (m = 1): остаточное отклонение не проверяет сверхдисперсию, φ не оценивается, остатки малоинформативны. По возможности считай успехи на единицу опыта.`,
+    en: `Binary data (m = 1): the residual deviance does not test over-dispersion, φ is not estimated and residuals are uninformative. Where possible, count successes per experimental unit.`,
+    pt: `Dados binários (m = 1): o desvio residual não testa a sobredispersão, φ não é estimado e os resíduos são pouco informativos. Sempre que possível, conte os sucessos por unidade experimental.`,
+  },
+  glm_overdispersion: {
+    ru: `Сверхдисперсия (остаточное отклонение больше χ²): φ = {phi}; члены проверяются отношением отклонений по F, SE умножены на √φ.`,
+    en: `Over-dispersion (residual deviance exceeds χ²): φ = {phi}; terms are tested by deviance ratios with F, SEs are multiplied by √φ.`,
+    pt: `Sobredispersão (desvio residual acima de χ²): φ = {phi}; os termos são testados por razões de desvio com F e os erros-padrão são multiplicados por √φ.`,
+  },
+  glm_overdispersion_ignored: {
+    ru: `Остаточное отклонение велико (P = {p}), а φ зафиксирован = 1: тесты и SE слишком оптимистичны.`,
+    en: `The residual deviance is large (P = {p}) but φ is fixed at 1: tests and SEs are too optimistic.`,
+    pt: `O desvio residual é grande (P = {p}) mas φ está fixo em 1: os testes e os erros-padrão são demasiado otimistas.`,
+  },
+  glm_underdispersion: {
+    ru: `Оценка φ < 1 (недодисперсия): φ оставлен равным 1, чтобы не завышать значимость.`,
+    en: `The estimate of φ is below 1 (under-dispersion): φ is kept at 1 to avoid inflating significance.`,
+    pt: `A estimativa de φ é inferior a 1 (subdispersão): φ é mantido em 1 para não inflacionar a significância.`,
+  },
   lack_of_fit: {
     ru: `Отклонения средних по уровням x от прямой значимы: прямая не описывает зависимость.`,
     en: `Deviations of the group means at each x from the fitted line are significant: a straight line does not describe the relationship.`,
