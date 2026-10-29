@@ -180,6 +180,8 @@ def test_catalog_params_match_function_signatures():
         "ordinal_regression": "core.stats.categorical",
         "contingency_test": "core.stats.categorical",
         "sampling_scheme_power": "core.stats.sampling",
+        "curve_in_blocks": "core.stats.curve_designs",
+        "nonlinear_in_blocks": "core.stats.curve_designs",
         "regression_subsets": "core.stats.multiple_regression",
         "stepwise_selection": "core.stats.multiple_regression",
         "model_cross_validation": "core.stats.multiple_regression",

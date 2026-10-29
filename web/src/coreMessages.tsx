@@ -416,6 +416,11 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     en: `The period estimate lies on the search boundary [ω₀/2; 2ω₀]: give a different starting period.`,
     pt: `A estimativa do período está no limite da pesquisa [ω₀/2; 2ω₀]: indique outro período inicial.`,
   },
+  curve_design_too_small: {
+    ru: `Нужно не меньше 3 уровней x и наблюдений больше, чем параметров.`,
+    en: `At least 3 levels of x and more observations than parameters are required.`,
+    pt: `São necessários pelo menos 3 níveis de x e mais observações do que parâmetros.`,
+  },
   lack_of_fit: {
     ru: `Отклонения средних по уровням x от прямой значимы: прямая не описывает зависимость.`,
     en: `Deviations of the group means at each x from the fitted line are significant: a straight line does not describe the relationship.`,

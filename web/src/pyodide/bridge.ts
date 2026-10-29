@@ -215,6 +215,8 @@ const METHOD_MODULES: Record<string, string> = {
   ordinal_regression: "core.stats.categorical",
   contingency_test: "core.stats.categorical",
   sampling_scheme_power: "core.stats.sampling",
+  curve_in_blocks: "core.stats.curve_designs",
+  nonlinear_in_blocks: "core.stats.curve_designs",
   unbalanced_anova: "core.stats.unbalanced",
   simple_linear_regression: "core.stats.regression",
   pearson_correlation: "core.stats.correlation",
@@ -272,6 +274,8 @@ const STRUCTURED_METHODS = new Set([
   "mixed_model",
   "glm_analysis",
   "count_regression",
+  "curve_in_blocks",
+  "nonlinear_in_blocks",
 ]);
 
 /** Методы, где все слоты — метки строк (категории, частоты как текст): гл. 18.4. */
@@ -515,6 +519,7 @@ export function requiredColumns(method: string): Array<keyof ColumnSelection> {
   if (method === "glm_analysis" || method === "count_regression") return ["value"];
   if (method === "contingency_test") return ["factor_a", "factor_b"];
   if (method === "sampling_scheme_power") return [];
+  if (method === "curve_in_blocks" || method === "nonlinear_in_blocks") return ["value", "x"];
   if (method === "ordinal_regression") return ["response"];
   if (STRUCTURED_METHODS.has(method)) return ["value", "group"];
   if (BLOCKED_METHODS.has(method)) return ["value", "group", "block"];
@@ -657,6 +662,14 @@ elif _method == "glm_analysis" and "plots" in _res.parameters:
             "points": [[a, b] for a, b in zip(_pts["x"], _pts["y"])],
             "line": [[a, b] for a, b in zip(_cv["x"], _cv["fitted"])],
         }
+
+elif _method in ("curve_in_blocks", "nonlinear_in_blocks") and "curves" in _res.parameters:
+    # Наблюдения и кривая для среднего блока (первая группа), гл. 17 + 15.3.
+    _pts, _cv = _res.parameters["points"], _res.parameters["curves"][0]
+    _bundle["scatter"] = {
+        "points": [[a, b] for a, b in zip(_pts["x"], _pts["y"])],
+        "line": [[a, b] for a, b in zip(_cv["x"], _cv["fitted"])],
+    }
 
 elif _method == "anova_residuals" and "plots" in _res.parameters:
     # Графики допущений по стандартизованным остаткам (гл. 5.2).
