@@ -6,6 +6,6 @@ venv/
 node_modules/
 dist/
 .DS_Store
-
+. patch
 # Собираемое ядро для браузера (генерируется build_core.py)
 web/public/core/core.zip

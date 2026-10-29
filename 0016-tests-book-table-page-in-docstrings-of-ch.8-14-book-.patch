@@ -1,0 +1,860 @@
+From d3e3064cdf6ad9f579f4fcd37b46785c61cecd8c Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Wed, 28 Oct 2026 19:14:50 +0000
+Subject: [PATCH] =?UTF-8?q?tests:=20book=20table/page=20in=20docstrings=20?=
+ =?UTF-8?q?of=20ch.8=E2=80=9314=20book=20tests?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Every test checked against a number from the book now names the table,
+example or figure and the book page in its docstring (existing
+explanations kept below). No code changes, so core.zip is unchanged.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01A2hqwsyFif9SnDnzK8co2e
+---
+ tests/test_contrasts.py           | 16 ++++++++++++++--
+ tests/test_designs.py             | 18 ++++++++++++++++--
+ tests/test_factorial.py           | 20 ++++++++++++++++++--
+ tests/test_linear_regression.py   | 11 +++++++++++
+ tests/test_multcomp.py            | 15 +++++++++++++--
+ tests/test_multiple_regression.py | 13 +++++++++++++
+ tests/test_power.py               | 21 ++++++++++++++++++---
+ tests/test_regression_checks.py   | 10 ++++++++++
+ tests/test_unbalanced.py          | 25 ++++++++++++++++++++++---
+ 9 files changed, 135 insertions(+), 14 deletions(-)
+
+diff --git a/tests/test_contrasts.py b/tests/test_contrasts.py
+index 4dd7858..d8fc74b 100644
+--- a/tests/test_contrasts.py
++++ b/tests/test_contrasts.py
+@@ -104,6 +104,7 @@ def test_parse_rejects_bad_contrasts(spec: str) -> None:
+ 
+ 
+ def test_potato_single_contrast_with_remainder_table_8_17() -> None:
++    """Книга: Table 8.17 (стр. 185)."""
+     y, _, trt, blk = _potato()
+     result = treatment_contrasts(y, trt, block=blk, contrasts="AvB: F1+F4 vs F2+F3")
+     contrast = result.parameters["contrasts"][0]
+@@ -120,6 +121,7 @@ def test_potato_single_contrast_with_remainder_table_8_17() -> None:
+ 
+ 
+ def test_potato_four_orthogonal_contrasts_table_8_19() -> None:
++    """Книга: Table 8.19 (стр. 186)."""
+     y, _, trt, blk = _potato()
+     result = treatment_contrasts(y, trt, block=blk, contrasts=_FOUR)
+     ss = [c["ss"] for c in result.parameters["contrasts"]]
+@@ -132,7 +134,9 @@ def test_potato_four_orthogonal_contrasts_table_8_19() -> None:
+ 
+ 
+ def test_potato_psi1_standardized_matches_book() -> None:
+-    """Книга печатает ψ1 = −177.0 (SE 29.51): это стандартизованный контраст (Σl² = 1).
++    """Книга: Example 8.4E (стр. 187).
++
++    Книга печатает ψ1 = −177.0 (SE 29.51): это стандартизованный контраст (Σl² = 1).
+ 
+     Разность контроль − среднее фунгицидов равна −197.9 (SE 32.99); t одинаковый.
+     """
+@@ -186,6 +190,7 @@ def test_contrast_unequal_replication_crd() -> None:
+ 
+ 
+ def test_herbicide_factorial_contrasts_table_8_22() -> None:
++    """Книга: Table 8.22 (стр. 189)."""
+     y, herb, pop, rep = _herbicide()
+     result = factorial_anova(
+         y, herb, pop, block=rep, transform_kind="sqrt",
+@@ -206,6 +211,7 @@ def test_herbicide_factorial_contrasts_table_8_22() -> None:
+ 
+ 
+ def test_herbicide_contrast_estimates_table_8_21() -> None:
++    """Книга: Table 8.21 (стр. 189)."""
+     y, herb, pop, rep = _herbicide()
+     result = factorial_anova(y, herb, pop, block=rep, transform_kind="sqrt",
+                              contrasts="A+C vs B; A vs C")
+@@ -217,6 +223,7 @@ def test_herbicide_contrast_estimates_table_8_21() -> None:
+ 
+ 
+ def test_factorial_single_contrast_leaves_remainders() -> None:
++    """Книга: Example 8.5 (стр. 189): остаток Remainder[A] = 1.6434."""
+     y, herb, pop, rep = _herbicide()
+     result = factorial_anova(y, herb, pop, block=rep, transform_kind="sqrt",
+                              contrasts="A+C vs B")
+@@ -242,6 +249,7 @@ def voltage():
+ 
+ 
+ def test_orthogonal_polynomial_coefficients_table_8_24() -> None:
++    """Книга: Table 8.24 (стр. 194)."""
+     x = np.arange(-160, 1, 20, dtype=float)
+     lin, quad = orthogonal_polynomials(x, np.full(9, 2.0), 2)
+     assert lin.tolist() == pytest.approx(list(range(-80, 81, 20)))
+@@ -257,6 +265,7 @@ def test_orthogonal_polynomials_respect_replication() -> None:
+ 
+ 
+ def test_voltage_polynomial_anova_table_8_25(voltage) -> None:
++    """Книга: Table 8.25 (стр. 194)."""
+     rows = _rows(voltage)
+     assert rows["Block"]["F"] == pytest.approx(12.185, abs=5e-4)
+     assert rows["Voltage"]["ss"] == pytest.approx(2.33653, abs=5e-6)
+@@ -271,7 +280,10 @@ def test_voltage_polynomial_anova_table_8_25(voltage) -> None:
+ 
+ 
+ def test_voltage_raw_contrasts_and_linear_fit(voltage) -> None:
+-    """Σ l·τ̂ = 162.6 и 1218.8 (стр. 193); линейный тренд −0.434 + 0.0068·V (стр. 195)."""
++    """Книга: Example 8.6 (стр. 193, 195).
++
++    Σ l·τ̂ = 162.6 и 1218.8 (стр. 193); линейный тренд −0.434 + 0.0068·V (стр. 195).
++    """
+     est = [c["estimate"] for c in voltage.parameters["contrasts"]]
+     assert est == pytest.approx([162.6, 1218.8], abs=0.05)
+     linear = voltage.parameters["trend_fits"][0]["coefficients"]
+diff --git a/tests/test_designs.py b/tests/test_designs.py
+index 15eb4ed..3387ef3 100644
+--- a/tests/test_designs.py
++++ b/tests/test_designs.py
+@@ -89,6 +89,7 @@ def lupin():
+ 
+ 
+ def test_latin_square_single_factor_table_9_4() -> None:
++    """Книга: Table 9.4 (стр. 215)."""
+     d = _lupin()
+     trt = [s + w for s, w in zip(d["soil"], d["water"])]
+     rows = _rows(latin_square_anova(d["y"], trt, d["row"], d["col"]))
+@@ -101,6 +102,7 @@ def test_latin_square_single_factor_table_9_4() -> None:
+ 
+ 
+ def test_latin_square_factorial_table_9_5(lupin) -> None:
++    """Книга: Table 9.5 (стр. 215)."""
+     rows = _rows(lupin)
+     expected = {"Soil": (5.881, 9.062, 0.024), "Water": (2.176, 3.352, 0.117),
+                 "Soil.Water": (16.606, 25.588, 0.002)}
+@@ -112,12 +114,14 @@ def test_latin_square_factorial_table_9_5(lupin) -> None:
+ 
+ 
+ def test_latin_square_effects_table_9_2(lupin) -> None:
++    """Книга: Table 9.2 (стр. 213)."""
+     eff = lupin.parameters["effects"]
+     assert list(eff["Row"].values()) == pytest.approx([-0.04, -0.89, 0.86, 0.08], abs=6e-3)
+     assert list(eff["Column"].values()) == pytest.approx([-2.64, 1.31, 2.81, -1.47], abs=6e-3)
+ 
+ 
+ def test_latin_square_predictions_table_9_6(lupin) -> None:
++    """Книга: Table 9.6 (стр. 217)."""
+     assert lupin.parameters["prediction_terms"] == ["Soil.Water"]
+     table = lupin.parameters["tables"][0]
+     means = {r["label"]: r["mean"] for r in table["rows"]}
+@@ -146,6 +150,7 @@ def competition():
+ 
+ 
+ def test_split_plot_anova_table_9_12(competition) -> None:
++    """Книга: Table 9.12 (стр. 225)."""
+     rows = _rows(competition)
+     expected = {"Block": (3, 6.6473, 1.476, 0.378), "Irrigation": (1, 14.2311, 9.480, 0.054),
+                 "WholePlot residual": (3, 4.5035, 5.751, 0.006),
+@@ -161,6 +166,7 @@ def test_split_plot_anova_table_9_12(competition) -> None:
+ 
+ 
+ def test_split_plot_predictions_table_9_14(competition) -> None:
++    """Книга: Table 9.14 (стр. 227)."""
+     table = competition.parameters["tables"][0]
+     means = {r["label"]: r["mean"] for r in table["rows"]}
+     assert means["Irrigation=no × Species=-"] == pytest.approx(8.117, abs=6e-4)
+@@ -176,6 +182,7 @@ def test_split_plot_predictions_table_9_14(competition) -> None:
+ 
+ 
+ def test_satterthwaite_example_9_5c() -> None:
++    """Книга: Example 9.5C (стр. 227)."""
+     assert satterthwaite_df(1.5012, 0.2610, 4, 3, 18) == pytest.approx(6.64, abs=5e-3)
+ 
+ 
+@@ -187,7 +194,10 @@ def test_split_plot_whole_plot_column_matches_block_a(competition) -> None:
+ 
+ 
+ def test_split_plot_without_blocks_example_9_6() -> None:
+-    """Без блоков: целые делянки — колонка ``whole_plot``; df как в Table 9.16."""
++    """Книга: Example 9.6, Table 9.16 (стр. 229–230).
++
++    Без блоков: целые делянки — колонка ``whole_plot``; df как в Table 9.16.
++    """
+     rng = np.random.default_rng(2)
+     temp = ["20", "20", "15", "15", "15", "20"]
+     y, a, b, bed = [], [], [], []
+@@ -204,7 +214,10 @@ def test_split_plot_without_blocks_example_9_6() -> None:
+ 
+ 
+ def test_split_plot_main_effect_tables_use_stratum_errors() -> None:
+-    """Без взаимодействия: A — по s_w² на df целых делянок, B — по s² на df субделянок."""
++    """Книга: Table 9.13 (стр. 225): SE и df по стратам.
++
++    Без взаимодействия: A — по s_w² на df целых делянок, B — по s² на df субделянок.
++    """
+     d = _competition()
+     rng = np.random.default_rng(0)
+     wp_noise = {(b, w): rng.normal(scale=0.3) for b, w in zip(d["block"], d["wp"])}
+@@ -242,6 +255,7 @@ def test_split_plot_rejects_mixed_whole_plot() -> None:
+ @pytest.mark.parametrize(("design", "ef", "factor", "res_df"), [
+     (BIBD_A, 7 / 9, 0.93, 8), (BIBD_B, 7 / 8, 0.76, 15)])
+ def test_bibd_design_example_9_9b(design, ef, factor, res_df) -> None:
++    """Книга: Example 9.9B (стр. 237)."""
+     y, trt, block = _bibd(design)
+     result = bibd_anova(y, trt, block)
+     info = result.parameters["design"]
+diff --git a/tests/test_factorial.py b/tests/test_factorial.py
+index 40d2a3b..517d8b2 100644
+--- a/tests/test_factorial.py
++++ b/tests/test_factorial.py
+@@ -120,6 +120,7 @@ def beetle():
+ 
+ 
+ def test_beetle_anova_table_8_4(beetle) -> None:
++    """Книга: Table 8.4 (стр. 160): ANOVA log10 для beetle mating."""
+     rows = _rows(beetle)
+     assert rows["Species"]["ss"] == pytest.approx(0.90307, abs=5e-5)
+     assert rows["MateType"]["ss"] == pytest.approx(0.38073, abs=5e-5)
+@@ -136,6 +137,7 @@ def test_beetle_anova_table_8_4(beetle) -> None:
+ 
+ 
+ def test_beetle_effects_table_8_2(beetle) -> None:
++    """Книга: Tables 8.2a–c (стр. 157): средние и эффекты beetle mating."""
+     eff = beetle.parameters["effects"]
+     assert eff["Species"]["vit"] == pytest.approx(-0.1503, abs=5e-5)
+     assert eff["MateType"]["intra"] == pytest.approx(0.0976, abs=5e-5)
+@@ -144,7 +146,10 @@ def test_beetle_effects_table_8_2(beetle) -> None:
+ 
+ 
+ def test_beetle_prediction_table_8_5(beetle) -> None:
+-    """α = 0.05: взаимодействие исключено, предсказание по главным эффектам."""
++    """Книга: Table 8.5 (стр. 162).
++
++    α = 0.05: взаимодействие исключено, предсказание по главным эффектам.
++    """
+     assert beetle.parameters["prediction_terms"] == ["Species", "MateType"]
+     species = _table(beetle, "Species")
+     assert _means(species) == pytest.approx(
+@@ -161,12 +166,14 @@ def test_beetle_prediction_table_8_5(beetle) -> None:
+ 
+ 
+ def test_beetle_borderline_interaction_flagged(beetle) -> None:
++    """Книга: Table 8.4 (стр. 160): P взаимодействия 0.058; пограничный случай — стр. 159–160."""
+     flag = next(w for w in beetle.warnings if w.code == "interaction_borderline")
+     assert flag.severity == Severity.INFO
+     assert flag.params == {"term": "Species.MateType", "p": 0.058}
+ 
+ 
+ def test_beetle_interaction_kept_at_alpha_010() -> None:
++    """Книга: Table 8.2 (стр. 157): средние ячеек log10 1.5129 и 2.0085."""
+     y, sp, mt = _beetles()
+     result = factorial_anova(y, sp, mt, transform_kind="log10", alpha=0.10)
+     assert result.parameters["prediction_terms"] == ["A.B"]
+@@ -188,6 +195,7 @@ def ladybird():
+ 
+ 
+ def test_ladybird_multistratum_table_8_8(ladybird) -> None:
++    """Книга: Table 8.8 (стр. 169)."""
+     rows = _rows(ladybird)
+     expected = {"Block": (1, 0.0677, 0.294), "Host": (1, 13.5992, 59.172),
+                 "Cadaver": (2, 17.0274, 37.044), "Ladybird": (1, 11.0907, 48.257),
+@@ -205,6 +213,7 @@ def test_ladybird_multistratum_table_8_8(ladybird) -> None:
+ 
+ 
+ def test_ladybird_predictions_table_8_9(ladybird) -> None:
++    """Книга: Table 8.9 (стр. 170)."""
+     assert ladybird.parameters["prediction_terms"] == ["Host", "Cadaver.Ladybird"]
+     host = _table(ladybird, "Host")
+     assert _means(host) == pytest.approx({"Host=bean": -0.772, "Host=trefoil": -1.641}, abs=5e-4)
+@@ -289,6 +298,7 @@ def brassica():
+ 
+ 
+ def test_brassica_nested_anova_table_8_12(brassica) -> None:
++    """Книга: Table 8.12 (стр. 176)."""
+     rows = _rows(brassica)
+     assert (rows["Block"]["df"], rows["Block"]["F"]) == (2, pytest.approx(6.492, abs=5e-4))
+     assert rows["Species"]["ss"] == pytest.approx(4.2896, abs=5e-5)
+@@ -301,6 +311,7 @@ def test_brassica_nested_anova_table_8_12(brassica) -> None:
+ 
+ 
+ def test_brassica_within_group_partition_table_8_14(brassica) -> None:
++    """Книга: Table 8.14 (стр. 178), Example 8.3B."""
+     rows = _rows(brassica)
+     a, b = rows["Species.Isolate[A]"], rows["Species.Isolate[B]"]
+     assert (a["df"], b["df"]) == (8, 3)
+@@ -312,6 +323,7 @@ def test_brassica_within_group_partition_table_8_14(brassica) -> None:
+ 
+ 
+ def test_brassica_effects_table_8_11(brassica) -> None:
++    """Книга: Table 8.11 (стр. 176)."""
+     eff = brassica.parameters["effects"]
+     assert eff["Species"]["A"] == pytest.approx(0.221, abs=5e-4)
+     # −0.498 в книге — среднее округлённых эффектов (−1.990 / 4 = −0.4975).
+@@ -324,7 +336,10 @@ def test_brassica_effects_table_8_11(brassica) -> None:
+ 
+ 
+ def test_brassica_group_means(brassica) -> None:
+-    """Средние видов −1.341 (20.7%) и −2.060 (11.3%), SED = 0.1315 (стр. 176)."""
++    """Книга: Example 8.3 (стр. 176).
++
++    Средние видов −1.341 (20.7%) и −2.060 (11.3%), SED = 0.1315 (стр. 176).
++    """
+     species = _table(brassica, "Species")
+     assert _means(species) == pytest.approx({"Species=A": -1.341, "Species=B": -2.060}, abs=5e-4)
+     assert [e.value for e in brassica.estimates] == pytest.approx([20.7, 11.3], abs=0.05)
+@@ -336,6 +351,7 @@ def test_brassica_group_means(brassica) -> None:
+ 
+ 
+ def test_potato_control_vs_treated_table_8_16() -> None:
++    """Книга: Table 8.16 (стр. 182)."""
+     y, typ, trt, blk = _potato()
+     result = nested_anova(y, typ, trt, block=blk,
+                           column_names={"group": "Type", "member": "Fungicide"})
+diff --git a/tests/test_linear_regression.py b/tests/test_linear_regression.py
+index a89f9bb..a6f5d71 100644
+--- a/tests/test_linear_regression.py
++++ b/tests/test_linear_regression.py
+@@ -24,6 +24,7 @@ def _seeds():
+ 
+ 
+ def test_slr_anova_table_12_3():
++    """Книга: Table 12.3 (стр. 299)."""
+     r = regression_details(*_seeds())
+     model, resid, total = r.parameters["anova_table"]
+     assert model["ss"] == pytest.approx(5683.1753, abs=1e-4)
+@@ -35,6 +36,7 @@ def test_slr_anova_table_12_3():
+ 
+ 
+ def test_parameters_table_12_4_and_cis():
++    """Книга: Table 12.4 и ДИ (стр. 301), Example 12.1D."""
+     r = regression_details(*_seeds())
+     icept, slope = r.parameters["parameter_tests"]
+     assert icept["estimate"] == pytest.approx(-27.931, abs=1e-3)
+@@ -49,6 +51,7 @@ def test_parameters_table_12_4_and_cis():
+ 
+ 
+ def test_predictions_example_12_1e():
++    """Книга: Example 12.1E (стр. 303–304)."""
+     x, y = _seeds()
+     r = regression_details(x, y, x_predict="2.45; 4,13")
+     low, high = r.parameters["predictions"]
+@@ -63,18 +66,21 @@ def test_predictions_example_12_1e():
+ 
+ 
+ def test_prediction_at_mean_has_smallest_se():
++    """Книга: Example 12.1E (стр. 303): SE при x̄ = 0.2124."""
+     x, y = _seeds()
+     r = regression_details(x, y, x_predict=str(x.mean()))
+     assert r.parameters["predictions"][0]["se_mean"] == pytest.approx(0.2124, abs=1e-4)
+ 
+ 
+ def test_goodness_of_fit_example_12_1f():
++    """Книга: Example 12.1F (стр. 306)."""
+     r = regression_details(*_seeds())
+     assert r.statistics["r_squared"] == pytest.approx(0.779, abs=5e-4)
+     assert r.statistics["adj_r_squared"] == pytest.approx(0.778, abs=5e-4)
+ 
+ 
+ def test_lack_of_fit_table_12_7():
++    """Книга: Table 12.7 (стр. 312), Example 12.2B."""
+     x, counts = np.array(TRANSECT, float).T
+     r = regression_details(x, counts, transform_kind="log10", lack_of_fit="yes")
+     rows = {row["term"]: row for row in r.parameters["anova_table"]}
+@@ -91,6 +97,7 @@ def test_lack_of_fit_table_12_7():
+ 
+ 
+ def test_transect_slr_example_12_2a():
++    """Книга: Example 12.2A (стр. 309), F и R²adj — стр. 312."""
+     x, counts = np.array(TRANSECT, float).T
+     r = regression_details(x, counts, transform_kind="log10")
+     assert r.statistics["F_model"] == pytest.approx(13.764, abs=1e-3)
+@@ -105,6 +112,7 @@ def test_lack_of_fit_needs_replication():
+ 
+ 
+ def test_through_origin_table_12_10():
++    """Книга: Table 12.10 (стр. 318), Example 12.3."""
+     a = np.array(AIRTEMP)
+     r = regression_details(a[:, 1], a[:, 2], through_origin="yes", slope_null=1.0)
+     model, resid, total = r.parameters["anova_table"]
+@@ -122,6 +130,7 @@ def test_through_origin_table_12_10():
+ 
+ 
+ def test_air_temperature_intercept_example_12_3():
++    """Книга: Example 12.3 (стр. 317–318)."""
+     a = np.array(AIRTEMP)
+     r = regression_details(a[:, 1], a[:, 2])
+     icept, slope = r.parameters["parameter_tests"]
+@@ -133,6 +142,7 @@ def test_air_temperature_intercept_example_12_3():
+ 
+ 
+ def test_scaling_relationships():
++    """Книга: Раздел 12.9.1 (стр. 313–314): α* = ȳ, β* = s_x·β̂."""
+     x, y = _seeds()
+     std = regression_details(x, y, scaling="standardized").parameters["scaled"]
+     s_x = np.std(x, ddof=1)
+@@ -164,6 +174,7 @@ def _band_root(fit, y_new, r, alpha, side):
+ 
+ @pytest.mark.parametrize("y_new, r", [(20.0, 1), (30.5, 3), (45.0, 2)])
+ def test_fieller_limits_match_band_inversion(y_new, r):
++    """Книга: Раздел 12.9.3 (стр. 321): пределы Филлера; эталон — обращение доверительной полосы."""
+     x, y = _seeds()
+     res = inverse_prediction(x, y, y_new=str(y_new), replicates=r)
+     (row,) = res.parameters["calibration"]
+diff --git a/tests/test_multcomp.py b/tests/test_multcomp.py
+index 2f1b83f..882bf5d 100644
+--- a/tests/test_multcomp.py
++++ b/tests/test_multcomp.py
+@@ -61,7 +61,10 @@ def _range(result) -> tuple[float, float]:
+ 
+ 
+ def test_dunnett_quantile_book_value() -> None:
+-    """d[0.025] для 13 вариантов и 26 df = 3.004 (стр. 203; в формуле опечатка 16 df)."""
++    """Книга: Example 8.7 (стр. 203).
++
++    d[0.025] для 13 вариантов и 26 df = 3.004 (стр. 203; в формуле опечатка 16 df).
++    """
+     assert dunnett_quantile(0.05, np.ones(13), 26) == pytest.approx(3.004, abs=5e-4)
+ 
+ 
+@@ -92,6 +95,7 @@ def test_dunnett_one_sided_smaller_than_two_sided() -> None:
+ 
+ 
+ def test_lupin_means_and_sed_table_8_28() -> None:
++    """Книга: Table 8.28 (стр. 203)."""
+     result = _run("lsd")
+     means = {e.name: e.value for e in result.estimates}
+     assert means["DTN108"] == pytest.approx(0.560, abs=5e-4)
+@@ -102,19 +106,24 @@ def test_lupin_means_and_sed_table_8_28() -> None:
+ 
+ 
+ def test_lupin_dunnett_range() -> None:
++    """Книга: Example 8.7 (стр. 203): интервал Даннета 0.207–0.513."""
+     result = _run("dunnett")
+     assert _range(result) == pytest.approx((0.207, 0.513), abs=5e-4)
+     assert _different(result) == {"DTN108", "DTN31"}
+ 
+ 
+ def test_lupin_bonferroni_range() -> None:
++    """Книга: Example 8.7, Fig. 8.10 (стр. 204): интервал Бонферрони 0.199–0.521."""
+     result = _run("bonferroni")
+     assert _range(result) == pytest.approx((0.199, 0.521), abs=5e-4)
+     assert _different(result) == {"DTN108", "DTN31"}
+ 
+ 
+ def test_lupin_tukey_and_alsd() -> None:
+-    """Тьюки учитывает все 91 пару: отличается только DTN108; aLSD близок к Тьюки."""
++    """Книга: Example 8.7, Fig. 8.10 (стр. 204).
++
++    Тьюки учитывает все 91 пару: отличается только DTN108; aLSD близок к Тьюки.
++    """
+     tukey, alsd = _run("tukey"), _run("alsd")
+     assert _different(tukey) == {"DTN108"}
+     assert _different(alsd) == {"DTN108"}
+@@ -126,6 +135,7 @@ def test_lupin_tukey_and_alsd() -> None:
+ 
+ 
+ def test_lupin_lsd_and_observed_fdr() -> None:
++    """Книга: Example 8.7, Fig. 8.10 (стр. 204): LSD без поправки; наблюдаемый FDR — расчёт BioStat."""
+     result = _run("lsd")
+     assert _different(result) == {"DTN31", "DTN19A", "CH304-70", "DTN108"}
+     assert result.statistics["observed_fdr"] == pytest.approx(0.1625)
+@@ -133,6 +143,7 @@ def test_lupin_lsd_and_observed_fdr() -> None:
+ 
+ 
+ def test_lupin_fdr_table_8_29() -> None:
++    """Книга: Table 8.29 (стр. 205)."""
+     result = _run("fdr")
+     rows = {c["group2"]: c for c in result.parameters["comparisons"]}
+     assert rows["DTN108"]["t"] == pytest.approx(3.933, abs=5e-3)
+diff --git a/tests/test_multiple_regression.py b/tests/test_multiple_regression.py
+index f5d57d1..fe18bf6 100644
+--- a/tests/test_multiple_regression.py
++++ b/tests/test_multiple_regression.py
+@@ -42,6 +42,7 @@ def _fit(variables, **kw):
+ 
+ 
+ def test_correlations_table_14_1():
++    """Книга: Table 14.1 (стр. 347)."""
+     r = _fit("Length, Diameter, Moisture, Hardness")
+     corr = {(c["var1"], c["var2"]): c for c in r.parameters["correlations"]}
+     assert corr[("Length", "Diameter")]["r"] == pytest.approx(0.999, abs=5e-4)
+@@ -51,6 +52,7 @@ def test_correlations_table_14_1():
+ 
+ 
+ def test_summary_anova_table_14_3_and_parameters_14_8():
++    """Книга: Tables 14.3 (стр. 353) и 14.8 (стр. 359)."""
+     r = _fit("Length, Hardness")
+     model, resid, total = r.parameters["anova_table"]
+     assert (model["ss"], resid["ss"], total["ss"]) == pytest.approx(
+@@ -68,6 +70,7 @@ def test_summary_anova_table_14_3_and_parameters_14_8():
+ 
+ 
+ def test_sequential_both_orders_table_14_5():
++    """Книга: Table 14.5 (стр. 356)."""
+     a = _fit("Length, Hardness").parameters["sequential"]
+     b = _fit("Hardness, Length").parameters["sequential"]
+     assert [row["ss"] for row in a] == pytest.approx([5683.18, 70.30], abs=5e-3)
+@@ -77,6 +80,7 @@ def test_sequential_both_orders_table_14_5():
+ 
+ 
+ def test_marginal_table_14_7_equals_t_squared():
++    """Книга: Table 14.7 (стр. 357)."""
+     r = _fit("Length, Hardness")
+     marg = r.parameters["marginal"]
+     assert [row["ss"] for row in marg] == pytest.approx([5440.6436, 70.2985], abs=1e-4)
+@@ -86,6 +90,7 @@ def test_marginal_table_14_7_equals_t_squared():
+ 
+ 
+ def test_four_variates_table_14_10_and_vif():
++    """Книга: Tables 14.9–14.10 (стр. 363)."""
+     r = _fit("Length, Hardness, Moisture, Diameter")
+     est = {row["term"]: row for row in r.parameters["parameter_tests"]}
+     assert (est["[1]"]["estimate"], est["[1]"]["se"]) == pytest.approx((-12.970, 10.1545), abs=5e-4)
+@@ -109,12 +114,14 @@ def test_four_variates_table_14_10_and_vif():
+ 
+ 
+ def test_incremental_moisture_example_14_1j():
++    """Книга: Example 14.1J (стр. 368)."""
+     seq = _fit("Length, Hardness, Moisture").parameters["sequential"]
+     assert seq[2]["F"] == pytest.approx(2.57, abs=5e-3)
+     assert seq[2]["p"] == pytest.approx(0.111, abs=5e-4)
+ 
+ 
+ def test_all_subsets_table_14_12():
++    """Книга: Table 14.12 (стр. 367)."""
+     cols = _wheat()
+     r = regression_subsets(cols["Weight"], cols, "Weight", variables="Length, Hardness, Moisture")
+     rows = {tuple(row["terms"]): row for row in r.parameters["subsets"]}
+@@ -134,6 +141,7 @@ def test_all_subsets_table_14_12():
+ 
+ 
+ def test_subsets_with_forced_terms_table_14_16():
++    """Книга: Table 14.16 (стр. 375)."""
+     cols = _examine()
+     r = regression_subsets(cols["JDay"], cols, "JDay",
+                            variables=_BASE + ", C30Day, F60Day, Altitude, Latitude",
+@@ -153,6 +161,7 @@ def test_subsets_with_forced_terms_table_14_16():
+ 
+ 
+ def test_forward_selection_example_14_2():
++    """Книга: Example 14.2 (стр. 372), Table 14.14 (стр. 373)."""
+     cols = _examine()
+     r = stepwise_selection(cols["JDay"], cols, "JDay", strategy="forward_stepwise")
+     order = ["F60Day", "MayRain", "OctRain", "FebRain", "Urban", "DecForest", "Longitude",
+@@ -172,6 +181,7 @@ def test_forward_selection_example_14_2():
+ 
+ 
+ def test_backward_selection_example_14_2():
++    """Книга: Example 14.2 (стр. 372), Table 14.14 (стр. 373)."""
+     cols = _examine()
+     r = stepwise_selection(cols["JDay"], cols, "JDay", strategy="backward_stepwise")
+     assert set(r.parameters["selected"]) == {
+@@ -192,6 +202,7 @@ def test_forced_terms_are_never_dropped():
+ 
+ 
+ def test_partial_residuals_and_prediction():
++    """Книга: Частные остатки (стр. 360), предсказания (стр. 359)."""
+     r = _fit("Length, Hardness", x_predict="Length=3.2, Hardness=-10")
+     part = r.parameters["plots"]["partial_residuals"]["Length"]
+     resid = np.array(r.parameters["plots"]["observed_vs_fitted"]["observed"]) - np.array(
+@@ -206,6 +217,7 @@ def test_partial_residuals_and_prediction():
+ 
+ 
+ def test_perfect_collinearity_is_reported():
++    """Книга: Совершенная коллинеарность (стр. 361)."""
+     cols = _wheat()
+     cols["Twice"] = [2 * v for v in cols["Length"]]
+     r = multiple_regression(cols["Weight"], cols, "Weight", variables="Length, Twice")
+@@ -213,6 +225,7 @@ def test_perfect_collinearity_is_reported():
+ 
+ 
+ def test_model_cross_validation():
++    """Книга: Кросс-валидация для выбора модели (стр. 377)."""
+     cols = _wheat()
+     assert parse_models("Length + Hardness | Length") == [["Length", "Hardness"], ["Length"]]
+     r = model_cross_validation(cols["Weight"], cols, "Weight",
+diff --git a/tests/test_power.py b/tests/test_power.py
+index a5c2991..65aa4a9 100644
+--- a/tests/test_power.py
++++ b/tests/test_power.py
+@@ -64,6 +64,7 @@ def _biomass() -> tuple[list[float], list[str], list[str], list[str]]:
+ 
+ 
+ def test_replication_table_10_1_and_10_3() -> None:
++    """Книга: Tables 10.1 (стр. 243) и 10.3 (стр. 249)."""
+     rows = {r["n"]: r for r in replication_table(75, 4, 10, n_max=13)}
+     assert (rows[2]["df"], rows[2]["t_crit"]) == (4, pytest.approx(2.776, abs=5e-4))
+     assert (rows[2]["sed"], rows[2]["lsd"]) == pytest.approx((8.66, 24.04), abs=5e-3)
+@@ -75,6 +76,7 @@ def test_replication_table_10_1_and_10_3() -> None:
+ 
+ 
+ def test_lsd_range_example_10_1a() -> None:
++    """Книга: Example 10.1A (стр. 242)."""
+     lo = replication_table(50, 4, 10, n_max=7)[-1]["lsd"]
+     hi = replication_table(100, 4, 10, n_max=7)[-1]["lsd"]
+     assert (lo, hi) == pytest.approx((7.80, 11.03), abs=1e-2)  # книга: 7.79 и 11.02 (SED округлён)
+@@ -95,7 +97,10 @@ def test_sigma_from_range() -> None:
+ 
+ 
+ def test_replication_power_from_pilot_example_10_1() -> None:
+-    """Пилот — calcium (Table 4.1); s² = 75 как в Example 10.1A: n = 7 по LSD, 13 по мощности."""
++    """Книга: Table 4.1 (стр. 72), Example 10.1A (стр. 242).
++
++    Пилот — calcium (Table 4.1); s² = 75 как в Example 10.1A: n = 7 по LSD, 13 по мощности.
++    """
+     y, g = _calcium()
+     result = replication_power(y, g, delta=10, s2_override=75, n_max=15)
+     assert result.statistics["n_required_lsd"] == 7
+@@ -107,7 +112,10 @@ def test_replication_power_from_pilot_example_10_1() -> None:
+ 
+ 
+ def test_lsd_fraction_of_mean_example_10_1b() -> None:
+-    """%CV 14 и 20 при n = 7: LSD = 0.15ȳ и 0.22ȳ."""
++    """Книга: Example 10.1B (стр. 244).
++
++    %CV 14 и 20 при n = 7: LSD = 0.15ȳ и 0.22ȳ.
++    """
+     for cv, frac in ((14, 0.15), (20, 0.22)):
+         s2 = (cv / 100) ** 2  # при ȳ = 1
+         row = replication_table(s2, 4, 0.1, n_max=7)[-1]
+@@ -124,6 +132,7 @@ def test_replication_power_invalid_delta() -> None:
+ 
+ @pytest.mark.parametrize(("key", "row"), list(TABLE_10_4.items()))
+ def test_split_plot_power_table_10_4(key, row) -> None:
++    """Книга: Table 10.4 (стр. 252)."""
+     t_b, m = key
+     res = split_plot_power(0.25, (0.1 * t_b + 1) * 0.25, 3, t_b, m, -0.8)
+     within, main = res["within_b"], res["main_a"]
+@@ -134,7 +143,10 @@ def test_split_plot_power_table_10_4(key, row) -> None:
+ 
+ 
+ def test_split_plot_power_book_rounding_rows() -> None:
+-    """Строки (5, 2) и (7, 3) Table 10.4 расходятся с точным расчётом в 3-м знаке."""
++    """Книга: Table 10.4 (стр. 252).
++
++    Строки (5, 2) и (7, 3) Table 10.4 расходятся с точным расчётом в 3-м знаке.
++    """
+     a = split_plot_power(0.25, 1.5 * 0.25, 3, 5, 2, -0.8)["main_a"]["power"]
+     b = split_plot_power(0.25, 1.7 * 0.25, 3, 7, 3, -0.8)["within_b"]["power"]
+     assert (a, b) == pytest.approx((0.372, 0.440), abs=4e-3)
+@@ -151,12 +163,14 @@ def biomass():
+ 
+ 
+ def test_biomass_residual_and_sed_table_10_6(biomass) -> None:
++    """Книга: Table 10.6 (стр. 255)."""
+     assert biomass.statistics["ms_resid"] == pytest.approx(4705.15, abs=5e-3)
+     assert biomass.statistics["df_resid"] == 36
+     assert biomass.parameters["equivalence"][0]["sed"] == pytest.approx(48.5, abs=5e-3)
+ 
+ 
+ def test_biomass_tost_intervals_table_10_7(biomass) -> None:
++    """Книга: Table 10.7 (стр. 256)."""
+     rows = {r["level"]: r for r in biomass.parameters["equivalence"]}
+     expected = {"L × 20 × 30": (-167.25, -249.1, -85.4), "S × 20 × 60": (51.0, -30.9, 132.9),
+                 "S × 50 × 60": (20.5, -61.4, 102.4), "L × 200 × 60": (-66.75, -148.6, 15.1)}
+@@ -170,6 +184,7 @@ def test_biomass_tost_intervals_table_10_7(biomass) -> None:
+ 
+ 
+ def test_biomass_tost_p_and_power(biomass) -> None:
++    """Книга: Example 10.3, Table 10.7 (стр. 254–256): решения TOST; мощность — расчёт BioStat."""
+     row = next(r for r in biomass.parameters["equivalence"] if r["level"] == "S × 50 × 60")
+     assert row["p_tost"] < 0.05
+     other = next(r for r in biomass.parameters["equivalence"] if r["level"] == "S × 20 × 60")
+diff --git a/tests/test_regression_checks.py b/tests/test_regression_checks.py
+index dad0c90..76944a7 100644
+--- a/tests/test_regression_checks.py
++++ b/tests/test_regression_checks.py
+@@ -33,6 +33,7 @@ def _seeds():
+ 
+ 
+ def test_elisa_table_13_2():
++    """Книга: Tables 13.1–13.2 (стр. 326–327), Example 13.1."""
+     x = np.log10(np.array(ELISA_CONC) + 1)
+     r = regression_details(x, ELISA_ABS)
+     icept, slope = r.parameters["parameter_tests"]
+@@ -45,12 +46,14 @@ def test_elisa_table_13_2():
+ 
+ 
+ def test_x_transform_in_diagnostics_matches_pretransformed():
++    """Книга: Table 13.2 (стр. 327)."""
+     r = regression_diagnostics(ELISA_CONC, ELISA_ABS, x_transform="log10", x_offset=1)
+     assert r.parameters["line"] == pytest.approx({"intercept": 0.54580, "slope": 1.52837},
+                                                  abs=1e-5)
+ 
+ 
+ def test_leverage_example_13_2b():
++    """Книга: Example 13.2B (стр. 334)."""
+     r = regression_diagnostics(*_seeds())
+     assert r.parameters["thresholds"]["leverage"] == pytest.approx(0.021, abs=5e-4)
+     assert r.statistics["max_leverage"] == pytest.approx(0.042, abs=5e-4)
+@@ -59,6 +62,7 @@ def test_leverage_example_13_2b():
+ 
+ 
+ def test_influence_example_13_2c():
++    """Книга: Example 13.2C (стр. 337–338)."""
+     r = regression_diagnostics(*_seeds())
+     assert r.parameters["thresholds"]["modified_cook"] == pytest.approx(1.99, abs=5e-3)
+     assert r.statistics["n_influential"] == 8
+@@ -71,6 +75,7 @@ def test_influence_example_13_2c():
+ 
+ 
+ def test_largest_residual_example_13_2a():
++    """Книга: Example 13.2A (стр. 331)."""
+     r = regression_diagnostics(*_seeds())
+     obs = max(r.parameters["observations"], key=lambda o: abs(o["deletion_residual"]))
+     assert 36 < obs["fitted"] < 37  # «fitted value of just under 37»
+@@ -99,6 +104,7 @@ def test_prediction_and_deletion_residuals_by_refitting():
+ 
+ 
+ def test_modified_cook_formula():
++    """Книга: Формула C_i (стр. 336)."""
+     x, y = _seeds()
+     m = influence_measures(sm.add_constant(x), y)
+     n, p, h = y.size, 2, m["leverage"]
+@@ -107,6 +113,7 @@ def test_modified_cook_formula():
+ 
+ 
+ def test_half_normal_quantiles():
++    """Книга: Квантили полунормального графика (стр. 104)."""
+     q = half_normal_quantiles(4)
+     assert q[0] == pytest.approx(0.1854, abs=1e-4)  # Φ⁻¹(0.5 + 0.5·0.625/4.25) = Φ⁻¹(0.5735)
+     assert np.all(np.diff(q) > 0)
+@@ -130,6 +137,7 @@ def test_warnings_list_original_rows():
+ 
+ 
+ def test_prediction_summary_formulas():
++    """Книга: Формулы PB, MAD, MSEP, RMSE (стр. 340)."""
+     s = prediction_summary([10.0, 12.0, 14.0], [11.0, 11.0, 16.0])
+     assert s["pb"] == pytest.approx(-2 / 3)
+     assert s["mad"] == pytest.approx(4 / 3)
+@@ -139,6 +147,7 @@ def test_prediction_summary_formulas():
+ 
+ 
+ def test_loo_equals_prediction_residuals():
++    """Книга: Leave-1-out и PRESS (стр. 339, 342)."""
+     x, y = _seeds()
+     cv = regression_cross_validation(x, y, scheme="loo")
+     m = influence_measures(sm.add_constant(x), y)
+@@ -149,6 +158,7 @@ def test_loo_equals_prediction_residuals():
+ 
+ 
+ def test_split_example_13_2d_structure():
++    """Книга: Example 13.2D (стр. 341): разбиение 95/95; случайное разбиение книги не воспроизводимо."""
+     x, y = _seeds()
+     cv = regression_cross_validation(x, y, scheme="split", train_fraction=0.5, seed=7)
+     train = cv.parameters["training"]
+diff --git a/tests/test_unbalanced.py b/tests/test_unbalanced.py
+index 713f48e..817ed7b 100644
+--- a/tests/test_unbalanced.py
++++ b/tests/test_unbalanced.py
+@@ -69,6 +69,7 @@ def cross():
+ 
+ 
+ def test_orthogonality_condition_example_11_1b_and_11_2a(cross) -> None:
++    """Книга: Examples 11.1B и 11.2A (стр. 259)."""
+     beetle = pd.DataFrame([(s, m) for (s, m), v in BEETLES.items() for _ in v],
+                           columns=["a", "b"])
+     assert orthogonality(beetle, ["a", "b"], {"a": "S", "b": "M"})[0]["orthogonal"]
+@@ -94,6 +95,7 @@ def test_orthogonal_design_order_invariant() -> None:
+ 
+ 
+ def test_sequential_tables_11_13(cross) -> None:
++    """Книга: Table 11.13 (стр. 268), Example 11.2E."""
+     seq = _rows(cross.parameters["anova_table"])
+     assert (seq["Female"]["df"], seq["Female"]["ss"]) == (4, pytest.approx(610.62, abs=6e-3))
+     assert seq["Male"]["ss"] == pytest.approx(136.48, abs=5e-3)
+@@ -110,6 +112,7 @@ def test_sequential_tables_11_13(cross) -> None:
+ 
+ 
+ def test_type2_sums_of_squares(cross) -> None:
++    """Книга: Table 11.13 (стр. 268): SS Female | Male, Male | Female, Female.Male."""
+     t2 = _rows(cross.parameters["type2"])
+     assert t2["Female"]["ss"] == pytest.approx(393.02, abs=5e-3)  # Female | Male
+     assert t2["Male"]["ss"] == pytest.approx(136.48, abs=5e-3)  # Male | Female
+@@ -117,11 +120,13 @@ def test_type2_sums_of_squares(cross) -> None:
+ 
+ 
+ def test_selection_drops_interaction_example_11_2f(cross) -> None:
++    """Книга: Example 11.2F (стр. 271)."""
+     assert cross.parameters["final_terms"] == ["Female", "Male"]
+     assert cross.parameters["selection_steps"][0]["dropped"] == "Female.Male"
+ 
+ 
+ def test_predictions_table_11_15(cross) -> None:
++    """Книга: Table 11.15 (стр. 271)."""
+     tables = {t["term"]: t for t in cross.parameters["tables"]}
+     cells = {r["label"]: r for r in tables["Female.Male"]["rows"]}
+     expected = {"Female=F1 × Male=M1": (85.1, 0.81), "Female=F1 × Male=M2": (80.3, 1.03),
+@@ -163,6 +168,7 @@ def cuttings():
+ 
+ 
+ def test_cuttings_sequential_table_11_23(cuttings) -> None:
++    """Книга: Table 11.23 (стр. 283)."""
+     rows = _rows(cuttings.parameters["anova_table"])
+     expected = {"Block": (4, 186.4298, 7.385, 0.009), "Size": (2, 49.0181, 3.883, 0.066),
+                 "Type": (4, 96.9158, 3.839, 0.050), "Size.Type": (6, 21.0791, 0.557, 0.754)}
+@@ -174,12 +180,16 @@ def test_cuttings_sequential_table_11_23(cuttings) -> None:
+ 
+ 
+ def test_cuttings_selection_keeps_extraneous(cuttings) -> None:
+-    """Size.Type удалено, Size (посторонний фактор) сохранён при P = 0.066 (стр. 283)."""
++    """Книга: Example 11.5 (стр. 283).
++
++    Size.Type удалено, Size (посторонний фактор) сохранён при P = 0.066 (стр. 283).
++    """
+     assert cuttings.parameters["final_terms"] == ["Size", "Type"]
+     assert cuttings.statistics["df_resid_final"] == 14
+ 
+ 
+ def test_cuttings_size_predictions_table_11_24(cuttings) -> None:
++    """Книга: Table 11.24 (стр. 284)."""
+     size = next(t for t in cuttings.parameters["tables"] if t["term"] == "Size")
+     rows = {r["label"]: r for r in size["rows"]}
+     expected = {"Size=S": (22.394, 0.9889), "Size=M": (20.109, 0.6667),
+@@ -190,7 +200,10 @@ def test_cuttings_size_predictions_table_11_24(cuttings) -> None:
+ 
+ 
+ def test_cuttings_type_sed_range_fig_11_6(cuttings) -> None:
+-    """Книга: SED 1.449–1.538; минимальный SED (C–D) по расчёту 1.430."""
++    """Книга: Fig. 11.6 (стр. 283).
++
++    Книга: SED 1.449–1.538; минимальный SED (C–D) по расчёту 1.430.
++    """
+     types = next(t for t in cuttings.parameters["tables"] if t["term"] == "Type")
+     assert types["sed_max"] == pytest.approx(1.538, abs=5e-4)
+     assert types["sed_min"] == pytest.approx(1.430, abs=5e-4)
+@@ -212,6 +225,7 @@ def test_cuttings_empty_cells_not_estimable() -> None:
+ 
+ 
+ def test_heights_eliminating_columns_table_11_20() -> None:
++    """Книга: Table 11.20 (стр. 279)."""
+     plants = [(c + 1, cell.split()) for row in HEIGHTS for c, cell in enumerate(row.split("|"))]
+     y, dose, col = [float(p[1][1]) for p in plants], [p[1][0] for p in plants], [
+         str(p[0]) for p in plants]
+@@ -231,6 +245,7 @@ def test_heights_eliminating_columns_table_11_20() -> None:
+ 
+ 
+ def test_elisa_one_missing_table_11_17() -> None:
++    """Книга: Table 11.17 (стр. 276)."""
+     result = _elisa()
+     exact, hw = _rows(result.parameters["anova_table"]), _rows(result.parameters["healy_westmacott"])
+     assert (exact["Prep"]["ss"], exact["Prep"]["F"]) == pytest.approx((0.159, 7.21), abs=6e-3)
+@@ -240,6 +255,7 @@ def test_elisa_one_missing_table_11_17() -> None:
+ 
+ 
+ def test_elisa_six_missing_table_11_18() -> None:
++    """Книга: Table 11.18 (стр. 276)."""
+     result = _elisa(exclude=(4, 11, 15, 17, 20))
+     exact, hw = _rows(result.parameters["anova_table"]), _rows(result.parameters["healy_westmacott"])
+     assert (exact["Prep"]["F"], exact["Prep"]["p"]) == pytest.approx((4.52, 0.064), abs=6e-3)
+@@ -264,7 +280,10 @@ def test_healy_westmacott_unavailable_with_block() -> None:
+ 
+ 
+ def test_backward_selection_respects_marginality(cross) -> None:
+-    """Первый шаг проверяет только взаимодействие (не главные эффекты)."""
++    """Книга: Правило маргинальности, стр. 270.
++
++    Первый шаг проверяет только взаимодействие (не главные эффекты).
++    """
+     first = cross.parameters["selection_steps"][0]["tests"]
+     assert [t["term"] for t in first] == ["Female.Male"]
+     assert callable(backward_selection)
+-- 
+2.43.0
+

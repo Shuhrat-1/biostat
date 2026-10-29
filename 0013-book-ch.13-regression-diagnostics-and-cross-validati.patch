@@ -1,0 +1,1531 @@
+From 75ae2be3a8c0bbca4970a3106e1d0b1bf9c8d03f Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Tue, 27 Oct 2026 23:07:39 +0000
+Subject: [PATCH] book ch.13: regression diagnostics and cross-validation
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+- core/stats/regression_checks.py: influence_measures (leverage,
+  standardized, prediction and deletion residuals, Cook D, modified Cook
+  C), regression_diagnostics (per-observation table, thresholds 2p/N,
+  |r(i)| > 2, C > 2√((N − p)/N), refit without influential points, plot
+  data incl. half-Normal) and regression_cross_validation (split, leave-1-out
+  with PRESS, k-fold; PB, MAD, MSEP, RMSE and percentages).
+- Optional transforms of y and x (log10(conc + 1) as in Example 13.1).
+- Tests against Table 13.2 and Examples 13.2A–C; measures checked
+  against statsmodels and by refitting without each observation.
+- Catalog, i18n, bridge (XY kind, scatter, residual plots, histogram), messages.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01A2hqwsyFif9SnDnzK8co2e
+---
+ core/stats/regression_checks.py | 358 ++++++++++++++++++++++++++++++++
+ core/validation/catalog.py      |  38 ++++
+ core/validation/catalog_i18n.py |  20 ++
+ tests/test_catalog.py           |   3 +
+ tests/test_regression_checks.py | 184 ++++++++++++++++
+ web/public/core/core.zip        | Bin 108968 -> 115876 bytes
+ web/src/coreMessages.tsx        |  10 +
+ web/src/pyodide/bridge.ts       |  16 +-
+ 8 files changed, 626 insertions(+), 3 deletions(-)
+ create mode 100644 core/stats/regression_checks.py
+ create mode 100644 tests/test_regression_checks.py
+
+diff --git a/core/stats/regression_checks.py b/core/stats/regression_checks.py
+new file mode 100644
+index 0000000..b6d9821
+--- /dev/null
++++ b/core/stats/regression_checks.py
+@@ -0,0 +1,358 @@
++"""Проверка подгонки регрессии (гл. 13 книги).
++
++- ``influence_measures`` — для любой матрицы плана: рычаги h_ii, простые,
++  стандартизованные, предсказательные и удалённые остатки, Cook D и
++  модифицированная статистика Кука C_i (13.2, 13.4).
++- ``regression_diagnostics`` — метод каталога для ПЛР (или через начало):
++  таблица по наблюдениям, пороги 2p/N, |r(i)| > 2, C_i > 2√((N − p)/N),
++  перерасчёт без влиятельных точек, данные графиков (Figs 13.3, 13.5, 13.7).
++- ``regression_cross_validation`` — разбиение данных, leave-1-out и
++  k-fold: PB, MAD, MSEP, RMSE и их доли от среднего отклика (13.5).
++"""
++
++from __future__ import annotations
++
++import numpy as np
++import pandas as pd
++from scipy import stats
++
++from core.report.schema import Estimate, Severity, StatResult
++from core.stats.factorial import _NONE, _new_result, _settings
++from core.stats.transforms import TRANSFORMS, transform
++
++_YES_NO = ("no", "yes")
++_SCHEMES = ("split", "loo", "kfold")
++_RESID_CUTOFF = 2.0
++
++
++# --- Расчёт мер влияния -------------------------------------------------------
++
++
++def _ols(design: np.ndarray, y: np.ndarray) -> tuple[np.ndarray, np.ndarray, float, int]:
++    """МНК: параметры, ковариация (без s²), s², ResDF."""
++    xtx_inv = np.linalg.inv(design.T @ design)
++    beta = xtx_inv @ design.T @ y
++    df = design.shape[0] - design.shape[1]
++    s2 = float(((y - design @ beta) ** 2).sum() / df)
++    return beta, xtx_inv, s2, df
++
++
++def influence_measures(design: np.ndarray, y: np.ndarray) -> dict[str, np.ndarray | float]:
++    """Остатки всех видов, рычаги и статистики Кука по формулам стр. 333–336."""
++    n, p = design.shape
++    beta, xtx_inv, s2, _ = _ols(design, y)
++    h = np.einsum("ij,jk,ik->i", design, xtx_inv, design)
++    fitted = design @ beta
++    e = y - fitted
++    r = e / np.sqrt(s2 * (1 - h))
++    s2_del = s2 * (n - p - r ** 2) / (n - p - 1)
++    r_del = r * np.sqrt((n - p - 1) / (n - p - r ** 2))
++    return {"beta": beta, "s2": s2, "fitted": fitted, "residual": e, "leverage": h,
++            "std_residual": r, "prediction_residual": e / (1 - h), "s2_deleted": s2_del,
++            "deletion_residual": r_del, "cook_d": r ** 2 / p * h / (1 - h),
++            "modified_cook": np.sqrt((n - p) * r_del ** 2 / p * h / (1 - h))}
++
++
++def half_normal_quantiles(n: int) -> np.ndarray:
++    """Квантили полунормального графика: [50 + 50(i − 0.375)/(n + 0.25)]-й процентиль (стр. 104)."""
++    return stats.norm.ppf(0.5 + 0.5 * (np.arange(1, n + 1) - 0.375) / (n + 0.25))
++
++
++# --- Подготовка данных --------------------------------------------------------
++
++
++def _indexed_frame(x: np.ndarray | list[float], y: np.ndarray | list[float]) -> tuple[pd.DataFrame, int]:
++    """Пары без пропусков с исходным номером строки (с 1)."""
++    ax = np.asarray(x, dtype=float).ravel()
++    ay = np.asarray(y, dtype=float).ravel()
++    if ax.size != ay.size:
++        raise ValueError("x и y должны быть одной длины")
++    frame = pd.DataFrame({"row": np.arange(1, ax.size + 1), "x": ax, "y": ay})
++    clean = frame.dropna().reset_index(drop=True)
++    return clean, len(frame) - len(clean)
++
++
++def _transform_column(frame: pd.DataFrame, column: str, kind: str, offset: float,
++                      result: StatResult) -> bool:
++    """Трансформировать x или y (Table 6.4); вне области — ошибка."""
++    if kind == _NONE:
++        return True
++    try:
++        frame[column] = transform(frame[column].to_numpy(float), kind, offset)
++    except ValueError as exc:
++        result.add_warning("transform_domain", f"{column}: {exc}", Severity.ERROR)
++        return False
++    return True
++
++
++def _prepare(method: str, x: np.ndarray | list[float], y: np.ndarray | list[float],
++             options: dict) -> tuple[pd.DataFrame, StatResult, bool]:
++    """Очистить пары, трансформировать x и y, проверить объём данных."""
++    if options["x_transform"] not in (_NONE, *TRANSFORMS):
++        raise ValueError(f"x_transform ∈ {(_NONE, *TRANSFORMS)}")
++    if options["through_origin"] not in _YES_NO:
++        raise ValueError(f"through_origin ∈ {_YES_NO}")
++    settings = _settings(options["alpha"], options["transform_kind"], options["offset"])
++    frame, dropped = _indexed_frame(x, y)
++    result = _new_result(method, frame, settings, through_origin=options["through_origin"],
++                         x_transform=options["x_transform"], x_offset=options["x_offset"])
++    if dropped:
++        result.add_warning("missing_dropped", f"Удалено пар с пропусками: {dropped}",
++                           Severity.INFO)
++    ok = (_transform_column(frame, "y", options["transform_kind"], options["offset"], result)
++          and _transform_column(frame, "x", options["x_transform"], options["x_offset"], result)
++          and _enough(frame, options, result))
++    return frame, result, ok
++
++
++def _enough(frame: pd.DataFrame, options: dict, result: StatResult) -> bool:
++    """Удалённые остатки требуют N − p − 1 ≥ 1, x должен варьировать."""
++    p = 1 if options["through_origin"] == "yes" else 2
++    if len(frame) < p + options.get("extra", 2):
++        result.add_warning("n_too_small", "Слишком мало точек для регрессии", Severity.ERROR)
++        return False
++    flat = not frame["x"].any() if p == 1 else np.ptp(frame["x"]) == 0
++    if flat:
++        result.add_warning("no_x_variation", "x не варьирует — наклон не определён",
++                           Severity.ERROR)
++        return False
++    return True
++
++
++def _design(x: np.ndarray, origin: bool) -> np.ndarray:
++    """Матрица плана: [1, x] или [x]."""
++    x = np.asarray(x, float)
++    return x[:, None] if origin else np.column_stack([np.ones_like(x), x])
++
++
++def _options(**kwargs: object) -> dict:
++    """Собрать опции модели в словарь."""
++    return dict(kwargs)
++
++
++# --- regression_diagnostics ---------------------------------------------------
++
++
++def _observation_rows(frame: pd.DataFrame, m: dict, flags: dict[str, np.ndarray]) -> list[dict]:
++    """Строка на наблюдение: номер, x, y, подгонка, остатки, h, D, C и отметки."""
++    keys = ("fitted", "residual", "std_residual", "prediction_residual",
++            "deletion_residual", "leverage", "cook_d", "modified_cook")
++    rows = []
++    for i in range(len(frame)):
++        row = {"row": int(frame["row"][i]), "x": float(frame["x"][i]), "y": float(frame["y"][i])}
++        row.update({k: float(m[k][i]) for k in keys})
++        row.update({k: bool(v[i]) for k, v in flags.items()})
++        rows.append(row)
++    return rows
++
++
++def _flags(m: dict, n: int, p: int) -> tuple[dict[str, np.ndarray], dict[str, float]]:
++    """Отметки по порогам книги: h > 2p/N, |r(i)| > 2, C > 2√((N − p)/N), D > 1."""
++    limits = {"leverage": 2 * p / n, "deletion_residual": _RESID_CUTOFF,
++              "modified_cook": float(2 * np.sqrt((n - p) / n)), "cook_d": 1.0}
++    flags = {"high_leverage": m["leverage"] > limits["leverage"],
++             "outlier": np.abs(m["deletion_residual"]) > limits["deletion_residual"],
++             "influential": m["modified_cook"] > limits["modified_cook"],
++             "cook_d_gt_1": m["cook_d"] > limits["cook_d"]}
++    return flags, limits
++
++
++def _refit_without(frame: pd.DataFrame, keep: np.ndarray, origin: bool, beta: np.ndarray) -> dict | None:
++    """Изменение параметров при исключении влиятельных точек (Example 13.2C)."""
++    p = 1 if origin else 2
++    if keep.all() or keep.sum() < p + 2:
++        return None
++    sub = frame[keep]
++    new, xtx_inv, s2, _ = _ols(_design(sub["x"], origin), sub["y"].to_numpy(float))
++    se = np.sqrt(s2 * np.diag(xtx_inv))
++    names = ["slope"] if origin else ["intercept", "slope"]
++    return {"n_omitted": int((~keep).sum()), "parameters": [
++        {"parameter": name, "full": float(beta[j]), "without": float(new[j]),
++         "change": float(new[j] - beta[j]), "se_without": float(se[j])}
++        for j, name in enumerate(names)]}
++
++
++def _diagnostic_plots(frame: pd.DataFrame, m: dict) -> dict:
++    """Ряды для графиков: удалённые остатки, рычаги от x, C от подгонки и полунормальный."""
++    r_del = m["deletion_residual"]
++    n = r_del.size
++    blom = stats.norm.ppf((np.arange(1, n + 1) - 0.375) / (n + 0.25))
++    return {
++        "residual_vs_fitted": {"fitted": m["fitted"].tolist(), "residuals": r_del.tolist()},
++        "qq": {"theoretical_quantiles": blom.tolist(), "sample_quantiles": np.sort(r_del).tolist()},
++        "deletion_residuals": r_del.tolist(),
++        "leverage_vs_x": {"x": frame["x"].tolist(), "leverage": m["leverage"].tolist()},
++        "cook_vs_fitted": {"fitted": m["fitted"].tolist(), "cook": m["modified_cook"].tolist()},
++        "cook_half_normal": {"theoretical_quantiles": half_normal_quantiles(n).tolist(),
++                             "sample_quantiles": np.sort(m["modified_cook"]).tolist()},
++    }
++
++
++def _diagnostic_warnings(flags: dict[str, np.ndarray], frame: pd.DataFrame,
++                         result: StatResult) -> None:
++    """Сообщения о выбросах и влиятельных точках с номерами строк."""
++    n = len(frame)
++    texts = {"outlier": "|удалённый остаток| > 2", "influential": "статистика Кука C выше порога"}
++    for key, code in (("outlier", "deletion_outliers"), ("influential", "influential_points")):
++        rows = frame["row"][flags[key]].tolist()
++        if rows:
++            listed = ", ".join(str(r) for r in rows[:20]) + ("…" if len(rows) > 20 else "")
++            result.add_warning(code, f"{texts[key]}: строки {listed}. Удалять без найденной ошибки нельзя.", Severity.INFO,
++                               params={"count": len(rows), "rows": listed,
++                                       "expected": round(0.05 * n, 1)})
++
++
++def regression_diagnostics(
++    x: np.ndarray | list[float],
++    y: np.ndarray | list[float],
++    through_origin: str = "no",
++    alpha: float = 0.05,
++    transform_kind: str = "none",
++    offset: float = 0.0,
++    x_transform: str = "none",
++    x_offset: float = 0.0,
++) -> StatResult:
++    """Остатки, рычаги и влияние наблюдений в ПЛР с порогами книги (гл. 13)."""
++    options = _options(through_origin=through_origin, alpha=alpha, transform_kind=transform_kind,
++                       offset=offset, x_transform=x_transform, x_offset=x_offset)
++    frame, result, ok = _prepare("regression_diagnostics", x, y, options)
++    if not ok:
++        return result
++    origin = through_origin == "yes"
++    design = _design(frame["x"], origin)
++    m = influence_measures(design, frame["y"].to_numpy(float))
++    n, p = design.shape
++    flags, limits = _flags(m, n, p)
++    result.parameters.update({
++        "observations": _observation_rows(frame, m, flags), "thresholds": limits, "p": p,
++        "refit_without_influential": _refit_without(frame, ~flags["influential"], origin,
++                                                    m["beta"]),
++        "plots": _diagnostic_plots(frame, m),
++        "points": {"x": frame["x"].tolist(), "y": frame["y"].tolist()},
++        "line": {"intercept": 0.0 if origin else float(m["beta"][0]),
++                 "slope": float(m["beta"][-1])}})
++    result.statistics.update({f"n_{k}": int(v.sum()) for k, v in flags.items()})
++    result.statistics.update({"max_leverage": float(m["leverage"].max()),
++                              "max_modified_cook": float(m["modified_cook"].max()),
++                              "max_abs_deletion_residual": float(np.abs(m["deletion_residual"]).max()),
++                              "ms_resid": m["s2"], "df_resid": n - p})
++    _diagnostic_warnings(flags, frame, result)
++    return result
++
++
++# --- regression_cross_validation ----------------------------------------------
++
++
++def _folds(n: int, scheme: str, train_fraction: float, k_folds: int, seed: int) -> list[np.ndarray]:
++    """Индексы проверочных наборов: один (split), по одному (loo) или k (kfold)."""
++    if scheme == "loo":
++        return [np.array([i]) for i in range(n)]
++    order = np.random.default_rng(seed).permutation(n)
++    if scheme == "split":
++        n_train = round(train_fraction * n)
++        return [np.sort(order[n_train:])]
++    return [np.sort(part) for part in np.array_split(order, k_folds)]
++
++
++def _discrepancies(frame: pd.DataFrame, folds: list[np.ndarray], origin: bool) -> pd.DataFrame:
++    """Для каждого набора: подгонка на остальных, прогноз Ŷ и расхождение Y − Ŷ."""
++    x, y = frame["x"].to_numpy(float), frame["y"].to_numpy(float)
++    parts = []
++    for k, test in enumerate(folds):
++        train = np.setdiff1d(np.arange(len(frame)), test)
++        beta = _ols(_design(x[train], origin), y[train])[0]
++        pred = _design(x[test], origin) @ beta
++        parts.append(pd.DataFrame({"row": frame["row"].to_numpy()[test], "x": x[test],
++                                   "y": y[test], "predicted": pred, "discrepancy": y[test] - pred,
++                                   "fold": k + 1}))
++    return pd.concat(parts).sort_values("row").reset_index(drop=True)
++
++
++def prediction_summary(observed: np.ndarray, predicted: np.ndarray) -> dict[str, float]:
++    """PB, MAD, MSEP, RMSE и их проценты от среднего отклика (стр. 339–340)."""
++    d = np.asarray(observed, float) - np.asarray(predicted, float)
++    out = {"pb": float(d.mean()), "mad": float(np.abs(d).mean()), "msep": float((d ** 2).mean())}
++    out["rmse"] = float(np.sqrt(out["msep"]))
++    mean = float(np.mean(observed))
++    out["validation_mean"] = mean
++    for key in ("pb", "mad", "rmse"):
++        out[f"{key}_pct"] = 100 * out[key] / mean if mean else float("nan")
++    return out
++
++
++def _training_fit(frame: pd.DataFrame, test: np.ndarray, origin: bool, result: StatResult) -> None:
++    """Параметры, SE, t, P и s обучающей выборки (Table 13.3)."""
++    train = frame.drop(index=test)
++    design = _design(train["x"], origin)
++    beta, xtx_inv, s2, df = _ols(design, train["y"].to_numpy(float))
++    se = np.sqrt(s2 * np.diag(xtx_inv))
++    names = ["slope"] if origin else ["intercept", "slope"]
++    rows = []
++    for j, name in enumerate(names):
++        t = beta[j] / se[j]
++        rows.append({"parameter": name, "estimate": float(beta[j]), "se": float(se[j]),
++                     "t": float(t), "p": float(2 * stats.t.sf(abs(t), df))})
++        result.estimates.append(Estimate(name=f"train_{name}", value=float(beta[j]),
++                                         std_error=float(se[j])))
++    yt = train["y"].to_numpy(float)
++    tot_ms = float(((yt - yt.mean()) ** 2).sum() / (len(yt) - 1))
++    result.parameters["training"] = {"n": len(train), "parameters": rows, "s": float(np.sqrt(s2)),
++                                     "adj_r_squared": None if origin else 1 - s2 / tot_ms}
++    result.parameters["line"] = {"intercept": 0.0 if origin else float(beta[0]),
++                                 "slope": float(beta[-1])}
++
++
++def _check_cv_args(scheme: str, train_fraction: float, k_folds: int, n: int) -> None:
++    """Допустимые схема, доля обучающей выборки и число блоков."""
++    if scheme not in _SCHEMES:
++        raise ValueError(f"scheme ∈ {_SCHEMES}")
++    if not 0.1 <= train_fraction <= 0.9:
++        raise ValueError("train_fraction ∈ [0.1, 0.9]")
++    if scheme == "kfold" and not 2 <= int(k_folds) <= max(n, 2):
++        raise ValueError("k_folds ∈ [2, N]")
++
++
++def regression_cross_validation(
++    x: np.ndarray | list[float],
++    y: np.ndarray | list[float],
++    scheme: str = "split",
++    train_fraction: float = 0.5,
++    k_folds: int = 5,
++    seed: int = 1,
++    through_origin: str = "no",
++    alpha: float = 0.05,
++    transform_kind: str = "none",
++    offset: float = 0.0,
++    x_transform: str = "none",
++    x_offset: float = 0.0,
++) -> StatResult:
++    """Предсказательная способность ПЛР: расхождения на проверочных данных (13.5)."""
++    options = _options(through_origin=through_origin, alpha=alpha, transform_kind=transform_kind,
++                       offset=offset, x_transform=x_transform, x_offset=x_offset, extra=3)
++    frame, result, ok = _prepare("regression_cross_validation", x, y, options)
++    _check_cv_args(scheme, train_fraction, k_folds, len(frame))
++    result.parameters.update({"scheme": scheme, "seed": int(seed)})
++    if not ok:
++        return result
++    origin = through_origin == "yes"
++    folds = _folds(len(frame), scheme, train_fraction, int(k_folds), int(seed))
++    table = _discrepancies(frame, folds, origin)
++    _cv_output(frame, table, folds, origin, result)
++    return result
++
++
++def _cv_output(frame: pd.DataFrame, table: pd.DataFrame, folds: list[np.ndarray],
++               origin: bool, result: StatResult) -> None:
++    """Сводки расхождений, PRESS, ResMS полной модели, таблица и графики."""
++    summary = prediction_summary(table["y"], table["predicted"])
++    full = influence_measures(_design(frame["x"], origin), frame["y"].to_numpy(float))
++    summary.update({"n_validation": len(table), "ms_resid_full": full["s2"]})
++    if result.parameters["scheme"] == "loo":  # PRESS = Σ ê(i)² (стр. 342)
++        summary["press"] = float((table["discrepancy"] ** 2).sum())
++    result.statistics.update(summary)
++    result.parameters["discrepancies"] = table.to_dict("records")
++    if result.parameters["scheme"] == "split":
++        _training_fit(frame, folds[0], origin, result)
++        result.parameters["points"] = {"x": table["x"].tolist(), "y": table["y"].tolist()}
++    result.parameters["plots"] = {"discrepancy_vs_x": {
++        "x": table["x"].tolist(), "discrepancy": table["discrepancy"].tolist()}}
+diff --git a/core/validation/catalog.py b/core/validation/catalog.py
+index b380e75..3c2bd97 100644
+--- a/core/validation/catalog.py
++++ b/core/validation/catalog.py
+@@ -633,6 +633,44 @@ CATALOG: list[MethodSpec] = [
+         ],
+         description="Оценить x по новому измерению y с пределами Филлера.",
+     ),
++    MethodSpec(
++        method="regression_diagnostics",
++        label="Регрессия: выбросы, рычаги, влияние",
++        group="Связь переменных",
++        slots={"x": _NUM, "y": _NUM},
++        slot_labels={"x": "X (объясняющая)", "y": "Y (отклик)"},
++        params=[
++            Param("through_origin", "Через начало координат (α = 0)", "select", "no",
++                  options=["no", "yes"]),
++            _TRANSFORM_NONE,
++            Param("offset", "Сдвиг c", "float", 0.0, min=0.0, max=1000.0),
++            Param("x_transform", "Трансформация x", "select", "none",
++                  options=["none", "log10", "ln", "sqrt", "logit", "logit_pct"]),
++            Param("x_offset", "Сдвиг c для x", "float", 0.0, min=0.0, max=1000.0),
++        ],
++        description="Удалённые остатки, рычаги и статистика Кука по наблюдениям с порогами.",
++    ),
++    MethodSpec(
++        method="regression_cross_validation",
++        label="Регрессия: кросс-валидация",
++        group="Связь переменных",
++        slots={"x": _NUM, "y": _NUM},
++        slot_labels={"x": "X (объясняющая)", "y": "Y (отклик)"},
++        params=[
++            Param("scheme", "Схема", "select", "split", options=["split", "loo", "kfold"]),
++            Param("train_fraction", "Доля обучающей выборки", "float", 0.5, min=0.1, max=0.9),
++            Param("k_folds", "Число блоков k", "number", 5, min=2, max=100),
++            Param("seed", "Зерно случайного разбиения", "number", 1, min=0, max=999999),
++            Param("through_origin", "Через начало координат (α = 0)", "select", "no",
++                  options=["no", "yes"]),
++            _TRANSFORM_NONE,
++            Param("offset", "Сдвиг c", "float", 0.0, min=0.0, max=1000.0),
++            Param("x_transform", "Трансформация x", "select", "none",
++                  options=["none", "log10", "ln", "sqrt", "logit", "logit_pct"]),
++            Param("x_offset", "Сдвиг c для x", "float", 0.0, min=0.0, max=1000.0),
++        ],
++        description="Предсказательная способность: смещение PB, MAD, RMSE на проверочных данных.",
++    ),
+     MethodSpec(
+         method="pearson_correlation",
+         label="Корреляция Пирсона",
+diff --git a/core/validation/catalog_i18n.py b/core/validation/catalog_i18n.py
+index ef91a65..4d03e71 100644
+--- a/core/validation/catalog_i18n.py
++++ b/core/validation/catalog_i18n.py
+@@ -64,6 +64,8 @@ LABELS: dict[str, dict[str, str]] = {
+         "Простая линейная регрессия": "Simple linear regression",
+         "Регрессия: ANOVA, тесты, предсказания": "Regression: ANOVA, tests, predictions",
+         "Калибровка (обратное предсказание)": "Calibration (inverse prediction)",
++        "Регрессия: выбросы, рычаги, влияние": "Regression: outliers, leverage, influence",
++        "Регрессия: кросс-валидация": "Regression: cross-validation",
+         "Корреляция Пирсона": "Pearson correlation",
+     },
+     "pt": {
+@@ -99,6 +101,8 @@ LABELS: dict[str, dict[str, str]] = {
+         "Простая линейная регрессия": "Regressão linear simples",
+         "Регрессия: ANOVA, тесты, предсказания": "Regressão: ANOVA, testes, previsões",
+         "Калибровка (обратное предсказание)": "Calibração (previsão inversa)",
++        "Регрессия: выбросы, рычаги, влияние": "Regressão: outliers, alavancagem, influência",
++        "Регрессия: кросс-валидация": "Regressão: validação cruzada",
+         "Корреляция Пирсона": "Correlação de Pearson",
+     },
+ }
+@@ -169,6 +173,8 @@ DESCRIPTIONS: dict[str, dict[str, str]] = {
+         "Факторы с неравной повторностью или пустыми ячейками: порядок подгонки, отбор модели.": "Factors with unequal replication or empty cells: fitting order and model selection.",
+         "Таблица ANOVA, t-тесты параметров, ДИ предсказаний, R², неадекватность.": "ANOVA table, parameter t-tests, prediction intervals, R², lack of fit.",
+         "Оценить x по новому измерению y с пределами Филлера.": "Estimate x from a new measurement of y with Fieller limits.",
++        "Удалённые остатки, рычаги и статистика Кука по наблюдениям с порогами.": "Deletion residuals, leverages and Cook's statistics per observation with thresholds.",
++        "Предсказательная способность: смещение PB, MAD, RMSE на проверочных данных.": "Predictive ability: bias PB, MAD and RMSE on validation data.",
+         "Модель y = b0 + b1·x с оценками и доверительными интервалами.": (
+             "Model y = b0 + b1·x with estimates and confidence intervals."
+         ),
+@@ -240,6 +246,8 @@ DESCRIPTIONS: dict[str, dict[str, str]] = {
+         "Факторы с неравной повторностью или пустыми ячейками: порядок подгонки, отбор модели.": "Fatores com repetição desigual ou células vazias: ordem de ajustamento e seleção do modelo.",
+         "Таблица ANOVA, t-тесты параметров, ДИ предсказаний, R², неадекватность.": "Tabela ANOVA, testes t dos parâmetros, intervalos de previsão, R², falta de ajustamento.",
+         "Оценить x по новому измерению y с пределами Филлера.": "Estimar x a partir de uma nova medição de y com limites de Fieller.",
++        "Удалённые остатки, рычаги и статистика Кука по наблюдениям с порогами.": "Resíduos de eliminação, alavancagens e estatísticas de Cook por observação, com limiares.",
++        "Предсказательная способность: смещение PB, MAD, RMSE на проверочных данных.": "Capacidade preditiva: enviesamento PB, MAD e RMSE nos dados de validação.",
+         "Модель y = b0 + b1·x с оценками и доверительными интервалами.": (
+             "Modelo y = b0 + b1·x com estimativas e intervalos de confiança."
+         ),
+@@ -298,6 +306,12 @@ LABELS_MISC: dict[str, dict[str, str]] = {
+         "Число перестановок": "Number of permutations",
+         "Трансформация": "Transformation",
+         "Сдвиг c": "Offset c",
++        "Трансформация x": "Transformation of x",
++        "Сдвиг c для x": "Offset c for x",
++        "Схема": "Scheme",
++        "Доля обучающей выборки": "Training fraction",
++        "Число блоков k": "Number of folds k",
++        "Зерно случайного разбиения": "Random split seed",
+         "X (объясняющая)": "X (explanatory)",
+         "Y (отклик)": "Y (response)",
+         "Через начало координат (α = 0)": "Through the origin (α = 0)",
+@@ -358,6 +372,12 @@ LABELS_MISC: dict[str, dict[str, str]] = {
+         "Число перестановок": "Número de permutações",
+         "Трансформация": "Transformação",
+         "Сдвиг c": "Desvio c",
++        "Трансформация x": "Transformação de x",
++        "Сдвиг c для x": "Desvio c para x",
++        "Схема": "Esquema",
++        "Доля обучающей выборки": "Fração de treino",
++        "Число блоков k": "Número de partições k",
++        "Зерно случайного разбиения": "Semente da partição aleatória",
+         "X (объясняющая)": "X (explicativa)",
+         "Y (отклик)": "Y (resposta)",
+         "Через начало координат (α = 0)": "Pela origem (α = 0)",
+diff --git a/tests/test_catalog.py b/tests/test_catalog.py
+index 2b3b32c..2ee1a90 100644
+--- a/tests/test_catalog.py
++++ b/tests/test_catalog.py
+@@ -30,6 +30,7 @@ def test_numeric_only_methods():
+     assert "one_sample_t" in methods
+     assert "simple_linear_regression" in methods  # две числовые
+     assert {"regression_details", "inverse_prediction"} <= methods  # гл. 12
++    assert {"regression_diagnostics", "regression_cross_validation"} <= methods  # гл. 13
+     assert "one_way_anova" not in methods
+     assert "two_sample_t" not in methods
+ 
+@@ -155,6 +156,8 @@ def test_catalog_params_match_function_signatures():
+         "simple_linear_regression": "core.stats.regression",
+         "regression_details": "core.stats.linear_regression",
+         "inverse_prediction": "core.stats.linear_regression",
++        "regression_diagnostics": "core.stats.regression_checks",
++        "regression_cross_validation": "core.stats.regression_checks",
+         "pearson_correlation": "core.stats.correlation",
+     }
+     for spec in CATALOG:
+diff --git a/tests/test_regression_checks.py b/tests/test_regression_checks.py
+new file mode 100644
+index 0000000..dad0c90
+--- /dev/null
++++ b/tests/test_regression_checks.py
+@@ -0,0 +1,184 @@
++"""Глава 13: остатки, рычаги, влияние, кросс-валидация.
++
++Эталоны — Table 13.2, Examples 13.2A–C (сверены с картинками PDF 349, 358, 360);
++формулы мер влияния и leave-1-out — с полным перебором и statsmodels.
++"""
++
++from __future__ import annotations
++
++import json
++
++import numpy as np
++import pytest
++import statsmodels.api as sm
++
++from core.stats.linear_regression import regression_details
++from core.stats.regression_checks import (
++    half_normal_quantiles,
++    influence_measures,
++    prediction_summary,
++    regression_cross_validation,
++    regression_diagnostics,
++)
++from tests.book_ch12_data import TRITICUM
++
++# Table 13.1: концентрация субстрата и поглощение ELISA (Example 13.1).
++ELISA_CONC = [0, 0.5, 1, 2, 4, 8, 16, 32]
++ELISA_ABS = [0.100, 0.678, 1.107, 1.609, 1.958, 2.202, 2.414, 2.485]
++
++
++def _seeds():
++    a = np.array(TRITICUM)
++    return a[:, 2], a[:, 1]
++
++
++def test_elisa_table_13_2():
++    x = np.log10(np.array(ELISA_CONC) + 1)
++    r = regression_details(x, ELISA_ABS)
++    icept, slope = r.parameters["parameter_tests"]
++    assert (icept["estimate"], icept["se"], icept["t"]) == pytest.approx(
++        (0.5458, 0.19392, 2.815), abs=5e-4)
++    assert icept["p"] == pytest.approx(0.031, abs=5e-4)
++    assert (slope["estimate"], slope["se"], slope["t"]) == pytest.approx(
++        (1.5284, 0.23244, 6.575), abs=5e-4)
++    assert r.statistics["adj_r_squared"] == pytest.approx(0.858, abs=5e-4)
++
++
++def test_x_transform_in_diagnostics_matches_pretransformed():
++    r = regression_diagnostics(ELISA_CONC, ELISA_ABS, x_transform="log10", x_offset=1)
++    assert r.parameters["line"] == pytest.approx({"intercept": 0.54580, "slope": 1.52837},
++                                                 abs=1e-5)
++
++
++def test_leverage_example_13_2b():
++    r = regression_diagnostics(*_seeds())
++    assert r.parameters["thresholds"]["leverage"] == pytest.approx(0.021, abs=5e-4)
++    assert r.statistics["max_leverage"] == pytest.approx(0.042, abs=5e-4)
++    lev = [o["leverage"] for o in r.parameters["observations"]]
++    assert sum(lev) == pytest.approx(2.0)  # Σ h_ii = p
++
++
++def test_influence_example_13_2c():
++    r = regression_diagnostics(*_seeds())
++    assert r.parameters["thresholds"]["modified_cook"] == pytest.approx(1.99, abs=5e-3)
++    assert r.statistics["n_influential"] == 8
++    refit = r.parameters["refit_without_influential"]
++    icept, slope = refit["parameters"]
++    assert refit["n_omitted"] == 8
++    # Книга: «intercept decreases by −0.15», по расчёту −0.139; наклон +0.006 совпадает.
++    assert icept["change"] == pytest.approx(-0.139, abs=5e-4)
++    assert slope["change"] == pytest.approx(0.006, abs=5e-4)
++
++
++def test_largest_residual_example_13_2a():
++    r = regression_diagnostics(*_seeds())
++    obs = max(r.parameters["observations"], key=lambda o: abs(o["deletion_residual"]))
++    assert 36 < obs["fitted"] < 37  # «fitted value of just under 37»
++
++
++def test_measures_match_statsmodels():
++    x, y = _seeds()
++    design = sm.add_constant(x)
++    m = influence_measures(design, y)
++    ref = sm.OLS(y, design).fit().get_influence()
++    assert m["leverage"] == pytest.approx(ref.hat_matrix_diag)
++    assert m["std_residual"] == pytest.approx(ref.resid_studentized_internal)
++    assert m["deletion_residual"] == pytest.approx(ref.resid_studentized_external)
++    assert m["cook_d"] == pytest.approx(ref.cooks_distance[0])
++
++
++def test_prediction_and_deletion_residuals_by_refitting():
++    x, y = _seeds()
++    m = influence_measures(sm.add_constant(x), y)
++    for i in (0, 47, 189):
++        keep = np.arange(y.size) != i
++        fit = sm.OLS(y[keep], sm.add_constant(x[keep])).fit()
++        pred = fit.params[0] + fit.params[1] * x[i]
++        assert m["prediction_residual"][i] == pytest.approx(y[i] - pred)
++        assert m["s2_deleted"][i] == pytest.approx(fit.mse_resid)
++
++
++def test_modified_cook_formula():
++    x, y = _seeds()
++    m = influence_measures(sm.add_constant(x), y)
++    n, p, h = y.size, 2, m["leverage"]
++    expected = np.abs(m["deletion_residual"]) * np.sqrt((n - p) / p * h / (1 - h))
++    assert m["modified_cook"] == pytest.approx(expected)
++
++
++def test_half_normal_quantiles():
++    q = half_normal_quantiles(4)
++    assert q[0] == pytest.approx(0.1854, abs=1e-4)  # Φ⁻¹(0.5 + 0.5·0.625/4.25) = Φ⁻¹(0.5735)
++    assert np.all(np.diff(q) > 0)
++
++
++def test_through_origin_has_one_parameter():
++    x, y = _seeds()
++    r = regression_diagnostics(x, y, through_origin="yes")
++    assert r.parameters["p"] == 1
++    assert sum(o["leverage"] for o in r.parameters["observations"]) == pytest.approx(1.0)
++
++
++def test_warnings_list_original_rows():
++    x, y = list(_seeds()[0]), list(_seeds()[1])
++    x.insert(0, float("nan"))
++    y.insert(0, 1.0)
++    r = regression_diagnostics(x, y)
++    rows = {o["row"] for o in r.parameters["observations"] if o["influential"]}
++    assert rows == {21, 32, 48, 123, 139, 188, 189, 191}  # сдвиг на пустую первую строку
++    assert any(w.code == "influential_points" for w in r.warnings)
++
++
++def test_prediction_summary_formulas():
++    s = prediction_summary([10.0, 12.0, 14.0], [11.0, 11.0, 16.0])
++    assert s["pb"] == pytest.approx(-2 / 3)
++    assert s["mad"] == pytest.approx(4 / 3)
++    assert s["msep"] == pytest.approx(2.0)
++    assert s["rmse"] == pytest.approx(np.sqrt(2.0))
++    assert s["pb_pct"] == pytest.approx(100 * (-2 / 3) / 12)
++
++
++def test_loo_equals_prediction_residuals():
++    x, y = _seeds()
++    cv = regression_cross_validation(x, y, scheme="loo")
++    m = influence_measures(sm.add_constant(x), y)
++    d = [row["discrepancy"] for row in cv.parameters["discrepancies"]]
++    assert d == pytest.approx(m["prediction_residual"].tolist())
++    assert cv.statistics["press"] == pytest.approx(float((m["prediction_residual"] ** 2).sum()))
++    assert cv.statistics["msep"] == pytest.approx(cv.statistics["press"] / 190)
++
++
++def test_split_example_13_2d_structure():
++    x, y = _seeds()
++    cv = regression_cross_validation(x, y, scheme="split", train_fraction=0.5, seed=7)
++    train = cv.parameters["training"]
++    assert train["n"] == 95 and cv.statistics["n_validation"] == 95
++    # Случайное разбиение книги не воспроизводимо; проверяем согласованность с ручным расчётом.
++    val_rows = {r["row"] for r in cv.parameters["discrepancies"]}
++    keep = np.array([i + 1 not in val_rows for i in range(190)])
++    fit = sm.OLS(y[keep], sm.add_constant(x[keep])).fit()
++    assert train["parameters"][1]["estimate"] == pytest.approx(fit.params[1])
++    assert train["s"] == pytest.approx(np.sqrt(fit.mse_resid))
++    pred = fit.params[0] + fit.params[1] * x[~keep]
++    assert cv.statistics["rmse"] == pytest.approx(np.sqrt(((y[~keep] - pred) ** 2).mean()))
++    again = regression_cross_validation(x, y, scheme="split", seed=7)
++    assert again.statistics["pb"] == cv.statistics["pb"]
++
++
++def test_kfold_covers_every_row_once():
++    x, y = _seeds()
++    cv = regression_cross_validation(x, y, scheme="kfold", k_folds=4, seed=3)
++    rows = [r["row"] for r in cv.parameters["discrepancies"]]
++    assert sorted(rows) == list(range(1, 191))
++    assert {r["fold"] for r in cv.parameters["discrepancies"]} == {1, 2, 3, 4}
++    assert "press" not in cv.statistics
++
++
++def test_invalid_scheme_and_json():
++    x, y = _seeds()
++    with pytest.raises(ValueError):
++        regression_cross_validation(x, y, scheme="bootstrap")
++    json.dumps(regression_diagnostics(x, y).to_dict())
++    json.dumps(regression_cross_validation(x, y).to_dict())
++    small = regression_diagnostics([1, 2, 3], [1, 2, 4])
++    assert any(w.code == "n_too_small" for w in small.warnings)
+diff --git a/web/public/core/core.zip b/web/public/core/core.zip
+index 4e9b4a46d59a66822056b8cc5ed9f27dd4cf9ac8..f4cd047a91d474270284484c30bccf57aaa121c0 100644
+GIT binary patch
+delta 22316
+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
+E4=+UST>t<8
+
+delta 15485
+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
+
+diff --git a/web/src/coreMessages.tsx b/web/src/coreMessages.tsx
+index eef8350..13f2689 100644
+--- a/web/src/coreMessages.tsx
++++ b/web/src/coreMessages.tsx
+@@ -261,6 +261,16 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
+     en: `The slope is not significantly different from zero (g = {g} ≥ 1): Fieller limits do not exist.`,
+     pt: `O declive não difere significativamente de zero (g = {g} ≥ 1): os limites de Fieller não existem.`,
+   },
++  deletion_outliers: {
++    ru: `Наблюдений с |удалённым остатком| > 2: {count} (при нормальности ожидается около {expected}), строки {rows}. Проверь их по первичным записям; удалять без найденной причины нельзя.`,
++    en: `Observations with |deletion residual| > 2: {count} (about {expected} expected under normality), rows {rows}. Check them against the original records; do not remove them without a found cause.`,
++    pt: `Observações com |resíduo de eliminação| > 2: {count} (cerca de {expected} esperadas sob normalidade), linhas {rows}. Verifique-as nos registos originais; não as remova sem causa identificada.`,
++  },
++  influential_points: {
++    ru: `Влиятельных наблюдений (модифицированная статистика Кука выше порога): {count}, строки {rows}. Сравни подгонку с ними и без них; удалять без найденной ошибки нельзя.`,
++    en: `Influential observations (modified Cook's statistic above the threshold): {count}, rows {rows}. Compare the fit with and without them; do not remove them without a found error.`,
++    pt: `Observações influentes (estatística de Cook modificada acima do limiar): {count}, linhas {rows}. Compare o ajustamento com e sem elas; não as remova sem um erro identificado.`,
++  },
+   nonorthogonal_design: {
+     ru: `Факторы неортогональны ({pairs}): суммы квадратов зависят от порядка подгонки — сравни последовательные таблицы и SS типа II.`,
+     en: `The factors are non-orthogonal ({pairs}): sums of squares depend on the fitting order — compare the sequential tables and Type II SS.`,
+diff --git a/web/src/pyodide/bridge.ts b/web/src/pyodide/bridge.ts
+index cd12dc9..1ce0bd9 100644
+--- a/web/src/pyodide/bridge.ts
++++ b/web/src/pyodide/bridge.ts
+@@ -186,6 +186,8 @@ const METHOD_MODULES: Record<string, string> = {
+   equivalence_test: "core.stats.power",
+   regression_details: "core.stats.linear_regression",
+   inverse_prediction: "core.stats.linear_regression",
++  regression_diagnostics: "core.stats.regression_checks",
++  regression_cross_validation: "core.stats.regression_checks",
+   unbalanced_anova: "core.stats.unbalanced",
+   simple_linear_regression: "core.stats.regression",
+   pearson_correlation: "core.stats.correlation",
+@@ -213,6 +215,8 @@ const XY_METHODS = new Set([
+   "pearson_correlation",
+   "regression_details",
+   "inverse_prediction",
++  "regression_diagnostics",
++  "regression_cross_validation",
+ ]);
+ 
+ /** Блочные дизайны: отклик, варианты, блоки (и делянки) построчно. */
+@@ -511,7 +515,10 @@ elif _method in (
+     _bundle["residual_vs_fitted"] = _p["residual_vs_fitted"]
+     _bundle["qq"] = _p["qq"]
+ 
+-elif _method in ("regression_details", "inverse_prediction") and "points" in _res.parameters:
++elif _method in (
++    "regression_details", "inverse_prediction", "regression_diagnostics",
++    "regression_cross_validation",
++) and "points" in _res.parameters:
+     # Данные (в шкале анализа) с подогнанной прямой; остатки — гл. 12.
+     _pts, _line = _res.parameters["points"], _res.parameters["line"]
+     _bundle["scatter"] = plotdata.scatter_regression_data(
+@@ -519,8 +526,11 @@ elif _method in ("regression_details", "inverse_prediction") and "points" in _re
+     )
+     if "plots" in _res.parameters:
+         _p = _res.parameters["plots"]
+-        _bundle["residual_vs_fitted"] = _p["residual_vs_fitted"]
+-        _bundle["qq"] = _p["qq"]
++        if "residual_vs_fitted" in _p:
++            _bundle["residual_vs_fitted"] = _p["residual_vs_fitted"]
++            _bundle["qq"] = _p["qq"]
++        if "deletion_residuals" in _p:
++            _bundle["histogram"] = plotdata.histogram_data(_p["deletion_residuals"])
+ 
+ elif _method == "anova_residuals" and "plots" in _res.parameters:
+     # Графики допущений по стандартизованным остаткам (гл. 5.2).
+-- 
+2.43.0
+
