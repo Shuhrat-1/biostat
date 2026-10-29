@@ -179,6 +179,7 @@ def test_catalog_params_match_function_signatures():
         "count_regression": "core.stats.counts",
         "ordinal_regression": "core.stats.categorical",
         "contingency_test": "core.stats.categorical",
+        "sampling_scheme_power": "core.stats.sampling",
         "regression_subsets": "core.stats.multiple_regression",
         "stepwise_selection": "core.stats.multiple_regression",
         "model_cross_validation": "core.stats.multiple_regression",

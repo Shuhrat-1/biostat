@@ -1032,6 +1032,23 @@ CATALOG: list[MethodSpec] = [
         optional_slots=("count",),
     ),
     MethodSpec(
+        method="sampling_scheme_power",
+        label="План вложенной выборки: SE и мощность по компонентам дисперсии",
+        group="Сравнение нескольких групп",
+        slots={},
+        slot_labels={},
+        params=[
+            Param("components", "Компоненты дисперсии сверху вниз (Блок=…; Единица=…; …)",
+                  "text", ""),
+            Param("schemes", "Схемы: n_T n_R n_1 … через пробел, схемы через ;", "text", ""),
+            Param("delta", "Разность δ для мощности", "float", 0.0, min=0.0, max=1e9),
+            Param("alpha", "Уровень значимости α", "float", 0.05, min=0.001, max=0.2),
+            Param("position_terms", "Позиции подуровней — фиксированные члены", "select", "yes",
+                  options=["yes", "no"]),
+        ],
+        description="Сколько единиц брать на каждом уровне: дисперсии страт, SED и мощность схем.",
+    ),
+    MethodSpec(
         method="pearson_correlation",
         label="Корреляция Пирсона",
         group="Связь переменных",
@@ -1075,6 +1092,8 @@ def _slot_satisfiable(
     have_numeric = len(by_type.get(_NUM, []))
     if spec.method == "describe_all":
         return have_numeric >= 1
+    if spec.method == "sampling_scheme_power":  # планирование без данных (гл. 19)
+        return True
     if spec.method in _MULTI_VARIATE:  # отклик и не меньше двух x (гл. 14)
         return have_numeric >= 3
     if spec.method == "regression_with_groups":  # отклик, x и группы (гл. 15)

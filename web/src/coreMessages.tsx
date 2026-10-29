@@ -406,6 +406,11 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     en: `The Poisson model is no worse (LR = {lr}, P = {p}): the extra parameter is not needed.`,
     pt: `O modelo de Poisson não é pior (LR = {lr}, P = {p}): o parâmetro adicional não é necessário.`,
   },
+  sampling_low_df: {
+    ru: `Схемы {schemes}: меньше 10 остаточных df в страте вариантов — мощность мала; добавь блоки или варианты (правило 10–20 df).`,
+    en: `Schemes {schemes}: fewer than 10 residual df in the treatment stratum — power is low; add blocks or treatments (10–20 df rule).`,
+    pt: `Esquemas {schemes}: menos de 10 gl residuais no estrato dos tratamentos — a potência é baixa; acrescente blocos ou tratamentos (regra 10–20 gl).`,
+  },
   lack_of_fit: {
     ru: `Отклонения средних по уровням x от прямой значимы: прямая не описывает зависимость.`,
     en: `Deviations of the group means at each x from the fitted line are significant: a straight line does not describe the relationship.`,

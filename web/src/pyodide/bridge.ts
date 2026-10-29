@@ -214,6 +214,7 @@ const METHOD_MODULES: Record<string, string> = {
   count_regression: "core.stats.counts",
   ordinal_regression: "core.stats.categorical",
   contingency_test: "core.stats.categorical",
+  sampling_scheme_power: "core.stats.sampling",
   unbalanced_anova: "core.stats.unbalanced",
   simple_linear_regression: "core.stats.regression",
   pearson_correlation: "core.stats.correlation",
@@ -368,6 +369,8 @@ export async function runMethod(
   const kind =
     method === "describe_all"
       ? "summary"
+      : method === "sampling_scheme_power"
+        ? "planning"
       : BLOCKED_METHODS.has(method)
         ? "blocked"
       : STRUCTURED_METHODS.has(method)
@@ -425,6 +428,9 @@ elif _kind == "structured":
         _values, **dict(zip(_slots, _factors)),
         column_names={k: _cols[k] for k in _slots}, **_kwargs,
     )
+elif _kind == "planning":
+    # Планирование без данных: только параметры (гл. 19).
+    _result = _fn(**_kwargs)
 elif _kind == "categorical":
     # Все слоты — колонки меток по строкам; числа (частоты, ковариата) разбирает метод.
     _slots = [k for k, v in _cols.items() if v]
@@ -508,6 +514,7 @@ export function requiredColumns(method: string): Array<keyof ColumnSelection> {
   if (method === "mixed_model") return ["value", "factor_a", "stratum_1"];
   if (method === "glm_analysis" || method === "count_regression") return ["value"];
   if (method === "contingency_test") return ["factor_a", "factor_b"];
+  if (method === "sampling_scheme_power") return [];
   if (method === "ordinal_regression") return ["response"];
   if (STRUCTURED_METHODS.has(method)) return ["value", "group"];
   if (BLOCKED_METHODS.has(method)) return ["value", "group", "block"];
