@@ -722,6 +722,38 @@ CATALOG: list[MethodSpec] = [
         description="Синус и косинус с известным периодом: амплитуда, фаза, моменты максимума и минимума.",
     ),
     MethodSpec(
+        method="nonlinear_regression",
+        label="Кривая: нелинейная регрессия",
+        group="Связь переменных",
+        slots={"x": _NUM, "y": _NUM},
+        slot_labels={"x": "X (объясняющая)", "y": "Y (отклик)"},
+        params=[
+            Param("model", "Кривая", "select", "exponential",
+                  options=["exponential", "inverse_linear", "logistic", "gompertz", "power"]),
+            Param("start", "Начальные значения (alpha=…; beta=…; пусто — авто)", "text", ""),
+            Param("x_predict", "Точки предсказания x (через ;)", "text", ""),
+            Param("alpha", "Уровень значимости α", "float", 0.05, min=0.001, max=0.2),
+            _TRANSFORM_NONE,
+            Param("offset", "Сдвиг c", "float", 0.0, min=0.0, max=1000.0),
+        ],
+        description="Экспоненциальная, обратная линейная, логистическая, Гомперца: асимптоты, приближённые SE.",
+    ),
+    MethodSpec(
+        method="curve_comparison",
+        label="Кривая: сравнение моделей",
+        group="Связь переменных",
+        slots={"x": _NUM, "y": _NUM},
+        slot_labels={"x": "X (объясняющая)", "y": "Y (отклик)"},
+        params=[
+            Param("models", "Модели (через запятую: linear, log10, poly2, exponential…)", "text",
+                  "linear, log10, poly2, poly3, exponential, inverse_linear"),
+            Param("alpha", "Уровень значимости α", "float", 0.05, min=0.001, max=0.2),
+            _TRANSFORM_NONE,
+            Param("offset", "Сдвиг c", "float", 0.0, min=0.0, max=1000.0),
+        ],
+        description="ResMS, R²adj, AIC и SBC преобразований, полиномов и нелинейных кривых.",
+    ),
+    MethodSpec(
         method="multiple_regression",
         label="Множественная регрессия",
         group="Связь переменных",
@@ -787,6 +819,30 @@ CATALOG: list[MethodSpec] = [
             Param("offset", "Сдвиг c", "float", 0.0, min=0.0, max=1000.0),
         ],
         description="Какая из моделей-кандидатов лучше предсказывает: MSEP, MAD, PB.",
+    ),
+    MethodSpec(
+        method="response_surface",
+        label="Поверхность отклика (две переменные)",
+        group="Связь переменных",
+        slots={"y": _NUM},
+        slot_labels={"y": "Y (отклик)"},
+        params=[
+            Param("variables", "Две объясняющие переменные (через запятую)", "text", ""),
+            Param("order", "Порядок поверхности", "select", "quadratic",
+                  options=["linear", "interaction", "quadratic", "cubic"]),
+            Param("centre", "Центрировать переменные", "select", "mean", options=["mean", "none"]),
+            Param("selection", "Отбор членов (с маргинальностью)", "select", "backward",
+                  options=["backward", "none"]),
+            Param("error_ms", "ResMS чистой ошибки (0 — по повторам в данных)", "float", 0.0,
+                  min=0.0, max=1e12),
+            Param("error_df", "df чистой ошибки", "number", 0, min=0, max=100000),
+            Param("replicates", "Повторов на строку (если строки — средние)", "number", 1,
+                  min=1, max=1000),
+            Param("alpha", "Уровень значимости α", "float", 0.05, min=0.001, max=0.2),
+            _TRANSFORM_NONE,
+            Param("offset", "Сдвиг c", "float", 0.0, min=0.0, max=1000.0),
+        ],
+        description="Полиномиальная поверхность по двум x: неадекватность против чистой ошибки, отбор членов.",
     ),
     MethodSpec(
         method="regression_with_groups",
@@ -897,7 +953,7 @@ def _eligible(
 
 
 _MULTI_VARIATE = frozenset({"multiple_regression", "regression_subsets", "stepwise_selection",
-                            "model_cross_validation"})
+                            "model_cross_validation", "response_surface"})
 
 
 def _slot_satisfiable(

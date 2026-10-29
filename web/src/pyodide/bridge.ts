@@ -194,6 +194,9 @@ const METHOD_MODULES: Record<string, string> = {
   x_transform_regression: "core.stats.curves",
   polynomial_regression: "core.stats.curves",
   trigonometric_regression: "core.stats.curves",
+  nonlinear_regression: "core.stats.nonlinear",
+  curve_comparison: "core.stats.nonlinear",
+  response_surface: "core.stats.response_surface",
   regression_cross_validation: "core.stats.regression_checks",
   multiple_regression: "core.stats.multiple_regression",
   regression_subsets: "core.stats.multiple_regression",
@@ -235,6 +238,8 @@ const XY_METHODS = new Set([
   "x_transform_regression",
   "polynomial_regression",
   "trigonometric_regression",
+  "nonlinear_regression",
+  "curve_comparison",
 ]);
 
 /** Блочные дизайны: отклик, варианты, блоки (и делянки) построчно. */
@@ -264,6 +269,7 @@ const MULTI_METHODS = new Set([
   "regression_subsets",
   "stepwise_selection",
   "model_cross_validation",
+  "response_surface",
 ]);
 
 /** Регрессия с группами (гл. 15): как multi, плюс колонка групп по строкам. */
@@ -585,6 +591,7 @@ elif _method in (
 
 elif _method in (
     "x_transform_regression", "polynomial_regression", "trigonometric_regression",
+    "nonlinear_regression",
 ) and "curve" in _res.parameters:
     # Наблюдения с кривой на плотной сетке исходного x (гл. 17).
     _pts, _cv = _res.parameters["points"], _res.parameters["curve"]
@@ -597,7 +604,9 @@ elif _method in (
     _bundle["qq"] = _p["qq"]
     _bundle["histogram"] = plotdata.histogram_data(_p["std_residuals"])
 
-elif _method in ("multiple_regression", "regression_with_groups") and "plots" in _res.parameters:
+elif _method in (
+    "multiple_regression", "regression_with_groups", "response_surface",
+) and "plots" in _res.parameters:
     # Остатки МЛР по стандартизованным остаткам (гл. 14.6).
     _p = _res.parameters["plots"]
     _bundle["residual_vs_fitted"] = _p["residual_vs_fitted"]

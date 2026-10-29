@@ -276,6 +276,41 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     en: `The sine and cosine terms are linearly dependent at these times: too few distinct phases for the requested number of harmonics.`,
     pt: `Os termos seno e cosseno são linearmente dependentes nestes tempos: poucas fases distintas para o número de harmónicos pedido.`,
   },
+  nonlinear_not_converged: {
+    ru: `Итерации нелинейной регрессии не сошлись: задай начальные значения параметров или выбери другую кривую.`,
+    en: `The nonlinear regression iterations did not converge: give starting values for the parameters or choose another curve.`,
+    pt: `As iterações da regressão não linear não convergiram: indique valores iniciais dos parâmetros ou escolha outra curva.`,
+  },
+  nonlinear_approximate: {
+    ru: `SE, t и F нелинейной модели приближённые (линеаризация); разные программы могут давать немного разные значения. Проверь кривую на графике.`,
+    en: `SEs, t and F for a nonlinear model are approximate (linearization); different software may give slightly different values. Check the curve on the plot.`,
+    pt: `Os erros-padrão, t e F de um modelo não linear são aproximados (linearização); programas diferentes podem dar valores ligeiramente diferentes. Verifique a curva no gráfico.`,
+  },
+  nonlinear_degenerate: {
+    ru: `Точка перегиба δ = {delta} вне диапазона x: в данных нет обеих частей S-кривой, асимптоты не оцениваются. Выбери кривую с одной асимптотой.`,
+    en: `The inflexion point δ = {delta} lies outside the x range: the data do not cover both parts of the S-curve, so the asymptotes are not estimable. Choose a curve with a single asymptote.`,
+    pt: `O ponto de inflexão δ = {delta} está fora do intervalo de x: os dados não cobrem as duas partes da curva em S e as assíntotas não são estimáveis. Escolha uma curva com uma só assíntota.`,
+  },
+  curve_models_failed: {
+    ru: `Не удалось подогнать: {models} (недопустимое преобразование, слишком высокий порядок или нет сходимости).`,
+    en: `Could not fit: {models} (inadmissible transformation, order too high or no convergence).`,
+    pt: `Não foi possível ajustar: {models} (transformação inadmissível, ordem demasiado alta ou sem convergência).`,
+  },
+  surface_no_pure_error: {
+    ru: `Нет повторов комбинаций (x1, x2): задай ResMS и df чистой ошибки из анализа исходных данных.`,
+    en: `There are no replicated (x1, x2) combinations: give the pure-error ResMS and df from the analysis of the raw data.`,
+    pt: `Não há combinações (x1, x2) repetidas: indique o ResMS e os gl do erro puro da análise dos dados originais.`,
+  },
+  surface_too_few_cells: {
+    ru: `Различных комбинаций (x1, x2) должно быть больше числа членов поверхности.`,
+    en: `There must be more distinct (x1, x2) combinations than surface terms.`,
+    pt: `Tem de haver mais combinações (x1, x2) distintas do que termos da superfície.`,
+  },
+  surface_lack_of_fit: {
+    ru: `Средние вариантов значимо отклоняются от поверхности: добавь члены более высокого порядка.`,
+    en: `The treatment means deviate significantly from the surface: add higher-order terms.`,
+    pt: `As médias dos tratamentos desviam-se significativamente da superfície: acrescente termos de ordem superior.`,
+  },
   lack_of_fit: {
     ru: `Отклонения средних по уровням x от прямой значимы: прямая не описывает зависимость.`,
     en: `Deviations of the group means at each x from the fitted line are significant: a straight line does not describe the relationship.`,

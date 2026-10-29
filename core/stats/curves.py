@@ -25,11 +25,7 @@ from core.report.schema import Estimate, Severity, StatResult
 from core.stats.factorial import _new_result, _settings
 from core.stats.linear_regression import parse_numbers
 from core.stats.multiple_regression import goodness
-from core.stats.regression_checks import (
-    _indexed_frame,
-    _transform_column,
-    influence_measures,
-)
+from core.stats.regression_checks import _indexed_frame, _transform_column
 
 X_TRANSFORMS = ("log10", "ln", "sqrt", "square", "exp", "reciprocal")
 POLY_BASES = ("raw", "centred", "orthogonal")
@@ -158,12 +154,7 @@ def _finish(frame: pd.DataFrame, fit: dict, params: list[dict], result: StatResu
         result.estimates.append(Estimate(name=row["term"], value=row["estimate"],
                                          ci_lower=row["ci_lower"], ci_upper=row["ci_upper"],
                                          ci_level=1 - alpha, std_error=row["se"]))
-    r = influence_measures(fit["design"], y)["std_residual"]
-    blom = stats.norm.ppf((np.arange(1, len(y) + 1) - 0.375) / (len(y) + 0.25))
-    result.parameters["plots"] = {
-        "residual_vs_fitted": {"fitted": fit["fitted"].tolist(), "residuals": r.tolist()},
-        "qq": {"theoretical_quantiles": blom.tolist(), "sample_quantiles": np.sort(r).tolist()},
-        "std_residuals": r.tolist(), "residual_vs_x": {"x": x.tolist(), "residuals": r.tolist()}}
+    _finish_plots(frame, fit, result)
     lof = lack_of_fit(x, y, fit)
     result.parameters["lack_of_fit"] = lof
     if lof is not None:
@@ -171,6 +162,20 @@ def _finish(frame: pd.DataFrame, fit: dict, params: list[dict], result: StatResu
         if lof["p"] < alpha:
             result.add_warning("curve_lack_of_fit", "Отклонения средних по уровням x от кривой "
                                "значимы: модель не описывает зависимость (гл. 12.8).")
+
+
+def _finish_plots(frame: pd.DataFrame, fit: dict, result: StatResult) -> None:
+    """Стандартизованные остатки r = e/√(s²(1 − h)), h — рычаги плана (или якобиана)."""
+    d = fit["design"]
+    h = np.einsum("ij,jk,ik->i", d, np.linalg.pinv(d.T @ d), d)
+    r = fit["resid"] / np.sqrt(fit["s2"] * np.clip(1 - h, 1e-12, None))
+    n = r.size
+    blom = stats.norm.ppf((np.arange(1, n + 1) - 0.375) / (n + 0.25))
+    result.parameters["plots"] = {
+        "residual_vs_fitted": {"fitted": fit["fitted"].tolist(), "residuals": r.tolist()},
+        "qq": {"theoretical_quantiles": blom.tolist(), "sample_quantiles": np.sort(r).tolist()},
+        "std_residuals": r.tolist(),
+        "residual_vs_x": {"x": frame["x"].tolist(), "residuals": r.tolist()}}
 
 
 def _model_test(rows: list[dict], n_terms: int, fit: dict, result: StatResult) -> None:
