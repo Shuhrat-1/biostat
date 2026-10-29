@@ -191,6 +191,9 @@ const METHOD_MODULES: Record<string, string> = {
   regression_details: "core.stats.linear_regression",
   inverse_prediction: "core.stats.linear_regression",
   regression_diagnostics: "core.stats.regression_checks",
+  x_transform_regression: "core.stats.curves",
+  polynomial_regression: "core.stats.curves",
+  trigonometric_regression: "core.stats.curves",
   regression_cross_validation: "core.stats.regression_checks",
   multiple_regression: "core.stats.multiple_regression",
   regression_subsets: "core.stats.multiple_regression",
@@ -229,6 +232,9 @@ const XY_METHODS = new Set([
   "inverse_prediction",
   "regression_diagnostics",
   "regression_cross_validation",
+  "x_transform_regression",
+  "polynomial_regression",
+  "trigonometric_regression",
 ]);
 
 /** Блочные дизайны: отклик, варианты, блоки (и делянки) построчно. */
@@ -576,6 +582,20 @@ elif _method in (
             _bundle["qq"] = _p["qq"]
         if "deletion_residuals" in _p:
             _bundle["histogram"] = plotdata.histogram_data(_p["deletion_residuals"])
+
+elif _method in (
+    "x_transform_regression", "polynomial_regression", "trigonometric_regression",
+) and "curve" in _res.parameters:
+    # Наблюдения с кривой на плотной сетке исходного x (гл. 17).
+    _pts, _cv = _res.parameters["points"], _res.parameters["curve"]
+    _bundle["scatter"] = {
+        "points": [[a, b] for a, b in zip(_pts["x"], _pts["y"])],
+        "line": [[a, b] for a, b in zip(_cv["x"], _cv["fitted"])],
+    }
+    _p = _res.parameters["plots"]
+    _bundle["residual_vs_fitted"] = _p["residual_vs_fitted"]
+    _bundle["qq"] = _p["qq"]
+    _bundle["histogram"] = plotdata.histogram_data(_p["std_residuals"])
 
 elif _method in ("multiple_regression", "regression_with_groups") and "plots" in _res.parameters:
     # Остатки МЛР по стандартизованным остаткам (гл. 14.6).

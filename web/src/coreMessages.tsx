@@ -236,6 +236,46 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     en: `Neither equivalence nor inequivalence is shown: the experiment is not precise enough for the chosen margin c.`,
     pt: `Não se demonstra equivalência nem não equivalência: a experiência não é suficientemente precisa para a margem c escolhida.`,
   },
+  curve_lack_of_fit: {
+    ru: `Отклонения средних по уровням x от кривой значимы: модель не описывает зависимость (гл. 12.8).`,
+    en: `Deviations of the means at each x from the fitted curve are significant: the model does not describe the relationship (Section 12.8).`,
+    pt: `Os desvios das médias em cada x em relação à curva são significativos: o modelo não descreve a relação (Secção 12.8).`,
+  },
+  x_transform_domain: {
+    ru: `Значения x + c вне области преобразования (log и 1/x — только положительные, √ — неотрицательные). Задай сдвиг c для x.`,
+    en: `Values of x + c are outside the transformation's domain (log and 1/x need positive values, √ non-negative ones). Set an offset c for x.`,
+    pt: `Valores de x + c fora do domínio da transformação (log e 1/x exigem valores positivos, √ não negativos). Defina um desvio c para x.`,
+  },
+  curve_extrapolation: {
+    ru: `Предсказание вне диапазона x [{low}; {high}]: {points}. Форма кривой за пределами данных ничем не ограничена — не экстраполируй.`,
+    en: `Prediction outside the x range [{low}; {high}]: {points}. Nothing constrains the curve beyond the data — do not extrapolate.`,
+    pt: `Previsão fora do intervalo de x [{low}; {high}]: {points}. Nada restringe a curva fora dos dados — não extrapole.`,
+  },
+  poly_degree_too_high: {
+    ru: `Порядок {degree} требует не меньше {degree}+1 различных значений x (есть {distinct}).`,
+    en: `Order {degree} needs at least {degree}+1 distinct x values (there are {distinct}).`,
+    pt: `A ordem {degree} exige pelo menos {degree}+1 valores distintos de x (existem {distinct}).`,
+  },
+  poly_interpolates: {
+    ru: `Полином порядка k − 1 проходит через средние при каждом x: это переподгонка, интерполяция между точками ненадёжна.`,
+    en: `A polynomial of order k − 1 passes through the mean at every x: this is over-fitting and interpolation between points is unreliable.`,
+    pt: `Um polinómio de ordem k − 1 passa pela média em cada x: é sobreajustamento e a interpolação entre pontos não é fiável.`,
+  },
+  poly_top_not_significant: {
+    ru: `Старший член {term} незначим (P = {p}): достаточно полинома на порядок ниже (младшие члены сохраняются).`,
+    en: `The highest term {term} is not significant (P = {p}): a polynomial one order lower suffices (lower-order terms are kept).`,
+    pt: `O termo de maior ordem {term} não é significativo (P = {p}): basta um polinómio de ordem inferior (os termos de ordem inferior mantêm-se).`,
+  },
+  poly_collinearity: {
+    ru: `VIF > 10: {variables}. Простые степени коллинеарны — центрируй x или используй ортогональные полиномы.`,
+    en: `VIF > 10: {variables}. Simple powers are collinear — centre x or use orthogonal polynomials.`,
+    pt: `VIF > 10: {variables}. As potências simples são colineares — centre x ou use polinómios ortogonais.`,
+  },
+  trig_rank: {
+    ru: `sin и cos линейно зависимы на этих временах: слишком мало различных фаз для заданного числа гармоник.`,
+    en: `The sine and cosine terms are linearly dependent at these times: too few distinct phases for the requested number of harmonics.`,
+    pt: `Os termos seno e cosseno são linearmente dependentes nestes tempos: poucas fases distintas para o número de harmónicos pedido.`,
+  },
   lack_of_fit: {
     ru: `Отклонения средних по уровням x от прямой значимы: прямая не описывает зависимость.`,
     en: `Deviations of the group means at each x from the fitted line are significant: a straight line does not describe the relationship.`,
