@@ -174,6 +174,7 @@ def test_catalog_params_match_function_signatures():
         "trigonometric_regression": "core.stats.curves",
         "nonlinear_regression": "core.stats.nonlinear",
         "curve_comparison": "core.stats.nonlinear",
+        "smooth_curve": "core.stats.smoothing",
         "response_surface": "core.stats.response_surface",
         "glm_analysis": "core.stats.glm",
         "count_regression": "core.stats.counts",

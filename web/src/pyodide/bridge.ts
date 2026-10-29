@@ -200,6 +200,7 @@ const METHOD_MODULES: Record<string, string> = {
   trigonometric_regression: "core.stats.curves",
   nonlinear_regression: "core.stats.nonlinear",
   curve_comparison: "core.stats.nonlinear",
+  smooth_curve: "core.stats.smoothing",
   response_surface: "core.stats.response_surface",
   regression_cross_validation: "core.stats.regression_checks",
   multiple_regression: "core.stats.multiple_regression",
@@ -251,6 +252,7 @@ const XY_METHODS = new Set([
   "trigonometric_regression",
   "nonlinear_regression",
   "curve_comparison",
+  "smooth_curve",
 ]);
 
 /** Блочные дизайны: отклик, варианты, блоки (и делянки) построчно. */
@@ -628,7 +630,7 @@ elif _method in (
 
 elif _method in (
     "x_transform_regression", "polynomial_regression", "trigonometric_regression",
-    "nonlinear_regression",
+    "nonlinear_regression", "smooth_curve",
 ) and "curve" in _res.parameters:
     # Наблюдения с кривой на плотной сетке исходного x (гл. 17).
     _pts, _cv = _res.parameters["points"], _res.parameters["curve"]

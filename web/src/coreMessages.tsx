@@ -421,6 +421,21 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     en: `At least 3 levels of x and more observations than parameters are required.`,
     pt: `São necessários pelo menos 3 níveis de x e mais observações do que parâmetros.`,
   },
+  smooth_bad_size: {
+    ru: `Для сглаживающего сплайна нужно от 5 до 500 различных значений x.`,
+    en: `A smoothing spline needs between 5 and 500 distinct x values.`,
+    pt: `Um spline de suavização precisa de 5 a 500 valores distintos de x.`,
+  },
+  smooth_lambda_capped: {
+    ru: `λ уменьшен до {cap}: при большем штрафе кривая уже совпадает с прямой МНК.`,
+    en: `λ was reduced to {cap}: with a larger penalty the curve already equals the least-squares line.`,
+    pt: `λ foi reduzido para {cap}: com uma penalização maior a curva já coincide com a reta de mínimos quadrados.`,
+  },
+  loess_descriptive: {
+    ru: `Loess — описательная кривая: SE и тесты не вычисляются.`,
+    en: `Loess is a descriptive curve: SEs and tests are not computed.`,
+    pt: `O loess é uma curva descritiva: os erros-padrão e testes não são calculados.`,
+  },
   lack_of_fit: {
     ru: `Отклонения средних по уровням x от прямой значимы: прямая не описывает зависимость.`,
     en: `Deviations of the group means at each x from the fitted line are significant: a straight line does not describe the relationship.`,
