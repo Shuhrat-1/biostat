@@ -321,6 +321,26 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     en: `Some groups have at most {n} observations: the separate-lines check is unreliable.`,
     pt: `Alguns grupos têm no máximo {n} observações: a verificação de retas separadas não é fiável.`,
   },
+  mixed_too_large: {
+    ru: `Слишком много наблюдений для смешанной модели в браузере (больше 2000).`,
+    en: `Too many observations for a mixed model in the browser (more than 2000).`,
+    pt: `Demasiadas observações para um modelo misto no navegador (mais de 2000).`,
+  },
+  mixed_no_structure: {
+    ru: `Нужен структурный фактор (блок, ферма) минимум с 2 уровнями.`,
+    en: `A structural factor (block, farm) with at least 2 levels is required.`,
+    pt: `É necessário um fator estrutural (bloco, exploração) com pelo menos 2 níveis.`,
+  },
+  reml_not_converged: {
+    ru: `REML не сошёлся: проверь структуру — один и тот же член в фиксированной и случайной модели или страта без остаточных df.`,
+    en: `REML did not converge: check the structure — the same term in the fixed and random models, or a stratum with no residual df.`,
+    pt: `O REML não convergiu: verifique a estrutura — o mesmo termo nos modelos fixo e aleatório, ou um estrato sem graus de liberdade residuais.`,
+  },
+  negative_variance_component: {
+    ru: `Отрицательная компонента дисперсии ({terms}): единицы внутри уровня похожи меньше, чем между уровнями. Оценка сохранена (как в GenStat), структуру из модели не удалять.`,
+    en: `Negative variance component ({terms}): units within a level are less alike than between levels. The estimate is kept (as in GenStat); do not drop the structure from the model.`,
+    pt: `Componente de variância negativa ({terms}): as unidades dentro de um nível são menos semelhantes do que entre níveis. A estimativa é mantida (como no GenStat); não retire a estrutura do modelo.`,
+  },
   nonorthogonal_design: {
     ru: `Факторы неортогональны ({pairs}): суммы квадратов зависят от порядка подгонки — сравни последовательные таблицы и SS типа II.`,
     en: `The factors are non-orthogonal ({pairs}): sums of squares depend on the fitting order — compare the sequential tables and Type II SS.`,

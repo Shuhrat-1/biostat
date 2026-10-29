@@ -175,6 +175,7 @@ def test_catalog_params_match_function_signatures():
         "regression_with_groups": "core.stats.regression_groups",
         "blocked_regression": "core.stats.ancova",
         "ancova": "core.stats.ancova",
+        "mixed_model": "core.stats.mixed",
         "pearson_correlation": "core.stats.correlation",
     }
     for spec in CATALOG:
