@@ -178,6 +178,7 @@ def test_catalog_params_match_function_signatures():
         "response_surface": "core.stats.response_surface",
         "glm_analysis": "core.stats.glm",
         "count_regression": "core.stats.counts",
+        "glmm_analysis": "core.stats.glmm",
         "ordinal_regression": "core.stats.categorical",
         "contingency_test": "core.stats.categorical",
         "sampling_scheme_power": "core.stats.sampling",

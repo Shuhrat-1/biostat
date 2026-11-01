@@ -213,6 +213,7 @@ const METHOD_MODULES: Record<string, string> = {
   mixed_model: "core.stats.mixed",
   glm_analysis: "core.stats.glm",
   count_regression: "core.stats.counts",
+  glmm_analysis: "core.stats.glmm",
   ordinal_regression: "core.stats.categorical",
   contingency_test: "core.stats.categorical",
   sampling_scheme_power: "core.stats.sampling",
@@ -276,6 +277,7 @@ const STRUCTURED_METHODS = new Set([
   "mixed_model",
   "glm_analysis",
   "count_regression",
+  "glmm_analysis",
   "curve_in_blocks",
   "nonlinear_in_blocks",
 ]);
@@ -519,6 +521,7 @@ export function requiredColumns(method: string): Array<keyof ColumnSelection> {
   if (method === "ancova") return ["value", "group", "covariate"];
   if (method === "mixed_model") return ["value", "factor_a", "stratum_1"];
   if (method === "glm_analysis" || method === "count_regression") return ["value"];
+  if (method === "glmm_analysis") return ["value", "stratum_1"];
   if (method === "contingency_test") return ["factor_a", "factor_b"];
   if (method === "sampling_scheme_power") return [];
   if (method === "curve_in_blocks" || method === "nonlinear_in_blocks") return ["value", "x"];
@@ -652,8 +655,8 @@ elif _method in (
     _bundle["qq"] = _p["qq"]
     _bundle["histogram"] = plotdata.histogram_data(_p["std_residuals"])
 
-elif _method == "glm_analysis" and "plots" in _res.parameters:
-    # Стандартизованные остатки отклонения; кривая по ковариате (гл. 18).
+elif _method in ("glm_analysis", "glmm_analysis") and "plots" in _res.parameters:
+    # Остатки отклонения (GLM) или условные Пирсона (GLMM); кривая по ковариате (гл. 18).
     _p = _res.parameters["plots"]
     _bundle["residual_vs_fitted"] = _p["residual_vs_fitted"]
     _bundle["qq"] = _p["qq"]

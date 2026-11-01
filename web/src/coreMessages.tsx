@@ -436,6 +436,51 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     en: `Loess is a descriptive curve: SEs and tests are not computed.`,
     pt: `O loess é uma curva descritiva: os erros-padrão e testes não são calculados.`,
   },
+  glmm_experimental: {
+    ru: `Экспериментальный движок, оценки приближённые (Лаплас/квадратура), для ответственных решений сверяйте с R/GenStat.`,
+    en: `Experimental engine, estimates are approximate (Laplace/quadrature); for important decisions check against R/GenStat.`,
+    pt: `Motor experimental, estimativas aproximadas (Laplace/quadratura); para decisões importantes confirme com R/GenStat.`,
+  },
+  glmm_not_converged: {
+    ru: `Оптимизация GLMM не сошлась: оценки ненадёжны.`,
+    en: `The GLMM optimisation did not converge: estimates are unreliable.`,
+    pt: `A otimização do GLMM não convergiu: as estimativas não são fiáveis.`,
+  },
+  glmm_boundary: {
+    ru: `Дисперсия случайного члена ≈ 0 (на границе): по этому члену модель сводится к обычной GLM.`,
+    en: `The variance of a random term is ≈ 0 (on the boundary): for that term the model reduces to an ordinary GLM.`,
+    pt: `A variância de um termo aleatório é ≈ 0 (na fronteira): para esse termo o modelo reduz-se a um GLM comum.`,
+  },
+  glmm_overdispersion: {
+    ru: `Сверхдисперсия: χ² Пирсона / df = {ratio}; добавьте случайный фактор «наблюдение» (номер строки).`,
+    en: `Over-dispersion: Pearson χ² / df = {ratio}; add an observation-level random factor (row number).`,
+    pt: `Sobredispersão: χ² de Pearson / gl = {ratio}; acrescente um fator aleatório ao nível da observação (número da linha).`,
+  },
+  glmm_agq_single_factor: {
+    ru: `Квадратура — только для одного случайного фактора; использована аппроксимация Лапласа.`,
+    en: `Quadrature is available only for one random factor; the Laplace approximation was used.`,
+    pt: `A quadratura só está disponível para um fator aleatório; foi usada a aproximação de Laplace.`,
+  },
+  glmm_too_large: {
+    ru: `Слишком большая задача для браузера: n ≤ {n}, уровней случайных членов ≤ {q}.`,
+    en: `The problem is too large for the browser: n ≤ {n}, random-term levels ≤ {q}.`,
+    pt: `O problema é demasiado grande para o navegador: n ≤ {n}, níveis dos termos aleatórios ≤ {q}.`,
+  },
+  glmm_random_levels: {
+    ru: `У случайного фактора должно быть не меньше 2 уровней.`,
+    en: `A random factor must have at least 2 levels.`,
+    pt: `Um fator aleatório deve ter pelo menos 2 níveis.`,
+  },
+  glmm_few_levels: {
+    ru: `У случайного фактора меньше {k} уровней: его дисперсия оценивается ненадёжно; возможно, лучше фиксированный фактор.`,
+    en: `A random factor has fewer than {k} levels: its variance is poorly estimated; a fixed factor may be better.`,
+    pt: `Um fator aleatório tem menos de {k} níveis: a sua variância é mal estimada; talvez seja melhor um fator fixo.`,
+  },
+  glmm_predictions_b0: {
+    ru: `Предсказания и сравнения — для «типичной» группы (b = 0), а не средние по популяции групп.`,
+    en: `Predictions and comparisons refer to a "typical" group (b = 0), not to population-averaged means.`,
+    pt: `As previsões e comparações referem-se a um grupo «típico» (b = 0), não a médias populacionais.`,
+  },
   lack_of_fit: {
     ru: `Отклонения средних по уровням x от прямой значимы: прямая не описывает зависимость.`,
     en: `Deviations of the group means at each x from the fitted line are significant: a straight line does not describe the relationship.`,
