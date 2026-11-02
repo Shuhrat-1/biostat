@@ -702,9 +702,9 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     pt: `Não foi possível detetar colunas. Pode não ser uma tabela CSV — verifique o formato do ficheiro.`,
   },
   no_numeric: {
-    ru: `В таблице нет числовых колонок. Для статистики нужна хотя бы одна колонка с числами. Если числа распознались как текст — измените тип колонки в разделе «Детали по колонкам».`,
-    en: `The table has no numeric columns. Statistics need at least one column of numbers. If numbers were read as text, change the column type under "Column details".`,
-    pt: `A tabela não tem colunas numéricas. A estatística precisa de pelo menos uma coluna de números. Se os números foram lidos como texto, altere o tipo da coluna em "Detalhes das colunas".`,
+    ru: `В таблице нет данных для анализа. Нужна хотя бы одна колонка с числами или две колонки категорий (например, сорт и степень поражения — для таблицы сопряжённости). Если числа распознались как текст — измените тип колонки в разделе «Детали по колонкам».`,
+    en: `The table has nothing to analyse. It needs at least one column of numbers or two columns of categories (for example, variety and disease score, for a contingency table). If numbers were read as text, change the column type under "Column details".`,
+    pt: `A tabela não tem dados para análise. É preciso pelo menos uma coluna de números ou duas colunas de categorias (por exemplo, variedade e grau de infeção, para uma tabela de contingência). Se os números foram lidos como texto, altere o tipo da coluna em "Detalhes das colunas".`,
   },
   low_encoding_confidence: {
     ru: `Кодировка определена с низкой уверенностью — проверьте предпросмотр.`,

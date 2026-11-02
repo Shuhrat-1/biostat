@@ -17,6 +17,7 @@ GROUPS: dict[str, dict[str, str]] = {
         "Парные измерения": "Paired measurements",
         "Связь переменных": "Relationship between variables",
         "Проверка допущений": "Assumption checks",
+        "Планирование опыта": "Experiment planning",
     },
     "pt": {
         "Описательная статистика": "Estatística descritiva",
@@ -26,6 +27,7 @@ GROUPS: dict[str, dict[str, str]] = {
         "Парные измерения": "Medições emparelhadas",
         "Связь переменных": "Relação entre variáveis",
         "Проверка допущений": "Verificação de pressupostos",
+        "Планирование опыта": "Planeamento do ensaio",
     },
 }
 

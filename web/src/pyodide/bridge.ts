@@ -403,7 +403,7 @@ export async function runMethod(
 import builtins, json
 from ${modulePath} import ${method} as _fn
 
-_table = builtins.__biostat_table
+_table = getattr(builtins, "__biostat_table", None)  # None: планирование без файла
 _cols = json.loads(__columns_json)
 _kwargs = json.loads(__kwargs_json)
 _kind = ${JSON.stringify(kind)}
@@ -504,6 +504,20 @@ json.dumps(diagnose(builtins.__biostat_last).to_dict(), ensure_ascii=False)
   return runJson<StatResult>(code);
 }
 
+/**
+ * Методы, которым не нужны данные (планирование опыта, гл. 19).
+ *
+ * Тот же каталог, что после загрузки файла, но для пустого набора
+ * колонок: в него попадают только методы без слотов.
+ */
+export async function planningSuggestions(lang: string = "ru"): Promise<MethodSuggestion[]> {
+  return runJson<MethodSuggestion[]>(`
+import json
+from core.validation.parser import suggest_methods
+json.dumps(suggest_methods([], ${JSON.stringify(lang)}), ensure_ascii=False)
+`);
+}
+
 /** Какие колонки нужны данному методу — для построения формы выбора. */
 export function requiredColumns(method: string): Array<keyof ColumnSelection> {
   if (GROUPED_METHODS.has(method)) return ["value", "group"];
@@ -567,7 +581,7 @@ import builtins, json
 from core.stats import plotdata
 from core.stats.diagnostics import diagnose
 
-_t = builtins.__biostat_table
+_t = getattr(builtins, "__biostat_table", None)
 _res = builtins.__biostat_last
 _cols = json.loads(__columns_json)
 _method = ${JSON.stringify(method)}

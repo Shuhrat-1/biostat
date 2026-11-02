@@ -22,9 +22,11 @@ import {
   getPlotData,
   getRows,
   parseFile,
+  planningSuggestions,
   runMethod,
   type ColumnSelection,
   type ColumnType,
+  type MethodSuggestion,
   type ParsedTable,
   type PlotBundle,
   type StatResult,
@@ -69,6 +71,8 @@ function AppInner({
   );
   const [result, setResult] = useState<StatResult | null>(null);
   const [plots, setPlots] = useState<PlotBundle | null>(null);
+  // Режим планирования без данных: список методов, которым файл не нужен.
+  const [planning, setPlanning] = useState<MethodSuggestion[] | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -105,10 +109,12 @@ function AppInner({
   // (они приходят из ядра) обновились на новый язык.
   useEffect(() => {
     if (fileBytes) void runParse(fileBytes, typeOverrides);
+    if (planning) void openPlanning();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lang]);
 
   const handleFile = async (file: File) => {
+    setPlanning(null);
     setResult(null);
     setPlots(null);
     setTypeOverrides({});
@@ -119,6 +125,7 @@ function AppInner({
 
   // Пример данных идёт тем же путём, что и загруженный файл.
   const handleExample = async () => {
+    setPlanning(null);
     setResult(null);
     setPlots(null);
     setTypeOverrides({});
@@ -161,7 +168,23 @@ function AppInner({
     }
   };
 
+  // Планирование опыта (гл. 19): методы без колонок, файл не нужен.
+  const openPlanning = async () => {
+    setBusy(true);
+    setError(null);
+    setResult(null);
+    setPlots(null);
+    try {
+      setPlanning(await planningSuggestions(lang));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const reset = () => {
+    setPlanning(null);
     setFileBytes(null);
     setTable(null);
     setResult(null);
@@ -171,6 +194,37 @@ function AppInner({
   };
 
   const ready = progress.stage === "ready";
+
+  // Результат, графики и сброс — одинаковы для данных и для планирования.
+  const resultsBlock = (
+    <>
+      {result && <ResultPanel result={result} />}
+      {plots && (
+        <div style={s.panel}>
+          <h2 style={s.h2}>{t("plots.title")}</h2>
+          <Suspense
+            fallback={
+              <div style={{ color: c.muted }}>{t("plots.loading")}</div>
+            }
+          >
+            <Plots bundle={plots} />
+          </Suspense>
+        </div>
+      )}
+
+      <button
+        onClick={reset}
+        style={{
+          ...s.button,
+          background: "transparent",
+          color: c.muted,
+          padding: "0.4rem 0",
+        }}
+      >
+        {t("reset")}
+      </button>
+    </>
+  );
 
   return (
     <div style={s.page}>
@@ -213,12 +267,28 @@ function AppInner({
 
         {ready && (
           <>
-            {!table && (
+            {!table && !planning && (
               <WelcomeScreen
                 onFile={handleFile}
                 onExample={handleExample}
+                onPlanning={openPlanning}
                 busy={busy}
               />
+            )}
+
+            {!table && planning && (
+              <>
+                <div style={{ ...s.panel, color: c.muted, fontSize: "0.9rem" }}>
+                  {t("planning.lead")}
+                </div>
+                <MethodPanel
+                  suggestions={planning}
+                  summaryValues={{}}
+                  onRun={handleRun}
+                  busy={busy}
+                />
+                {resultsBlock}
+              </>
             )}
 
             {table && table.usability?.ok === false && (
@@ -235,32 +305,13 @@ function AppInner({
                   onLoadRows={getRows}
                   busy={busy}
                 />
-                <MethodPanel table={table} onRun={handleRun} busy={busy} />
-                {result && <ResultPanel result={result} />}
-                {plots && (
-                  <div style={s.panel}>
-                    <h2 style={s.h2}>{t("plots.title")}</h2>
-                    <Suspense
-                      fallback={
-                        <div style={{ color: c.muted }}>{t("plots.loading")}</div>
-                      }
-                    >
-                      <Plots bundle={plots} />
-                    </Suspense>
-                  </div>
-                )}
-
-                <button
-                  onClick={reset}
-                  style={{
-                    ...s.button,
-                    background: "transparent",
-                    color: c.muted,
-                    padding: "0.4rem 0",
-                  }}
-                >
-                  {t("reset")}
-                </button>
+                <MethodPanel
+                  suggestions={table.suggestions}
+                  summaryValues={table.summary_values}
+                  onRun={handleRun}
+                  busy={busy}
+                />
+                {resultsBlock}
               </>
             )}
           </>

@@ -121,6 +121,7 @@ GROUPS = [
     "Парные измерения",
     "Связь переменных",
     "Проверка допущений",
+    "Планирование опыта",
 ]
 
 _NUM = ColumnType.NUMERIC
@@ -499,7 +500,7 @@ CATALOG: list[MethodSpec] = [
     MethodSpec(
         method="replication_power",
         label="Повторность и мощность (по пилоту)",
-        group="Сравнение нескольких групп",
+        group="Планирование опыта",
         slots={"value": _NUM, "group": _FACTOR, "block": _FACTOR},
         slot_labels={
             "value": "Числовая колонка",
@@ -1149,7 +1150,7 @@ CATALOG: list[MethodSpec] = [
     MethodSpec(
         method="sampling_scheme_power",
         label="План вложенной выборки: SE и мощность по компонентам дисперсии",
-        group="Сравнение нескольких групп",
+        group="Планирование опыта",
         slots={},
         slot_labels={},
         params=[

@@ -65,13 +65,18 @@ class ParsedTable:
         n_numeric = sum(
             1 for p in self.profiles if p.detected_type.value == "numeric"
         )
+        # Без чисел файл всё равно годится для таблиц сопряжённости и
+        # порядковых баллов (гл. 18.4): им нужны две колонки меток.
+        n_categorical = sum(
+            1 for p in self.profiles if p.detected_type.value == "categorical"
+        )
         if self.n_rows == 0 and not self.header:
             return {"ok": False, "reason": "file_empty"}
         if self.n_rows == 0:
             return {"ok": False, "reason": "no_data_rows"}
         if not self.header:
             return {"ok": False, "reason": "no_columns"}
-        if n_numeric == 0:
+        if n_numeric == 0 and n_categorical < 2:
             return {"ok": False, "reason": "no_numeric"}
         return {"ok": True, "reason": None}
 

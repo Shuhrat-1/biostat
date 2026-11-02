@@ -74,10 +74,13 @@ export function UnusableFile({
 export function WelcomeScreen({
   onFile,
   onExample,
+  onPlanning,
   busy,
 }: {
   onFile: (file: File) => void;
   onExample: () => void;
+  /** Открыть методы, которым не нужны данные (планирование опыта). */
+  onPlanning: () => void;
   busy: boolean;
 }) {
   const t = useT();
@@ -148,6 +151,20 @@ export function WelcomeScreen({
           }}
         >
           {t("welcome.tryExample")}
+        </button>
+        <button
+          onClick={onPlanning}
+          disabled={busy}
+          title={t("welcome.planningHint")}
+          style={{
+            ...s.button,
+            ...(busy ? s.buttonDisabled : {}),
+            background: "transparent",
+            color: c.muted,
+            border: `1px solid ${c.border}`,
+          }}
+        >
+          {t("welcome.planning")}
         </button>
       </div>
     </div>
@@ -576,11 +593,15 @@ function ColumnDetails({
 /* --------------------------- Выбор и запуск --------------------------- */
 
 export function MethodPanel({
-  table,
+  suggestions,
+  summaryValues,
   onRun,
   busy,
 }: {
-  table: ParsedTable;
+  /** Методы, применимые к данным (или методы без данных — планирование). */
+  suggestions: MethodSuggestion[];
+  /** Сводка по числовым колонкам для подстановки в параметры; {} без файла. */
+  summaryValues: ParsedTable["summary_values"];
   onRun: (
     method: string,
     columns: ColumnSelection,
@@ -591,7 +612,7 @@ export function MethodPanel({
   const t = useT();
   // Группируем методы по категориям, сохраняя порядок появления.
   const byGroup = new Map<string, MethodSuggestion[]>();
-  for (const sug of table.suggestions) {
+  for (const sug of suggestions) {
     const list = byGroup.get(sug.group) ?? [];
     list.push(sug);
     byGroup.set(sug.group, list);
@@ -599,7 +620,7 @@ export function MethodPanel({
   const groups = [...byGroup.keys()];
 
   const [activeGroup, setActiveGroup] = useState(groups[0] ?? "");
-  const [method, setMethod] = useState(table.suggestions[0]?.method ?? "");
+  const [method, setMethod] = useState(suggestions[0]?.method ?? "");
   const [columns, setColumns] = useState<ColumnSelection>({});
   const [params, setParams] = useState<Record<string, unknown>>({});
 
@@ -607,15 +628,15 @@ export function MethodPanel({
   // меняется — возвращаемся к первой вкладке и первому методу.
   useEffect(() => {
     setActiveGroup(groups[0] ?? "");
-    setMethod(table.suggestions[0]?.method ?? "");
+    setMethod(suggestions[0]?.method ?? "");
     setColumns({});
     const defaults: Record<string, unknown> = {};
-    table.suggestions[0]?.params.forEach((p) => (defaults[p.name] = p.default));
+    suggestions[0]?.params.forEach((p) => (defaults[p.name] = p.default));
     setParams(defaults);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [table]);
+  }, [suggestions]);
 
-  const suggestion = table.suggestions.find((x) => x.method === method);
+  const suggestion = suggestions.find((x) => x.method === method);
   const slots = suggestion ? Object.keys(suggestion.needs) : [];
   const optional = new Set(suggestion?.optional_slots ?? []);
   const ready = slots.every(
@@ -625,7 +646,7 @@ export function MethodPanel({
   const selectMethod = (next: string) => {
     setMethod(next);
     setColumns({});
-    const spec = table.suggestions.find((x) => x.method === next);
+    const spec = suggestions.find((x) => x.method === next);
     const defaults: Record<string, unknown> = {};
     spec?.params.forEach((p) => (defaults[p.name] = p.default));
     setParams(defaults);
@@ -638,7 +659,7 @@ export function MethodPanel({
     if (first) selectMethod(first.method);
   };
 
-  if (table.suggestions.length === 0) {
+  if (suggestions.length === 0) {
     return (
       <div style={s.panel}>
         <h2 style={s.h2}>{t("method.title")}</h2>
@@ -750,7 +771,7 @@ export function MethodPanel({
             param={p}
             value={params[p.name]}
             onChange={(v) => setParams({ ...params, [p.name]: v })}
-            summaryValues={table.summary_values}
+            summaryValues={summaryValues}
             selectedColumn={columns.value}
           />
         ))}

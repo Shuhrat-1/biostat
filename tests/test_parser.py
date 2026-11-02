@@ -209,8 +209,25 @@ def test_usability_header_only():
 
 
 def test_usability_no_numeric():
-    data = b"name,city\nAnna,Lisbon\nBob,Porto\n"
+    """Одна колонка меток без чисел: анализировать нечего."""
+    data = b"city\nLisbon\nPorto\nLisbon\nPorto\n"
     assert parse_file(data).usability()["reason"] == "no_numeric"
+
+
+def test_usability_categorical_only_file_is_usable():
+    """Две колонки меток (сорт, болезнь) годятся для χ² и порядковых баллов.
+
+    Регрессия: раньше такой файл отклонялся как «нет числовых колонок»,
+    и методы гл. 18.4 были недоступны для их естественного формата данных.
+    """
+    from core.validation.catalog import available_methods
+
+    rows = "\n".join(f"{v},{d}" for v in "AB" for d in "xyz" for _ in range(4))
+    t = parse_file(("variety,disease\n" + rows + "\n").encode())
+    assert t.usability() == {"ok": True, "reason": None}
+    methods = {m["method"] for m in available_methods(t.profiles)}
+    assert {"contingency_test", "ordinal_regression"} <= methods
+    assert "describe_all" not in methods  # числовых методов нет
 
 
 def test_summary_values():
