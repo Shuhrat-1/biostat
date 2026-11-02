@@ -901,6 +901,93 @@ const SEVERITY_STYLE: Record<string, { bg: string; fg: string }> = {
   error: { bg: c.badBg, fg: c.bad },
 };
 
+/** Строка таблицы ANOVA, как её отдаёт ядро (core/stats/*). */
+interface AnovaRow {
+  term: string;
+  df: number;
+  ss?: number;
+  ms?: number;
+  F?: number;
+  p?: number;
+  stratum?: string;
+  parent?: string;
+}
+
+/** Страты-разбиения: строки с отступом под родительским членом. */
+const SUB_STRATA = new Set(["within_term", "within_group"]);
+
+/** Достать anova_table из parameters, если она там есть и непуста. */
+function anovaRows(result: StatResult): AnovaRow[] | null {
+  const rows = result.parameters?.anova_table;
+  return Array.isArray(rows) && rows.length > 0 ? (rows as AnovaRow[]) : null;
+}
+
+/** Таблица ANOVA с группировкой по стратам и отступом для разбиений. */
+function AnovaTable({ rows }: { rows: AnovaRow[] }) {
+  const t = useT();
+  const main = rows.filter((r) => !SUB_STRATA.has(r.stratum ?? ""));
+  const strata = new Set(main.map((r) => r.stratum).filter(Boolean));
+  const showStrata = strata.size > 1;
+  const num = (v: number | undefined) => (v == null ? "—" : formatNumber(v));
+  const cols = ["anova.term", "anova.df", "anova.ss", "anova.ms", "anova.F", "anova.p"];
+
+  let prevStratum: string | undefined;
+  const body: JSX.Element[] = [];
+  rows.forEach((r, i) => {
+    const sub = SUB_STRATA.has(r.stratum ?? "");
+    if (showStrata && !sub && r.stratum !== prevStratum) {
+      prevStratum = r.stratum;
+      body.push(
+        <tr key={`s${i}`}>
+          <td colSpan={6} style={{ ...s.td, fontWeight: 600, background: "#f8fafc" }}>
+            {t(`anova.stratum.${r.stratum}`)}
+          </td>
+        </tr>,
+      );
+    }
+    const sig = r.p != null && r.p < 0.05;
+    body.push(
+      <tr key={i} style={sub ? { color: c.muted, fontSize: "0.82rem" } : undefined}>
+        <td style={sub ? { ...s.td, paddingLeft: "1.6rem" } : s.td}>{r.term}</td>
+        <td style={{ ...s.td, ...s.mono }}>{r.df}</td>
+        <td style={{ ...s.td, ...s.mono }}>{num(r.ss)}</td>
+        <td style={{ ...s.td, ...s.mono }}>{num(r.ms)}</td>
+        <td style={{ ...s.td, ...s.mono }}>{num(r.F)}</td>
+        <td style={{ ...s.td, ...s.mono, fontWeight: sig ? 700 : 400 }}>{formatP(r.p)}</td>
+      </tr>,
+    );
+  });
+
+  return (
+    <div style={{ overflowX: "auto", marginBottom: "0.9rem" }}>
+      <table style={s.table}>
+        <thead>
+          <tr>
+            {cols.map((k) => (
+              <th key={k} style={s.th}>{t(k)}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>{body}</tbody>
+      </table>
+    </div>
+  );
+}
+
+/** P в книжном виде: «< 0.001» для малых, иначе три знака. */
+function formatP(p: number | undefined): string {
+  if (p == null) return "—";
+  return p < 0.001 ? "< 0.001" : p.toFixed(3);
+}
+
+/** Ключи плоской статистики, которые уже показаны в таблице ANOVA. */
+function duplicatesAnova(key: string): boolean {
+  return /^(F|p)_/.test(key) || ["df_resid", "ms_resid", "ss_resid"].includes(key);
+}
+
+/** Коды предупреждений, помечающих метод как экспериментальный. */
+const EXPERIMENTAL_CODES = new Set(["glmm_experimental"]);
+
 export function ResultPanel({ result }: { result: StatResult }) {
   const t = useT();
   const tm = useCoreMessage();
@@ -910,7 +997,11 @@ export function ResultPanel({ result }: { result: StatResult }) {
     return <SummaryTable result={result} />;
   }
 
-  const stats = Object.entries(result.statistics);
+  const anova = anovaRows(result);
+  const experimental = result.warnings.some((w) => EXPERIMENTAL_CODES.has(w.code));
+  const stats = Object.entries(result.statistics).filter(
+    ([k]) => !(anova && duplicatesAnova(k)),
+  );
 
   return (
     <div style={s.panel}>
@@ -920,6 +1011,23 @@ export function ResultPanel({ result }: { result: StatResult }) {
           {" "}
           · {result.method} · n = {result.n}
         </span>
+        {experimental && (
+          <span
+            title={t("result.experimentalHint")}
+            style={{
+              marginLeft: "0.6rem",
+              padding: "0.1rem 0.5rem",
+              borderRadius: 999,
+              background: c.warnBg,
+              color: c.warn,
+              fontSize: "0.72rem",
+              fontWeight: 600,
+              verticalAlign: "middle",
+            }}
+          >
+            {t("result.experimental")}
+          </span>
+        )}
       </h2>
 
       {result.p_value !== null && (
@@ -970,6 +1078,8 @@ export function ResultPanel({ result }: { result: StatResult }) {
           </tbody>
         </table>
       )}
+
+      {anova && <AnovaTable rows={anova} />}
 
       {stats.length > 0 && (
         <div
