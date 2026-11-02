@@ -541,7 +541,12 @@ export interface PlotBundle {
   };
   boxplot?: { labels: string[]; boxes: number[][]; outliers: number[][] };
   bar_means?: { labels: string[]; means: number[]; errors: number[] };
-  scatter?: { points: number[][]; line: number[][] };
+  scatter?: {
+    points: number[][];
+    line: number[][];
+    /** Границы ДИ кривой (пунктир); нет, если ядро их не дало. */
+    band?: { lower: number[][]; upper: number[][] };
+  };
   qq?: { theoretical_quantiles: number[]; sample_quantiles: number[] };
   residual_vs_fitted?: { fitted: number[]; residuals: number[] };
 }
@@ -567,6 +572,18 @@ _res = builtins.__biostat_last
 _cols = json.loads(__columns_json)
 _method = ${JSON.stringify(method)}
 _bundle = {}
+
+import math as _math
+
+def _band(_cv):
+    """Границы ДИ кривой; None, если их нет или есть NaN/inf (json.dumps их не примет)."""
+    _lo, _hi = _cv.get("lower"), _cv.get("upper")
+    if not _lo or not _hi:
+        return None
+    if not all(v is not None and _math.isfinite(v) for v in list(_lo) + list(_hi)):
+        return None
+    return {"lower": [[a, b] for a, b in zip(_cv["x"], _lo)],
+            "upper": [[a, b] for a, b in zip(_cv["x"], _hi)]}
 
 if _method in ("normality_test", "mean_ci", "one_sample_t"):
     _vals = _t.numeric_column(_cols["value"])
@@ -641,6 +658,8 @@ elif _method in (
         "points": [[a, b] for a, b in zip(_pts["x"], _pts["y"])],
         "line": [[a, b] for a, b in zip(_cv["x"], _cv["fitted"])],
     }
+    if _band(_cv):
+        _bundle["scatter"]["band"] = _band(_cv)
     _p = _res.parameters["plots"]
     _bundle["residual_vs_fitted"] = _p["residual_vs_fitted"]
     _bundle["qq"] = _p["qq"]
@@ -667,6 +686,8 @@ elif _method in ("glm_analysis", "glmm_analysis") and "plots" in _res.parameters
             "points": [[a, b] for a, b in zip(_pts["x"], _pts["y"])],
             "line": [[a, b] for a, b in zip(_cv["x"], _cv["fitted"])],
         }
+        if _band(_cv):
+            _bundle["scatter"]["band"] = _band(_cv)
 
 elif _method in ("curve_in_blocks", "nonlinear_in_blocks") and "curves" in _res.parameters:
     # Наблюдения и кривая для среднего блока (первая группа), гл. 17 + 15.3.
@@ -675,6 +696,8 @@ elif _method in ("curve_in_blocks", "nonlinear_in_blocks") and "curves" in _res.
         "points": [[a, b] for a, b in zip(_pts["x"], _pts["y"])],
         "line": [[a, b] for a, b in zip(_cv["x"], _cv["fitted"])],
     }
+    if _band(_cv):
+        _bundle["scatter"]["band"] = _band(_cv)
 
 elif _method == "anova_residuals" and "plots" in _res.parameters:
     # Графики допущений по стандартизованным остаткам (гл. 5.2).

@@ -214,6 +214,14 @@ function scatterOption(sc: NonNullable<PlotBundle["scatter"]>) {
         symbol: "none",
         lineStyle: { color: "#dc2626", width: 2 },
       },
+      // Доверительная полоса кривой: две пунктирные границы.
+      ...(sc.band ? [sc.band.lower, sc.band.upper] : []).map((data) => ({
+        type: "line",
+        data,
+        symbol: "none",
+        silent: true,
+        lineStyle: { color: "#dc2626", width: 1, type: "dashed", opacity: 0.7 },
+      })),
     ],
   };
 }

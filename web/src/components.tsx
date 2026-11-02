@@ -1081,13 +1081,19 @@ function ComparisonsTable({ rows, ratioLabel }: { rows: CompRow[]; ratioLabel?: 
     </div>
   );
 
-  if (rows.length <= FOLD_AFTER) return <div style={{ marginBottom: "0.9rem" }}>{table}</div>;
+  return <Fold count={rows.length}>{table}</Fold>;
+}
+
+/** Короткие таблицы видны сразу, длинные свёрнуты под «показать все». */
+function Fold({ count, children }: { count: number; children: JSX.Element }) {
+  const t = useT();
+  if (count <= FOLD_AFTER) return <div style={{ marginBottom: "0.9rem" }}>{children}</div>;
   return (
     <details style={{ marginBottom: "0.9rem" }}>
       <summary style={{ cursor: "pointer", color: c.accent, fontSize: "0.88rem" }}>
-        {t("cmp.showAll")} ({rows.length})
+        {t("cmp.showAll")} ({count})
       </summary>
-      {table}
+      {children}
     </details>
   );
 }
@@ -1189,6 +1195,110 @@ function ComparisonsBlock({ params }: { params: Raw }) {
   );
 }
 
+/* ---------------------------- Предсказания ---------------------------- */
+
+/** Предсказание в общем виде: шесть схем ядра приводятся к этим полям. */
+interface PredRow {
+  label: string;
+  fit?: number;
+  se?: number;
+  lo?: number;
+  hi?: number;
+  nlo?: number;
+  nhi?: number;
+}
+
+/** Подпись точки: уровень фактора, ячейка, набор x или одно значение x. */
+function predLabel(x: Raw): string {
+  if (x.factor != null) return `${x.factor}: ${x.level}`;
+  if (x.cell != null) return String(x.cell);
+  if (x.point && typeof x.point === "object") {
+    return Object.entries(x.point as Raw)
+      .map(([k, v]) => `${k} = ${typeof v === "number" ? formatNumber(v) : v}`)
+      .join(", ");
+  }
+  const base = typeof x.x === "number" ? formatNumber(x.x) : String(x.x ?? "");
+  return x.group != null ? `${x.group}: ${base}` : base;
+}
+
+/**
+ * Привести предсказание к PredRow. У GLM/GLMM eta, se, lower, upper —
+ * на шкале линейного предиктора, поэтому берутся natural_*: исходная шкала.
+ */
+function normPrediction(x: Raw): PredRow {
+  const glm = x.natural != null;
+  return {
+    label: predLabel(x),
+    fit: glm ? x.natural : x.fitted ?? x.predicted ?? x.mean,
+    se: glm ? x.natural_se : x.se_mean ?? x.se,
+    lo: glm ? x.natural_lower : x.mean_lower ?? x.mean_ci_lower,
+    hi: glm ? x.natural_upper : x.mean_upper ?? x.mean_ci_upper,
+    nlo: x.new_lower ?? x.obs_ci_lower,
+    nhi: x.new_upper ?? x.obs_ci_upper,
+  };
+}
+
+/** Таблица предсказаний: только непустые колонки. */
+function PredictionsTable({ rows }: { rows: PredRow[] }) {
+  const t = useT();
+  const has = (k: keyof PredRow) => rows.some((r) => r[k] != null);
+  const cols: Array<[string, (r: PredRow) => string]> = [
+    [t("pred.point"), (r) => r.label],
+    [t("pred.fit"), (r) => numOrDash(r.fit)],
+  ];
+  if (has("se")) cols.push(["SE", (r) => numOrDash(r.se)]);
+  if (has("lo")) cols.push([t("pred.meanCi"), (r) => ci(r.lo, r.hi)]);
+  if (has("nlo")) cols.push([t("pred.newCi"), (r) => ci(r.nlo, r.nhi)]);
+
+  return (
+    <Fold count={rows.length}>
+      <div style={{ overflowX: "auto" }}>
+        <table style={s.table}>
+          <thead>
+            <tr>{cols.map(([h]) => <th key={h} style={s.th}>{h}</th>)}</tr>
+          </thead>
+          <tbody>
+            {rows.map((r, i) => (
+              <tr key={i}>
+                {cols.map(([h, get], j) => (
+                  <td key={h} style={j === 0 ? s.td : { ...s.td, ...s.mono }}>{get(r)}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </Fold>
+  );
+}
+
+/** Средние по уровням факторов (GLM/GLMM) и предсказания в точках. */
+function PredictionsBlock({ params }: { params: Raw }) {
+  const t = useT();
+  const list = (k: string): Raw[] =>
+    Array.isArray(params[k]) && params[k].length > 0 ? params[k] : [];
+  const byLevel = list("factor_predictions");
+  const points = list("predictions");
+  if (!byLevel.length && !points.length) return null;
+  const h3 = { fontSize: "0.95rem", margin: "0.4rem 0" };
+  return (
+    <div>
+      {byLevel.length > 0 && (
+        <>
+          <h3 style={h3}>{t("pred.levelsTitle")}</h3>
+          <PredictionsTable rows={byLevel.map(normPrediction)} />
+        </>
+      )}
+      {points.length > 0 && (
+        <>
+          <h3 style={h3}>{t("pred.title")}</h3>
+          <PredictionsTable rows={points.map(normPrediction)} />
+        </>
+      )}
+    </div>
+  );
+}
+
 export function ResultPanel({ result }: { result: StatResult }) {
   const t = useT();
   const tm = useCoreMessage();
@@ -1282,6 +1392,7 @@ export function ResultPanel({ result }: { result: StatResult }) {
 
       {anova && <AnovaTable rows={anova} />}
       <ComparisonsBlock params={result.parameters ?? {}} />
+      <PredictionsBlock params={result.parameters ?? {}} />
 
       {stats.length > 0 && (
         <div
