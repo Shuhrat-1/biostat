@@ -988,6 +988,207 @@ function duplicatesAnova(key: string): boolean {
 /** Коды предупреждений, помечающих метод как экспериментальный. */
 const EXPERIMENTAL_CODES = new Set(["glmm_experimental"]);
 
+/* -------------------- Средние и попарные сравнения -------------------- */
+
+type Raw = Record<string, any>;
+
+/** Сравнение в общем виде: шесть схем ядра приводятся к этим полям. */
+interface CompRow {
+  pair: string;
+  diff?: number;
+  se?: number;
+  stat?: number;
+  p?: number;
+  lo?: number;
+  hi?: number;
+  ratio?: number;
+  rlo?: number;
+  rhi?: number;
+}
+
+/**
+ * Привести строку сравнения к CompRow. В ядре разность всегда
+ * group2 − group1 (как в statsmodels), поэтому пара подписана так же.
+ */
+function normComparison(x: Raw): CompRow {
+  const pair = x.pair ?? x.contrast ?? `${x.group2} − ${x.group1}`;
+  return {
+    pair: x.factor ? `${x.factor}: ${pair}` : pair,
+    diff: x.mean_diff ?? x.difference,
+    se: x.sed ?? x.se,
+    stat: x.t ?? x.statistic,
+    p: x.p_adjusted ?? x.p_adj ?? x.p ?? x.p_unadjusted,
+    lo: x.ci_lower ?? x.lower,
+    hi: x.ci_upper ?? x.upper,
+    ratio: x.ratio,
+    rlo: x.ratio_lower ?? x.ratio_ci_lower,
+    rhi: x.ratio_upper ?? x.ratio_ci_upper,
+  };
+}
+
+/** Отношения transformed_means: ДИ относится к самому отношению. */
+function normRatio(x: Raw): CompRow {
+  return { pair: `${x.group2} / ${x.group1}`, ratio: x.ratio, rlo: x.ci_lower, rhi: x.ci_upper };
+}
+
+const ci = (lo?: number, hi?: number) =>
+  lo == null || hi == null ? "—" : `[${formatNumber(lo)}, ${formatNumber(hi)}]`;
+const numOrDash = (v?: number) => (v == null ? "—" : formatNumber(v));
+
+/** Длинные списки сворачиваются, короткие видны сразу. */
+const FOLD_AFTER = 10;
+
+/** Таблица попарных сравнений: показываются только непустые колонки. */
+function ComparisonsTable({ rows, ratioLabel }: { rows: CompRow[]; ratioLabel?: string }) {
+  const t = useT();
+  const has = (k: keyof CompRow) => rows.some((r) => r[k] != null);
+  const cols: Array<[string, (r: CompRow) => string, boolean?]> = [
+    [t("cmp.pair"), (r) => r.pair],
+    ...(has("diff") ? [[t("cmp.diff"), (r: CompRow) => numOrDash(r.diff), true]] : []),
+    ...(has("se") ? [[t("cmp.se"), (r: CompRow) => numOrDash(r.se), true]] : []),
+    ...(has("stat") ? [[t("cmp.stat"), (r: CompRow) => numOrDash(r.stat), true]] : []),
+    ...(has("lo") ? [[t("result.ci"), (r: CompRow) => ci(r.lo, r.hi), true]] : []),
+    ...(has("ratio") ? [[ratioLabel ?? t("cmp.ratio"), (r: CompRow) => numOrDash(r.ratio), true]] : []),
+    ...(has("rlo") ? [[t("cmp.ratioCi"), (r: CompRow) => ci(r.rlo, r.rhi), true]] : []),
+    ...(has("p") ? [["P", (r: CompRow) => formatP(r.p), true]] : []),
+  ] as Array<[string, (r: CompRow) => string, boolean?]>;
+
+  const table = (
+    <div style={{ overflowX: "auto" }}>
+      <table style={s.table}>
+        <thead>
+          <tr>{cols.map(([h]) => <th key={h} style={s.th}>{h}</th>)}</tr>
+        </thead>
+        <tbody>
+          {rows.map((r, i) => (
+            <tr key={i}>
+              {cols.map(([h, get, mono]) => (
+                <td
+                  key={h}
+                  style={{
+                    ...s.td,
+                    ...(mono ? s.mono : {}),
+                    fontWeight: h === "P" && r.p != null && r.p < 0.05 ? 700 : 400,
+                  }}
+                >
+                  {get(r)}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+
+  if (rows.length <= FOLD_AFTER) return <div style={{ marginBottom: "0.9rem" }}>{table}</div>;
+  return (
+    <details style={{ marginBottom: "0.9rem" }}>
+      <summary style={{ cursor: "pointer", color: c.accent, fontSize: "0.88rem" }}>
+        {t("cmp.showAll")} ({rows.length})
+      </summary>
+      {table}
+    </details>
+  );
+}
+
+/** Таблица средних одного члена модели: средние, SE, ДИ, подвал SED/LSD. */
+function MeansTable({ table }: { table: Raw }) {
+  const t = useT();
+  // «Species=vit» → «vit»: имя члена уже стоит в заголовке таблицы.
+  const pre = `${table.term}=`;
+  const strip = (v: unknown) => (typeof v === "string" ? v.split(pre).join("") : v);
+  const rows: Raw[] = table.rows.map((r: Raw) => ({ ...r, label: strip(r.label) }));
+  const comps: Raw[] = (Array.isArray(table.comparisons) ? table.comparisons : []).map(
+    (x: Raw) => ({ ...x, group1: strip(x.group1), group2: strip(x.group2) }),
+  );
+  const back = rows.some((r) => r.back_mean != null);
+  const foot: Array<[string, number]> = (
+    [["SED", table.sed], ["LSD", table.lsd], [t("cmp.lsdFactor"), table.lsd_factor]] as Array<
+      [string, number | undefined]
+    >
+  ).filter((x): x is [string, number] => x[1] != null);
+
+  return (
+    <div style={{ marginBottom: "1rem" }}>
+      <h3 style={{ fontSize: "0.95rem", margin: "0.4rem 0" }}>
+        {t("cmp.meansOf")} {table.term}
+      </h3>
+      <div style={{ overflowX: "auto" }}>
+        <table style={s.table}>
+          <thead>
+            <tr>
+              {[t("cmp.level"), t("cmp.mean"), "SE", t("result.ci")].map((h) => (
+                <th key={h} style={s.th}>{h}</th>
+              ))}
+              {back && <th style={s.th}>{t("cmp.backMean")}</th>}
+              {back && <th style={s.th}>{t("cmp.backCi")}</th>}
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r, i) => (
+              <tr key={i}>
+                <td style={s.td}>{r.label}</td>
+                <td style={{ ...s.td, ...s.mono }}>{numOrDash(r.mean)}</td>
+                <td style={{ ...s.td, ...s.mono }}>{numOrDash(r.se)}</td>
+                <td style={{ ...s.td, ...s.mono }}>{ci(r.ci_lower, r.ci_upper)}</td>
+                {back && <td style={{ ...s.td, ...s.mono }}>{numOrDash(r.back_mean)}</td>}
+                {back && <td style={{ ...s.td, ...s.mono }}>{ci(r.back_ci_lower, r.back_ci_upper)}</td>}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {foot.length > 0 && (
+        <div style={{ fontSize: "0.83rem", color: c.muted, margin: "0.35rem 0 0.6rem" }}>
+          {foot.map(([k, v]) => `${k} = ${formatNumber(v)}`).join(" · ")}
+        </div>
+      )}
+      {comps.length > 0 && <ComparisonsTable rows={comps.map(normComparison)} />}
+    </div>
+  );
+}
+
+/** Все сравнения и таблицы средних из parameters в одном блоке. */
+function ComparisonsBlock({ params }: { params: Raw }) {
+  const t = useT();
+  const list = (k: string): Raw[] =>
+    Array.isArray(params[k]) && params[k].length > 0 ? params[k] : [];
+  const tables = list("tables").filter((x) => Array.isArray(x.rows) && x.rows[0]?.mean != null);
+  const comps = list("comparisons");
+  const ratios = list("ratios");
+  const intercepts = list("intercept_differences");
+  if (!tables.length && !comps.length && !ratios.length && !intercepts.length) return null;
+
+  const odds = comps.some((x) => x.ratio_kind === "odds_ratio");
+  return (
+    <div>
+      {tables.map((tb, i) => <MeansTable key={i} table={tb} />)}
+      {comps.length > 0 && (
+        <>
+          <h3 style={{ fontSize: "0.95rem", margin: "0.4rem 0" }}>{t("cmp.title")}</h3>
+          <ComparisonsTable
+            rows={comps.map(normComparison)}
+            ratioLabel={odds ? t("cmp.oddsRatio") : undefined}
+          />
+        </>
+      )}
+      {ratios.length > 0 && (
+        <>
+          <h3 style={{ fontSize: "0.95rem", margin: "0.4rem 0" }}>{t("cmp.ratiosTitle")}</h3>
+          <ComparisonsTable rows={ratios.map(normRatio)} />
+        </>
+      )}
+      {intercepts.length > 0 && (
+        <>
+          <h3 style={{ fontSize: "0.95rem", margin: "0.4rem 0" }}>{t("cmp.interceptsTitle")}</h3>
+          <ComparisonsTable rows={intercepts.map(normComparison)} />
+        </>
+      )}
+    </div>
+  );
+}
+
 export function ResultPanel({ result }: { result: StatResult }) {
   const t = useT();
   const tm = useCoreMessage();
@@ -1080,6 +1281,7 @@ export function ResultPanel({ result }: { result: StatResult }) {
       )}
 
       {anova && <AnovaTable rows={anova} />}
+      <ComparisonsBlock params={result.parameters ?? {}} />
 
       {stats.length > 0 && (
         <div
