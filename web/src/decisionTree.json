@@ -656,5 +656,71 @@
    "status": "missing",
    "source": "кн. стр. 100, 462"
   }
- ]
+ ],
+ "targets": {
+  "ordinal_or_contingency#response": [
+   "R2.ordinal",
+   "R2.contingency"
+  ],
+  "ordinal_or_contingency#file": [
+   "R2.contingency",
+   "R2.ordinal"
+  ],
+  "pre_log": [
+   "B4b.transform"
+  ],
+  "pre_logit": [
+   "B4b.transform"
+  ],
+  "pre_transform": [
+   "B4b.transform"
+  ],
+  "dead_end_censored": [
+   "R2.censored"
+  ],
+  "dead_end_weighted": [
+   "B4b.weighted"
+  ],
+  "dead_end_serial": [
+   "DIAG.serial"
+  ],
+  "paired": [
+   "B0.paired"
+  ],
+  "unbalanced": [
+   "B1.mixed",
+   "B2.unbalanced"
+  ],
+  "dunnett": [
+   "B5.dunnett"
+  ],
+  "lack_of_fit": [
+   "A3.details"
+  ],
+  "curves": [
+   "A2.curve"
+  ],
+  "glmm_or_block#glmm": [
+   "G1.glmm",
+   "G2.glmm"
+  ],
+  "glmm_or_block#block": [
+   "G1.glm",
+   "G2.poisson"
+  ],
+  "blocks": [],
+  "control_present": [],
+  "levels": [],
+  "clt_note": [],
+  "model_tables": [],
+  "selection": [],
+  "binary_note": [],
+  "power_note": [],
+  "extrapolation_note": [],
+  "nonnormal": [],
+  "heterogeneous": [],
+  "collinearity": [],
+  "overdispersion": [],
+  "outliers": []
+ }
 }

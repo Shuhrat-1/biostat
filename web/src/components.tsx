@@ -593,11 +593,35 @@ function ColumnDetails({
 
 /* --------------------------- Выбор и запуск --------------------------- */
 
+/** Запрос карты: выбрать метод в форме (и подставить пресет листа). */
+export interface MethodRequest {
+  method: string;
+  preset?: Record<string, string>;
+  /** Растёт с каждым кликом — повторный клик по тому же листу тоже запрос. */
+  seq: number;
+}
+
+/** Колонки, которые подходят и новому методу, сохраняются при его смене. */
+function carryColumns(
+  columns: ColumnSelection,
+  spec: MethodSuggestion | undefined,
+): ColumnSelection {
+  const kept: ColumnSelection = {};
+  for (const [slot, name] of Object.entries(columns)) {
+    if (name && spec?.needs[slot]?.includes(name)) {
+      kept[slot as keyof ColumnSelection] = name;
+    }
+  }
+  return kept;
+}
+
 export function MethodPanel({
   suggestions,
   summaryValues,
   onRun,
   busy,
+  request,
+  onSelection,
 }: {
   /** Методы, применимые к данным (или методы без данных — планирование). */
   suggestions: MethodSuggestion[];
@@ -609,6 +633,13 @@ export function MethodPanel({
     kwargs: Record<string, unknown>,
   ) => void;
   busy: boolean;
+  request?: MethodRequest | null;
+  /** Сообщает карте текущий метод, колонки и параметры формы. */
+  onSelection?: (
+    method: string,
+    columns: ColumnSelection,
+    params: Record<string, unknown>,
+  ) => void;
 }) {
   const t = useT();
   // Группируем методы по категориям, сохраняя порядок появления.
@@ -644,14 +675,30 @@ export function MethodPanel({
     (slot) => optional.has(slot) || columns[slot as keyof ColumnSelection],
   );
 
-  const selectMethod = (next: string) => {
-    setMethod(next);
-    setColumns({});
+  const selectMethod = (next: string, preset: Record<string, unknown> = {}) => {
     const spec = suggestions.find((x) => x.method === next);
+    setMethod(next);
+    setColumns(carryColumns(columns, spec));
     const defaults: Record<string, unknown> = {};
     spec?.params.forEach((p) => (defaults[p.name] = p.default));
-    setParams(defaults);
+    setParams({ ...defaults, ...preset });
   };
+
+  // Клик по листу карты: открыть вкладку метода, выбрать его, пресет.
+  useEffect(() => {
+    if (!request) return;
+    const spec = suggestions.find((x) => x.method === request.method);
+    if (!spec) return;
+    setActiveGroup(spec.group);
+    if (request.method === method) setParams((p) => ({ ...p, ...request.preset }));
+    else selectMethod(request.method, request.preset);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [request?.seq]);
+
+  useEffect(() => {
+    onSelection?.(method, columns, params);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [method, columns, params]);
 
   const selectGroup = (group: string) => {
     setActiveGroup(group);

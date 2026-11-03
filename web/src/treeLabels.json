@@ -143,6 +143,31 @@
    "G.4#glmm": "У «{c}» {k} уровней: подходит как случайный фактор (GLMM).",
    "G.4#block": "У «{c}» всего {k} уровней: лучше как фиксированный блок в GLM.",
    "DIAG.3": "Остаточных df {df} < 10: мощность сравнений мала."
+  },
+  "ctx": {
+   "R0": {
+    "observation": "Наблюдение: результаты описывают связь; причинные выводы обоснованы только в эксперименте [кн. стр. 3]."
+   },
+   "B4b.permutation": {
+    "experiment": "Перестановочный тест обоснован рандомизацией опыта [кн. стр. 102].",
+    "observation": "В наблюдении рандомизации нет: перестановочный тест — лишь приближение, выводы осторожно [кн. стр. 103].",
+    "unknown": "Укажите контекст: перестановочный тест обоснован только рандомизацией опыта."
+   },
+   "A1.multi": {
+    "experiment": "В спланированном ортогональном опыте члены дизайна не исключают — отбор x не нужен [кн. стр. 536].",
+    "observation": "В наблюдении — экономная модель, отбор x [кн. стр. 366].",
+    "unknown": "Укажите контекст: от него зависит, нужен ли отбор x."
+   },
+   "B2.ancova": {
+    "experiment": "Ковариата измерена до вариантов и с ними не связана — ANCOVA уточняет сравнение [кн. стр. 409].",
+    "observation": "В наблюдении ковариата может быть связана с вариантами — проверьте это до ANCOVA [кн. стр. 410].",
+    "unknown": "Укажите контекст: в наблюдении ковариата может быть связана с вариантами."
+   },
+   "A1.ancova": {
+    "experiment": "Ковариата измерена до вариантов и с ними не связана — ANCOVA уточняет сравнение [кн. стр. 409].",
+    "observation": "В наблюдении ковариата может быть связана с вариантами — проверьте это до ANCOVA [кн. стр. 410].",
+    "unknown": "Укажите контекст: в наблюдении ковариата может быть связана с вариантами."
+   }
   }
  },
  "en": {
@@ -289,6 +314,31 @@
    "G.4#glmm": "«{c}» has {k} levels: suitable as a random factor (GLMM).",
    "G.4#block": "«{c}» has only {k} levels: better as a fixed block in a GLM.",
    "DIAG.3": "Residual df {df} < 10: comparisons have low power."
+  },
+  "ctx": {
+   "R0": {
+    "observation": "Observational study: results describe association; causal conclusions are justified only in an experiment [book p. 3]."
+   },
+   "B4b.permutation": {
+    "experiment": "The permutation test is justified by the randomization of the experiment [book p. 102].",
+    "observation": "There is no randomization in an observational study: the permutation test is only an approximation, interpret with care [book p. 103].",
+    "unknown": "Set the context: the permutation test is justified only by randomization."
+   },
+   "A1.multi": {
+    "experiment": "In a designed orthogonal experiment design terms are not dropped — no selection of x needed [book p. 536].",
+    "observation": "In an observational study — a parsimonious model via selection of x [book p. 366].",
+    "unknown": "Set the context: it decides whether selection of x is needed."
+   },
+   "B2.ancova": {
+    "experiment": "The covariate is measured before treatments and unrelated to them — ANCOVA sharpens the comparison [book p. 409].",
+    "observation": "In an observational study the covariate may be related to the groups — check this before ANCOVA [book p. 410].",
+    "unknown": "Set the context: in an observational study the covariate may be related to the groups."
+   },
+   "A1.ancova": {
+    "experiment": "The covariate is measured before treatments and unrelated to them — ANCOVA sharpens the comparison [book p. 409].",
+    "observation": "In an observational study the covariate may be related to the groups — check this before ANCOVA [book p. 410].",
+    "unknown": "Set the context: in an observational study the covariate may be related to the groups."
+   }
   }
  },
  "pt": {
@@ -435,6 +485,31 @@
    "G.4#glmm": "«{c}» tem {k} níveis: adequado como fator aleatório (GLMM).",
    "G.4#block": "«{c}» tem só {k} níveis: melhor como bloco fixo num GLM.",
    "DIAG.3": "gl residuais {df} < 10: as comparações têm pouca potência."
+  },
+  "ctx": {
+   "R0": {
+    "observation": "Estudo observacional: os resultados descrevem associação; conclusões causais só se justificam numa experiência [livro p. 3]."
+   },
+   "B4b.permutation": {
+    "experiment": "O teste de permutação justifica-se pela aleatorização da experiência [livro p. 102].",
+    "observation": "Num estudo observacional não há aleatorização: o teste de permutação é só uma aproximação, interpretar com cautela [livro p. 103].",
+    "unknown": "Indique o contexto: o teste de permutação só se justifica pela aleatorização."
+   },
+   "A1.multi": {
+    "experiment": "Numa experiência ortogonal planeada os termos do delineamento não se retiram — não é preciso selecionar x [livro p. 536].",
+    "observation": "Num estudo observacional — modelo parcimonioso, seleção de x [livro p. 366].",
+    "unknown": "Indique o contexto: dele depende se é preciso selecionar x."
+   },
+   "B2.ancova": {
+    "experiment": "A covariável é medida antes dos tratamentos e não está relacionada com eles — a ANCOVA precisa a comparação [livro p. 409].",
+    "observation": "Num estudo observacional a covariável pode estar relacionada com os grupos — verifique antes da ANCOVA [livro p. 410].",
+    "unknown": "Indique o contexto: num estudo observacional a covariável pode estar relacionada com os grupos."
+   },
+   "A1.ancova": {
+    "experiment": "A covariável é medida antes dos tratamentos e não está relacionada com eles — a ANCOVA precisa a comparação [livro p. 409].",
+    "observation": "Num estudo observacional a covariável pode estar relacionada com os grupos — verifique antes da ANCOVA [livro p. 410].",
+    "unknown": "Indique o contexto: num estudo observacional a covariável pode estar relacionada com os grupos."
+   }
   }
  }
 }

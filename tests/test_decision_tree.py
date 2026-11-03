@@ -20,7 +20,9 @@ from core.validation.catalog import CATALOG
 from core.validation.recognize import REGISTRY
 
 WEB = Path(__file__).resolve().parents[1] / "web" / "src"
-TREE = json.loads((WEB / "decisionTree.json").read_text(encoding="utf-8"))["nodes"]
+DATA = json.loads((WEB / "decisionTree.json").read_text(encoding="utf-8"))
+TREE = DATA["nodes"]
+TARGETS = DATA["targets"]
 LABELS = json.loads((WEB / "treeLabels.json").read_text(encoding="utf-8"))
 BY_ID = {n["id"]: n for n in TREE}
 SPECS = {s.method: s for s in CATALOG}
@@ -104,6 +106,22 @@ def test_recognizer_nodes_attached_to_tree():
     assert registry_nodes == tree_rnodes
 
 
+def test_every_suggestion_resolves_to_tree():
+    """suggests распознавателя — узел, метод на карте или ключ targets."""
+    on_map = {n["method"] for n in TREE if n.get("method")}
+    for r in REGISTRY:
+        s = r.suggests
+        keyed = s in TARGETS or any(k.startswith(s + "#") for k in TARGETS)
+        assert s in BY_ID or s in on_map or keyed, f"{r.id}: «{s}» не ведёт на карту"
+
+
+def test_targets_point_to_existing_nodes_and_are_used():
+    used = {r.suggests for r in REGISTRY}
+    for key, nodes in TARGETS.items():
+        assert key.split("#")[0] in used, f"лишний ключ targets: {key}"
+        assert all(n in BY_ID for n in nodes), key
+
+
 # --- Подписи --------------------------------------------------------------------------
 
 @pytest.mark.parametrize("lang", ["ru", "en", "pt"])
@@ -111,6 +129,18 @@ def test_every_node_labelled(lang):
     names = LABELS[lang]["nodes"]
     assert set(names) == set(BY_ID)
     assert all(text.strip() for text in names.values())
+
+
+CONTEXTS = {"experiment", "observation", "unknown"}
+
+
+def test_context_notes_consistent_across_languages():
+    ru = LABELS["ru"]["ctx"]
+    assert set(ru) <= set(BY_ID)
+    for node, notes in ru.items():
+        assert set(notes) <= CONTEXTS, node
+        for lang in ("en", "pt"):
+            assert set(LABELS[lang]["ctx"][node]) == set(notes), (node, lang)
 
 
 def _python_notes() -> dict[str, str]:

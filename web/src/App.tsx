@@ -34,6 +34,8 @@ import {
 import { initRuntime, type LoadProgress } from "./pyodide/runtime";
 import { I18nContext, LANGUAGES, useT, type Lang } from "./i18n";
 import { c, s } from "./styles";
+import { SensoryMap } from "./SensoryMap";
+import { useMapSync } from "./useMapSync";
 
 // ECharts тяжёлый — грузим отдельным чанком при первом показе графиков.
 const Plots = lazy(() => import("./charts").then((m) => ({ default: m.Plots })));
@@ -75,6 +77,7 @@ function AppInner({
   const [planning, setPlanning] = useState<MethodSuggestion[] | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const map = useMapSync(table);
 
   useEffect(() => {
     let cancelled = false;
@@ -305,11 +308,22 @@ function AppInner({
                   onLoadRows={getRows}
                   busy={busy}
                 />
+                <SensoryMap
+                  suggestions={table.suggestions}
+                  selection={map.selection}
+                  recognition={map.recognition}
+                  hasRoles={map.hasRoles}
+                  context={map.context}
+                  onContext={map.setContext}
+                  onPickLeaf={map.onPickLeaf}
+                />
                 <MethodPanel
                   suggestions={table.suggestions}
                   summaryValues={table.summary_values}
                   onRun={handleRun}
                   busy={busy}
+                  request={map.request}
+                  onSelection={map.onSelection}
                 />
                 {resultsBlock}
               </>
