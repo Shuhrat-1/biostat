@@ -24,6 +24,11 @@ def _params(res, key="parameter_tests"):
     return [(r["estimate"], r["se"], r["t"]) for r in res.parameters[key]]
 
 
+def _flat(res) -> list[float]:
+    """raw_parameters плоским списком: pytest.approx не сравнивает вложенные кортежи."""
+    return [v for row in _params(res, "raw_parameters") for v in row]
+
+
 def test_log_olsen_p_table_17_2():
     """Книга: Table 17.2 (стр. 454): 1.674 + 2.644·LogOP, SE 0.2518 и 0.3044, t 6.646 и 8.684."""
     (a, se_a, t_a), (b, se_b, t_b) = _params(_log_model())
@@ -95,7 +100,7 @@ def test_bases_give_same_model(basis):
     """Центрирование и ортогональные полиномы (стр. 458–459) не меняют подгонку и простые степени."""
     raw = polynomial_regression(OLSEN_P, YIELD, 3)
     other = polynomial_regression(OLSEN_P, YIELD, 3, basis)
-    assert _params(other, "raw_parameters") == pytest.approx(_params(raw, "raw_parameters"))
+    assert _flat(other) == pytest.approx(_flat(raw))
     assert [r["ss"] for r in other.parameters["anova_table"]] == pytest.approx(
         [r["ss"] for r in raw.parameters["anova_table"]])
     assert max(v["vif"] for v in other.parameters["vif"]) < max(
