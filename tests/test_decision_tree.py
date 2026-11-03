@@ -145,7 +145,15 @@ def test_context_notes_consistent_across_languages():
 
 def _python_notes() -> dict[str, str]:
     """Русские тексты Signal(...) из правил: ключ id или id#variant."""
-    src = Path(recognizers.__file__).read_text(encoding="utf-8")
+    from core.validation import recognizers_computed
+
+    out = {}
+    for module in (recognizers, recognizers_computed):
+        out.update(_module_notes(Path(module.__file__).read_text(encoding="utf-8")))
+    return out
+
+
+def _module_notes(src: str) -> dict[str, str]:
     out = {}
     for fn in (n for n in ast.parse(src).body if isinstance(n, ast.FunctionDef)):
         rid = next((d.args[0].value for d in fn.decorator_list

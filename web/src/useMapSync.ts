@@ -8,7 +8,9 @@ import type { MethodRequest } from "./components";
 import type { TreeNode } from "./decisionTree";
 import type { Context } from "./mapState";
 import type { MapSelection } from "./SensoryMap";
-import { recognizeStructure, type ColumnSelection, type ParsedTable, type Recognition } from "./pyodide/bridge";
+import {
+  recognizeStructure, type ColumnSelection, type FiredSignal, type ParsedTable, type Recognition,
+} from "./pyodide/bridge";
 
 /**
  * Роли копятся по всем методам формы: выбранный однажды блок остаётся
@@ -24,11 +26,49 @@ export function mergeRoles(prev: ColumnSelection, columns: ColumnSelection): Col
   return JSON.stringify(next) === JSON.stringify(prev) ? prev : next;
 }
 
+/** Двухфазный вызов распознавателей; ошибка расчётной фазы не гасит структурную. */
+async function runRecognition(
+  roles: ColumnSelection,
+  cache: Map<string, FiredSignal[]>,
+  isStale: () => boolean,
+  setRecognition: (r: Recognition | null) => void,
+  setComputing: (v: boolean) => void,
+): Promise<void> {
+  let structural: Recognition;
+  try {
+    structural = await recognizeStructure(roles, "structural");
+  } catch {
+    if (!isStale()) setRecognition(null);
+    return;
+  }
+  if (isStale()) return;
+  const key = JSON.stringify(Object.entries(roles).sort());
+  const cached = cache.get(key);
+  setRecognition({ ...structural, fired: [...structural.fired, ...(cached ?? [])] });
+  if (cached || !Object.keys(roles).length) {
+    setComputing(false);
+    return;
+  }
+  setComputing(true);
+  try {
+    const computed = (await recognizeStructure(roles, "computed")).fired;
+    cache.set(key, computed);
+    if (!isStale()) setRecognition({ ...structural, fired: [...structural.fired, ...computed] });
+  } catch {
+    // Расчётные — подсказка, не обязательная часть карты.
+  } finally {
+    if (!isStale()) setComputing(false);
+  }
+}
+
 export function useMapSync(table: ParsedTable | null) {
   const [context, setContext] = useState<Context>("unknown");
   const [selection, setSelection] = useState<MapSelection | null>(null);
   const [roles, setRoles] = useState<ColumnSelection>({});
   const [recognition, setRecognition] = useState<Recognition | null>(null);
+  const [computing, setComputing] = useState(false);
+  // Расчётные сигналы по набору ролей: повторный выбор тех же колонок не считает заново.
+  const computedCache = useRef(new Map<string, FiredSignal[]>());
   const [request, setRequest] = useState<MethodRequest | null>(null);
   const seq = useRef(0);
 
@@ -36,15 +76,15 @@ export function useMapSync(table: ParsedTable | null) {
   useEffect(() => {
     setRoles({});
     setRecognition(null);
+    computedCache.current.clear();
   }, [table]);
 
-  // Распознаватели ядра по текущим ролям; устаревший ответ отбрасываем.
+  // Сначала структурные (сразу), затем расчётные (подгонка модели, кэш);
+  // устаревший ответ отбрасываем.
   useEffect(() => {
     if (!table) return;
     let stale = false;
-    recognizeStructure(roles)
-      .then((r) => !stale && setRecognition(r))
-      .catch(() => !stale && setRecognition(null));
+    void runRecognition(roles, computedCache.current, () => stale, setRecognition, setComputing);
     return () => {
       stale = true;
     };
@@ -66,7 +106,7 @@ export function useMapSync(table: ParsedTable | null) {
   };
 
   return {
-    context, setContext, selection, recognition, request, onSelection, onPickLeaf,
+    context, setContext, selection, recognition, computing, request, onSelection, onPickLeaf,
     hasRoles: Object.keys(roles).length > 0,
   };
 }

@@ -33,6 +33,8 @@ interface Props {
   suggestions: MethodSuggestion[];
   selection: MapSelection | null;
   recognition: Recognition | null;
+  /** Идёт расчётная фаза распознавателей (подгонка модели). */
+  computing: boolean;
   hasRoles: boolean;
   context: Context;
   onContext: (ctx: Context) => void;
@@ -90,12 +92,14 @@ export function SensoryMap(props: Props) {
           <Breadcrumbs focus={focus} fill={fill} onPick={(id) => setFocus(id)} />
           <Columns
             focus={focus} fill={fill} marks={marks} available={available}
-            registry={recognition?.registry ?? []} context={props.context} onPick={pick}
+            registry={recognition?.registry ?? []} computing={props.computing}
+            context={props.context} onPick={pick}
           />
           <Details
             focus={focus} fired={fired} marks={marks} available={available}
             selected={selection?.method} methodLeaf={methodLeaf?.id}
-            registry={recognition?.registry ?? []} context={props.context} hasRoles={props.hasRoles}
+            registry={recognition?.registry ?? []} computing={props.computing}
+            context={props.context} hasRoles={props.hasRoles}
           />
           <Legend />
         </>
@@ -171,6 +175,7 @@ interface ColumnsProps {
   marks: Marks;
   available: Set<string>;
   registry: Recognition["registry"];
+  computing: boolean;
   context: Context;
   onPick: (node: TreeNode) => void;
 }
@@ -194,7 +199,7 @@ function Column(props: ColumnsProps & { parent: TreeNode; next?: string }) {
   const lang = useLang();
   const { parent, marks } = props;
   const states = childStates(parent.id, marks);
-  const pending = awaitsComputation(parent, props.registry)
+  const pending = props.computing && awaitsComputation(parent, props.registry)
     && ![...states.values()].some((st) => st === "strong");
   const notes = marks.notes.get(parent.id)?.length ?? 0;
   return (
@@ -278,14 +283,18 @@ interface DetailsProps {
   selected?: string;
   methodLeaf?: string;
   registry: Recognition["registry"];
+  computing: boolean;
   context: Context;
   hasRoles: boolean;
 }
 
-/** Сигналы узлов на пути к фокусу и в его ветках (без повторов). */
+/**
+ * Сигналы узлов на пути к фокусу и в его ветках, плюс диагностика (DIAG):
+ * выбросы и серийная корреляция касаются любой модели, где бы ни был фокус.
+ */
 function signalsAround(focus: string, fired: FiredSignal[]): FiredSignal[] {
   const ids = new Set([...pathTo(focus), ...children(focus)].map((n) => n.id));
-  return fired.filter((sig) => owners(sig.node).some((o) => ids.has(o.id)));
+  return fired.filter((sig) => sig.node === "DIAG" || owners(sig.node).some((o) => ids.has(o.id)));
 }
 
 /** Пояснения под колонками: лист, заметки контекста, сигналы данных. */
@@ -297,7 +306,8 @@ function Details(props: DetailsProps) {
   const ctxNotes = visible
     .map((n) => contextNote(n.id, props.context, lang))
     .filter((x): x is string => Boolean(x));
-  const pending = pathTo(props.focus).some((n) => awaitsComputation(n, props.registry));
+  const pending = props.computing
+    && pathTo(props.focus).some((n) => awaitsComputation(n, props.registry));
   const signals = signalsAround(props.focus, props.fired);
   const lines: { text: string; tone: "warn" | "muted" | "bad" }[] = [];
   if (node?.status === "missing") lines.push({ text: t("map.missing"), tone: "bad" });

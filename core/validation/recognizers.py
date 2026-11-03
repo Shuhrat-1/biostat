@@ -2,8 +2,8 @@
 
 Каждая функция — одна строка реестра: смотрит на данные и роли колонок,
 возвращает :class:`Signal` (сработало) или None. Структурные правила
-реализованы; расчётные (нормальность, Бартлетт, неадекватность,
-сверхдисперсия) описаны через ``declare`` и появятся на этапе 2 карты.
+реализованы здесь; расчётные (нормальность, Бартлетт, неадекватность,
+сверхдисперсия) — в ``recognizers_computed``.
 
 Пороги с пометкой [BioStat] — эвристики, в книге их нет.
 """
@@ -18,7 +18,7 @@ import numpy as np
 from scipy import stats
 
 from core.validation.recognize import (
-    COMPUTED, HINT, STRONG, STRUCTURAL, Context, Signal, declare, rule,
+    HINT, STRONG, STRUCTURAL, Context, Signal, declare, rule,
 )
 
 # --- Помощники ----------------------------------------------------------------
@@ -28,7 +28,7 @@ _CONTROL = re.compile(r"^(control|ctrl|check|standard|untreated|testemunha|"
                       r"контроль|контр|стандарт)$", re.I)
 _BEFORE = re.compile(r"(before|pre|до|t0|day ?1|день ?1)$", re.I)
 _AFTER = re.compile(r"(after|post|после|t1|day ?2|день ?2)$", re.I)
-_TIME = re.compile(r"(time|day|date|week|year|время|день|дата|неделя|год|сутки)", re.I)
+_TIME = re.compile(r"(time|day|date|week|month|year|время|день|дата|неделя|месяц|год|сутки|mês|mes)", re.I)
 _PERCENT = re.compile(r"(%|pct|percent|процент|доля)", re.I)
 
 
@@ -594,23 +594,10 @@ def residual_df(ctx: Context) -> Signal | None:
     return None
 
 
-# --- Расчётные (этап 2 карты) и проверяемые методом -------------------------------
+# --- Проверяемые самим методом ----------------------------------------------------
 
-declare("B4.1", "B4", "nonnormal", STRONG, "кн. стр. 101; порог BioStat")
-declare("B4.2", "B4", "heterogeneous", STRONG, "кн. стр. 105–107")
-declare("B4.3", "B4", "transformed_means", STRONG, "кн. стр. 96–97, 115")
-declare("B4.4", "B4", "pre_transform", HINT, "кн. стр. 102, 115")
-declare("B4.5", "B4", "dead_end_weighted", STRONG, "кн. стр. 107")
-declare("B4.6", "B4", "anova_permutation_test", STRONG, "кн. стр. 102")
-declare("A1.4", "A1", "collinearity", STRONG, "кн. стр. 362")
-declare("A2.2", "A2", "curves", STRONG, "кн. стр. 312")
-declare("A2.3", "A2", "curves", STRONG, "кн. стр. 326; критерий BioStat")
-declare("A2.4", "A2", "pre_transform", HINT, "кн. стр. 330")
-declare("A2.5", "A2", "trigonometric_regression", HINT, "предл.")
 declare("A2.6", "A2", "extrapolation_note", STRONG, "кн. стр. 304, 459", cls=STRUCTURAL)
-declare("G.1", "G", "overdispersion", STRONG, "кн. стр. 488–493")
-declare("DIAG.1", "DIAG", "outliers", STRONG, "кн. стр. 95, 109")
-declare("DIAG.2", "DIAG", "dead_end_serial", HINT, "кн. стр. 98–100; пороги BioStat")
-declare("DIAG.4", "DIAG", "regression_diagnostics", STRONG, "кн. стр. 333–336")
 
-_ = COMPUTED  # реэкспорт для читаемости declare(cls=...)
+# Расчётные правила (этап 2 карты) — отдельным модулем; импорт в конце, потому
+# что они пользуются помощниками этого модуля.
+from core.validation import recognizers_computed  # noqa: E402, F401

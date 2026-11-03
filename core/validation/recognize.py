@@ -13,6 +13,7 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from functools import cached_property
 from typing import Any, Callable
@@ -87,6 +88,14 @@ class Context:
         self.table = table
         names = set(table.header)
         self.roles = {k: v for k, v in (roles or {}).items() if v in names}
+        # Общие для нескольких правил расчёты (подгонка модели): ключ → результат.
+        self.cache: dict[str, Any] = {}
+
+    def memo(self, key: str, compute: Callable[[], Any]) -> Any:
+        """Посчитать один раз на вызов recognize (модель нужна многим правилам)."""
+        if key not in self.cache:
+            self.cache[key] = compute()
+        return self.cache[key]
 
     def role(self, *slots: str) -> str | None:
         """Первая назначенная колонка из перечня слотов."""
@@ -105,8 +114,9 @@ class Context:
         return self._numbers[column] if column in self._numbers else self._parse(column)
 
     def labels(self, column: str) -> list[str]:
-        """Метки колонки по строкам; пропуск → ""."""
-        return ["" if is_missing(v) else v.strip() for v in self.table.column_values(column)]
+        """Метки колонки по строкам; пропуск → "" (разбор один раз на вызов)."""
+        return self.memo(f"labels:{column}", lambda: [
+            "" if is_missing(v) else v.strip() for v in self.table.column_values(column)])
 
     def columns_of(self, kind: str) -> list[str]:
         """Имена колонок определённого типа (numeric, categorical …)."""
@@ -127,19 +137,27 @@ class Context:
         return arr
 
 
-def recognize(table: Any, roles: dict[str, str] | None = None) -> dict[str, Any]:
-    """Прогнать все реализованные распознаватели.
+def _fill(note: str, params: dict[str, Any]) -> str:
+    """Русский фолбэк с подставленными {param}; неизвестные остаются как есть."""
+    return re.sub(r"\{(\w+)\}",
+                  lambda m: str(params.get(m.group(1), m.group(0))), note)
+
+
+def recognize(table: Any, roles: dict[str, str] | None = None,
+              cls: str | None = None) -> dict[str, Any]:
+    """Прогнать реализованные распознаватели (``cls`` — только этого класса).
 
     Возвращает реестр (метаданные всех правил, в т.ч. ещё не реализованных)
     и список сработавших: id, узел, ветка, сила, сообщение для перевода.
     Ошибка одного правила не роняет остальные — правило просто не срабатывает.
+    Карта зовёт структурные сразу, расчётные — вторым вызовом (раздел 8).
     """
     from core.validation import recognizers  # noqa: F401  регистрирует правила
 
     ctx = Context(table, roles)
     fired = []
     for rec in REGISTRY:
-        if rec.fn is None:
+        if rec.fn is None or (cls is not None and rec.cls != cls):
             continue
         try:
             signal = rec.fn(ctx)
@@ -147,5 +165,6 @@ def recognize(table: Any, roles: dict[str, str] | None = None) -> dict[str, Any]
             signal = None
         if signal is not None:
             fired.append({**rec.meta(), "message": msg(
-                f"rec_{rec.id.replace('.', '_')}", signal.note, **signal.params)})
+                f"rec_{rec.id.replace('.', '_')}", _fill(signal.note, signal.params),
+                **signal.params)})
     return {"registry": [r.meta() for r in REGISTRY], "fired": fired}

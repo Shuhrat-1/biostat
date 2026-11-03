@@ -312,6 +312,7 @@ function AppInner({
                   suggestions={table.suggestions}
                   selection={map.selection}
                   recognition={map.recognition}
+                  computing={map.computing}
                   hasRoles={map.hasRoles}
                   context={map.context}
                   onContext={map.setContext}

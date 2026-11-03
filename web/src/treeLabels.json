@@ -142,7 +142,23 @@
    "G.3": "Бинарные данные: φ не оценивается; по возможности суммируйте по единицам опыта.",
    "G.4#glmm": "У «{c}» {k} уровней: подходит как случайный фактор (GLMM).",
    "G.4#block": "У «{c}» всего {k} уровней: лучше как фиксированный блок в GLM.",
-   "DIAG.3": "Остаточных df {df} < 10: мощность сравнений мала."
+   "DIAG.3": "Остаточных df {df} < 10: мощность сравнений мала.",
+   "B4.1": "Остатки модели отклоняются от нормальности (Шапиро–Уилк p = {p}).",
+   "B4.2": "Дисперсии групп неоднородны (Бартлетт X² = {x2} > {crit}).",
+   "B4.2#welch": "Дисперсии двух групп неоднородны (Бартлетт X² = {x2} > {crit}): t-тест в варианте Уэлча.",
+   "B4.3": "SD групп растут вместе со средними (r = {r} по логарифмам): трансформация отклика (log).",
+   "B4.4": "Остатки асимметричны (коэффициент асимметрии {g}): попробуйте трансформацию отклика.",
+   "B4.5": "Дисперсии неоднородны и не растут со средним: нужен взвешенный ANOVA (в BioStat нет).",
+   "B4.6": "Остатки ненормальны при однородных дисперсиях: перестановочный тест сохранит F и средние.",
+   "A1.4": "Сильная коллинеарность x: VIF «{c}» = {v} > 10 — отбор переменных ненадёжен.",
+   "A2.2": "Неадекватность прямой значима (F = {f}, p = {p}): связь не прямая.",
+   "A2.3": "Остатки прямой изогнуты дугой (квадратичный член p = {p}): кривая.",
+   "A2.4": "Разброс y растёт вместе с подогнанным значением (ρ = {r}): трансформация отклика.",
+   "A2.5": "x похож на время, а остатки идут волнами (серий {runs} при ожидаемых {exp}): возможна периодичность.",
+   "G.1": "Остаточный девианс {d} > χ²₀.₉₅({df}) = {crit}: сверхдисперсия — оцените φ и сравнивайте по F.",
+   "DIAG.1": "|Стандартизованный остаток| > 2 у {k} наблюдений (строки {rows}): проверьте записи.",
+   "DIAG.2": "Остатки по порядку строк коррелированы (Дарбин–Уотсон {dw}): серийная корреляция.",
+   "DIAG.4": "Точки с большим рычагом или влиянием (расстояние Кука): строки {rows} — проверьте их вклад в наклон."
   },
   "ctx": {
    "R0": {
@@ -313,7 +329,23 @@
    "G.3": "Binary data: φ is not estimated; aggregate by experimental unit where possible.",
    "G.4#glmm": "«{c}» has {k} levels: suitable as a random factor (GLMM).",
    "G.4#block": "«{c}» has only {k} levels: better as a fixed block in a GLM.",
-   "DIAG.3": "Residual df {df} < 10: comparisons have low power."
+   "DIAG.3": "Residual df {df} < 10: comparisons have low power.",
+   "B4.1": "Model residuals depart from normality (Shapiro–Wilk p = {p}).",
+   "B4.2": "Group variances are heterogeneous (Bartlett X² = {x2} > {crit}).",
+   "B4.2#welch": "Variances of the two groups are heterogeneous (Bartlett X² = {x2} > {crit}): use the Welch version of the t-test.",
+   "B4.3": "Group SDs grow with the means (r = {r} on log scale): transform the response (log).",
+   "B4.4": "Residuals are skewed (skewness {g}): try transforming the response.",
+   "B4.5": "Variances are heterogeneous and do not grow with the mean: a weighted ANOVA is needed (not in BioStat).",
+   "B4.6": "Residuals are non-normal with homogeneous variances: a permutation test keeps F and the means.",
+   "A1.4": "Strong collinearity among x: VIF of «{c}» = {v} > 10 — variable selection is unreliable.",
+   "A2.2": "Lack of fit of the line is significant (F = {f}, p = {p}): the relationship is not straight.",
+   "A2.3": "Residuals of the line bend in an arc (quadratic term p = {p}): a curve.",
+   "A2.4": "Spread of y grows with the fitted value (ρ = {r}): transform the response.",
+   "A2.5": "x looks like time and residuals run in waves ({runs} runs vs {exp} expected): possible periodicity.",
+   "G.1": "Residual deviance {d} > χ²₀.₉₅({df}) = {crit}: overdispersion — estimate φ and compare with F.",
+   "DIAG.1": "|Standardized residual| > 2 for {k} observations (rows {rows}): check the records.",
+   "DIAG.2": "Residuals in row order are correlated (Durbin–Watson {dw}): serial correlation.",
+   "DIAG.4": "Points with high leverage or influence (Cook's distance): rows {rows} — check their effect on the slope."
   },
   "ctx": {
    "R0": {
@@ -484,7 +516,23 @@
    "G.3": "Dados binários: φ não é estimado; agregue por unidade experimental quando possível.",
    "G.4#glmm": "«{c}» tem {k} níveis: adequado como fator aleatório (GLMM).",
    "G.4#block": "«{c}» tem só {k} níveis: melhor como bloco fixo num GLM.",
-   "DIAG.3": "gl residuais {df} < 10: as comparações têm pouca potência."
+   "DIAG.3": "gl residuais {df} < 10: as comparações têm pouca potência.",
+   "B4.1": "Os resíduos do modelo afastam-se da normalidade (Shapiro–Wilk p = {p}).",
+   "B4.2": "As variâncias dos grupos são heterogéneas (Bartlett X² = {x2} > {crit}).",
+   "B4.2#welch": "As variâncias dos dois grupos são heterogéneas (Bartlett X² = {x2} > {crit}): use o teste t na versão de Welch.",
+   "B4.3": "Os DP dos grupos crescem com as médias (r = {r} em logaritmos): transforme a resposta (log).",
+   "B4.4": "Os resíduos são assimétricos (assimetria {g}): experimente transformar a resposta.",
+   "B4.5": "As variâncias são heterogéneas e não crescem com a média: é preciso ANOVA ponderada (não existe no BioStat).",
+   "B4.6": "Resíduos não normais com variâncias homogéneas: o teste de permutação mantém F e as médias.",
+   "A1.4": "Colinearidade forte entre os x: VIF de «{c}» = {v} > 10 — a seleção de variáveis não é fiável.",
+   "A2.2": "A falta de ajuste da reta é significativa (F = {f}, p = {p}): a relação não é reta.",
+   "A2.3": "Os resíduos da reta formam um arco (termo quadrático p = {p}): uma curva.",
+   "A2.4": "A dispersão de y cresce com o valor ajustado (ρ = {r}): transforme a resposta.",
+   "A2.5": "x parece tempo e os resíduos andam em ondas ({runs} sequências para {exp} esperadas): possível periodicidade.",
+   "G.1": "Desvio residual {d} > χ²₀.₉₅({df}) = {crit}: sobredispersão — estime φ e compare com F.",
+   "DIAG.1": "|Resíduo padronizado| > 2 em {k} observações (linhas {rows}): verifique os registos.",
+   "DIAG.2": "Os resíduos pela ordem das linhas estão correlacionados (Durbin–Watson {dw}): correlação serial.",
+   "DIAG.4": "Pontos com alavanca ou influência elevada (distância de Cook): linhas {rows} — verifique o seu efeito no declive."
   },
   "ctx": {
    "R0": {

@@ -540,12 +540,16 @@ export interface Recognition {
 }
 
 /**
- * Структурные распознаватели по текущему файлу и ролям колонок.
+ * Распознаватели карты по текущему файлу и ролям колонок.
  *
- * Роли — слоты формы метода (value, group, block, x …). Без файла
- * возвращает реестр и пустой список сработавших.
+ * Роли — слоты формы метода (value, group, block, x …). ``cls`` —
+ * «structural» (дёшево, сразу) или «computed» (подгонка модели, вторым
+ * запросом). Без файла возвращает реестр и пустой список сработавших.
  */
-export async function recognizeStructure(roles: ColumnSelection): Promise<Recognition> {
+export async function recognizeStructure(
+  roles: ColumnSelection,
+  cls: "structural" | "computed" = "structural",
+): Promise<Recognition> {
   return runJson<Recognition>(
     `
 import builtins, json
@@ -557,10 +561,10 @@ _roles = {k: v for k, v in json.loads(__roles_json).items() if v}
 if _t is None:
     _out = {"registry": [r.meta() for r in REGISTRY], "fired": []}
 else:
-    _out = recognize(_t, _roles)
+    _out = recognize(_t, _roles, cls=__rec_cls)
 json.dumps(_out, ensure_ascii=False)
 `,
-    { __roles_json: JSON.stringify(roles) },
+    { __roles_json: JSON.stringify(roles), __rec_cls: cls },
   );
 }
 

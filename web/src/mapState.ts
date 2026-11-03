@@ -87,6 +87,22 @@ export function buildMarks(fired: FiredSignal[]): Marks {
       path.slice(from < 0 ? path.length - 1 : from + 1).forEach((id) => push(marks.path, id, sig));
     }
   }
+  return focusNotes(marks);
+}
+
+/**
+ * Заметка узла реестра с несколькими владельцами (B4 → B4a, B4b) остаётся
+ * только у владельца, на которого указали другие сигналы (B3.1 → B4b):
+ * «дисперсии неоднородны» при четырёх группах не относится к «Две группы».
+ */
+function focusNotes(marks: Marks): Marks {
+  for (const [id, signals] of marks.notes) {
+    const node = getNode(id);
+    const siblings = node?.rnode ? owners(node.rnode) : [];
+    const chosen = siblings.filter((o) => marks.path.has(o.id));
+    if (chosen.length && !chosen.some((o) => o.id === id)) marks.notes.delete(id);
+    else marks.notes.set(id, signals);
+  }
   return marks;
 }
 
@@ -115,7 +131,7 @@ export function childStates(parent: string, marks: Marks): Map<string, NodeState
   return out;
 }
 
-/** Test-узел, у которого есть расчётные распознаватели (будут на этапе 2). */
+/** Test-узел с расчётными распознавателями: «⧗», пока идёт расчётная фаза. */
 export function awaitsComputation(node: TreeNode, registry: RecognizerMeta[]): boolean {
   return Boolean(node.rnode) && registry.some((r) => r.node === node.rnode && r.cls === "computed");
 }

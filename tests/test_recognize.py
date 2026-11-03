@@ -57,16 +57,19 @@ def _potato() -> dict[str, list]:
 # --- Реестр ---------------------------------------------------------------------
 
 def test_registry_matches_spec():
-    """56 правил ровно из спецификации, без дублей; 40 структурных реализованы."""
+    """56 правил ровно из спецификации, без дублей; реализованы 40 структурных и
+    15 расчётных; без реализации только A2.6 (проверяет сам метод)."""
     from core.validation import recognizers  # noqa: F401
 
     ids = [r.id for r in rz.REGISTRY]
     assert sorted(ids) == sorted(SPEC_IDS)
     assert len(ids) == len(set(ids)) == 56
-    assert sum(r.fn is not None for r in rz.REGISTRY) == 40
+    done = [r for r in rz.REGISTRY if r.fn is not None]
+    assert sum(r.cls == rz.STRUCTURAL for r in done) == 40
+    assert sum(r.cls == rz.COMPUTED for r in done) == 15
+    assert [r.id for r in rz.REGISTRY if r.fn is None] == ["A2.6"]
     for r in rz.REGISTRY:
         assert r.strength in (rz.STRONG, rz.HINT) and r.source
-        assert r.fn is None or r.cls == rz.STRUCTURAL
 
 
 def test_output_is_json_and_message_codes():
