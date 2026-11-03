@@ -518,6 +518,52 @@ json.dumps(suggest_methods([], ${JSON.stringify(lang)}), ensure_ascii=False)
 `);
 }
 
+/** Строка реестра распознавателей карты (decision-tree-spec v2, раздел 5). */
+export interface RecognizerMeta {
+  id: string;
+  node: string;
+  suggests: string;
+  strength: "strong" | "hint";
+  cls: "structural" | "computed";
+  source: string;
+  since: string;
+}
+
+/** Сработавший распознаватель с сообщением для перевода. */
+export interface FiredSignal extends RecognizerMeta {
+  message: CoreMsg;
+}
+
+export interface Recognition {
+  registry: RecognizerMeta[];
+  fired: FiredSignal[];
+}
+
+/**
+ * Структурные распознаватели по текущему файлу и ролям колонок.
+ *
+ * Роли — слоты формы метода (value, group, block, x …). Без файла
+ * возвращает реестр и пустой список сработавших.
+ */
+export async function recognizeStructure(roles: ColumnSelection): Promise<Recognition> {
+  return runJson<Recognition>(
+    `
+import builtins, json
+from core.validation.recognize import recognize, REGISTRY
+from core.validation import recognizers  # noqa: F401
+
+_t = getattr(builtins, "__biostat_table", None)
+_roles = {k: v for k, v in json.loads(__roles_json).items() if v}
+if _t is None:
+    _out = {"registry": [r.meta() for r in REGISTRY], "fired": []}
+else:
+    _out = recognize(_t, _roles)
+json.dumps(_out, ensure_ascii=False)
+`,
+    { __roles_json: JSON.stringify(roles) },
+  );
+}
+
 /** Какие колонки нужны данному методу — для построения формы выбора. */
 export function requiredColumns(method: string): Array<keyof ColumnSelection> {
   if (GROUPED_METHODS.has(method)) return ["value", "group"];
