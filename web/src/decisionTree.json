@@ -1,0 +1,660 @@
+{
+ "version": "2.0",
+ "nodes": [
+  {
+   "id": "R0",
+   "kind": "choice",
+   "parent": null
+  },
+  {
+   "id": "P",
+   "kind": "choice",
+   "parent": "R0",
+   "source": "кн. гл. 10, 19"
+  },
+  {
+   "id": "P.sampling",
+   "kind": "leaf",
+   "parent": "P",
+   "method": "sampling_scheme_power",
+   "source": "кн. стр. 534–535"
+  },
+  {
+   "id": "P.replication",
+   "kind": "leaf",
+   "parent": "P",
+   "method": "replication_power",
+   "source": "кн. гл. 10"
+  },
+  {
+   "id": "P.splitpower",
+   "kind": "leaf",
+   "parent": "P",
+   "status": "missing",
+   "source": "кн. стр. 252"
+  },
+  {
+   "id": "D",
+   "kind": "choice",
+   "parent": "R0"
+  },
+  {
+   "id": "D.describe",
+   "kind": "leaf",
+   "parent": "D",
+   "method": "describe_all"
+  },
+  {
+   "id": "D.ci",
+   "kind": "leaf",
+   "parent": "D",
+   "method": "mean_ci"
+  },
+  {
+   "id": "D.onesample",
+   "kind": "leaf",
+   "parent": "D",
+   "method": "one_sample_t"
+  },
+  {
+   "id": "D.normality",
+   "kind": "leaf",
+   "parent": "D",
+   "method": "normality_test",
+   "source": "кн. стр. 101"
+  },
+  {
+   "id": "R2",
+   "kind": "test",
+   "parent": "R0",
+   "rnode": "R2",
+   "source": "кн. стр. 2, 502"
+  },
+  {
+   "id": "Q",
+   "kind": "choice",
+   "parent": "R2"
+  },
+  {
+   "id": "G1",
+   "kind": "test",
+   "parent": "R2",
+   "rnode": "G",
+   "source": "кн. гл. 18"
+  },
+  {
+   "id": "G2",
+   "kind": "test",
+   "parent": "R2",
+   "rnode": "G",
+   "source": "кн. гл. 18"
+  },
+  {
+   "id": "R2.ordinal",
+   "kind": "leaf",
+   "parent": "R2",
+   "method": "ordinal_regression",
+   "source": "кн. стр. 513"
+  },
+  {
+   "id": "R2.contingency",
+   "kind": "leaf",
+   "parent": "R2",
+   "method": "contingency_test",
+   "source": "кн. стр. 513"
+  },
+  {
+   "id": "R2.censored",
+   "kind": "leaf",
+   "parent": "R2",
+   "status": "missing",
+   "source": "кн. стр. 274–275"
+  },
+  {
+   "id": "R2.multivariate",
+   "kind": "leaf",
+   "parent": "R2",
+   "status": "missing",
+   "source": "кн. стр. 538"
+  },
+  {
+   "id": "G1.glm",
+   "kind": "leaf",
+   "parent": "G1",
+   "method": "glm_analysis",
+   "preset": {
+    "distribution": "binomial"
+   }
+  },
+  {
+   "id": "G1.dose",
+   "kind": "leaf",
+   "parent": "G1",
+   "method": "glm_analysis",
+   "preset": {
+    "distribution": "binomial"
+   },
+   "source": "кн. стр. 502"
+  },
+  {
+   "id": "G1.glmm",
+   "kind": "leaf",
+   "parent": "G1",
+   "method": "glmm_analysis",
+   "status": "experimental",
+   "preset": {
+    "distribution": "binomial"
+   }
+  },
+  {
+   "id": "G2.poisson",
+   "kind": "leaf",
+   "parent": "G2",
+   "method": "glm_analysis",
+   "preset": {
+    "distribution": "poisson"
+   }
+  },
+  {
+   "id": "G2.negbin",
+   "kind": "leaf",
+   "parent": "G2",
+   "method": "count_regression",
+   "source": "кн. стр. 512"
+  },
+  {
+   "id": "G2.glmm",
+   "kind": "leaf",
+   "parent": "G2",
+   "method": "glmm_analysis",
+   "status": "experimental",
+   "preset": {
+    "distribution": "poisson"
+   }
+  },
+  {
+   "id": "B0",
+   "kind": "choice",
+   "parent": "Q",
+   "rnode": "B0"
+  },
+  {
+   "id": "B0.paired",
+   "kind": "test",
+   "parent": "B0",
+   "source": "кн. стр. 41"
+  },
+  {
+   "id": "B0.paired.t",
+   "kind": "leaf",
+   "parent": "B0.paired",
+   "method": "paired_t"
+  },
+  {
+   "id": "B0.paired.w",
+   "kind": "leaf",
+   "parent": "B0.paired",
+   "method": "wilcoxon"
+  },
+  {
+   "id": "B0.repeated",
+   "kind": "leaf",
+   "parent": "B0",
+   "method": "mixed_model",
+   "source": "кн. стр. 100"
+  },
+  {
+   "id": "B1",
+   "kind": "choice",
+   "parent": "B0",
+   "rnode": "B1",
+   "source": "кн. гл. 3, 7, 9"
+  },
+  {
+   "id": "B1.subsample",
+   "kind": "leaf",
+   "parent": "B1",
+   "method": "rcbd_subsampling_anova",
+   "source": "кн. стр. 145"
+  },
+  {
+   "id": "B1.bibd",
+   "kind": "leaf",
+   "parent": "B1",
+   "method": "bibd_anova",
+   "source": "кн. стр. 232"
+  },
+  {
+   "id": "B1.latin",
+   "kind": "leaf",
+   "parent": "B1",
+   "method": "latin_square_anova",
+   "source": "кн. стр. 209"
+  },
+  {
+   "id": "B1.split",
+   "kind": "leaf",
+   "parent": "B1",
+   "method": "split_plot_anova",
+   "source": "кн. стр. 220"
+  },
+  {
+   "id": "B1.mixed",
+   "kind": "leaf",
+   "parent": "B1",
+   "method": "mixed_model",
+   "source": "кн. стр. 427"
+  },
+  {
+   "id": "B2",
+   "kind": "choice",
+   "parent": "B1",
+   "rnode": "B2",
+   "source": "кн. гл. 8"
+  },
+  {
+   "id": "B2.factorial",
+   "kind": "leaf",
+   "parent": "B2",
+   "method": "factorial_anova",
+   "source": "кн. стр. 172"
+  },
+  {
+   "id": "B2.unbalanced",
+   "kind": "leaf",
+   "parent": "B2",
+   "method": "unbalanced_anova",
+   "source": "кн. стр. 258"
+  },
+  {
+   "id": "B2.nested",
+   "kind": "leaf",
+   "parent": "B2",
+   "method": "nested_anova",
+   "source": "кн. стр. 173"
+  },
+  {
+   "id": "B2.ancova",
+   "kind": "leaf",
+   "parent": "B2",
+   "method": "ancova",
+   "source": "кн. стр. 409"
+  },
+  {
+   "id": "B3",
+   "kind": "test",
+   "parent": "B2",
+   "rnode": "B3"
+  },
+  {
+   "id": "B4a",
+   "kind": "test",
+   "parent": "B3",
+   "rnode": "B4",
+   "source": "кн. стр. 31–34"
+  },
+  {
+   "id": "B4a.t",
+   "kind": "leaf",
+   "parent": "B4a",
+   "method": "two_sample_t"
+  },
+  {
+   "id": "B4a.mw",
+   "kind": "leaf",
+   "parent": "B4a",
+   "method": "mann_whitney"
+  },
+  {
+   "id": "B4b",
+   "kind": "test",
+   "parent": "B3",
+   "rnode": "B4",
+   "source": "кн. гл. 5"
+  },
+  {
+   "id": "B4b.anova",
+   "kind": "leaf",
+   "parent": "B4b",
+   "method": "one_way_anova"
+  },
+  {
+   "id": "B4b.rcbd",
+   "kind": "leaf",
+   "parent": "B4b",
+   "method": "rcbd_anova",
+   "source": "кн. стр. 58"
+  },
+  {
+   "id": "B4b.permutation",
+   "kind": "leaf",
+   "parent": "B4b",
+   "method": "anova_permutation_test",
+   "source": "кн. стр. 102"
+  },
+  {
+   "id": "B4b.kruskal",
+   "kind": "leaf",
+   "parent": "B4b",
+   "method": "kruskal_wallis",
+   "source": "кн. стр. 127"
+  },
+  {
+   "id": "B4b.transform",
+   "kind": "pre",
+   "parent": "B4b",
+   "source": "кн. стр. 113–126"
+  },
+  {
+   "id": "B4b.transform.means",
+   "kind": "leaf",
+   "parent": "B4b.transform",
+   "method": "transformed_means"
+  },
+  {
+   "id": "B4b.weighted",
+   "kind": "leaf",
+   "parent": "B4b",
+   "status": "missing",
+   "source": "кн. стр. 107"
+  },
+  {
+   "id": "B5",
+   "kind": "post",
+   "parent": "B4b",
+   "rnode": "B5",
+   "source": "кн. гл. 8.6–8.8"
+  },
+  {
+   "id": "B5.means",
+   "kind": "leaf",
+   "parent": "B5",
+   "method": "treatment_means",
+   "source": "кн. стр. 86–87"
+  },
+  {
+   "id": "B5.contrasts",
+   "kind": "leaf",
+   "parent": "B5",
+   "method": "treatment_contrasts"
+  },
+  {
+   "id": "B5.trend",
+   "kind": "leaf",
+   "parent": "B5",
+   "method": "polynomial_contrasts",
+   "source": "кн. стр. 190"
+  },
+  {
+   "id": "B5.tukey",
+   "kind": "leaf",
+   "parent": "B5",
+   "method": "tukey_hsd",
+   "source": "кн. стр. 200"
+  },
+  {
+   "id": "B5.mc_tukey",
+   "kind": "leaf",
+   "parent": "B5",
+   "method": "mean_comparisons",
+   "preset": {
+    "procedure": "tukey"
+   }
+  },
+  {
+   "id": "B5.dunnett",
+   "kind": "leaf",
+   "parent": "B5",
+   "method": "mean_comparisons",
+   "preset": {
+    "procedure": "dunnett"
+   },
+   "source": "кн. стр. 201"
+  },
+  {
+   "id": "B5.bonferroni",
+   "kind": "leaf",
+   "parent": "B5",
+   "method": "mean_comparisons",
+   "preset": {
+    "procedure": "bonferroni"
+   }
+  },
+  {
+   "id": "B5.fdr",
+   "kind": "leaf",
+   "parent": "B5",
+   "method": "mean_comparisons",
+   "preset": {
+    "procedure": "fdr"
+   }
+  },
+  {
+   "id": "B6",
+   "kind": "choice",
+   "parent": "B4b",
+   "source": "кн. гл. 10.5"
+  },
+  {
+   "id": "B6.tost",
+   "kind": "leaf",
+   "parent": "B6",
+   "method": "equivalence_test",
+   "source": "кн. стр. 253"
+  },
+  {
+   "id": "A0",
+   "kind": "choice",
+   "parent": "Q"
+  },
+  {
+   "id": "A0.corr",
+   "kind": "leaf",
+   "parent": "A0",
+   "method": "pearson_correlation",
+   "source": "кн. стр. 36–38"
+  },
+  {
+   "id": "A1",
+   "kind": "choice",
+   "parent": "A0",
+   "rnode": "A1"
+  },
+  {
+   "id": "A2",
+   "kind": "test",
+   "parent": "A1",
+   "rnode": "A2",
+   "source": "кн. стр. 308, 326"
+  },
+  {
+   "id": "A3",
+   "kind": "choice",
+   "parent": "A2",
+   "source": "кн. гл. 12"
+  },
+  {
+   "id": "A3.slr",
+   "kind": "leaf",
+   "parent": "A3",
+   "method": "simple_linear_regression"
+  },
+  {
+   "id": "A3.details",
+   "kind": "leaf",
+   "parent": "A3",
+   "method": "regression_details"
+  },
+  {
+   "id": "A3.inverse",
+   "kind": "leaf",
+   "parent": "A3",
+   "method": "inverse_prediction",
+   "source": "кн. стр. 320"
+  },
+  {
+   "id": "A2.curve",
+   "kind": "choice",
+   "parent": "A2",
+   "source": "кн. стр. 451–476"
+  },
+  {
+   "id": "A2.curve.xt",
+   "kind": "leaf",
+   "parent": "A2.curve",
+   "method": "x_transform_regression"
+  },
+  {
+   "id": "A2.curve.poly",
+   "kind": "leaf",
+   "parent": "A2.curve",
+   "method": "polynomial_regression"
+  },
+  {
+   "id": "A2.curve.nonlin",
+   "kind": "leaf",
+   "parent": "A2.curve",
+   "method": "nonlinear_regression"
+  },
+  {
+   "id": "A2.curve.compare",
+   "kind": "leaf",
+   "parent": "A2.curve",
+   "method": "curve_comparison"
+  },
+  {
+   "id": "A2.curve.smooth",
+   "kind": "leaf",
+   "parent": "A2.curve",
+   "method": "smooth_curve"
+  },
+  {
+   "id": "A2.periodic",
+   "kind": "leaf",
+   "parent": "A2",
+   "method": "trigonometric_regression",
+   "source": "кн. стр. 460"
+  },
+  {
+   "id": "A1.multi",
+   "kind": "choice",
+   "parent": "A1",
+   "source": "кн. гл. 14"
+  },
+  {
+   "id": "A1.multi.mlr",
+   "kind": "leaf",
+   "parent": "A1.multi",
+   "method": "multiple_regression"
+  },
+  {
+   "id": "A1.multi.subsets",
+   "kind": "leaf",
+   "parent": "A1.multi",
+   "method": "regression_subsets",
+   "source": "кн. стр. 366"
+  },
+  {
+   "id": "A1.multi.stepwise",
+   "kind": "leaf",
+   "parent": "A1.multi",
+   "method": "stepwise_selection",
+   "source": "кн. стр. 370"
+  },
+  {
+   "id": "A1.multi.cv",
+   "kind": "leaf",
+   "parent": "A1.multi",
+   "method": "model_cross_validation",
+   "source": "кн. стр. 376"
+  },
+  {
+   "id": "A1.groups",
+   "kind": "leaf",
+   "parent": "A1",
+   "method": "regression_with_groups",
+   "source": "кн. стр. 382"
+  },
+  {
+   "id": "A1.blocks",
+   "kind": "choice",
+   "parent": "A1",
+   "source": "кн. стр. 406"
+  },
+  {
+   "id": "A1.blocks.line",
+   "kind": "leaf",
+   "parent": "A1.blocks",
+   "method": "blocked_regression"
+  },
+  {
+   "id": "A1.blocks.curve",
+   "kind": "leaf",
+   "parent": "A1.blocks",
+   "method": "curve_in_blocks"
+  },
+  {
+   "id": "A1.blocks.nonlin",
+   "kind": "leaf",
+   "parent": "A1.blocks",
+   "method": "nonlinear_in_blocks"
+  },
+  {
+   "id": "A1.surface",
+   "kind": "leaf",
+   "parent": "A1",
+   "method": "response_surface",
+   "source": "кн. стр. 463"
+  },
+  {
+   "id": "A1.ancova",
+   "kind": "leaf",
+   "parent": "A1",
+   "method": "ancova"
+  },
+  {
+   "id": "A4",
+   "kind": "post",
+   "parent": "A1",
+   "source": "кн. гл. 13"
+  },
+  {
+   "id": "A4.diag",
+   "kind": "leaf",
+   "parent": "A4",
+   "method": "regression_diagnostics"
+  },
+  {
+   "id": "A4.cv",
+   "kind": "leaf",
+   "parent": "A4",
+   "method": "regression_cross_validation"
+  },
+  {
+   "id": "DIAG",
+   "kind": "post",
+   "parent": "Q",
+   "rnode": "DIAG",
+   "source": "кн. гл. 5"
+  },
+  {
+   "id": "DIAG.residuals",
+   "kind": "leaf",
+   "parent": "DIAG",
+   "method": "anova_residuals"
+  },
+  {
+   "id": "DIAG.bartlett",
+   "kind": "leaf",
+   "parent": "DIAG",
+   "method": "bartlett_test"
+  },
+  {
+   "id": "DIAG.serial",
+   "kind": "leaf",
+   "parent": "DIAG",
+   "status": "missing",
+   "source": "кн. стр. 100, 462"
+  }
+ ]
+}

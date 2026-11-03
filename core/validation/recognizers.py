@@ -129,9 +129,11 @@ def proportion_scale(ctx: Context) -> Signal | None:
 def label_response(ctx: Context) -> Signal | None:
     resp = ctx.response
     if resp and resp in ctx.columns_of("categorical"):
-        return Signal("Отклик — метки, а не числа: порядковая регрессия или таблица частот.")
+        return Signal("Отклик — метки, а не числа: порядковая регрессия или таблица частот.",
+                      {"variant": "response"})
     if resp is None and not ctx.columns_of("numeric") and len(ctx.columns_of("categorical")) >= 2:
-        return Signal("В файле только колонки меток: таблица сопряжённости или порядковые баллы.")
+        return Signal("В файле только колонки меток: таблица сопряжённости или порядковые баллы.",
+                      {"variant": "file"})
     return None
 
 
@@ -521,10 +523,11 @@ def selection_size(ctx: Context) -> Signal | None:
     k = len(ctx.columns_of("numeric")) - 1
     if k < 3:
         return None
-    method = "regression_subsets" if k <= 12 else "stepwise_selection"
-    return Signal("Кандидатов x: {k}: {how}.", {
-        "k": k, "method": method,
-        "how": "перебор всех подмножеств" if k <= 12 else "пошаговый отбор"})
+    if k <= 12:
+        return Signal("Кандидатов x: {k} — можно перебрать все подмножества.",
+                      {"k": k, "method": "regression_subsets", "variant": "subsets"})
+    return Signal("Кандидатов x: {k} — пошаговый отбор.",
+                  {"k": k, "method": "stepwise_selection", "variant": "stepwise"})
 
 
 @rule("A2.1", "A2", "lack_of_fit", STRONG, "кн. стр. 308")
@@ -570,9 +573,9 @@ def random_grouping(ctx: Context) -> Signal | None:
     k = len(_levels(ctx, stratum))
     if k >= 5:
         return Signal("У «{c}» {k} уровней: подходит как случайный фактор (GLMM).",
-                      {"c": stratum, "k": k})
+                      {"c": stratum, "k": k, "variant": "glmm"})
     return Signal("У «{c}» всего {k} уровней: лучше как фиксированный блок в GLM.",
-                  {"c": stratum, "k": k})
+                  {"c": stratum, "k": k, "variant": "block"})
 
 
 # --- DIAG -----------------------------------------------------------------------

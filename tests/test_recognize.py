@@ -311,3 +311,4 @@ def test_regression_hints():
     assert "A1.1" in fired
     assert fired["A1.5"]["message"]["params"]["k"] == 4
     assert fired["A1.5"]["message"]["params"]["method"] == "regression_subsets"
+    assert fired["A1.5"]["message"]["params"]["variant"] == "subsets"
