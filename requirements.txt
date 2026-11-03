@@ -1,6 +1,11 @@
-numpy>=2.0
-scipy>=1.13
-pandas>=2.2
-statsmodels>=0.14
-pytest>=8.0
+# Версии = пакеты Pyodide 0.26.4 (web/src/pyodide/runtime.ts): тесты должны
+# проверять ядро на тех же библиотеках, на которых оно считает в браузере.
+# При обновлении Pyodide сверить с node_modules/pyodide/pyodide-lock.json.
+# Python 3.12 — как в Pyodide 0.26 (под 3.13 у numpy 1.26 нет колёс).
+numpy==1.26.4
+scipy==1.12.0
+pandas==2.2.0
+statsmodels==0.14.2
+patsy==0.5.6
 charset-normalizer>=3.0
+pytest==9.2.0

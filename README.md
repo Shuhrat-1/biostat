@@ -10,7 +10,12 @@
 Чистые статистические функции, тестируются отдельно от UI, затем исполняются
 в браузере через Pyodide.
 
+Python 3.12 и версии пакетов ровно как в Pyodide (см. `requirements.txt`):
+тесты проверяют ядро на тех же библиотеках, на которых оно считает в браузере.
+
 ```bash
+py -3.12 -m venv bstat.venv --prompt bstat   # Linux/macOS: python3.12 -m venv …
+bstat.venv\Scripts\activate
 pip install -r requirements.txt
 pytest
 ```
