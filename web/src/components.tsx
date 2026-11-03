@@ -11,7 +11,8 @@ import type {
   ParsedTable,
   StatResult,
 } from "./pyodide/bridge";
-import { useT } from "./i18n";
+import { useLang, useT } from "./i18n";
+import { columnLabel, extraTitle } from "./extraLabels";
 import { useCoreMessage } from "./coreMessages";
 import { c, s, typeBadgeStyle } from "./styles";
 
@@ -1320,6 +1321,230 @@ function PredictionsBlock({ params }: { params: Raw }) {
   );
 }
 
+/* ------------------- Остальные таблицы из parameters ------------------- */
+
+/** Ключи, показанные другими блоками, и служебные (эхо входа, сводка). */
+const SHOWN_ELSEWHERE = new Set([
+  "anova_table", "tables", "comparisons", "ratios", "intercept_differences",
+  "predictions", "factor_predictions", "plots", "curve", "curves", "points", "line",
+  "column_names", "summary",
+]);
+
+/** Длиннее не рендерим: полная таблица есть в JSON-выгрузке. */
+const MAX_ROWS = 200;
+
+const H3 = { fontSize: "0.95rem", margin: "0.6rem 0 0.4rem" };
+const isScalar = (v: unknown) =>
+  v == null || ["number", "string", "boolean"].includes(typeof v);
+const isObject = (v: unknown): v is Raw => !!v && typeof v === "object" && !Array.isArray(v);
+const isRows = (v: unknown): v is Raw[] =>
+  Array.isArray(v) && v.length > 0 && v.every(isObject);
+const isKv = (v: unknown): v is Raw => isObject(v) && Object.values(v).every(isScalar);
+const isPKey = (k: string) => k === "p" || k.startsWith("p_") || k.endsWith("_p");
+
+/** Таблица сопряжённости ядра: {rows, columns, counts[][]}. */
+interface Crosstab {
+  rows: unknown[];
+  columns: unknown[];
+  counts: number[][];
+}
+const isCrosstab = (v: unknown): v is Crosstab =>
+  isObject(v) && Array.isArray(v.rows) && Array.isArray(v.columns) && Array.isArray(v.counts);
+
+/** Есть ли что показать (на глубине не больше двух уровней). */
+function renderable(v: unknown, depth: number): boolean {
+  if (isCrosstab(v) || isRows(v)) return true;
+  if (isKv(v)) return Object.keys(v).length > 0;
+  if (isObject(v) && depth < 2) return Object.values(v).some((x) => renderable(x, depth + 1));
+  return false;
+}
+
+/** Значение ячейки в текст: числа, флаги, короткие списки. */
+function cellText(v: unknown): string {
+  if (v == null) return "—";
+  if (typeof v === "number") return formatNumber(v);
+  if (typeof v === "boolean") return v ? "✓" : "—";
+  if (Array.isArray(v)) return v.every(isScalar) ? v.map(cellText).join(" ") : `[${v.length}]`;
+  if (isObject(v)) {
+    return Object.entries(v).slice(0, 4).map(([k, x]) => `${k}=${cellText(x)}`).join(", ");
+  }
+  return String(v);
+}
+
+/** Пары границ, которые сливаются в одну колонку «ДИ». */
+const CI_PAIRS: Array<[string, string]> = [["ci_lower", "ci_upper"], ["lower", "upper"]];
+
+/** Колонки: объединение ключей строк в порядке появления; ДИ — одной колонкой. */
+function tableColumns(rows: Raw[]): Array<{ key: string; hi?: string }> {
+  const keys: string[] = [];
+  rows.forEach((r) => Object.keys(r).forEach((k) => keys.includes(k) || keys.push(k)));
+  const pairs = CI_PAIRS.filter(([lo, hi]) => keys.includes(lo) && keys.includes(hi));
+  const his = new Set(pairs.map(([, hi]) => hi));
+  // Колонки из вложенных списков объектов в таблице не читаются — они в JSON.
+  const nested = (k: string) =>
+    rows.every((r) => Array.isArray(r[k]) && !(r[k] as unknown[]).every(isScalar));
+  return keys
+    .filter((k) => k !== "key" && !his.has(k) && !nested(k))
+    .map((k) => ({ key: k, hi: pairs.find(([lo]) => lo === k)?.[1] }));
+}
+
+/** Текст и стиль одной ячейки общей таблицы. */
+function cellView(r: Raw, key: string, hi?: string): [string, React.CSSProperties] {
+  const v = r[key];
+  if (hi) return [ci(v, r[hi]), { ...s.td, ...s.mono }];
+  if (isPKey(key) && typeof v === "number") {
+    return [formatP(v), { ...s.td, ...s.mono, fontWeight: v < 0.05 ? 700 : 400 }];
+  }
+  return [cellText(v), typeof v === "number" ? { ...s.td, ...s.mono } : s.td];
+}
+
+/** Общая таблица из списка однотипных строк. */
+function RowsTable({ rows }: { rows: Raw[] }) {
+  const t = useT();
+  const lang = useLang();
+  const cols = tableColumns(rows);
+  return (
+    <Fold count={rows.length}>
+      <>
+        <div style={{ overflowX: "auto" }}>
+          <table style={s.table}>
+            <thead>
+              <tr>
+                {cols.map(({ key, hi }) => (
+                  <th key={key} style={s.th}>{hi ? t("result.ci") : columnLabel(key, lang)}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.slice(0, MAX_ROWS).map((r, i) => (
+                <tr key={i}>
+                  {cols.map(({ key, hi }) => {
+                    const [text, style] = cellView(r, key, hi);
+                    return <td key={key} style={style}>{text}</td>;
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {rows.length > MAX_ROWS && (
+          <div style={{ fontSize: "0.82rem", color: c.muted, marginTop: "0.3rem" }}>
+            {t("extra.truncated")
+              .replace("{shown}", String(MAX_ROWS))
+              .replace("{total}", String(rows.length))}
+          </div>
+        )}
+      </>
+    </Fold>
+  );
+}
+
+/** Плоский словарь: сетка «подпись значение». */
+function KvGrid({ data }: { data: Raw }) {
+  const lang = useLang();
+  return (
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
+        gap: "0.35rem 0.8rem",
+        fontSize: "0.85rem",
+        marginBottom: "0.9rem",
+      }}
+    >
+      {Object.entries(data).map(([k, v]) => {
+        const p = isPKey(k) && typeof v === "number";
+        return (
+          <div key={k}>
+            <span style={{ color: c.muted }}>{columnLabel(k, lang)}</span>{" "}
+            <span style={{ ...s.mono, fontWeight: p && v < 0.05 ? 700 : 400 }}>
+              {p ? formatP(v) : cellText(v)}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/** Таблица сопряжённости матрицей, с итогами по строкам и столбцам. */
+function CrosstabView({ table }: { table: Crosstab }) {
+  const rowSums = table.counts.map((r) => r.reduce((a, b) => a + b, 0));
+  const colSums = table.columns.map((_, j) => table.counts.reduce((a, r) => a + (r[j] ?? 0), 0));
+  const total = rowSums.reduce((a, b) => a + b, 0);
+  const num = { ...s.td, ...s.mono };
+  return (
+    <div style={{ overflowX: "auto", marginBottom: "0.9rem" }}>
+      <table style={s.table}>
+        <thead>
+          <tr>
+            <th style={s.th} />
+            {table.columns.map((col, j) => <th key={j} style={s.th}>{String(col)}</th>)}
+            <th style={s.th}>Σ</th>
+          </tr>
+        </thead>
+        <tbody>
+          {table.counts.map((r, i) => (
+            <tr key={i}>
+              <td style={{ ...s.td, fontWeight: 600 }}>{String(table.rows[i])}</td>
+              {r.map((v, j) => <td key={j} style={num}>{formatNumber(v)}</td>)}
+              <td style={{ ...num, color: c.muted }}>{formatNumber(rowSums[i])}</td>
+            </tr>
+          ))}
+          <tr>
+            <td style={{ ...s.td, color: c.muted }}>Σ</td>
+            {colSums.map((v, j) => <td key={j} style={{ ...num, color: c.muted }}>{formatNumber(v)}</td>)}
+            <td style={{ ...num, fontWeight: 600 }}>{formatNumber(total)}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+/** Любое значение parameters: матрица, таблица, сетка или вложенный раздел. */
+function ExtraValue({ value, depth }: { value: unknown; depth: number }) {
+  const lang = useLang();
+  if (isCrosstab(value)) return <CrosstabView table={value} />;
+  if (isRows(value)) return <RowsTable rows={value} />;
+  if (isKv(value)) return <KvGrid data={value} />;
+  if (!isObject(value)) return null;
+  const scalars = Object.fromEntries(Object.entries(value).filter(([, v]) => isScalar(v)));
+  const parts = Object.entries(value).filter(([, v]) => !isScalar(v) && renderable(v, depth + 1));
+  return (
+    <div style={{ paddingLeft: depth > 0 ? "0.8rem" : 0 }}>
+      {Object.keys(scalars).length > 0 && <KvGrid data={scalars} />}
+      {parts.map(([k, v]) => (
+        <div key={k}>
+          <h4 style={{ fontSize: "0.88rem", margin: "0.4rem 0 0.3rem", color: c.muted }}>
+            {extraTitle(k, lang)}
+          </h4>
+          <ExtraValue value={v} depth={depth + 1} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** Все остальные структуры результата, в порядке, заданном ядром. */
+function ExtraTables({ params, method }: { params: Raw; method: string }) {
+  const lang = useLang();
+  const items = Object.entries(params).filter(
+    ([k, v]) => !SHOWN_ELSEWHERE.has(k) && renderable(v, 0),
+  );
+  if (!items.length) return null;
+  return (
+    <div>
+      {items.map(([k, v]) => (
+        <div key={k}>
+          <h3 style={H3}>{extraTitle(k, lang, method)}</h3>
+          <ExtraValue value={v} depth={0} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function ResultPanel({ result }: { result: StatResult }) {
   const t = useT();
   const tm = useCoreMessage();
@@ -1414,6 +1639,7 @@ export function ResultPanel({ result }: { result: StatResult }) {
       {anova && <AnovaTable rows={anova} />}
       <ComparisonsBlock params={result.parameters ?? {}} />
       <PredictionsBlock params={result.parameters ?? {}} />
+      <ExtraTables params={result.parameters ?? {}} method={result.method} />
 
       {stats.length > 0 && (
         <div
