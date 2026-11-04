@@ -12,6 +12,7 @@ import type {
   StatResult,
 } from "./pyodide/bridge";
 import { useLang, useT } from "./i18n";
+import { fillColumns } from "./columnFill";
 import { columnLabel, extraTitle } from "./extraLabels";
 import { useCoreMessage } from "./coreMessages";
 import { c, s, typeBadgeStyle } from "./styles";
@@ -597,6 +598,8 @@ function ColumnDetails({
 export interface MethodRequest {
   method: string;
   preset?: Record<string, string>;
+  /** Роли колонок, известные карте: из них заполняются пустые слоты формы. */
+  roles?: ColumnSelection;
   /** Растёт с каждым кликом — повторный клик по тому же листу тоже запрос. */
   seq: number;
 }
@@ -655,6 +658,8 @@ export function MethodPanel({
   const [method, setMethod] = useState(suggestions[0]?.method ?? "");
   const [columns, setColumns] = useState<ColumnSelection>({});
   const [params, setParams] = useState<Record<string, unknown>>({});
+  // Слоты, заполненные картой (не пользователем): под формой — просьба проверить.
+  const [autoFilled, setAutoFilled] = useState<string[]>([]);
 
   // При смене таблицы (новый файл, смена типа колонки) состав методов
   // меняется — возвращаемся к первой вкладке и первому методу.
@@ -679,12 +684,13 @@ export function MethodPanel({
     const spec = suggestions.find((x) => x.method === next);
     setMethod(next);
     setColumns(carryColumns(columns, spec));
+    setAutoFilled([]);
     const defaults: Record<string, unknown> = {};
     spec?.params.forEach((p) => (defaults[p.name] = p.default));
     setParams({ ...defaults, ...preset });
   };
 
-  // Клик по листу карты: открыть вкладку метода, выбрать его, пресет.
+  // Клик по листу карты: вкладка, метод, пресет и колонки из ролей карты.
   useEffect(() => {
     if (!request) return;
     const spec = suggestions.find((x) => x.method === request.method);
@@ -692,6 +698,9 @@ export function MethodPanel({
     setActiveGroup(spec.group);
     if (request.method === method) setParams((p) => ({ ...p, ...request.preset }));
     else selectMethod(request.method, request.preset);
+    const fill = fillColumns(columns, request.roles ?? {}, spec);
+    setColumns(fill.columns);
+    setAutoFilled(fill.filled);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [request?.seq]);
 
@@ -801,7 +810,10 @@ export function MethodPanel({
             <select
               style={s.select}
               value={columns[slot as keyof ColumnSelection] ?? ""}
-              onChange={(e) => setColumns({ ...columns, [slot]: e.target.value })}
+              onChange={(e) => {
+                setColumns({ ...columns, [slot]: e.target.value });
+                setAutoFilled(autoFilled.filter((x) => x !== slot));
+              }}
             >
               <option value="">{t("method.choose")}</option>
               {(suggestion?.needs[slot] ?? []).map((name) => (
@@ -832,6 +844,13 @@ export function MethodPanel({
           {busy ? t("method.running") : t("method.run")}
         </button>
       </div>
+
+      {autoFilled.length > 0 && (
+        <div style={{ marginTop: "0.7rem", fontSize: "0.85rem", color: c.warn }}>
+          {t("method.autoFilled")}{" "}
+          {autoFilled.map((slot) => suggestion?.slot_labels[slot] ?? slot).join(", ")}
+        </div>
+      )}
 
       {suggestion?.n_groups === 2 && (
         <div style={{ marginTop: "0.7rem", fontSize: "0.85rem", color: c.muted }}>

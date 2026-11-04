@@ -4,6 +4,7 @@
  */
 
 import { useEffect, useRef, useState } from "react";
+import { knownRoles } from "./columnFill";
 import type { MethodRequest } from "./components";
 import type { TreeNode } from "./decisionTree";
 import type { Context } from "./mapState";
@@ -102,7 +103,8 @@ export function useMapSync(table: ParsedTable | null) {
   const onPickLeaf = (leaf: TreeNode) => {
     if (!leaf.method) return;
     seq.current += 1;
-    setRequest({ method: leaf.method, preset: leaf.preset, seq: seq.current });
+    const known = knownRoles(roles, recognition?.fired ?? []);
+    setRequest({ method: leaf.method, preset: leaf.preset, roles: known, seq: seq.current });
   };
 
   return {
