@@ -117,3 +117,43 @@ def test_model_table_not_drawn_twice():
 
 def test_methods_without_summary_return_nothing():
     assert summary_plots("simple_linear_regression", {"parameters": {"x": [1, 2]}}) == {}
+
+
+# --- Пакет 2: кривые по группам, графики против x -----------------------------------------
+
+def test_group_lines_forest_table_15_2():
+    """Регрессия с группами: точки с метками групп и по линии на группу; scatter моста убирается."""
+    from tests.test_regression_groups import _forest
+
+    out = summary_plots("regression_with_groups", _forest().to_dict())
+    g = out["group_curves"]
+    assert [c["name"] for c in g["curves"]] == ["Coigue", "Rauli", "Roble"]
+    assert {p[2] for p in g["points"]} == {"Coigue", "Rauli", "Roble"}
+    assert out["scatter"] is None
+    json.dumps(g, allow_nan=False)
+
+
+def test_block_curves_need_two_groups_and_keep_finite_band():
+    cv = {"x": [0.0, 1.0], "fitted": [1.0, 2.0], "lower": [0.5, 1.5], "upper": [1.5, 2.5]}
+    params = {"points": {"x": [0.0, 1.0], "y": [1.1, 1.9]},
+              "curves": [{"group": "A", **cv},
+                         {"group": "B", **cv, "upper": [1.5, float("nan")]}]}
+    g = summary_plots("nonlinear_in_blocks", {"parameters": params})["group_curves"]
+    assert "band" in g["curves"][0] and "band" not in g["curves"][1]
+    assert g["points"][0] == [0.0, 1.1, None]
+    one = {"parameters": {**params, "curves": params["curves"][:1]}}
+    assert "group_curves" not in summary_plots("curve_in_blocks", one)
+
+
+def test_extra_scatters_with_reference_lines():
+    plots = {"leverage_vs_x": {"x": [1.0, 2.0], "leverage": [0.2, 0.6]},
+             "cook_vs_fitted": {"fitted": [1.0, 2.0], "cook": [0.1, 2.5]},
+             "residual_vs_x1": [1.0, 2.0], "residual_vs_x2": [5.0, 6.0],
+             "std_residuals": [0.3, -0.3]}
+    params = {"plots": plots, "variables": ["H", "I"],
+              "thresholds": {"leverage": 0.5, "modified_cook": 1.73}}
+    extra = {(e["kind"], e["x_name"]): e for e in
+             summary_plots("regression_diagnostics", {"parameters": params})["extra_scatter"]}
+    assert extra[("leverage_vs_x", "")]["ref"] == [0.5]
+    assert extra[("cook_vs_fitted", "")]["ref"] == [1.73]
+    assert extra[("residual_vs_x", "I")]["points"] == [[5.0, 0.3], [6.0, -0.3]]

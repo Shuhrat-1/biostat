@@ -326,6 +326,73 @@ function differencesOption(d: NonNullable<PlotBundle["differences"]>, t: T): Opt
   };
 }
 
+/** Кривые по группам: точки (цветом группы, если известна) и линии. */
+function groupCurvesOption(g: NonNullable<PlotBundle["group_curves"]>, t: T): Option {
+  const names = g.curves.map((cv) => cv.name);
+  const color = (name: string | null) => PALETTE[Math.max(0, names.indexOf(name ?? "")) % PALETTE.length];
+  const byGroup = new Map<string | null, number[][]>();
+  for (const [x, y, grp] of g.points) {
+    const key = grp !== null && names.includes(grp) ? grp : null;
+    byGroup.set(key, [...(byGroup.get(key) ?? []), [x, y]]);
+  }
+  const points = [...byGroup].map(([grp, data]) => ({
+    type: "scatter", name: grp ?? t("axis.all_groups"), data, symbolSize: 7,
+    itemStyle: { color: grp === null ? MUTED_LINE : color(grp), opacity: 0.7 },
+  }));
+  const curves = g.curves.flatMap((cv) => [
+    { type: "line", name: cv.name, data: cv.line, symbol: "none",
+      lineStyle: { color: color(cv.name), width: 2 }, itemStyle: { color: color(cv.name) } },
+    ...(cv.band ? [cv.band.lower, cv.band.upper] : []).map((data) => ({
+      type: "line", name: cv.name, data, symbol: "none", silent: true,
+      lineStyle: { color: color(cv.name), width: 1, type: "dashed", opacity: 0.7 } })),
+  ]);
+  return {
+    grid: { ...BASE_GRID, top: 56 },
+    tooltip: { trigger: "item" },
+    legend: { top: 8, textStyle: { color: c.muted }, data: [...new Set([...names, ...points.map((p) => p.name)])] },
+    xAxis: { type: "value", scale: true, name: "X", ...AXIS_STYLE },
+    yAxis: { type: "value", scale: true, name: "Y", ...AXIS_STYLE },
+    series: [...points, ...curves],
+  };
+}
+
+const EXTRA_AXES: Record<string, [string, string]> = {
+  residual_vs_x: ["x", "axis.residuals"],
+  discrepancy_vs_x: ["x", "axis.discrepancy"],
+  abs_residual_vs_fitted: ["axis.fitted", "axis.abs_residuals"],
+  leverage_vs_x: ["x", "axis.leverage"],
+  cook_vs_fitted: ["axis.fitted", "axis.cook"],
+  observed_vs_fitted: ["axis.fitted", "axis.observed"],
+};
+
+/** Точечный график против x / подгонки с опорными линиями (0, пороги, y = x). */
+function extraScatterOption(e: NonNullable<PlotBundle["extra_scatter"]>[number], t: T): Option {
+  const [xKey, yKey] = EXTRA_AXES[e.kind];
+  const xName = e.x_name || (xKey === "x" ? "x" : t(xKey));
+  const marks: Record<string, unknown>[] = e.ref.map((y) => ({ yAxis: y }));
+  const series: Record<string, unknown>[] = [{
+    type: "scatter", data: e.points, symbolSize: 6, itemStyle: { color: c.accent, opacity: 0.6 },
+    markLine: marks.length ? { silent: true, symbol: "none",
+      lineStyle: { color: e.kind === "residual_vs_x" || e.kind === "discrepancy_vs_x" ? MUTED_LINE : RED,
+        type: "dashed" }, label: { show: false }, data: marks } : undefined,
+  }];
+  if (e.kind === "observed_vs_fitted") {
+    const v = e.points.flat();
+    const lo = Math.min(...v);
+    const hi = Math.max(...v);
+    series.push({ type: "line", data: [[lo, lo], [hi, hi]], symbol: "none", silent: true,
+      lineStyle: { color: MUTED_LINE, type: "dashed" } });
+  }
+  const ys = e.points.map((p) => p[1]).concat(e.ref);
+  return {
+    grid: BASE_GRID,
+    tooltip: { trigger: "item" },
+    xAxis: { type: "value", scale: true, name: xName, ...AXIS_STYLE },
+    yAxis: { type: "value", name: t(yKey), ...AXIS_STYLE, ...bounds(ys) },
+    series,
+  };
+}
+
 /* --------------------------- Публичный вид --------------------------- */
 
 interface Item {
@@ -348,6 +415,10 @@ function summaryItems(bundle: PlotBundle, t: T): Item[] {
     items.push({ key: "means_ci", title: bundle.means_ci.term ? `${title}: ${bundle.means_ci.term}` : title,
       option: meansCiOption(bundle.means_ci, t) });
   }
+  if (bundle.group_curves) {
+    items.push({ key: "group_curves", title: t("plots.group_curves"),
+      option: groupCurvesOption(bundle.group_curves, t), height: 340 });
+  }
   if (bundle.differences) {
     const d = bundle.differences;
     const key = d.margin !== undefined ? "plots.equivalence"
@@ -367,6 +438,11 @@ function diagnosticItems(bundle: PlotBundle, t: T): Item[] {
   if (bundle.scatter) add("scatter", scatterOption(bundle.scatter));
   if (bundle.qq) add("qq", qqOption(bundle.qq, t));
   if (bundle.residual_vs_fitted) add("residual_vs_fitted", residualOption(bundle.residual_vs_fitted, t));
+  (bundle.extra_scatter ?? []).forEach((e, i) => items.push({
+    key: `extra_${i}`,
+    title: t(`plots.${e.kind}`) + (e.x_name ? `: ${e.x_name}` : ""),
+    option: extraScatterOption(e, t),
+  }));
   return items;
 }
 

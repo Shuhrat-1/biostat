@@ -632,6 +632,24 @@ export interface PlotBundle {
       upper: (number | null)[];
     }[];
   };
+  /** Данные и кривые/линии по группам; точка: [x, y, группа | null]. */
+  group_curves?: {
+    points: [number, number, string | null][];
+    curves: {
+      name: string;
+      line: number[][];
+      band?: { lower: number[][]; upper: number[][] };
+    }[];
+  };
+  /** Графики против x и индексные; ref — горизонтальные опорные линии. */
+  extra_scatter?: {
+    kind:
+      | "residual_vs_x" | "discrepancy_vs_x" | "abs_residual_vs_fitted"
+      | "leverage_vs_x" | "cook_vs_fitted" | "observed_vs_fitted";
+    points: number[][];
+    ref: number[];
+    x_name: string;
+  }[];
   /** ДИ разностей (group2 − group1) или отношений; margin — граница TOST. */
   differences?: {
     items: { label: string; diff: number; lower: number; upper: number }[];
@@ -812,6 +830,7 @@ try:
     _bundle.update(_summary(_method, _res.to_dict()))
 except Exception:
     pass
+_bundle = {k: v for k, v in _bundle.items() if v is not None}
 
 json.dumps(_bundle, ensure_ascii=False, allow_nan=False)
 `;

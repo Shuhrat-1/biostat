@@ -171,3 +171,21 @@ def test_guards_and_json():
     assert one.warnings[-1].code == "factor_one_level"
     json.dumps(_forest().to_dict())
     json.dumps(_weed().to_dict())
+
+
+def test_group_lines_follow_parallel_model_table_15_2():
+    """Линии для графика: у каждой группы наклон β и сдвиг α[группа] (Table 15.2)."""
+    r = _forest()
+    est = _rows(r.parameters["parameter_tests"])
+    gl = r.parameters["group_lines"]
+    assert len(gl["x"]) == len(gl["y"]) == len(gl["group"])
+    for line in gl["lines"]:
+        (x0, x1), (f0, f1) = line["x"], line["fitted"]
+        slope = (f1 - f0) / (x1 - x0)
+        assert slope == pytest.approx(est["β_logQD"]["estimate"], abs=1e-9)
+        assert f0 - slope * x0 == pytest.approx(est[f"α[{line['group']}]"]["estimate"], abs=1e-9)
+    json.dumps(gl, allow_nan=False)
+
+
+def test_no_group_lines_for_several_x():
+    assert "group_lines" not in _weed().parameters

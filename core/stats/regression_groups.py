@@ -341,6 +341,8 @@ def _final_model(frame: pd.DataFrame, final: list[tuple[str, ...]], levels: list
         result.parameters["intercept_differences"] = intercept_differences(params, levels, kind)
     result.parameters["slope_factors"] = _slope_ratios(params, kind if kind != _NONE else "")
     result.parameters["plots"] = _residual_plots(params["design"], frame)
+    if len(variables) == 1:
+        result.parameters["group_lines"] = _group_lines(params["design"], frame, variables[0])
     result.statistics.update({"adj_r_squared": params["adj_r_squared"], "df_resid": params["df"],
                               "ms_resid": params["s2"], "n_groups": len(levels)})
     for row in params["rows"]:
@@ -358,6 +360,25 @@ def _residual_plots(design: np.ndarray, frame: pd.DataFrame) -> dict:
     return {"residual_vs_fitted": {"fitted": m["fitted"].tolist(), "residuals": r.tolist()},
             "qq": {"theoretical_quantiles": blom.tolist(), "sample_quantiles": np.sort(r).tolist()},
             "std_residuals": r.tolist(), "groups": frame["grp"].tolist()}
+
+
+def _group_lines(design: np.ndarray, frame: pd.DataFrame, x: str) -> dict:
+    """Данные и линии итоговой модели по группам (шкала анализа), Fig. 15.1–15.3.
+
+    Модель линейна по x внутри группы, поэтому линия группы — отрезок между
+    подогнанными значениями в её крайних x; так не нужно разбирать матрицу
+    модели, и годится любой итог отбора (одна линия, параллельные, отдельные).
+    """
+    fitted = influence_measures(design, frame["y"].to_numpy(float))["fitted"]
+    xs, grp = frame[x].to_numpy(float), frame["grp"].astype(str).to_numpy()
+    lines = []
+    for level in _natural_order(frame["grp"]):
+        idx = np.flatnonzero(grp == str(level))
+        ends = [idx[np.argmin(xs[idx])], idx[np.argmax(xs[idx])]]
+        lines.append({"group": str(level), "x": [float(xs[i]) for i in ends],
+                      "fitted": [float(fitted[i]) for i in ends]})
+    return {"x": xs.tolist(), "y": frame["y"].astype(float).tolist(),
+            "group": grp.tolist(), "lines": lines}
 
 
 def _model_type(final: list[tuple[str, ...]], variables: list[str]) -> str:
