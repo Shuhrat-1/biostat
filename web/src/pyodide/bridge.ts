@@ -613,6 +613,32 @@ export interface PlotBundle {
   };
   qq?: { theoretical_quantiles: number[]; sample_quantiles: number[] };
   residual_vs_fitted?: { fitted: number[]; residuals: number[] };
+  /** Средние с ДИ (или ± SE); numeric — уровни-дозы на числовой оси. */
+  means_ci?: {
+    items: { label: string; mean: number; lower: number; upper: number; x?: number }[];
+    interval: "ci" | "se";
+    numeric: boolean;
+    term?: string;
+  };
+  /** Взаимодействие двух факторов: линия на каждый уровень factor_b. */
+  interaction?: {
+    factor_a: string;
+    factor_b: string;
+    levels_a: string[];
+    series: {
+      name: string;
+      values: (number | null)[];
+      lower: (number | null)[];
+      upper: (number | null)[];
+    }[];
+  };
+  /** ДИ разностей (group2 − group1) или отношений; margin — граница TOST. */
+  differences?: {
+    items: { label: string; diff: number; lower: number; upper: number }[];
+    reference: number;
+    kind: "diff" | "ratio";
+    margin?: number;
+  };
 }
 
 /**
@@ -779,7 +805,15 @@ elif _method == "pearson_correlation" and "x" in _res.parameters:
         _x, _y, float(_lr.slope), float(_lr.intercept)
     )
 
-json.dumps(_bundle, ensure_ascii=False)
+# Графики-итоги (средние с ДИ, взаимодействие, ДИ разностей) — из результата;
+# сбой здесь не должен лишить пользователя графиков остатков выше.
+try:
+    from core.stats.plotsummary import summary_plots as _summary
+    _bundle.update(_summary(_method, _res.to_dict()))
+except Exception:
+    pass
+
+json.dumps(_bundle, ensure_ascii=False, allow_nan=False)
 `;
   return runJson<PlotBundle>(code, {
     __columns_json: JSON.stringify(columns),
