@@ -157,3 +157,57 @@ def test_extra_scatters_with_reference_lines():
     assert extra[("leverage_vs_x", "")]["ref"] == [0.5]
     assert extra[("cook_vs_fitted", "")]["ref"] == [1.73]
     assert extra[("residual_vs_x", "I")]["points"] == [[5.0, 0.3], [6.0, -0.3]]
+
+
+# --- Пакет 3: GLM, порядковые, сопряжённость, парные -------------------------------------
+
+def _pred(level: str, natural: float, lo, hi, factor: str = "A") -> dict:
+    return {"factor": factor, "level": level, "natural": natural, "natural_lower": lo,
+            "natural_upper": hi}
+
+
+def test_glm_predictions_first_factor_on_natural_scale():
+    preds = [_pred("a", 0.2, 0.1, 0.35), _pred("b", 0.4, 0.3, 0.5),
+             _pred("x", 5.0, 4.0, 6.0, factor="B")]
+    out = summary_plots("glm_analysis", {"parameters": {"factor_predictions": preds}})["means_ci"]
+    assert (out["term"], out["title"], out["interval"]) == ("A", "predictions", "ci")
+    assert [it["label"] for it in out["items"]] == ["a", "b"]
+    assert out["items"][0]["upper"] - 0.2 > 0.2 - out["items"][0]["lower"]  # асимметрия
+
+
+def test_predictions_without_ci_are_points_only():
+    preds = [_pred("a", 4.6, None, None), _pred("b", 15.4, None, None)]
+    out = summary_plots("count_regression", {"parameters": {"factor_predictions": preds}})
+    assert out["means_ci"]["interval"] == "none"
+    assert out["means_ci"]["items"][0]["lower"] == out["means_ci"]["items"][0]["upper"] == 4.6
+
+
+def test_ordinal_probabilities_keep_category_order():
+    params = {"categories": ["healthy", "slight", "severe"],
+              "category_probabilities": [{"factor": "A", "level": "c", "probabilities":
+                                          {"severe": 0.1, "healthy": 0.6, "slight": 0.3}}]}
+    st = summary_plots("ordinal_regression", {"parameters": params})["stacked"]
+    assert st["categories"] == ["healthy", "slight", "severe"]
+    assert st["rows"] == [{"label": "c", "values": [0.6, 0.3, 0.1]}]
+
+
+def test_contingency_cells_indexed_by_table_order():
+    params = {"table": {"rows": ["A", "B"], "columns": ["x", "y"]},
+              "cells": [{"row": "B", "column": "y", "observed": 9.0, "expected": 5.0,
+                         "adjusted_residual": 2.5}]}
+    heat = summary_plots("contingency_test", {"parameters": params})["heatmap"]
+    assert heat["cells"] == [[1, 1, 2.5, 9.0, 5.0]]
+
+
+def test_paired_differences_follow_core_sign_and_line_limit():
+    from core.stats.hypothesis import paired_t
+    from core.stats.plotsummary import MAX_PAIR_LINES, paired_plot
+
+    before, after = [12.1, 14.3, 11.8, 15.2], [13.0, 15.1, 11.2, 16.8]
+    pp = paired_plot(before, after, ("до", "после"))
+    mean_diff = sum(b - a for b, a in zip(before, after)) / 4
+    core = paired_t(before, after).to_dict()
+    assert core["statistics"]["mean_diff"] == pytest.approx(mean_diff)
+    assert sum(pp["diff_hist"]["counts"]) == 4 and pp["labels"] == ["до", "после"]
+    many = paired_plot([1.0] * (MAX_PAIR_LINES + 1), [2.0] * (MAX_PAIR_LINES + 1), ("a", "b"))
+    assert many["pairs"] is None

@@ -236,6 +236,68 @@ def _extra_scatters(params: dict) -> list[dict]:
     return out
 
 
+# --- Пакет 3: GLM, порядковые и категориальные данные, парные измерения --------------
+
+MAX_PAIR_LINES = 60  # больше объектов — линии до/после сливаются, остаётся гистограмма
+
+
+def _glm_predictions(params: dict) -> dict | None:
+    """Предсказания по уровням первого фактора на натуральной шкале (гл. 18):
+    обратное связующее преобразование, ДИ асимметричен."""
+    preds = params.get("factor_predictions") or []
+    if not preds:
+        return None
+    factor = preds[0]["factor"]
+    rows = [{"label": p["level"], "mean": p.get("natural"), "ci_lower": p.get("natural_lower"),
+             "ci_upper": p.get("natural_upper")} for p in preds if p["factor"] == factor]
+    means = means_from_rows(rows, back=False)
+    if means is None:
+        # ДИ не посчитаны (вырожденная ковариация, напр. ZINB) — только точки.
+        rows = [{**r, "ci_lower": r["mean"], "ci_upper": r["mean"]} for r in rows]
+        means = means_from_rows(rows, back=False, interval="none")
+    return {**means, "term": factor, "title": "predictions"} if means else None
+
+
+def _category_probabilities(params: dict) -> dict | None:
+    """Вероятности категорий порядкового отклика по уровням (составные столбцы)."""
+    cats = params.get("categories") or []
+    probs = params.get("category_probabilities") or []
+    if not cats or not probs or len(probs) > MAX_LEVELS:
+        return None
+    several = len({p["factor"] for p in probs}) > 1
+    rows = [{"label": f"{p['factor']}={p['level']}" if several else str(p["level"]),
+             "values": [p["probabilities"].get(c) for c in cats]} for p in probs]
+    if not all(_ok(*r["values"]) for r in rows):
+        return None
+    return {"categories": [str(c) for c in cats], "rows": rows}
+
+
+def _contingency(params: dict) -> dict | None:
+    """Теплокарта таблицы сопряжённости: цвет — скорректированный остаток,
+    подпись — наблюдённая частота (|остаток| > 2 — ячейка выделяется), гл. 18.6."""
+    table, cells = params.get("table") or {}, params.get("cells") or []
+    rows, cols = table.get("rows") or [], table.get("columns") or []
+    if not cells or len(rows) > MAX_LEVELS or len(cols) > MAX_LEVELS:
+        return None
+    ri = {str(r): i for i, r in enumerate(rows)}
+    ci = {str(c): i for i, c in enumerate(cols)}
+    data = [[ci[str(c["column"])], ri[str(c["row"])], c["adjusted_residual"], c["observed"],
+             c["expected"]] for c in cells
+            if _ok(c.get("adjusted_residual"), c.get("observed"), c.get("expected"))]
+    return {"rows": [str(r) for r in rows], "columns": [str(c) for c in cols],
+            "cells": data} if data else None
+
+
+def paired_plot(before: list[float], after: list[float], names: tuple[str, str]) -> dict:
+    """До/после по объектам и гистограмма разностей до − после (как в ядре)."""
+    from core.stats.plotdata import histogram_data
+
+    pairs = [[b, a] for b, a in zip(before, after) if _ok(b, a)]
+    diffs = [b - a for b, a in pairs]
+    return {"labels": list(names), "pairs": pairs if len(pairs) <= MAX_PAIR_LINES else None,
+            "diff_hist": histogram_data(diffs)}
+
+
 def summary_plots(method: str, result: dict) -> dict[str, Any]:
     """Графики-итоги метода: средние, взаимодействие, разности, кривые по
     группам, графики против x. Ключ со значением None — убрать график моста
@@ -247,6 +309,13 @@ def summary_plots(method: str, result: dict) -> dict[str, Any]:
         out.update({"group_curves": curves, "scatter": None})
     if extra := _extra_scatters(params):
         out["extra_scatter"] = extra
+    if method in ("glm_analysis", "glmm_analysis", "count_regression") and \
+            (pred := _glm_predictions(params)):
+        out["means_ci"] = pred
+    if method == "ordinal_regression" and (stack := _category_probabilities(params)):
+        out["stacked"] = stack
+    if method == "contingency_test" and (heat := _contingency(params)):
+        out["heatmap"] = heat
     if method in _COMPARISONS and (diff := differences_from(params.get("comparisons", []))):
         out["differences"] = diff
     if method in _TABLES:

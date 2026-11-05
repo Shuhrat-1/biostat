@@ -616,9 +616,21 @@ export interface PlotBundle {
   /** Средние с ДИ (или ± SE); numeric — уровни-дозы на числовой оси. */
   means_ci?: {
     items: { label: string; mean: number; lower: number; upper: number; x?: number }[];
-    interval: "ci" | "se";
+    interval: "ci" | "se" | "none";
     numeric: boolean;
     term?: string;
+    /** «predictions» — предсказания GLM на натуральной шкале. */
+    title?: "predictions";
+  };
+  /** Вероятности категорий порядкового отклика по уровням (доли, сумма 1). */
+  stacked?: { categories: string[]; rows: { label: string; values: number[] }[] };
+  /** Таблица сопряжённости: [колонка, строка, скорр. остаток, наблюд., ожид.]. */
+  heatmap?: { rows: string[]; columns: string[]; cells: number[][] };
+  /** Парные измерения: до/после по объектам (null — объектов > 60) и разности. */
+  paired?: {
+    labels: [string, string];
+    pairs: number[][] | null;
+    diff_hist: NonNullable<PlotBundle["histogram"]>;
   };
   /** Взаимодействие двух факторов: линия на каждый уровень factor_b. */
   interaction?: {
@@ -813,6 +825,12 @@ elif _method == "anova_residuals" and "plots" in _res.parameters:
     _bundle["residual_vs_fitted"] = _p["residual_vs_fitted"]
     _bundle["qq"] = _p["qq"]
     _bundle["histogram"] = plotdata.histogram_data(_p["std_residuals"])
+
+elif _method in ("paired_t", "wilcoxon"):
+    # До/после по объектам и гистограмма разностей до − после (знак ядра).
+    from core.stats.plotsummary import paired_plot as _paired_plot
+    _b, _a = _t.paired_columns(_cols["before"], _cols["after"])
+    _bundle["paired"] = _paired_plot(list(_b), list(_a), (_cols["before"], _cols["after"]))
 
 elif _method == "pearson_correlation" and "x" in _res.parameters:
     # Пары уже очищены от NaN в ядре; линия МНК лишь показывает линейный тренд.

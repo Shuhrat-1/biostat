@@ -11,6 +11,7 @@ import {
   BarChart,
   BoxplotChart,
   CustomChart,
+  HeatmapChart,
   LineChart,
   ScatterChart,
 } from "echarts/charts";
@@ -20,6 +21,7 @@ import {
   MarkLineComponent,
   TitleComponent,
   TooltipComponent,
+  VisualMapComponent,
 } from "echarts/components";
 import { SVGRenderer } from "echarts/renderers";
 import { useEffect, useRef } from "react";
@@ -33,7 +35,9 @@ echarts.use([
   ScatterChart,
   LineChart,
   CustomChart,
+  HeatmapChart,
   GridComponent,
+  VisualMapComponent,
   TooltipComponent,
   LegendComponent,
   TitleComponent,
@@ -227,7 +231,9 @@ function bounds(values: number[]): { min: number; max: number } {
   const pad = (hi - lo || Math.abs(hi) || 1) * 0.05;
   // Округляем до «круглого» шага, иначе крайние подписи вида −290.289.
   const step = 10 ** Math.floor(Math.log10((hi - lo + 2 * pad) / 5 || 1));
-  return { min: Math.floor((lo - pad) / step) * step, max: Math.ceil((hi + pad) / step) * step };
+  const min = Math.floor((lo - pad) / step) * step;
+  // Неотрицательные данные (частоты, вероятности, рычаги) — ось не уходит ниже 0.
+  return { min: lo >= 0 ? Math.max(0, min) : min, max: Math.ceil((hi + pad) / step) * step };
 }
 
 const fmt = (v: number) => (Math.abs(v) >= 100 ? v.toFixed(1) : v.toPrecision(4));
@@ -393,6 +399,63 @@ function extraScatterOption(e: NonNullable<PlotBundle["extra_scatter"]>[number],
   };
 }
 
+/** Вероятности категорий: составные столбцы (порядок категорий сохранён). */
+function stackedOption(st: NonNullable<PlotBundle["stacked"]>, t: T): Option {
+  return {
+    grid: { ...BASE_GRID, top: 56 },
+    color: PALETTE,
+    tooltip: { trigger: "axis", axisPointer: { type: "shadow" },
+      valueFormatter: (v: number) => `${(v * 100).toFixed(1)}%` },
+    legend: { top: 8, textStyle: { color: c.muted } },
+    xAxis: { type: "category", data: st.rows.map((r) => r.label), ...AXIS_STYLE },
+    yAxis: { type: "value", min: 0, max: 1, name: t("axis.probability"), ...AXIS_STYLE },
+    series: st.categories.map((cat, j) => ({
+      type: "bar", name: cat, stack: "p", barWidth: "55%",
+      data: st.rows.map((r) => r.values[j]),
+    })),
+  };
+}
+
+/** Теплокарта скорректированных остатков: синий — меньше ожидаемого, красный — больше. */
+function heatmapOption(h: NonNullable<PlotBundle["heatmap"]>, t: T): Option {
+  const limit = Math.max(3, ...h.cells.map((cell) => Math.abs(cell[2])));
+  return {
+    grid: { left: 12, right: 24, top: 16, bottom: 64, containLabel: true },
+    tooltip: { trigger: "item", formatter: (p: any) => {
+      const [col, row, res, obs, exp] = p.value as number[];
+      return `${h.rows[row]} × ${h.columns[col]}: ${obs} (${t("axis.expected")} ${fmt(exp)}),`
+        + ` ${t("axis.adj_residual")} ${fmt(res)}`;
+    } },
+    xAxis: { type: "category", data: h.columns, ...AXIS_STYLE },
+    yAxis: { type: "category", data: h.rows, inverse: true, ...AXIS_STYLE },
+    visualMap: { min: -limit, max: limit, calculable: false, orient: "horizontal", left: "center",
+      bottom: 0, dimension: 2, text: [`+${fmt(limit)}`, `−${fmt(limit)}`],
+      inRange: { color: ["#1d4ed8", "#f8fafc", "#dc2626"] }, textStyle: { color: c.muted } },
+    series: [{ type: "heatmap", data: h.cells,
+      label: { show: true, color: c.text, formatter: (p: any) => String(p.value[3]) },
+      itemStyle: { borderColor: "#fff", borderWidth: 2 } }],
+  };
+}
+
+/** До/после: линия на объект; рост — цветом акцента, падение — красным. */
+function pairedOption(pd: NonNullable<PlotBundle["paired"]>): Option {
+  const pairs = pd.pairs ?? [];
+  return {
+    grid: { ...BASE_GRID, left: 56, right: 56 },
+    tooltip: { trigger: "item", formatter: (p: any) => {
+      const [b, a] = pairs[p.seriesIndex];
+      return `${pd.labels[0]} ${fmt(b)} → ${pd.labels[1]} ${fmt(a)}`;
+    } },
+    xAxis: { type: "category", data: pd.labels, boundaryGap: false, ...AXIS_STYLE },
+    yAxis: { type: "value", ...AXIS_STYLE, ...bounds(pairs.flat()) },
+    series: pairs.map(([b, a]) => ({
+      type: "line", data: [b, a], symbolSize: 6,
+      lineStyle: { width: 1.5, opacity: 0.7, color: a >= b ? c.accent : RED },
+      itemStyle: { color: a >= b ? c.accent : RED },
+    })),
+  };
+}
+
 /* --------------------------- Публичный вид --------------------------- */
 
 interface Item {
@@ -410,8 +473,25 @@ function summaryItems(bundle: PlotBundle, t: T): Item[] {
     items.push({ key: "interaction", title: `${t("plots.interaction")} (${g.factor_a} × ${g.factor_b})`,
       option: interactionOption(bundle.interaction) });
   }
+  if (bundle.paired) {
+    if (bundle.paired.pairs) {
+      items.push({ key: "paired", title: t("plots.paired"), option: pairedOption(bundle.paired) });
+    }
+    items.push({ key: "paired_diff", title: t("plots.paired_diff"),
+      option: histogramOption(bundle.paired.diff_hist, t) });
+  }
+  if (bundle.stacked) {
+    items.push({ key: "stacked", title: t("plots.stacked"), option: stackedOption(bundle.stacked, t) });
+  }
+  if (bundle.heatmap) {
+    items.push({ key: "heatmap", title: t("plots.heatmap"), option: heatmapOption(bundle.heatmap, t),
+      height: Math.max(200, 48 * bundle.heatmap.rows.length + 110) });
+  }
   if (bundle.means_ci) {
-    const title = t(bundle.means_ci.interval === "se" ? "plots.means_se" : "plots.means_ci");
+    const m = bundle.means_ci;
+    const title = m.title === "predictions"
+      ? t(m.interval === "none" ? "plots.predictions_noci" : "plots.predictions")
+      : t(m.interval === "se" ? "plots.means_se" : "plots.means_ci");
     items.push({ key: "means_ci", title: bundle.means_ci.term ? `${title}: ${bundle.means_ci.term}` : title,
       option: meansCiOption(bundle.means_ci, t) });
   }
