@@ -298,24 +298,63 @@ def paired_plot(before: list[float], after: list[float], names: tuple[str, str])
             "diff_hist": histogram_data(diffs)}
 
 
-def summary_plots(method: str, result: dict) -> dict[str, Any]:
-    """Графики-итоги метода: средние, взаимодействие, разности, кривые по
-    группам, графики против x. Ключ со значением None — убрать график моста
-    (у кривых по группам он заменяет одиночную первую кривую)."""
+# --- Пакет 4: планирование и отбор моделей, поверхность отклика ---------------------------
+
+MAX_SUBSETS = 500  # точек на графике Cp / R²adj
+
+
+def _power_curve(params: dict) -> dict | None:
+    """Мощность против повторности n и целевая мощность (гл. 10)."""
+    rows = params.get("replication_table") or []
+    points = _pairs([r.get("n") for r in rows], [r.get("power") for r in rows])
+    if len(points) < 2:
+        return None
+    target = params.get("target_power")
+    return {"kind": "power_vs_n", "points": points, "ref": [target] if _ok(target) else [],
+            "x_name": "", "line": True}
+
+
+def _subset_scatters(params: dict) -> list[dict]:
+    """Все подмножества: Cp (с линией Cp = p) и R²adj против числа параметров p."""
+    subsets = (params.get("subsets") or [])[:MAX_SUBSETS]
+    labels = [", ".join(s.get("terms", [])) for s in subsets]
+    p = [s.get("p") for s in subsets]
+    out = []
+    for kind, key, diagonal in (("cp_vs_p", "cp", True), ("adj_r2_vs_p", "adj_r_squared", False)):
+        ys = [s.get(key) for s in subsets]
+        keep = [i for i in range(len(subsets)) if _ok(p[i], ys[i])]
+        if keep:
+            out.append({"kind": kind, "points": [[p[i], ys[i]] for i in keep], "ref": [],
+                        "x_name": "", "diagonal": diagonal, "labels": [labels[i] for i in keep]})
+    return out
+
+
+def _cv_models(params: dict) -> dict | None:
+    """MSEP моделей при кросс-валидации (гл. 14.4); лучшая — отмечена."""
+    models = params.get("models") or []
+    best = ", ".join(params.get("best") or [])
+    items = [{"label": ", ".join(m.get("terms", [])) or "—", "value": m["msep"]}
+             for m in models if _ok(m.get("msep"))]
+    if not items or len(items) > MAX_PAIRS:
+        return None
+    return {"kind": "msep", "items": items, "best": best}
+
+
+def _surface(params: dict) -> dict | None:
+    """Поверхность отклика на сетке x1 × x2 (гл. 16.3); прочие x — на средних."""
+    sf = params.get("surface") or {}
+    x1, x2, z = sf.get("x1") or [], sf.get("x2") or [], sf.get("fitted") or []
+    if not x1 or not x2 or len(z) != len(x1) or not all(len(row) == len(x2) for row in z):
+        return None
+    cells = [[i, j, z[i][j]] for i in range(len(x1)) for j in range(len(x2)) if _ok(z[i][j])]
+    names = params.get("variables") or ["x1", "x2"]
+    return {"x1": x1, "x2": x2, "cells": cells, "names": [str(n) for n in names[:2]]}
+
+
+def _comparison_plots(method: str, result: dict) -> dict[str, Any]:
+    """Пакет 1: средние, взаимодействие, разности."""
     params = result.get("parameters", {})
     out: dict[str, Any] = {}
-    curves = _block_curves(params) or _group_lines(params)
-    if curves:
-        out.update({"group_curves": curves, "scatter": None})
-    if extra := _extra_scatters(params):
-        out["extra_scatter"] = extra
-    if method in ("glm_analysis", "glmm_analysis", "count_regression") and \
-            (pred := _glm_predictions(params)):
-        out["means_ci"] = pred
-    if method == "ordinal_regression" and (stack := _category_probabilities(params)):
-        out["stacked"] = stack
-    if method == "contingency_test" and (heat := _contingency(params)):
-        out["heatmap"] = heat
     if method in _COMPARISONS and (diff := differences_from(params.get("comparisons", []))):
         out["differences"] = diff
     if method in _TABLES:
@@ -334,3 +373,34 @@ def summary_plots(method: str, result: dict) -> dict[str, Any]:
     if method == "equivalence_test" and (eq := _equivalence(params)):
         out["differences"] = eq
     return out
+
+
+def _model_plots(method: str, result: dict) -> dict[str, Any]:
+    """Пакеты 2–4: кривые, графики против x, GLM, категории, отбор, поверхность."""
+    params = result.get("parameters", {})
+    out: dict[str, Any] = {}
+    if curves := _block_curves(params) or _group_lines(params):
+        out.update({"group_curves": curves, "scatter": None})
+    extra = _extra_scatters(params) + _subset_scatters(params)
+    if method == "replication_power" and (power := _power_curve(params)):
+        extra.append(power)
+    if extra:
+        out["extra_scatter"] = extra
+    if method in ("glm_analysis", "glmm_analysis", "count_regression") and \
+            (pred := _glm_predictions(params)):
+        out["means_ci"] = pred
+    if method == "ordinal_regression" and (stack := _category_probabilities(params)):
+        out["stacked"] = stack
+    if method == "contingency_test" and (heat := _contingency(params)):
+        out["heatmap"] = heat
+    if method == "model_cross_validation" and (bars := _cv_models(params)):
+        out["bars"] = bars
+    if method == "response_surface" and (surface := _surface(params)):
+        out["surface"] = surface
+    return out
+
+
+def summary_plots(method: str, result: dict) -> dict[str, Any]:
+    """Графики-итоги метода из готового результата. Ключ со значением None —
+    убрать график моста (кривые по группам заменяют одиночную кривую)."""
+    return {**_model_plots(method, result), **_comparison_plots(method, result)}

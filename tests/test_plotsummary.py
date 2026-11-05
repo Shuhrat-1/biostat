@@ -211,3 +211,39 @@ def test_paired_differences_follow_core_sign_and_line_limit():
     assert sum(pp["diff_hist"]["counts"]) == 4 and pp["labels"] == ["до", "после"]
     many = paired_plot([1.0] * (MAX_PAIR_LINES + 1), [2.0] * (MAX_PAIR_LINES + 1), ("a", "b"))
     assert many["pairs"] is None
+
+
+# --- Пакет 4: мощность, отбор подмножеств, MSEP, поверхность ----------------------------
+
+def test_power_curve_with_target_line():
+    rows = [{"n": n, "power": pw} for n, pw in ((2, 0.15), (3, 0.24), (4, None))]
+    params = {"replication_table": rows, "target_power": 0.8}
+    (power,) = summary_plots("replication_power", {"parameters": params})["extra_scatter"]
+    assert power["kind"] == "power_vs_n" and power["line"] is True
+    assert power["points"] == [[2, 0.15], [3, 0.24]] and power["ref"] == [0.8]
+
+
+def test_subsets_cp_has_diagonal_and_terms_as_labels():
+    subsets = [{"terms": ["a"], "p": 2, "cp": 5.0, "adj_r_squared": 0.4},
+               {"terms": ["a", "b"], "p": 3, "cp": 3.1, "adj_r_squared": 0.6}]
+    extra = {e["kind"]: e for e in summary_plots(
+        "regression_subsets", {"parameters": {"subsets": subsets}})["extra_scatter"]}
+    assert extra["cp_vs_p"]["diagonal"] and not extra["adj_r2_vs_p"]["diagonal"]
+    assert extra["cp_vs_p"]["labels"] == ["a", "a, b"]
+    assert extra["adj_r2_vs_p"]["points"] == [[2, 0.4], [3, 0.6]]
+
+
+def test_cv_models_mark_best():
+    params = {"models": [{"terms": ["L", "H"], "msep": 8.4}, {"terms": ["L"], "msep": 8.7}],
+              "best": ["L", "H"]}
+    bars = summary_plots("model_cross_validation", {"parameters": params})["bars"]
+    assert bars["best"] == "L, H" and [it["value"] for it in bars["items"]] == [8.4, 8.7]
+
+
+def test_surface_grid_indices_and_shape_guard():
+    sf = {"x1": [0.0, 1.0], "x2": [0.0, 10.0, 20.0], "fitted": [[1, 2, 3], [4, 5, 6]]}
+    out = summary_plots("response_surface", {"parameters": {"surface": sf, "variables": ["N", "P"]}})
+    assert out["surface"]["names"] == ["N", "P"]
+    assert out["surface"]["cells"][-1] == [1, 2, 6]
+    bad = {**sf, "fitted": [[1, 2], [4, 5]]}
+    assert "surface" not in summary_plots("response_surface", {"parameters": {"surface": bad}})

@@ -657,11 +657,22 @@ export interface PlotBundle {
   extra_scatter?: {
     kind:
       | "residual_vs_x" | "discrepancy_vs_x" | "abs_residual_vs_fitted"
-      | "leverage_vs_x" | "cook_vs_fitted" | "observed_vs_fitted";
+      | "leverage_vs_x" | "cook_vs_fitted" | "observed_vs_fitted"
+      | "power_vs_n" | "cp_vs_p" | "adj_r2_vs_p";
     points: number[][];
     ref: number[];
     x_name: string;
+    /** Соединить точки линией (кривая мощности). */
+    line?: boolean;
+    /** Опорная диагональ y = x (Cp = p). */
+    diagonal?: boolean;
+    /** Подписи точек для подсказки (состав подмножества). */
+    labels?: string[];
   }[];
+  /** Горизонтальные столбцы (MSEP моделей); best — подпись лучшей. */
+  bars?: { kind: "msep"; items: { label: string; value: number }[]; best: string };
+  /** Поверхность отклика: сетка x1 × x2, ячейки [i, j, подгонка]. */
+  surface?: { x1: number[]; x2: number[]; cells: number[][]; names: string[] };
   /** ДИ разностей (group2 − group1) или отношений; margin — граница TOST. */
   differences?: {
     items: { label: string; diff: number; lower: number; upper: number }[];

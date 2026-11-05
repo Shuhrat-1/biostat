@@ -231,12 +231,15 @@ function bounds(values: number[]): { min: number; max: number } {
   const pad = (hi - lo || Math.abs(hi) || 1) * 0.05;
   // Округляем до «круглого» шага, иначе крайние подписи вида −290.289.
   const step = 10 ** Math.floor(Math.log10((hi - lo + 2 * pad) / 5 || 1));
-  const min = Math.floor((lo - pad) / step) * step;
+  // toPrecision убирает хвосты плавающей точки (1.4000000000000001).
+  const round = (v: number) => Number(v.toPrecision(12));
+  const min = round(Math.floor((lo - pad) / step) * step);
   // Неотрицательные данные (частоты, вероятности, рычаги) — ось не уходит ниже 0.
-  return { min: lo >= 0 ? Math.max(0, min) : min, max: Math.ceil((hi + pad) / step) * step };
+  return { min: lo >= 0 ? Math.max(0, min) : min, max: round(Math.ceil((hi + pad) / step) * step) };
 }
 
-const fmt = (v: number) => (Math.abs(v) >= 100 ? v.toFixed(1) : v.toPrecision(4));
+const fmt = (v: number) =>
+  (Math.abs(v) >= 100 ? v.toFixed(1) : String(Number(v.toPrecision(4))));
 
 /** Средние с ДИ: точка и планка; у доз — числовая ось (гл. 8.4). */
 function meansCiOption(m: NonNullable<PlotBundle["means_ci"]>, t: T): Option {
@@ -369,6 +372,9 @@ const EXTRA_AXES: Record<string, [string, string]> = {
   leverage_vs_x: ["x", "axis.leverage"],
   cook_vs_fitted: ["axis.fitted", "axis.cook"],
   observed_vs_fitted: ["axis.fitted", "axis.observed"],
+  power_vs_n: ["axis.n", "axis.power"],
+  cp_vs_p: ["axis.p", "axis.cp"],
+  adj_r2_vs_p: ["axis.p", "axis.adj_r2"],
 };
 
 /** Точечный график против x / подгонки с опорными линиями (0, пороги, y = x). */
@@ -377,24 +383,32 @@ function extraScatterOption(e: NonNullable<PlotBundle["extra_scatter"]>[number],
   const xName = e.x_name || (xKey === "x" ? "x" : t(xKey));
   const marks: Record<string, unknown>[] = e.ref.map((y) => ({ yAxis: y }));
   const series: Record<string, unknown>[] = [{
-    type: "scatter", data: e.points, symbolSize: 6, itemStyle: { color: c.accent, opacity: 0.6 },
+    type: e.line ? "line" : "scatter", data: e.points, symbolSize: 6,
+    itemStyle: { color: c.accent, opacity: e.line ? 1 : 0.6 },
     markLine: marks.length ? { silent: true, symbol: "none",
       lineStyle: { color: e.kind === "residual_vs_x" || e.kind === "discrepancy_vs_x" ? MUTED_LINE : RED,
         type: "dashed" }, label: { show: false }, data: marks } : undefined,
   }];
-  if (e.kind === "observed_vs_fitted") {
-    const v = e.points.flat();
+  if (e.diagonal || e.kind === "observed_vs_fitted") {
+    // y = x по диапазону оси x (Cp = p; наблюдённое = подогнанное).
+    const v = e.points.map((p) => p[0]);
     const lo = Math.min(...v);
     const hi = Math.max(...v);
     series.push({ type: "line", data: [[lo, lo], [hi, hi]], symbol: "none", silent: true,
       lineStyle: { color: MUTED_LINE, type: "dashed" } });
   }
   const ys = e.points.map((p) => p[1]).concat(e.ref);
+  const tip = (p: any) => {
+    const [x, y] = e.points[p.dataIndex] ?? [];
+    const label = e.labels?.[p.dataIndex];
+    return `${label ? `${label}<br/>` : ""}${xName} ${fmt(x)} · ${t(yKey)} ${fmt(y)}`;
+  };
   return {
     grid: BASE_GRID,
-    tooltip: { trigger: "item" },
+    tooltip: { trigger: "item", formatter: (p: any) => (p.seriesIndex === 0 ? tip(p) : "") },
     xAxis: { type: "value", scale: true, name: xName, ...AXIS_STYLE },
-    yAxis: { type: "value", name: t(yKey), ...AXIS_STYLE, ...bounds(ys) },
+    yAxis: { type: "value", name: t(yKey), ...AXIS_STYLE,
+      ...(e.kind === "power_vs_n" ? { min: 0, max: 1 } : bounds(ys)) },
     series,
   };
 }
@@ -456,6 +470,42 @@ function pairedOption(pd: NonNullable<PlotBundle["paired"]>): Option {
   };
 }
 
+/** Горизонтальные столбцы (MSEP моделей): лучшая модель — цветом акцента. */
+function barsOption(b: NonNullable<PlotBundle["bars"]>, t: T): Option {
+  return {
+    grid: { left: 12, right: 40, top: 16, bottom: 36, containLabel: true },
+    tooltip: { trigger: "item", formatter: (p: any) => `${b.items[p.dataIndex].label}: ${fmt(p.value)}` },
+    xAxis: { type: "value", name: t("axis.msep"), nameLocation: "middle", nameGap: 24, ...AXIS_STYLE },
+    yAxis: { type: "category", data: b.items.map((it) => it.label), inverse: true, ...AXIS_STYLE },
+    series: [{
+      type: "bar", barWidth: "55%",
+      data: b.items.map((it) => ({ value: it.value,
+        itemStyle: { color: it.label === b.best ? c.accent : MUTED_LINE } })),
+      label: { show: true, position: "right", color: c.muted,
+        formatter: (p: any) => (b.items[p.dataIndex].label === b.best ? t("axis.best") : "") },
+    }],
+  };
+}
+
+/** Поверхность отклика: теплокарта подгонки на сетке x1 × x2. */
+function surfaceOption(sf: NonNullable<PlotBundle["surface"]>, t: T): Option {
+  const z = sf.cells.map((cell) => cell[2]);
+  const label = (v: number) => fmt(v);
+  return {
+    grid: { left: 12, right: 24, top: 16, bottom: 72, containLabel: true },
+    tooltip: { trigger: "item", formatter: (p: any) => {
+      const [i, j, v] = p.value as number[];
+      return `${sf.names[0]} ${fmt(sf.x1[i])}, ${sf.names[1]} ${fmt(sf.x2[j])}: ${fmt(v)}`;
+    } },
+    xAxis: { type: "category", name: sf.names[0], data: sf.x1.map(label), ...AXIS_STYLE },
+    yAxis: { type: "category", name: sf.names[1], data: sf.x2.map(label), ...AXIS_STYLE },
+    visualMap: { min: Math.min(...z), max: Math.max(...z), calculable: true, orient: "horizontal",
+      left: "center", bottom: 0, dimension: 2, text: [t("axis.fitted_value"), ""],
+      inRange: { color: ["#f0fdfa", "#5eead4", "#0f766e", "#134e4a"] }, textStyle: { color: c.muted } },
+    series: [{ type: "heatmap", data: sf.cells }],
+  };
+}
+
 /* --------------------------- Публичный вид --------------------------- */
 
 interface Item {
@@ -463,6 +513,20 @@ interface Item {
   title: string;
   option: Option;
   height?: number;
+}
+
+/** Итоговые виды (мощность, отбор подмножеств) — к итогам; прочие — к диагностике. */
+const SUMMARY_KINDS = new Set(["power_vs_n", "cp_vs_p", "adj_r2_vs_p"]);
+
+function extraItems(bundle: PlotBundle, t: T, summary: boolean): Item[] {
+  return (bundle.extra_scatter ?? [])
+    .map((e, i) => ({ e, i }))
+    .filter(({ e }) => SUMMARY_KINDS.has(e.kind) === summary)
+    .map(({ e, i }) => ({
+      key: `extra_${i}`,
+      title: t(`plots.${e.kind}`) + (e.x_name ? `: ${e.x_name}` : ""),
+      option: extraScatterOption(e, t),
+    }));
 }
 
 /** Графики-итоги идут первыми: это вывод анализа; диагностика — следом. */
@@ -482,6 +546,15 @@ function summaryItems(bundle: PlotBundle, t: T): Item[] {
   }
   if (bundle.stacked) {
     items.push({ key: "stacked", title: t("plots.stacked"), option: stackedOption(bundle.stacked, t) });
+  }
+  items.push(...extraItems(bundle, t, true));
+  if (bundle.surface) {
+    items.push({ key: "surface", title: t("plots.surface"), option: surfaceOption(bundle.surface, t),
+      height: 420 });
+  }
+  if (bundle.bars) {
+    items.push({ key: "bars", title: t(`plots.${bundle.bars.kind}`), option: barsOption(bundle.bars, t),
+      height: Math.max(160, 34 * bundle.bars.items.length + 70) });
   }
   if (bundle.heatmap) {
     items.push({ key: "heatmap", title: t("plots.heatmap"), option: heatmapOption(bundle.heatmap, t),
@@ -518,11 +591,7 @@ function diagnosticItems(bundle: PlotBundle, t: T): Item[] {
   if (bundle.scatter) add("scatter", scatterOption(bundle.scatter));
   if (bundle.qq) add("qq", qqOption(bundle.qq, t));
   if (bundle.residual_vs_fitted) add("residual_vs_fitted", residualOption(bundle.residual_vs_fitted, t));
-  (bundle.extra_scatter ?? []).forEach((e, i) => items.push({
-    key: `extra_${i}`,
-    title: t(`plots.${e.kind}`) + (e.x_name ? `: ${e.x_name}` : ""),
-    option: extraScatterOption(e, t),
-  }));
+  items.push(...extraItems(bundle, t, false));
   return items;
 }
 
