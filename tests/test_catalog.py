@@ -181,6 +181,7 @@ def test_catalog_params_match_function_signatures():
         "glmm_analysis": "core.stats.glmm",
         "ordinal_regression": "core.stats.categorical",
         "contingency_test": "core.stats.categorical",
+        "frequency_table": "core.stats.frequency",
         "sampling_scheme_power": "core.stats.sampling",
         "curve_in_blocks": "core.stats.curve_designs",
         "nonlinear_in_blocks": "core.stats.curve_designs",

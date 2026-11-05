@@ -216,6 +216,7 @@ const METHOD_MODULES: Record<string, string> = {
   glmm_analysis: "core.stats.glmm",
   ordinal_regression: "core.stats.categorical",
   contingency_test: "core.stats.categorical",
+  frequency_table: "core.stats.frequency",
   sampling_scheme_power: "core.stats.sampling",
   curve_in_blocks: "core.stats.curve_designs",
   nonlinear_in_blocks: "core.stats.curve_designs",
@@ -283,7 +284,11 @@ const STRUCTURED_METHODS = new Set([
 ]);
 
 /** Методы, где все слоты — метки строк (категории, частоты как текст): гл. 18.4. */
-const CATEGORICAL_METHODS = new Set(["contingency_test", "ordinal_regression"]);
+const CATEGORICAL_METHODS = new Set([
+  "contingency_test",
+  "ordinal_regression",
+  "frequency_table",
+]);
 
 /** Множественная регрессия (гл. 14): отклик y и все числовые колонки, выровненные по строкам. */
 const MULTI_METHODS = new Set([
@@ -589,7 +594,7 @@ export function requiredColumns(method: string): Array<keyof ColumnSelection> {
   if (method === "contingency_test") return ["factor_a", "factor_b"];
   if (method === "sampling_scheme_power") return [];
   if (method === "curve_in_blocks" || method === "nonlinear_in_blocks") return ["value", "x"];
-  if (method === "ordinal_regression") return ["response"];
+  if (method === "ordinal_regression" || method === "frequency_table") return ["response"];
   if (STRUCTURED_METHODS.has(method)) return ["value", "group"];
   if (BLOCKED_METHODS.has(method)) return ["value", "group", "block"];
   return ["value"];

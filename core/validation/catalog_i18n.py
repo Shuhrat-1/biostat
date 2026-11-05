@@ -36,6 +36,7 @@ LABELS: dict[str, dict[str, str]] = {
     "en": {
         "Описательная статистика": "Descriptive statistics",
         "Доверительный интервал среднего": "Confidence interval of the mean",
+        "Таблица частот одной колонки": "Frequency table of one column",
         "Проверка нормальности (Шапиро-Уилк)": "Normality test (Shapiro-Wilk)",
         "Одновыборочный t-тест": "One-sample t-test",
         "Двухвыборочный t-тест": "Two-sample t-test",
@@ -96,6 +97,7 @@ LABELS: dict[str, dict[str, str]] = {
     "pt": {
         "Описательная статистика": "Estatística descritiva",
         "Доверительный интервал среднего": "Intervalo de confiança da média",
+        "Таблица частот одной колонки": "Tabela de frequências de uma coluna",
         "Проверка нормальности (Шапиро-Уилк)": "Teste de normalidade (Shapiro-Wilk)",
         "Одновыборочный t-тест": "Teste t para uma amostra",
         "Двухвыборочный t-тест": "Teste t para duas amostras",
@@ -162,6 +164,7 @@ DESCRIPTIONS: dict[str, dict[str, str]] = {
         "Интервальная оценка среднего по t-распределению.": (
             "Interval estimate of the mean via the t-distribution."
         ),
+        "Частоты, доли с ДИ, накопленные проценты, мода и медианный класс; классы по правилам Witte.": "Frequencies, proportions with CIs, cumulative percentages, mode and median class; classes by the Witte rules.",
         "Проверяет, согласуются ли данные с нормальным распределением.": (
             "Tests whether data are consistent with a normal distribution."
         ),
@@ -258,6 +261,7 @@ DESCRIPTIONS: dict[str, dict[str, str]] = {
         "Интервальная оценка среднего по t-распределению.": (
             "Estimativa por intervalo da média via distribuição t."
         ),
+        "Частоты, доли с ДИ, накопленные проценты, мода и медианный класс; классы по правилам Witte.": "Frequências, proporções com IC, percentagens acumuladas, moda e classe mediana; classes pelas regras de Witte.",
         "Проверяет, согласуются ли данные с нормальным распределением.": (
             "Verifica se os dados são consistentes com uma distribuição normal."
         ),
@@ -444,6 +448,14 @@ LABELS_MISC: dict[str, dict[str, str]] = {
         "Экспозиция: время, площадь, объём (необязательно)": "Exposure: time, area, volume (optional)",
         "Модель счётов": "Count model",
         "Упорядоченный отклик (категории)": "Ordered response (categories)",
+        "Колонка (категории или числа)": "Column (categories or numbers)",
+        "Частота строки (если строки — уже сведённые классы; необязательно)": "Row frequency (if rows are already tabulated classes; optional)",
+        "Тип колонки": "Column type",
+        "Порядок уровней от меньшего к большему (через ;)": "Level order from lowest to highest (separated by ;)",
+        "Желаемое число классов": "Target number of classes",
+        "Ширина класса (0 — по правилу размах/10)": "Class width (0 — by the range/10 rule)",
+        "Единица измерения (0 — по записи чисел)": "Unit of measurement (0 — from how numbers are written)",
+        "Уровень значимости α (ДИ долей)": "Significance level α (CIs of proportions)",
         "Порядок категорий (через запятую; пусто — естественный)": "Order of categories (comma-separated; empty — natural)",
         "Классификация строк": "Row classification",
         "Классификация столбцов": "Column classification",
@@ -586,6 +598,14 @@ LABELS_MISC: dict[str, dict[str, str]] = {
         "Экспозиция: время, площадь, объём (необязательно)": "Exposição: tempo, área, volume (opcional)",
         "Модель счётов": "Modelo de contagens",
         "Упорядоченный отклик (категории)": "Resposta ordenada (categorias)",
+        "Колонка (категории или числа)": "Coluna (categorias ou números)",
+        "Частота строки (если строки — уже сведённые классы; необязательно)": "Frequência da linha (se as linhas já são classes agregadas; opcional)",
+        "Тип колонки": "Tipo de coluna",
+        "Порядок уровней от меньшего к большему (через ;)": "Ordem dos níveis do menor para o maior (separados por ;)",
+        "Желаемое число классов": "Número pretendido de classes",
+        "Ширина класса (0 — по правилу размах/10)": "Largura da classe (0 — pela regra amplitude/10)",
+        "Единица измерения (0 — по записи чисел)": "Unidade de medida (0 — pela escrita dos números)",
+        "Уровень значимости α (ДИ долей)": "Nível de significância α (IC das proporções)",
         "Порядок категорий (через запятую; пусто — естественный)": "Ordem das categorias (separadas por vírgula; vazio — natural)",
         "Классификация строк": "Classificação das linhas",
         "Классификация столбцов": "Classificação das colunas",

@@ -481,6 +481,36 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     en: `Predictions and comparisons refer to a "typical" group (b = 0), not to population-averaged means.`,
     pt: `As previsões e comparações referem-se a um grupo «típico» (b = 0), não a médias populacionais.`,
   },
+  freq_empty: {
+    ru: `Нет значений, или частоты отрицательны либо все нулевые.`,
+    en: `There are no values, or the frequencies are negative or all zero.`,
+    pt: `Não há valores, ou as frequências são negativas ou todas nulas.`,
+  },
+  freq_not_numeric: {
+    ru: `Колонка содержит нечисловые значения: выберите тип «категории» или «авто».`,
+    en: `The column contains non-numeric values: choose the "categorical" or "auto" type.`,
+    pt: `A coluna contém valores não numéricos: escolha o tipo «categórica» ou «auto».`,
+  },
+  freq_unknown_levels: {
+    ru: `Значения вне заданного порядка уровней: {levels}. Добавьте их в порядок или исправьте записи.`,
+    en: `Values outside the given level order: {levels}. Add them to the order or correct the records.`,
+    pt: `Valores fora da ordem de níveis indicada: {levels}. Acrescente-os à ordem ou corrija os registos.`,
+  },
+  freq_nominal: {
+    ru: `Порядок уровней не задан: данные считаются номинальными — накопленные частоты и медианный класс не считаются (Witte, стр. 32).`,
+    en: `No level order given: the data are treated as nominal — cumulative frequencies and the median class are not computed (Witte, p. 32).`,
+    pt: `Ordem dos níveis não indicada: os dados são tratados como nominais — frequências acumuladas e classe mediana não são calculadas (Witte, p. 32).`,
+  },
+  freq_many_classes: {
+    ru: `Категорий {k}: колонка похожа на идентификаторы или на количественную переменную.`,
+    en: `{k} categories: the column looks like identifiers or a quantitative variable.`,
+    pt: `{k} categorias: a coluna parece conter identificadores ou uma variável quantitativa.`,
+  },
+  freq_too_many_classes: {
+    ru: `Больше {k} классов: увеличьте ширину класса или единицу измерения.`,
+    en: `More than {k} classes: increase the class width or the unit of measurement.`,
+    pt: `Mais de {k} classes: aumente a largura da classe ou a unidade de medida.`,
+  },
   lack_of_fit: {
     ru: `Отклонения средних по уровням x от прямой значимы: прямая не описывает зависимость.`,
     en: `Deviations of the group means at each x from the fitted line are significant: a straight line does not describe the relationship.`,
