@@ -721,6 +721,10 @@ def _band(_cv):
 if _method in ("normality_test", "mean_ci", "one_sample_t"):
     _vals = _t.numeric_column(_cols["value"])
     _bundle["histogram"] = plotdata.histogram_data(_vals)
+    # Q-Q — главная проверка нормальности (Welham гл. 5.2); Шапиро — дополнение.
+    _qq = plotdata.qq_data(_vals)
+    if _qq:
+        _bundle["qq"] = _qq
 
 elif _method in (
     "one_way_anova", "kruskal_wallis", "tukey_hsd", "treatment_means",

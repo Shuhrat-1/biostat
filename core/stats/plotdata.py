@@ -108,10 +108,11 @@ def scatter_regression_data(
 def bar_means_data(
     groups: dict[str, list[float]], ci_level: float = 0.95
 ) -> dict[str, Any]:
-    """Средние по группам со стандартной ошибкой — для столбчатого графика.
+    """Средние по группам со стандартной ошибкой — для графика «среднее ± SE».
 
-    Планки погрешности показывают ±SE, дополняя боксплот: боксплот про
-    разброс данных, столбцы со средними — про точность оценки среднего.
+    Рисуется точками с планками, не столбцами (Witte 2.11, Fig. 14.5).
+    Дополняет боксплот: боксплот — про разброс данных, точки — про точность
+    оценки среднего.
     """
     labels = []
     means = []
@@ -127,3 +128,20 @@ def bar_means_data(
         errors.append(float(stats.sem(arr)) if arr.size >= 2 else 0.0)
 
     return {"labels": labels, "means": means, "errors": errors}
+
+
+def qq_data(values: list[float]) -> dict[str, Any] | None:
+    """Нормальный Q-Q: позиции Блома против стандартизованных значений.
+
+    Та же шкала, что у Q-Q остатков моделей (опорная линия y = x): точки на
+    линии — нормальность; дуга — асимметрия; S-образность — тяжёлые хвосты.
+    Главная проверка нормальности по Welham (гл. 5.2), тест Шапиро — дополнение.
+    """
+    arr = np.asarray(values, dtype=float)
+    arr = arr[~np.isnan(arr)]
+    if arr.size < 3 or arr.std(ddof=1) == 0:
+        return None
+    n = arr.size
+    blom = stats.norm.ppf((np.arange(1, n + 1) - 0.375) / (n + 0.25))
+    z = np.sort((arr - arr.mean()) / arr.std(ddof=1))
+    return {"theoretical_quantiles": blom.tolist(), "sample_quantiles": z.tolist()}

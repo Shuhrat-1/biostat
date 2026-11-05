@@ -151,19 +151,25 @@ function boxplotOption(b: NonNullable<PlotBundle["boxplot"]>): Option {
   };
 }
 
+/**
+ * Средние ± SE точками, а не столбцами (Witte 2.11, Fig. 14.5): столбец с
+ * основанием не от нуля искажает пропорции, а от нуля — прячет различия.
+ */
 function barMeansOption(b: NonNullable<PlotBundle["bar_means"]>, t: T): Option {
+  const lo = b.means.map((m, i) => m - b.errors[i]);
+  const hi = b.means.map((m, i) => m + b.errors[i]);
+  const tip = (p: any) => `${b.labels[p.dataIndex]}: ${fmt(b.means[p.dataIndex])}`
+    + ` ± ${fmt(b.errors[p.dataIndex])}`;
   return {
     grid: BASE_GRID,
-    tooltip: { trigger: "axis" },
+    tooltip: { trigger: "item", formatter: tip },
     xAxis: { type: "category", data: b.labels, ...AXIS_STYLE },
-    yAxis: { type: "value", scale: true, name: t("axis.mean"), ...AXIS_STYLE },
+    yAxis: { type: "value", name: t("axis.mean"), ...AXIS_STYLE, ...bounds([...lo, ...hi]) },
     series: [
-      { type: "bar", data: b.means, itemStyle: { color: c.accent, opacity: 0.8 }, barWidth: "50%" },
-      {
-        type: "custom",
-        data: b.means.map((m, i) => [i, m - b.errors[i], m + b.errors[i]]),
-        renderItem: (_p: unknown, api: any) => whisker(api, true),
-      },
+      { type: "custom", data: b.means.map((_, i) => [i, lo[i], hi[i]]),
+        renderItem: (_p: unknown, api: any) => whisker(api, true), z: 1 },
+      { type: "scatter", data: b.means.map((m, i) => [i, m]), symbolSize: 9,
+        itemStyle: { color: c.accent }, z: 2 },
     ],
   };
 }
@@ -230,7 +236,10 @@ function bounds(values: number[]): { min: number; max: number } {
   const hi = Math.max(...values);
   const pad = (hi - lo || Math.abs(hi) || 1) * 0.05;
   // Округляем до «круглого» шага, иначе крайние подписи вида −290.289.
-  const step = 10 ** Math.floor(Math.log10((hi - lo + 2 * pad) / 5 || 1));
+  // Шаг 1 / 2 / 5 × 10^k, как у делений ECharts: крайние подписи совпадают с сеткой.
+  const raw = (hi - lo + 2 * pad) / 5 || 1;
+  const mag = 10 ** Math.floor(Math.log10(raw));
+  const step = [1, 2, 5, 10].map((k) => k * mag).find((v) => v >= raw) ?? 10 * mag;
   // toPrecision убирает хвосты плавающей точки (1.4000000000000001).
   const round = (v: number) => Number(v.toPrecision(12));
   const min = round(Math.floor((lo - pad) / step) * step);

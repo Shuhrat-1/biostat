@@ -106,3 +106,25 @@ def test_serializable():
         bar_means_data(groups),
     ]:
         json.dumps(data)  # не должно бросить
+
+
+def test_qq_data_normal_quantiles_lie_on_identity():
+    """Точные нормальные квантили (Блом) после стандартизации ложатся на y = x."""
+    from scipy import stats as st
+
+    from core.stats.plotdata import qq_data
+
+    n = 25
+    blom = st.norm.ppf((np.arange(1, n + 1) - 0.375) / (n + 0.25))
+    qq = qq_data(list(10 + 3 * blom[::-1]))
+    z = (blom - blom.mean()) / blom.std(ddof=1)
+    assert qq["sample_quantiles"] == pytest.approx(list(z))
+    assert qq["theoretical_quantiles"] == pytest.approx(list(blom))
+
+
+def test_qq_data_drops_nan_and_rejects_degenerate():
+    from core.stats.plotdata import qq_data
+
+    assert len(qq_data([1.0, float("nan"), 2.0, 4.0])["sample_quantiles"]) == 3
+    assert qq_data([1.0, 2.0]) is None
+    assert qq_data([5.0, 5.0, 5.0]) is None
