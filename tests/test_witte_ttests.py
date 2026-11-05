@@ -74,8 +74,14 @@ def test_hedges_g_small_sample_correction():
     assert res.statistics["hedges_g"] == pytest.approx(res.statistics["cohens_d"] * 0.92275, abs=1e-4)
 
 
+@pytest.mark.filterwarnings("ignore::RuntimeWarning")
+@pytest.mark.filterwarnings("ignore::UserWarning")
 def test_zero_pooled_sd_gives_nan_d():
-    """Без разброса d не определён: NaN (в JSON — null), а не деление на ноль."""
+    """Без разброса d не определён: NaN (в JSON — null), а не деление на ноль.
+
+    Предупреждения scipy (ttest_ind, shapiro) на константных данных ожидаемы;
+    их текст и класс зависят от версии scipy, поэтому фильтр — по классу.
+    """
     res = two_sample_t([1, 1, 1], [2, 2, 2], equal_var=True)
     assert res.statistics["cohens_d"] != res.statistics["cohens_d"]
 
