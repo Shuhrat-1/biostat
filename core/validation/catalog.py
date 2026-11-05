@@ -165,6 +165,14 @@ CATALOG: list[MethodSpec] = [
         description="Все метрики по всем числовым колонкам в одной таблице.",
     ),
     MethodSpec(
+        method="describe_by_group",
+        label="Описательная статистика по группам",
+        group="Описательная статистика",
+        slots={"value": _NUM, "group": _FACTOR},
+        slot_labels={"value": "Числовая колонка", "group": "Колонка групп"},
+        description="n, среднее и медиана, SD, SE, квартили, IQR, размах, CV по каждой группе и в целом.",
+    ),
+    MethodSpec(
         method="frequency_table",
         label="Таблица частот одной колонки",
         group="Описательная статистика",

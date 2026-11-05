@@ -182,6 +182,7 @@ def test_catalog_params_match_function_signatures():
         "ordinal_regression": "core.stats.categorical",
         "contingency_test": "core.stats.categorical",
         "frequency_table": "core.stats.frequency",
+        "describe_by_group": "core.stats.group_summary",
         "sampling_scheme_power": "core.stats.sampling",
         "curve_in_blocks": "core.stats.curve_designs",
         "nonlinear_in_blocks": "core.stats.curve_designs",

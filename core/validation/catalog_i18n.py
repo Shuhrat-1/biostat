@@ -37,6 +37,7 @@ LABELS: dict[str, dict[str, str]] = {
         "Описательная статистика": "Descriptive statistics",
         "Доверительный интервал среднего": "Confidence interval of the mean",
         "Таблица частот одной колонки": "Frequency table of one column",
+        "Описательная статистика по группам": "Descriptive statistics by group",
         "Проверка нормальности (Шапиро-Уилк)": "Normality test (Shapiro-Wilk)",
         "Одновыборочный t-тест": "One-sample t-test",
         "Двухвыборочный t-тест": "Two-sample t-test",
@@ -98,6 +99,7 @@ LABELS: dict[str, dict[str, str]] = {
         "Описательная статистика": "Estatística descritiva",
         "Доверительный интервал среднего": "Intervalo de confiança da média",
         "Таблица частот одной колонки": "Tabela de frequências de uma coluna",
+        "Описательная статистика по группам": "Estatística descritiva por grupo",
         "Проверка нормальности (Шапиро-Уилк)": "Teste de normalidade (Shapiro-Wilk)",
         "Одновыборочный t-тест": "Teste t para uma amostra",
         "Двухвыборочный t-тест": "Teste t para duas amostras",
@@ -165,6 +167,7 @@ DESCRIPTIONS: dict[str, dict[str, str]] = {
             "Interval estimate of the mean via the t-distribution."
         ),
         "Частоты, доли с ДИ, накопленные проценты, мода и медианный класс; классы по правилам Witte.": "Frequencies, proportions with CIs, cumulative percentages, mode and median class; classes by the Witte rules.",
+        "n, среднее и медиана, SD, SE, квартили, IQR, размах, CV по каждой группе и в целом.": "n, mean and median, SD, SE, quartiles, IQR, range, CV for each group and overall.",
         "Проверяет, согласуются ли данные с нормальным распределением.": (
             "Tests whether data are consistent with a normal distribution."
         ),
@@ -262,6 +265,7 @@ DESCRIPTIONS: dict[str, dict[str, str]] = {
             "Estimativa por intervalo da média via distribuição t."
         ),
         "Частоты, доли с ДИ, накопленные проценты, мода и медианный класс; классы по правилам Witte.": "Frequências, proporções com IC, percentagens acumuladas, moda e classe mediana; classes pelas regras de Witte.",
+        "n, среднее и медиана, SD, SE, квартили, IQR, размах, CV по каждой группе и в целом.": "n, média e mediana, DP, EP, quartis, AIQ, amplitude, CV por grupo e no total.",
         "Проверяет, согласуются ли данные с нормальным распределением.": (
             "Verifica se os dados são consistentes com uma distribuição normal."
         ),

@@ -481,6 +481,11 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     en: `Predictions and comparisons refer to a "typical" group (b = 0), not to population-averaged means.`,
     pt: `As previsões e comparações referem-se a um grupo «típico» (b = 0), não a médias populacionais.`,
   },
+  group_n_too_small: {
+    ru: `В части групп меньше 2 наблюдений: SD, SE и форма распределения для них не считаются.`,
+    en: `Some groups have fewer than 2 observations: their SD, SE and shape are not computed.`,
+    pt: `Alguns grupos têm menos de 2 observações: o DP, o EP e a forma não são calculados.`,
+  },
   freq_empty: {
     ru: `Нет значений, или частоты отрицательны либо все нулевые.`,
     en: `There are no values, or the frequencies are negative or all zero.`,

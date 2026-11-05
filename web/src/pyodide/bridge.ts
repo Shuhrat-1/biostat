@@ -217,6 +217,7 @@ const METHOD_MODULES: Record<string, string> = {
   ordinal_regression: "core.stats.categorical",
   contingency_test: "core.stats.categorical",
   frequency_table: "core.stats.frequency",
+  describe_by_group: "core.stats.group_summary",
   sampling_scheme_power: "core.stats.sampling",
   curve_in_blocks: "core.stats.curve_designs",
   nonlinear_in_blocks: "core.stats.curve_designs",
@@ -279,6 +280,7 @@ const STRUCTURED_METHODS = new Set([
   "glm_analysis",
   "count_regression",
   "glmm_analysis",
+  "describe_by_group",
   "curve_in_blocks",
   "nonlinear_in_blocks",
 ]);

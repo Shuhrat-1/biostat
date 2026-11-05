@@ -45,6 +45,13 @@
    "method": "describe_all"
   },
   {
+   "id": "D.bygroup",
+   "kind": "leaf",
+   "parent": "D",
+   "method": "describe_by_group",
+   "source": "предл.: Witte гл. 3–4"
+  },
+  {
    "id": "D.frequency",
    "kind": "leaf",
    "parent": "D",
