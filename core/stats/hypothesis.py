@@ -8,7 +8,7 @@
 from __future__ import annotations
 
 import numpy as np
-from scipy import stats
+from scipy import special, stats
 
 from core.report.schema import Estimate, Severity, StatResult
 
@@ -69,6 +69,39 @@ def _choose_equal_var(
     return equal_var
 
 
+def _mean_diff_ci(res, confidence: float) -> tuple[float | None, float | None]:
+    """ДИ разности средних того же варианта и направления, что и t.
+
+    При одностороннем alternative одна граница бесконечна → None.
+    """
+    ci = res.confidence_interval(confidence_level=confidence)
+    lo, hi = float(ci.low), float(ci.high)
+    return (lo if np.isfinite(lo) else None, hi if np.isfinite(hi) else None)
+
+
+def hedges_correction(df: float) -> float:
+    """Точный множитель J Хеджеса: g = J · d [предл.: Hedges 1981].
+
+    J = Γ(df/2) / (√(df/2) · Γ((df − 1)/2)); ≈ 1 − 3/(4·df − 1).
+    """
+    log_j = special.gammaln(df / 2) - special.gammaln((df - 1) / 2)
+    return float(np.exp(log_j) / np.sqrt(df / 2))
+
+
+def _cohens_d_pooled(arr_a: np.ndarray, arr_b: np.ndarray) -> tuple[float, float]:
+    """d Коэна по объединённому SD и g Хеджеса [Witte, стр. 262, ф. 14.5].
+
+    Объединённое SD — всегда, независимо от варианта t (Стьюдент/Уэлч).
+    """
+    df = arr_a.size + arr_b.size - 2
+    ss = np.sum((arr_a - arr_a.mean()) ** 2) + np.sum((arr_b - arr_b.mean()) ** 2)
+    sd_pooled = float(np.sqrt(ss / df))
+    if sd_pooled == 0:
+        return float("nan"), float("nan")
+    d = float((arr_a.mean() - arr_b.mean()) / sd_pooled)
+    return d, d * hedges_correction(df)
+
+
 def _check_normality(
     arr: np.ndarray, result: StatResult, label: str
 ) -> None:
@@ -124,15 +157,21 @@ def two_sample_t(
     b: np.ndarray | list[float],
     equal_var: bool | None = None,
     alternative: str = "two-sided",
+    confidence: float = 0.95,
 ) -> StatResult:
     """Двухвыборочный t-тест: сравнение средних двух групп.
 
     ``equal_var=None`` — автоматический выбор по тесту Левене:
     равные дисперсии → классический t-тест, иначе → поправка Уэлча.
     Явное значение переопределяет автоматику.
+
+    Размер эффекта (Witte, гл. 14.8–14.9): ДИ разности того же варианта
+    и направления, что и t; d Коэна по объединённому SD; g Хеджеса.
     """
     if alternative not in _ALTERNATIVES:
         raise ValueError(f"alternative ∈ {_ALTERNATIVES}")
+    if not 0 < confidence < 1:
+        raise ValueError("confidence ∈ (0, 1)")
 
     arr_a, arr_b = _clean(a), _clean(b)
     result = StatResult(
@@ -165,10 +204,42 @@ def two_sample_t(
             "mean_diff": mean_a - mean_b,
         }
     )
-    result.estimates.append(Estimate(name="mean_diff", value=mean_a - mean_b))
+    _add_two_sample_effect(result, res, arr_a, arr_b, confidence)
     _check_normality(arr_a, result, "group_a")
     _check_normality(arr_b, result, "group_b")
     return result
+
+
+def _add_two_sample_effect(
+    result: StatResult,
+    res,
+    arr_a: np.ndarray,
+    arr_b: np.ndarray,
+    confidence: float,
+) -> None:
+    """Записать ДИ разности, d Коэна и g Хеджеса новыми ключами."""
+    diff = float(arr_a.mean() - arr_b.mean())
+    se = float(diff / res.statistic) if res.statistic else float("nan")
+    lo, hi = _mean_diff_ci(res, confidence)
+    d, g = _cohens_d_pooled(arr_a, arr_b)
+    result.statistics.update(
+        {
+            "se_diff": se,
+            "ci_level": confidence,
+            "ci_lower": lo,
+            "ci_upper": hi,
+            "cohens_d": d,
+            "hedges_g": g,
+        }
+    )
+    result.estimates.append(
+        Estimate(
+            name="mean_diff", value=diff, ci_lower=lo, ci_upper=hi,
+            ci_level=confidence, std_error=se,
+        )
+    )
+    result.estimates.append(Estimate(name="cohens_d", value=d))
+    result.estimates.append(Estimate(name="hedges_g", value=g))
 
 
 def paired_t(
