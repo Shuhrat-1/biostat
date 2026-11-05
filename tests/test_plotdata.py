@@ -128,3 +128,28 @@ def test_qq_data_drops_nan_and_rejects_degenerate():
     assert len(qq_data([1.0, float("nan"), 2.0, 4.0])["sample_quantiles"]) == 3
     assert qq_data([1.0, 2.0]) is None
     assert qq_data([5.0, 5.0, 5.0]) is None
+
+
+@pytest.mark.parametrize("seed, scale, n", [(0, 1.0, 20), (1, 37.0, 200), (2, 0.004, 53),
+                                            (3, 1000.0, 5000)])
+def test_histogram_classes_are_convenient_witte_p25(seed, scale, n):
+    """Witte стр. 25, 27: ширина класса 1 / 2 / 5 × 10^k, границы кратны ширине."""
+    from core.stats.plotdata import MAX_CLASSES, MIN_CLASSES
+
+    data = np.random.default_rng(seed).normal(10 * scale, scale, n)
+    h = histogram_data(data.tolist())
+    edges = np.array(h["bin_edges"])
+    width = edges[1] - edges[0]
+    mantissa = width / 10 ** np.floor(np.log10(width))
+    assert min(abs(mantissa - m) for m in (1, 2, 5)) < 1e-9
+    assert np.allclose(np.diff(edges), width)
+    assert np.allclose(edges / width, np.round(edges / width))
+    assert sum(h["counts"]) == n
+    assert MIN_CLASSES - 1 <= len(h["counts"]) <= 2 * MAX_CLASSES
+
+
+def test_histogram_max_on_boundary_and_constant_data():
+    h = histogram_data([0.0, 1.0, 2.0, 3.0, 4.0, 10.0])
+    assert sum(h["counts"]) == 6 and h["bin_edges"][-1] >= 10.0
+    flat = histogram_data([5.0, 5.0, 5.0])
+    assert flat["counts"] == [3] and flat["normal_curve"] is None

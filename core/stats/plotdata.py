@@ -16,36 +16,55 @@ import numpy as np
 from scipy import stats
 
 
-def histogram_data(values: list[float], bins: str | int = "auto") -> dict[str, Any]:
-    """Данные гистограммы: границы бинов и частоты.
+MIN_CLASSES, MAX_CLASSES = 5, 20
 
-    Число бинов по умолчанию выбирается правилом numpy (Фридмана-Дьякониса
-    и др.), что адекватно для большинства биологических распределений.
-    Добавляет плотность нормального распределения для наложения кривой.
+
+def nice_edges(arr: np.ndarray) -> np.ndarray:
+    """Границы классов «удобные» (Witte, стр. 25, 27): ширина 1 / 2 / 5 × 10^k,
+    границы кратны ширине. Число классов — по правилу numpy «auto», в пределах
+    5–20 (у Witte ~10 для ручных таблиц; на больших выборках классов больше).
+    """
+    lo, hi = float(arr.min()), float(arr.max())
+    if hi == lo:
+        return np.array([lo - 0.5, lo + 0.5])
+    k = np.clip(np.histogram_bin_edges(arr, bins="auto").size - 1, MIN_CLASSES, MAX_CLASSES)
+    raw = (hi - lo) / k
+    mag = 10.0 ** np.floor(np.log10(raw))
+    width = next(m * mag for m in (1, 2, 5, 10) if m * mag >= raw - 1e-12 * mag)
+    start = np.floor(lo / width) * width
+    n = int(np.floor((hi - start) / width + 1e-9)) + 1  # класс, куда попадает max
+    return np.round(start + width * np.arange(n + 1), 12)
+
+
+def histogram_data(values: list[float], bins: str | int = "nice") -> dict[str, Any]:
+    """Данные гистограммы: границы классов, частоты, нормальная кривая.
+
+    По умолчанию классы «удобные» (:func:`nice_edges`); ``bins`` — число или
+    правило numpy, если нужна прежняя разбивка.
     """
     arr = np.asarray(values, dtype=float)
     arr = arr[~np.isnan(arr)]
     if arr.size == 0:
-        return {"bins": [], "counts": [], "normal_curve": None}
+        return {"bin_edges": [], "bin_centers": [], "counts": [], "normal_curve": None}
 
-    counts, edges = np.histogram(arr, bins=bins)
+    counts, edges = np.histogram(arr, bins=nice_edges(arr) if bins == "nice" else bins)
     centers = (edges[:-1] + edges[1:]) / 2
-
-    normal_curve = None
-    if arr.size >= 2 and arr.std(ddof=1) > 0:
-        mean, std = float(arr.mean()), float(arr.std(ddof=1))
-        xs = np.linspace(float(arr.min()), float(arr.max()), 100)
-        # Плотность в масштабе частот: * n * ширина бина.
-        bin_width = float(edges[1] - edges[0])
-        ys = stats.norm.pdf(xs, mean, std) * arr.size * bin_width
-        normal_curve = {"x": xs.tolist(), "y": ys.tolist()}
-
     return {
         "bin_edges": edges.tolist(),
         "bin_centers": centers.tolist(),
         "counts": counts.tolist(),
-        "normal_curve": normal_curve,
+        "normal_curve": _normal_curve(arr, float(edges[1] - edges[0])),
     }
+
+
+def _normal_curve(arr: np.ndarray, bin_width: float) -> dict[str, list] | None:
+    """Плотность нормального распределения в масштабе частот (× n × ширина класса)."""
+    if arr.size < 2 or arr.std(ddof=1) == 0:
+        return None
+    mean, std = float(arr.mean()), float(arr.std(ddof=1))
+    xs = np.linspace(float(arr.min()), float(arr.max()), 100)
+    ys = stats.norm.pdf(xs, mean, std) * arr.size * bin_width
+    return {"x": xs.tolist(), "y": ys.tolist()}
 
 
 def boxplot_data(groups: dict[str, list[float]]) -> dict[str, Any]:
