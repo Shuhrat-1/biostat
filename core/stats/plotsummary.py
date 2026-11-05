@@ -205,6 +205,19 @@ def _group_lines(params: dict) -> dict | None:
                        for ln in gl["lines"]]}
 
 
+_CRITERIA = {"adj_r_squared": "R²adj", "aic": "AIC", "sbc": "SBC"}
+
+
+def _mark_best_models(curves: dict, best: dict) -> dict:
+    """Сравнение кривых (Table 17.12): к имени лучшей модели — критерии, по
+    которым она лучшая; заголовок — «модели», а не «группы»."""
+    renamed = []
+    for cv in curves["curves"]:
+        wins = [label for key, label in _CRITERIA.items() if best.get(key) == cv["name"]]
+        renamed.append({**cv, "name": f"{cv['name']} ({', '.join(wins)})" if wins else cv["name"]})
+    return {**curves, "curves": renamed, "title": "models"}
+
+
 def _extra_scatters(params: dict) -> list[dict]:
     """Графики против x и индексные: остатки, |остатки|, расхождения CV, рычаги, Кук."""
     plots, thr = params.get("plots") or {}, params.get("thresholds") or {}
@@ -380,6 +393,8 @@ def _model_plots(method: str, result: dict) -> dict[str, Any]:
     params = result.get("parameters", {})
     out: dict[str, Any] = {}
     if curves := _block_curves(params) or _group_lines(params):
+        if method == "curve_comparison":
+            curves = _mark_best_models(curves, params.get("best") or {})
         out.update({"group_curves": curves, "scatter": None})
     extra = _extra_scatters(params) + _subset_scatters(params)
     if method == "replication_power" and (power := _power_curve(params)):

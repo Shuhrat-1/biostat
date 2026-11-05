@@ -135,3 +135,22 @@ def test_power_curve_requires_positive_x():
     """α + β·x^θ (стр. 472) определена при x > 0."""
     res = nonlinear_regression([0, 1, 2, 3, 4], [1, 2, 3, 4, 6], "power")
     assert any(w.code == "x_transform_domain" for w in res.warnings)
+
+
+@pytest.mark.parametrize("token", ["linear", "log10", "poly2", "poly8", "exponential",
+                                   "inverse_linear"])
+def test_grid_curve_reproduces_fitted_values(token):
+    """Кривая для графика считается тем же базисом: в точках данных = подогнанным."""
+    from core.stats.nonlinear import _candidate, _grid_values
+
+    x, y = np.asarray(OLSEN_P, float), np.asarray(YIELD, float)
+    fit = _candidate(token, x, y)
+    assert _grid_values(token, fit, x, x) == pytest.approx(fit["fitted"], rel=1e-7, abs=1e-9)
+
+
+def test_curve_comparison_returns_curves_for_fitted_models_only():
+    res = curve_comparison([0, 1, 2, 3, 4, 5], [1.0, 2.1, 2.9, 4.2, 4.8, 6.1], "linear, log10, poly2")
+    curves = res.parameters["curves"]
+    assert [c["group"] for c in curves] == ["linear", "poly2"]  # log10 при x = 0 не подогнан
+    assert curves[0]["x"][0] == 0 and curves[0]["x"][-1] == 5 and len(curves[0]["x"]) == 101
+    assert res.parameters["points"]["y"][3] == 4.2

@@ -352,6 +352,34 @@ def _candidate(token: str, x: np.ndarray, y: np.ndarray) -> dict | None:
                      f"{', '.join(CURVES)}")
 
 
+GRID_POINTS = 101
+
+
+def _grid_values(token: str, fit: dict, x: np.ndarray, grid: np.ndarray) -> np.ndarray | None:
+    """Подогнанная модель на сетке x — тем же базисом, что при подгонке."""
+    if token in CURVES:
+        return curve_value(CURVES[token], grid, fit["beta"])
+    if token == "linear":
+        design = np.column_stack([np.ones_like(grid), grid])
+    elif token in X_TRANSFORMS:
+        design = np.column_stack([np.ones_like(grid), x_transform(grid, token)])
+    else:
+        design = polynomial_basis(x, int(token[4:]), "orthogonal")(grid)
+    values = design @ fit["beta"]
+    return values if np.all(np.isfinite(values)) else None
+
+
+def _curves_on_grid(fits: dict[str, dict], x: np.ndarray, y: np.ndarray) -> dict:
+    """Данные и кривые подогнанных моделей на сетке [min x; max x] для графика."""
+    grid = np.linspace(float(x.min()), float(x.max()), GRID_POINTS)
+    curves = []
+    for token, fit in fits.items():
+        values = _grid_values(token, fit, x, grid)
+        if values is not None:
+            curves.append({"group": token, "x": grid.tolist(), "fitted": values.tolist()})
+    return {"points": {"x": x.tolist(), "y": y.tolist()}, "curves": curves}
+
+
 def _best(rows: list[dict]) -> dict[str, str]:
     """Лучшая модель по R²adj (max), AIC и SBC (min)."""
     ok = [r for r in rows if r["fitted"]]
@@ -380,15 +408,17 @@ def curve_comparison(
         return result
     x_arr, y_arr = frame["x"].to_numpy(float), frame["y"].to_numpy(float)
     tot = float(((y_arr - y_arr.mean()) ** 2).sum())
-    rows = []
+    rows, fits = [], {}
     for token in tokens:
         fit = _candidate(token, x_arr, y_arr)
         row = {"model": token, "fitted": fit is not None and fit["df"] > 0}
         if row["fitted"]:
+            fits[token] = fit
             row.update({"p": fit["p"], "ms_resid": fit["s2"],
                         **goodness(fit["rss"], tot, len(y_arr), fit["p"])})
         rows.append(row)
-    result.parameters.update({"models_table": rows, "best": _best(rows)})
+    result.parameters.update({"models_table": rows, "best": _best(rows),
+                              **_curves_on_grid(fits, x_arr, y_arr)})
     failed = [r["model"] for r in rows if not r["fitted"]]
     if failed:
         result.add_warning("curve_models_failed", f"Не подогнаны: {', '.join(failed)}",

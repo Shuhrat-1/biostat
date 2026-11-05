@@ -646,6 +646,8 @@ export interface PlotBundle {
   };
   /** Данные и кривые/линии по группам; точка: [x, y, группа | null]. */
   group_curves?: {
+    /** «models» — кривые моделей-кандидатов (curve_comparison), а не групп. */
+    title?: "models";
     points: [number, number, string | null][];
     curves: {
       name: string;

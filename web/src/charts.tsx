@@ -569,7 +569,8 @@ function summaryItems(bundle: PlotBundle, t: T): Item[] {
       option: meansCiOption(bundle.means_ci, t) });
   }
   if (bundle.group_curves) {
-    items.push({ key: "group_curves", title: t("plots.group_curves"),
+    const models = bundle.group_curves.title === "models";
+    items.push({ key: "group_curves", title: t(models ? "plots.group_curves_models" : "plots.group_curves"),
       option: groupCurvesOption(bundle.group_curves, t), height: 340 });
   }
   if (bundle.differences) {

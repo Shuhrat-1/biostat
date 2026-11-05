@@ -247,3 +247,18 @@ def test_surface_grid_indices_and_shape_guard():
     assert out["surface"]["cells"][-1] == [1, 2, 6]
     bad = {**sf, "fitted": [[1, 2], [4, 5]]}
     assert "surface" not in summary_plots("response_surface", {"parameters": {"surface": bad}})
+
+
+# --- Пакет 5: кривые моделей в сравнении --------------------------------------------------
+
+def test_curve_comparison_curves_marked_by_criteria_table_17_12():
+    """Table 17.12: R²adj и AIC — у полинома 8, SBC — у inverse_linear."""
+    from core.stats.nonlinear import curve_comparison
+    from tests.book_ch17_data import OLSEN_P, YIELD
+
+    res = curve_comparison(OLSEN_P, YIELD, "log10, poly2, poly8, inverse_linear").to_dict()
+    g = summary_plots("curve_comparison", res)["group_curves"]
+    names = [c["name"] for c in g["curves"]]
+    assert names == ["log10", "poly2", "poly8 (R²adj, AIC)", "inverse_linear (SBC)"]
+    assert g["title"] == "models" and len(g["points"]) == len(OLSEN_P)
+    json.dumps(g, allow_nan=False)
