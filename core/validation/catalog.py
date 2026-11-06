@@ -229,6 +229,24 @@ CATALOG: list[MethodSpec] = [
         description="Проверяет, согласуются ли данные с нормальным распределением.",
     ),
     MethodSpec(
+        method="one_proportion",
+        label="Одна доля: ДИ и тест H0: p = p₀",
+        group="Сравнение с эталоном",
+        slots={"response": _FACTOR, "count": _NUM},
+        slot_labels={
+            "response": "Колонка категорий",
+            "count": "Частота строки (если строки — уже сведённые классы; необязательно)",
+        },
+        params=[
+            Param("success", "Уровень «успех» (пусто — 1 / yes / да или первый)", "text", ""),
+            Param("p0", "Доля по H0, p₀", "float", 0.5, min=0.0001, max=0.9999),
+            _ALTERNATIVE,
+            Param("alpha", "Уровень значимости α", "float", 0.05, min=0.001, max=0.2),
+        ],
+        description="Доля «успехов»: оценка, ДИ Уилсона и точный, биномиальный и score-тест против p₀.",
+        optional_slots=("count",),
+    ),
+    MethodSpec(
         method="one_sample_t",
         label="Одновыборочный t-тест",
         group="Сравнение с эталоном",

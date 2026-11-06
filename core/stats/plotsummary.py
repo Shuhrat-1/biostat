@@ -391,7 +391,17 @@ def _comparison_plots(method: str, result: dict) -> dict[str, Any]:
         out["interaction"] = inter
     if method == "chi2_goodness_of_fit" and (shares := _gof_shares(params)):
         out["means_ci"] = shares
+    if method == "one_proportion" and (share := _one_share(result)):
+        out["means_ci"] = share
     return out
+
+
+def _one_share(result: dict) -> dict | None:
+    """Доля «успехов» с ДИ Уилсона (одна точка)."""
+    st, params = result.get("statistics", {}), result.get("parameters", {})
+    row = {"label": params.get("success", ""), "mean": st.get("proportion"),
+           "ci_lower": st.get("ci_lower"), "ci_upper": st.get("ci_upper")}
+    return means_from_rows([row], back=False)
 
 
 def _gof_shares(params: dict) -> dict | None:

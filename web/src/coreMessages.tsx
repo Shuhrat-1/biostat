@@ -481,6 +481,21 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     en: `Predictions and comparisons refer to a "typical" group (b = 0), not to population-averaged means.`,
     pt: `As previsões e comparações referem-se a um grupo «típico» (b = 0), não a médias populacionais.`,
   },
+  prop_success_chosen: {
+    ru: `«Успех» — уровень «{level}» (задайте явно в параметре, если нужен другой).`,
+    en: `“Success” is level “{level}” (set it explicitly if you need another one).`,
+    pt: `«Sucesso» é o nível «{level}» (defina-o explicitamente se precisar de outro).`,
+  },
+  prop_unknown_success: {
+    ru: `Уровня «{level}» нет в данных.`,
+    en: `Level “{level}” is not in the data.`,
+    pt: `O nível «{level}» não existe nos dados.`,
+  },
+  prop_bad_counts: {
+    ru: `Нужны целые неотрицательные частоты.`,
+    en: `Whole non-negative counts are needed.`,
+    pt: `São necessárias frequências inteiras não negativas.`,
+  },
   gof_empty: {
     ru: `Нет наблюдений или частоты отрицательны.`,
     en: `There are no observations, or the frequencies are negative.`,

@@ -16,6 +16,7 @@ from core.stats.plotsummary import (
     means_from_rows,
     summary_plots,
 )
+from core.stats.proportions import one_proportion
 from core.stats.repeated import rm_anova
 from core.stats.simple_effects import simple_effects
 from core.stats.transforms import transformed_means
@@ -97,6 +98,15 @@ def test_chi2_goodness_of_fit_shares_with_wilson_ci():
     assert b["mean"] == pytest.approx(0.2)
     assert b["lower"] == pytest.approx(res["parameters"]["cells"][2]["ci_lower"])
     json.dumps(means, allow_nan=False)
+
+
+def test_one_proportion_share_with_wilson_ci():
+    """one_proportion: доля «успехов» с ДИ Уилсона (Witte 12.7: 64 % из 1500)."""
+    res = one_proportion(["yes", "no"], [960, 540], success="yes").to_dict()
+    item = summary_plots("one_proportion", res)["means_ci"]["items"][0]
+    assert (item["label"], item["mean"]) == ("yes", pytest.approx(0.64))
+    assert item["lower"] == pytest.approx(res["statistics"]["ci_lower"])
+    json.dumps(item, allow_nan=False)
 
 
 def test_half_width_used_when_ci_missing():

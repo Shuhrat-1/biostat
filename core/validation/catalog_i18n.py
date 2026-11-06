@@ -42,6 +42,7 @@ LABELS: dict[str, dict[str, str]] = {
         "Проверка нормальности (Шапиро-Уилк)": "Normality test (Shapiro-Wilk)",
         "Одновыборочный t-тест": "One-sample t-test",
         "Двухвыборочный t-тест": "Two-sample t-test",
+        "Одна доля: ДИ и тест H0: p = p₀": "One proportion: CI and test of H0: p = p₀",
         "Тест Манна-Уитни (непараметрический)": "Mann-Whitney test (nonparametric)",
         "Однофакторный ANOVA": "One-way ANOVA",
         "ANOVA Уэлча (неравные дисперсии)": "Welch's ANOVA (unequal variances)",
@@ -109,6 +110,7 @@ LABELS: dict[str, dict[str, str]] = {
         "Проверка нормальности (Шапиро-Уилк)": "Teste de normalidade (Shapiro-Wilk)",
         "Одновыборочный t-тест": "Teste t para uma amostra",
         "Двухвыборочный t-тест": "Teste t para duas amostras",
+        "Одна доля: ДИ и тест H0: p = p₀": "Uma proporção: IC e teste de H0: p = p₀",
         "Тест Манна-Уитни (непараметрический)": "Teste de Mann-Whitney (não paramétrico)",
         "Однофакторный ANOVA": "ANOVA de um fator",
         "ANOVA Уэлча (неравные дисперсии)": "ANOVA de Welch (variâncias desiguais)",
@@ -178,6 +180,7 @@ DESCRIPTIONS: dict[str, dict[str, str]] = {
         ),
         "Частоты, доли с ДИ, накопленные проценты, мода и медианный класс; классы по правилам Witte.": "Frequencies, proportions with CIs, cumulative percentages, mode and median class; classes by the Witte rules.",
         "Согласуются ли частоты категорий с заданными долями (или равными): χ², G², φ²c, остатки.": "Do category counts agree with given (or equal) proportions: χ², G², φ²c, residuals.",
+        "Доля «успехов»: оценка, ДИ Уилсона и точный, биномиальный и score-тест против p₀.": "Share of successes: estimate, Wilson and exact CIs, binomial and score tests against p₀.",
         "n, среднее и медиана, SD, SE, квартили, IQR, размах, CV по каждой группе и в целом.": "n, mean and median, SD, SE, quartiles, IQR, range, CV for each group and overall.",
         "Проверяет, согласуются ли данные с нормальным распределением.": (
             "Tests whether data are consistent with a normal distribution."
@@ -281,6 +284,7 @@ DESCRIPTIONS: dict[str, dict[str, str]] = {
         ),
         "Частоты, доли с ДИ, накопленные проценты, мода и медианный класс; классы по правилам Witte.": "Frequências, proporções com IC, percentagens acumuladas, moda e classe mediana; classes pelas regras de Witte.",
         "Согласуются ли частоты категорий с заданными долями (или равными): χ², G², φ²c, остатки.": "As frequências das categorias concordam com proporções dadas (ou iguais): χ², G², φ²c, resíduos.",
+        "Доля «успехов»: оценка, ДИ Уилсона и точный, биномиальный и score-тест против p₀.": "Proporção de sucessos: estimativa, IC de Wilson e exato, testes binomial e score contra p₀.",
         "n, среднее и медиана, SD, SE, квартили, IQR, размах, CV по каждой группе и в целом.": "n, média e mediana, DP, EP, quartis, AIQ, amplitude, CV por grupo e no total.",
         "Проверяет, согласуются ли данные с нормальным распределением.": (
             "Verifica se os dados são consistentes com uma distribuição normal."
@@ -477,6 +481,8 @@ LABELS_MISC: dict[str, dict[str, str]] = {
         "Колонка (категории или числа)": "Column (categories or numbers)",
         "Доли H0: уровень=доля; … (пусто — все равны)": "H0 proportions: level=share; … (empty — all equal)",
         "Колонка категорий": "Category column",
+        "Доля по H0, p₀": "H0 proportion, p₀",
+        "Уровень «успех» (пусто — 1 / yes / да или первый)": "Success level (empty — 1 / yes or the first)",
         "Частота строки (если строки — уже сведённые классы; необязательно)": "Row frequency (if rows are already tabulated classes; optional)",
         "Тип колонки": "Column type",
         "Порядок уровней от меньшего к большему (через ;)": "Level order from lowest to highest (separated by ;)",
@@ -631,6 +637,8 @@ LABELS_MISC: dict[str, dict[str, str]] = {
         "Колонка (категории или числа)": "Coluna (categorias ou números)",
         "Доли H0: уровень=доля; … (пусто — все равны)": "Proporções H0: nível=proporção; … (vazio — todas iguais)",
         "Колонка категорий": "Coluna de categorias",
+        "Доля по H0, p₀": "Proporção sob H0, p₀",
+        "Уровень «успех» (пусто — 1 / yes / да или первый)": "Nível «sucesso» (vazio — 1 / sim ou o primeiro)",
         "Частота строки (если строки — уже сведённые классы; необязательно)": "Frequência da linha (se as linhas já são classes agregadas; opcional)",
         "Тип колонки": "Tipo de coluna",
         "Порядок уровней от меньшего к большему (через ;)": "Ordem dos níveis do menor para o maior (separados por ;)",
