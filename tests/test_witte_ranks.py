@@ -7,9 +7,11 @@ U и T в форме книги, сдвиг Ходжеса–Лемана [пр�
 
 from __future__ import annotations
 
+import numpy as np
 import pytest
 
-from core.stats.hypothesis import mann_whitney
+from core.stats.hodges_lehmann import walsh_averages
+from core.stats.hypothesis import mann_whitney, wilcoxon
 
 TV_FAVORABLE = [4, 5, 5, 5, 10, 12, 20, 49]  # Table 20.2 (стр. 389), группа 1
 TV_UNFAVORABLE = [0, 0, 1, 2, 14, 42, 43]  # группа 2
@@ -49,3 +51,48 @@ def test_tv_hodges_lehmann_shift():
 def test_mann_whitney_confidence_validated():
     with pytest.raises(ValueError):
         mann_whitney([1, 2], [3, 4], confidence=95)
+
+
+# Table 20.3 (стр. 393): оценки времени у TV пар сиблингов; F — «благоприятно», U — «неблагоприятно».
+SIB_FAVORABLE = [2, 11, 10, 6, 7, 43, 33, 5]
+SIB_UNFAVORABLE = [0, 5, 12, 6, 2, 33, 25, 2]
+
+
+@pytest.mark.filterwarnings("ignore::UserWarning")  # scipy 1.12: нули → нормальное приближение
+def test_tv_wilcoxon_table_20_3():
+    """Witte 20.4, стр. 393 (Table 20.3): разность D (пара D) = 0 отброшена, n = 7, R⁺ = 26.5,
+    R⁻ = 1.5, T = 1.5 ≤ крит. 2 → H0 отвергнута (стр. 395)."""
+    res = wilcoxon(SIB_FAVORABLE, SIB_UNFAVORABLE)
+    st = res.statistics
+    assert (st["r_plus"], st["r_minus"], st["n_nonzero"]) == (26.5, 1.5, 7)
+    assert st["T_min"] == 1.5 == st["W"]
+    assert st["r_plus"] + st["r_minus"] == 7 * 8 / 2  # проверка книги
+    assert res.p_value < 0.05
+
+
+@pytest.mark.filterwarnings("ignore::UserWarning")  # scipy 1.12: нули → нормальное приближение
+def test_smoking_progress_check_20_3():
+    """Witte, стр. 395–396 (Progress Check 20.3), ответ стр. 455–456: n = 8 (курильщик F без
+    изменений), R⁺ = 34, R⁻ = 2, T = 2 ≤ 5 (направленный, α = .05)."""
+    before = [22, 15, 10, 21, 14, 3, 11, 8, 15]
+    after = [14, 7, 0, 22, 10, 3, 10, 7, 12]
+    res = wilcoxon(before, after, alternative="greater")
+    st = res.statistics
+    assert (st["r_plus"], st["r_minus"], st["n_nonzero"], st["T_min"]) == (34, 2, 8, 2)
+    assert res.p_value < 0.05
+
+
+@pytest.mark.filterwarnings("ignore::UserWarning")  # scipy 1.12: нули → нормальное приближение
+def test_tv_wilcoxon_hodges_lehmann():
+    """[предл.: Hodges & Lehmann 1963] Центр разностей — медиана 36 средних Уолша (с нулевой
+    разностью); совпадения |D| → нормальное приближение ДИ."""
+    d = np.array(SIB_FAVORABLE) - np.array(SIB_UNFAVORABLE)
+    res = wilcoxon(SIB_FAVORABLE, SIB_UNFAVORABLE)
+    assert res.statistics["hl_shift"] == pytest.approx(np.median(walsh_averages(d)))
+    assert res.parameters["hl_ci_method"] == "normal"
+    assert res.statistics["hl_ci_lower"] <= res.statistics["hl_shift"] <= res.statistics["hl_ci_upper"]
+
+
+def test_wilcoxon_confidence_validated():
+    with pytest.raises(ValueError):
+        wilcoxon([1, 2], [3, 4], confidence=0)

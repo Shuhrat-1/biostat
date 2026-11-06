@@ -11,7 +11,7 @@ import numpy as np
 from scipy import special, stats
 
 from core.report.schema import Estimate, Severity, StatResult
-from core.stats.hodges_lehmann import hl_two_sample
+from core.stats.hodges_lehmann import hl_one_sample, hl_two_sample
 
 # Порог p для тестов на нарушение допущений (нормальность, равенство дисперсий).
 _ASSUMPTION_ALPHA = 0.05
@@ -418,10 +418,18 @@ def wilcoxon(
     a: np.ndarray | list[float],
     b: np.ndarray | list[float],
     alternative: str = "two-sided",
+    confidence: float = 0.95,
 ) -> StatResult:
-    """Знаково-ранговый тест Уилкоксона — непараметрический аналог парного t."""
+    """Знаково-ранговый тест Уилкоксона — непараметрический аналог парного t.
+
+    Новые ключи (Witte, гл. 20.4; пакет W2): R⁺, R⁻, число ненулевых разностей,
+    T_min = min(R⁺, R⁻) (ф. 20.2); оценка Ходжеса–Лемана центра разностей a − b
+    (медиана средних Уолша) с ДИ [предл.: Hodges & Lehmann 1963].
+    """
     if alternative not in _ALTERNATIVES:
         raise ValueError(f"alternative ∈ {_ALTERNATIVES}")
+    if not 0 < confidence < 1:
+        raise ValueError("confidence ∈ (0, 1)")
 
     arr_a = np.asarray(a, dtype=float).ravel()
     arr_b = np.asarray(b, dtype=float).ravel()
@@ -446,4 +454,20 @@ def wilcoxon(
         "W": float(res.statistic),
         "median_diff": float(np.median(arr_a - arr_b)),
     }
+    _add_wilcoxon_extras(result, arr_a - arr_b, confidence)
     return result
+
+
+def _add_wilcoxon_extras(result: StatResult, diff: np.ndarray, confidence: float) -> None:
+    """R⁺, R⁻, T_min (нули отброшены, ф. 20.2) и оценка Ходжеса–Лемана — новыми ключами."""
+    nonzero = diff[diff != 0]
+    ranks = stats.rankdata(np.abs(nonzero))
+    r_plus, r_minus = float(ranks[nonzero > 0].sum()), float(ranks[nonzero < 0].sum())
+    hl = hl_one_sample(diff, 1 - confidence)
+    result.parameters["hl_ci_method"] = hl.pop("hl_ci_method")  # exact | normal
+    result.statistics.update({"r_plus": r_plus, "r_minus": r_minus,
+                              "n_nonzero": int(nonzero.size), "T_min": min(r_plus, r_minus),
+                              "ci_level": confidence, **hl})
+    result.estimates.append(Estimate(name="hl_shift", value=hl["hl_shift"],
+                                     ci_lower=hl["hl_ci_lower"], ci_upper=hl["hl_ci_upper"],
+                                     ci_level=confidence))
