@@ -481,6 +481,11 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     en: `Predictions and comparisons refer to a "typical" group (b = 0), not to population-averaged means.`,
     pt: `As previsões e comparações referem-se a um grupo «típico» (b = 0), não a médias populacionais.`,
   },
+  scheffe_zero_variance: {
+    ru: `Внутри групп нет разброса: MS_within = 0, сравнения не определены.`,
+    en: `There is no spread within groups: MS_within = 0, comparisons are undefined.`,
+    pt: `Não há dispersão dentro dos grupos: MS_within = 0, as comparações não estão definidas.`,
+  },
   welch_zero_variance: {
     ru: `В одной из групп все значения одинаковы: веса Уэлча не определены.`,
     en: `All values in one of the groups are identical: Welch weights are undefined.`,

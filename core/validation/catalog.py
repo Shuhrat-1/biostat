@@ -278,6 +278,18 @@ CATALOG: list[MethodSpec] = [
         description="Все попарные сравнения групп после значимого ANOVA.",
     ),
     MethodSpec(
+        method="scheffe_test",
+        label="Метод Шеффе (пары и сложные контрасты)",
+        group="Сравнение нескольких групп",
+        slots={"value": _NUM, "group": _CAT},
+        slot_labels={"value": "Числовая колонка", "group": "Колонка групп"},
+        params=[
+            Param("alpha", "Уровень значимости α", "float", 0.05, min=0.001, max=0.2),
+            _CONTRASTS,
+        ],
+        description="Все пары и любые контрасты (A vs B + C) с контролем ошибки на всём семействе.",
+    ),
+    MethodSpec(
         method="kruskal_wallis",
         label="Тест Краскела-Уоллиса (непараметрический)",
         group="Сравнение нескольких групп",

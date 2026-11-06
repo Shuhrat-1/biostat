@@ -414,6 +414,13 @@
    "source": "кн. стр. 200"
   },
   {
+   "id": "B5.scheffe",
+   "kind": "leaf",
+   "parent": "B5",
+   "method": "scheffe_test",
+   "source": "предл.: Scheffé 1953; Witte стр. 314"
+  },
+  {
    "id": "B5.mc_tukey",
    "kind": "leaf",
    "parent": "B5",
