@@ -72,6 +72,25 @@ def _small_expected(exp: np.ndarray, result: StatResult) -> None:
                            "объедини уровни.", params={"share": f"{share:.0%}"})
 
 
+def ratio_intervals(obs: np.ndarray, alpha: float) -> dict[str, float]:
+    """ДИ отношения шансов (Вульф) и отношение рисков с ДИ (Кац) для 2 × 2 [предл.].
+
+    Строки — группы, первый столбец — событие: OR = (a/b)/(c/d), RR = (a/(a+b))/(c/(c+d)).
+    При нулевой ячейке ко всем ячейкам добавляется 0.5 (Холдейн) — только для ДИ.
+    """
+    a, b, c, d = obs.ravel().astype(float)
+    if min(a, b, c, d) == 0:
+        a, b, c, d = a + 0.5, b + 0.5, c + 0.5, d + 0.5
+    z = float(stats.norm.ppf(1 - alpha / 2))
+    log_or, se_or = np.log(a * d / (b * c)), np.sqrt(1 / a + 1 / b + 1 / c + 1 / d)
+    rr = (a / (a + b)) / (c / (c + d))
+    se_rr = np.sqrt(1 / a - 1 / (a + b) + 1 / c - 1 / (c + d))
+    return {"or_ci_lower": float(np.exp(log_or - z * se_or)),
+            "or_ci_upper": float(np.exp(log_or + z * se_or)),
+            "risk_ratio": float(rr), "rr_ci_lower": float(rr * np.exp(-z * se_rr)),
+            "rr_ci_upper": float(rr * np.exp(z * se_rr))}
+
+
 def contingency_test(
     factor_a: list[str],
     factor_b: list[str],
@@ -111,9 +130,16 @@ def _fill_contingency(tab: pd.DataFrame, correction: str, result: StatResult) ->
         "chi2": float(chi2), "df": int(df), "p": float(p), "yates": bool(yates and two_by_two),
         "g2": float(g2), "p_g2": float(p_g2), "n_total": float(n),
         "cramers_v": float(np.sqrt(chi2_raw / (n * (min(obs.shape) - 1))))})
+    p_raw = float(stats.chi2.sf(chi2_raw, df))
+    result.statistics.update({"chi2_uncorrected": float(chi2_raw), "p_uncorrected": p_raw,
+                              "cramers_v_squared": float(chi2_raw / (n * (min(obs.shape) - 1)))})
     if two_by_two:
         odds, p_f = stats.fisher_exact(obs)
         result.statistics.update({"fisher_p": float(p_f), "odds_ratio": float(odds)})
+        result.statistics.update(ratio_intervals(obs, result.parameters.get("alpha", 0.05)))
+        # Ориентация OR/RR: событие — первый столбец, группа 1 против группы 2 (строки).
+        result.parameters["ratio_orientation"] = {
+            "event": str(tab.columns[0]), "group1": str(tab.index[0]), "group2": str(tab.index[1])}
     result.parameters.update({"table": {"rows": [str(r) for r in tab.index],
                                         "columns": [str(c) for c in tab.columns],
                                         "counts": obs.tolist()},
