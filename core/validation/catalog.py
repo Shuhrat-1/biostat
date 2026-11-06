@@ -259,6 +259,14 @@ CATALOG: list[MethodSpec] = [
         description="Сравнивает средние нескольких групп.",
     ),
     MethodSpec(
+        method="welch_anova",
+        label="ANOVA Уэлча (неравные дисперсии)",
+        group="Сравнение нескольких групп",
+        slots={"value": _NUM, "group": _CAT},
+        slot_labels={"value": "Числовая колонка", "group": "Колонка групп"},
+        description="Сравнивает средние нескольких групп без предположения о равных дисперсиях.",
+    ),
+    MethodSpec(
         method="tukey_hsd",
         label="Пост-хок Tukey HSD",
         group="Сравнение нескольких групп",

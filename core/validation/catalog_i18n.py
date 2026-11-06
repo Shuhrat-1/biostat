@@ -43,6 +43,7 @@ LABELS: dict[str, dict[str, str]] = {
         "Двухвыборочный t-тест": "Two-sample t-test",
         "Тест Манна-Уитни (непараметрический)": "Mann-Whitney test (nonparametric)",
         "Однофакторный ANOVA": "One-way ANOVA",
+        "ANOVA Уэлча (неравные дисперсии)": "Welch's ANOVA (unequal variances)",
         "Парный t-тест": "Paired t-test",
         "Тест Уилкоксона (непараметрический)": "Wilcoxon test (nonparametric)",
         "Пост-хок Tukey HSD": "Post-hoc Tukey HSD",
@@ -105,6 +106,7 @@ LABELS: dict[str, dict[str, str]] = {
         "Двухвыборочный t-тест": "Teste t para duas amostras",
         "Тест Манна-Уитни (непараметрический)": "Teste de Mann-Whitney (não paramétrico)",
         "Однофакторный ANOVA": "ANOVA de um fator",
+        "ANOVA Уэлча (неравные дисперсии)": "ANOVA de Welch (variâncias desiguais)",
         "Парный t-тест": "Teste t emparelhado",
         "Тест Уилкоксона (непараметрический)": "Teste de Wilcoxon (não paramétrico)",
         "Пост-хок Tukey HSD": "Pós-hoc Tukey HSD",
@@ -181,6 +183,7 @@ DESCRIPTIONS: dict[str, dict[str, str]] = {
             "Compares two groups without assuming normality."
         ),
         "Сравнивает средние нескольких групп.": "Compares the means of several groups.",
+        "Сравнивает средние нескольких групп без предположения о равных дисперсиях.": "Compares the means of several groups without assuming equal variances.",
         "Сравнивает связанные измерения (до/после) на одних объектах.": "Compares paired measurements (before/after) on the same subjects.",
         "Парное сравнение без предположения о нормальности разностей.": "Paired comparison without assuming normality of differences.",
         "Все попарные сравнения групп после значимого ANOVA.": (
@@ -279,6 +282,7 @@ DESCRIPTIONS: dict[str, dict[str, str]] = {
             "Compara dois grupos sem assumir normalidade."
         ),
         "Сравнивает средние нескольких групп.": "Compara as médias de vários grupos.",
+        "Сравнивает средние нескольких групп без предположения о равных дисперсиях.": "Compara as médias de vários grupos sem assumir variâncias iguais.",
         "Сравнивает связанные измерения (до/после) на одних объектах.": "Compara medições emparelhadas (antes/depois) nos mesmos sujeitos.",
         "Парное сравнение без предположения о нормальности разностей.": "Comparação emparelhada sem assumir normalidade das diferenças.",
         "Все попарные сравнения групп после значимого ANOVA.": (

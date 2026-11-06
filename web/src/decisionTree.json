@@ -333,6 +333,13 @@
    "method": "one_way_anova"
   },
   {
+   "id": "B4b.welch",
+   "kind": "leaf",
+   "parent": "B4b",
+   "method": "welch_anova",
+   "source": "предл.: Welch 1951; Witte стр. 316"
+  },
+  {
    "id": "B4b.rcbd",
    "kind": "leaf",
    "parent": "B4b",

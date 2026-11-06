@@ -481,6 +481,11 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     en: `Predictions and comparisons refer to a "typical" group (b = 0), not to population-averaged means.`,
     pt: `As previsões e comparações referem-se a um grupo «típico» (b = 0), não a médias populacionais.`,
   },
+  welch_zero_variance: {
+    ru: `В одной из групп все значения одинаковы: веса Уэлча не определены.`,
+    en: `All values in one of the groups are identical: Welch weights are undefined.`,
+    pt: `Todos os valores de um dos grupos são iguais: os pesos de Welch não estão definidos.`,
+  },
   group_n_too_small: {
     ru: `В части групп меньше 2 наблюдений: SD, SE и форма распределения для них не считаются.`,
     en: `Some groups have fewer than 2 observations: their SD, SE and shape are not computed.`,

@@ -175,6 +175,7 @@ const METHOD_MODULES: Record<string, string> = {
   one_way_anova: "core.stats.anova",
   tukey_hsd: "core.stats.anova",
   kruskal_wallis: "core.stats.anova",
+  welch_anova: "core.stats.oneway",
   treatment_means: "core.stats.anova",
   anova_permutation_test: "core.stats.anova_checks",
   bartlett_test: "core.stats.anova_checks",
@@ -231,6 +232,7 @@ const METHOD_MODULES: Record<string, string> = {
 /** Методы, которым нужна числовая колонка + колонка групп. */
 const GROUPED_METHODS = new Set([
   "one_way_anova",
+  "welch_anova",
   "treatment_means",
   "anova_permutation_test",
   "bartlett_test",
