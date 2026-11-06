@@ -7,6 +7,7 @@ import json
 import pytest
 
 from core.stats.anova import tukey_hsd
+from core.stats.oneway import scheffe_test, welch_anova
 from core.stats.plotsummary import (
     MAX_PAIRS, differences_from, interaction_from_rows, means_from_rows, summary_plots,
 )
@@ -33,6 +34,25 @@ def test_tukey_calcium_label_follows_core_sign():
     assert item["lower"] < item["diff"] < item["upper"]
     assert diff["reference"] == 0.0
     json.dumps(diff, allow_nan=False)
+
+
+def test_scheffe_differences_wider_than_tukey():
+    """scheffe_test — тот же график ДИ разностей, что у tukey_hsd; ДИ Шеффе шире."""
+    sch = scheffe_test(*CALCIUM.values(), labels=list(CALCIUM)).to_dict()
+    tuk = tukey_hsd(*CALCIUM.values(), labels=list(CALCIUM)).to_dict()
+    d_s = summary_plots("scheffe_test", sch)["differences"]
+    d_t = summary_plots("tukey_hsd", tuk)["differences"]
+    assert [i["label"] for i in d_s["items"]] == [i["label"] for i in d_t["items"]]
+    for a, b in zip(d_s["items"], d_t["items"]):
+        assert a["diff"] == pytest.approx(b["diff"])
+        assert a["upper"] - a["lower"] > b["upper"] - b["lower"]
+    json.dumps(d_s, allow_nan=False)
+
+
+def test_welch_has_no_summary_plot():
+    """welch_anova: графики — коробки и средние групп из моста, итоговых нет."""
+    res = welch_anova(*CALCIUM.values(), labels=list(CALCIUM)).to_dict()
+    assert "differences" not in summary_plots("welch_anova", res)
 
 
 def test_half_width_used_when_ci_missing():

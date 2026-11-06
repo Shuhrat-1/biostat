@@ -740,6 +740,7 @@ if _method in ("normality_test", "mean_ci", "one_sample_t"):
 elif _method in (
     "one_way_anova", "kruskal_wallis", "tukey_hsd", "treatment_means",
     "anova_permutation_test", "bartlett_test", "transformed_means",
+    "welch_anova", "scheffe_test",
 ):
     _groups = _t.groups_by(_cols["value"], _cols["group"])
     _bundle["boxplot"] = plotdata.boxplot_data(_groups)
