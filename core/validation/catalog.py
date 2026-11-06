@@ -173,6 +173,22 @@ CATALOG: list[MethodSpec] = [
         description="n, среднее и медиана, SD, SE, квартили, IQR, размах, CV по каждой группе и в целом.",
     ),
     MethodSpec(
+        method="chisq_goodness_of_fit",
+        label="χ² согласия одной классификации",
+        group="Описательная статистика",
+        slots={"response": _FACTOR, "count": _NUM},
+        slot_labels={
+            "response": "Колонка категорий",
+            "count": "Частота строки (если строки — уже сведённые классы; необязательно)",
+        },
+        params=[
+            Param("proportions", "Доли H0: уровень=доля; … (пусто — все равны)", "text", ""),
+            Param("alpha", "Уровень значимости α (ДИ долей)", "float", 0.05, min=0.001, max=0.2),
+        ],
+        description="Согласуются ли частоты категорий с заданными долями (или равными): χ², G², φ²c, остатки.",
+        optional_slots=("count",),
+    ),
+    MethodSpec(
         method="frequency_table",
         label="Таблица частот одной колонки",
         group="Описательная статистика",

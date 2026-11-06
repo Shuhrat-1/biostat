@@ -481,6 +481,31 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     en: `Predictions and comparisons refer to a "typical" group (b = 0), not to population-averaged means.`,
     pt: `As previsões e comparações referem-se a um grupo «típico» (b = 0), não a médias populacionais.`,
   },
+  gof_empty: {
+    ru: `Нет наблюдений или частоты отрицательны.`,
+    en: `There are no observations, or the frequencies are negative.`,
+    pt: `Não há observações, ou as frequências são negativas.`,
+  },
+  gof_one_category: {
+    ru: `Нужно ≥ 2 категорий.`,
+    en: `At least 2 categories are needed.`,
+    pt: `São necessárias ≥ 2 categorias.`,
+  },
+  gof_unknown_levels: {
+    ru: `Нет доли H0 для уровней: {levels}.`,
+    en: `No H0 proportion for levels: {levels}.`,
+    pt: `Sem proporção H0 para os níveis: {levels}.`,
+  },
+  gof_normalized: {
+    ru: `Доли H0 в сумме дают {total}: нормированы к 1.`,
+    en: `The H0 proportions sum to {total}: normalized to 1.`,
+    pt: `As proporções H0 somam {total}: normalizadas para 1.`,
+  },
+  gof_small_expected: {
+    ru: `Ожидаемые частоты < 5: {levels}. χ² ненадёжен — объедините категории по смыслу или увеличьте выборку; при двух категориях — точный биномиальный P.`,
+    en: `Expected counts < 5: {levels}. χ² is unreliable — merge categories meaningfully or enlarge the sample; with two categories use the exact binomial P.`,
+    pt: `Frequências esperadas < 5: {levels}. O χ² não é fiável — junte categorias com sentido ou aumente a amostra; com duas categorias use o P binomial exato.`,
+  },
   simple_empty_cell: {
     ru: `Есть пустые ячейки A × B (не хватает: {missing}): простые эффекты не сравнимы между уровнями.`,
     en: `Some A × B cells are empty (missing: {missing}): simple effects are not comparable across levels.`,
