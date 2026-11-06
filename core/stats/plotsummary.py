@@ -164,7 +164,8 @@ def _model_tables(params: dict) -> dict[str, Any]:
 
 
 _COMPARISONS = {"tukey_hsd", "scheffe_test", "treatment_means", "rcbd_anova",
-                "rcbd_subsampling_anova", "bibd_anova", "mean_comparisons"}
+                "rcbd_subsampling_anova", "bibd_anova", "mean_comparisons", "rm_anova",
+                "simple_effects"}
 _TABLES = {"factorial_anova", "latin_square_anova", "nested_anova", "unbalanced_anova",
            "split_plot_anova"}
 
@@ -385,7 +386,19 @@ def _comparison_plots(method: str, result: dict) -> dict[str, Any]:
         out["means_ci"] = means
     if method == "equivalence_test" and (eq := _equivalence(params)):
         out["differences"] = eq
+    if method == "simple_effects" and (inter := interaction_from_rows(
+            params.get("cell_means", []), back=False)):
+        out["interaction"] = inter
+    if method == "chi2_goodness_of_fit" and (shares := _gof_shares(params)):
+        out["means_ci"] = shares
     return out
+
+
+def _gof_shares(params: dict) -> dict | None:
+    """Наблюдаемые доли категорий с ДИ Уилсона (χ² согласия, Witte гл. 19)."""
+    rows = [{"label": c["category"], "mean": c.get("p_observed"), "ci_lower": c.get("ci_lower"),
+             "ci_upper": c.get("ci_upper")} for c in params.get("cells", [])]
+    return means_from_rows(rows, back=False)
 
 
 def _model_plots(method: str, result: dict) -> dict[str, Any]:

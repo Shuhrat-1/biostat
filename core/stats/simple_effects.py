@@ -136,10 +136,21 @@ def simple_effects(
     result.parameters.update({
         "simple_effects": a_rows + b_rows,
         "comparisons": a_pairs + b_pairs,
-        "cell_means": [{"a": r["a"], "b": r["b"], "n": int(r["n"]), "mean": float(r["mean"])}
-                       for r in cells.to_dict("records")],
+        "cell_means": _cell_rows(cells, names, fit),
     })
     return result
+
+
+def _cell_rows(cells: pd.DataFrame, names: dict[str, str], fit: dict) -> list[dict]:
+    """Средние ячеек с ДИ по общему MS_within (t на df_within); метка «A=a × B=b»."""
+    t_crit = float(stats.t.ppf(0.975, fit["df"]))
+    rows = []
+    for r in cells.to_dict("records"):
+        half = t_crit * float(np.sqrt(fit["ms"] / r["n"]))
+        rows.append({"a": r["a"], "b": r["b"], "n": int(r["n"]), "mean": float(r["mean"]),
+                     "label": f"{names['a']}={r['a']} × {names['b']}={r['b']}",
+                     "ci_lower": float(r["mean"]) - half, "ci_upper": float(r["mean"]) + half})
+    return rows
 
 
 def _interaction(values: list[float], factor_a: list[str], factor_b: list[str]) -> dict:

@@ -7,11 +7,19 @@ import json
 import pytest
 
 from core.stats.anova import tukey_hsd
+from core.stats.goodness_of_fit import chi2_goodness_of_fit
 from core.stats.oneway import scheffe_test, welch_anova
 from core.stats.plotsummary import (
-    MAX_PAIRS, differences_from, interaction_from_rows, means_from_rows, summary_plots,
+    MAX_PAIRS,
+    differences_from,
+    interaction_from_rows,
+    means_from_rows,
+    summary_plots,
 )
+from core.stats.repeated import rm_anova
+from core.stats.simple_effects import simple_effects
 from core.stats.transforms import transformed_means
+from tests import witte_data as W
 from tests.test_transforms import BEETLES
 from tests.test_treatment_means import CALCIUM
 
@@ -53,6 +61,42 @@ def test_welch_has_no_summary_plot():
     """welch_anova: графики — коробки и средние групп из моста, итоговых нет."""
     res = welch_anova(*CALCIUM.values(), labels=list(CALCIUM)).to_dict()
     assert "differences" not in summary_plots("welch_anova", res)
+
+
+def test_rm_anova_differences_from_tukey_block():
+    """rm_anova: ДИ разностей — из блока Тьюки на MS_error (Witte, Table 17.8: разности 3, 6, 3)."""
+    values = [v for row in W.RM_SLEEP for v in row]
+    cond = ["0", "24", "48"] * 3
+    subj = [s for s in "ABC" for _ in range(3)]
+    res = rm_anova(values, cond, subj).to_dict()
+    diff = summary_plots("rm_anova", res)["differences"]
+    assert [i["diff"] for i in diff["items"]] == pytest.approx([3, 6, 3])
+    assert diff["items"][1]["lower"] == pytest.approx(res["parameters"]["comparisons"][1]["ci_lower"])
+    json.dumps(diff, allow_nan=False)
+
+
+def test_simple_effects_interaction_and_differences():
+    """simple_effects: график взаимодействия по средним ячеек (Table 18.1: неопасно 10, 17, 21)
+    и ДИ разностей пар ячеек."""
+    res = simple_effects(*W.SMOKE, column_names={"factor_a": "crowd", "factor_b": "danger"}).to_dict()
+    out = summary_plots("simple_effects", res)
+    inter = out["interaction"]
+    assert (inter["factor_a"], inter["factor_b"]) == ("crowd", "danger")
+    non = next(s for s in inter["series"] if s["name"] == "nondangerous")
+    assert non["values"] == pytest.approx([10, 17, 21])
+    assert len(out["differences"]["items"]) == len(res["parameters"]["comparisons"])
+    json.dumps(out, allow_nan=False)
+
+
+def test_chi2_goodness_of_fit_shares_with_wilson_ci():
+    """chi2_goodness_of_fit: наблюдаемые доли с ДИ Уилсона (Witte, Table 19.1: тип B — 20 из 100)."""
+    res = chi2_goodness_of_fit(["O", "A", "B", "AB"], [38, 38, 20, 4],
+                               proportions="O=.44; A=.41; B=.10; AB=.05").to_dict()
+    means = summary_plots("chi2_goodness_of_fit", res)["means_ci"]
+    b = next(i for i in means["items"] if i["label"] == "B")
+    assert b["mean"] == pytest.approx(0.2)
+    assert b["lower"] == pytest.approx(res["parameters"]["cells"][2]["ci_lower"])
+    json.dumps(means, allow_nan=False)
 
 
 def test_half_width_used_when_ci_missing():
