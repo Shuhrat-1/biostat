@@ -481,6 +481,31 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     en: `Predictions and comparisons refer to a "typical" group (b = 0), not to population-averaged means.`,
     pt: `As previsões e comparações referem-se a um grupo «típico» (b = 0), não a médias populacionais.`,
   },
+  rm_incomplete_subjects: {
+    ru: `Исключено субъектов с пропусками: {dropped}. При пропусках используйте mixed_model (Welham, гл. 16) — он не требует полных данных.`,
+    en: `Subjects with missing values excluded: {dropped}. With missing data use mixed_model (Welham, ch. 16), which does not need complete data.`,
+    pt: `Sujeitos com valores em falta excluídos: {dropped}. Com dados em falta use mixed_model (Welham, cap. 16), que não exige dados completos.`,
+  },
+  rm_two_conditions: {
+    ru: `Два условия: сферичность выполняется всегда (одна разность), ε = 1, тест Маучли не нужен. Анализ равносилен парному t-тесту.`,
+    en: `Two conditions: sphericity always holds (a single difference), ε = 1, Mauchly's test is not needed. The analysis is equivalent to a paired t-test.`,
+    pt: `Duas condições: a esfericidade verifica-se sempre (uma só diferença), ε = 1, o teste de Mauchly não é necessário. A análise equivale a um teste t emparelhado.`,
+  },
+  rm_sphericity_conflict: {
+    ru: `Вывод зависит от сферичности: обычный P = {p}, с поправкой Гринхауса–Гейссера P = {p_gg} (α = {alpha}). Сравните также блок парных t с поправкой Холма.`,
+    en: `The conclusion depends on sphericity: uncorrected P = {p}, Greenhouse–Geisser P = {p_gg} (α = {alpha}). Compare also the block of paired t-tests with Holm's correction.`,
+    pt: `A conclusão depende da esfericidade: P sem correção = {p}, com correção de Greenhouse–Geisser P = {p_gg} (α = {alpha}). Compare também o bloco de testes t emparelhados com correção de Holm.`,
+  },
+  rm_mauchly_undefined: {
+    ru: `Тест Маучли не определён: субъектов слишком мало или ковариация разностей вырождена. Поправки ε посчитаны.`,
+    en: `Mauchly's test is undefined: too few subjects or a singular covariance of differences. The ε corrections are computed.`,
+    pt: `O teste de Mauchly não está definido: poucos sujeitos ou covariância das diferenças singular. As correções ε foram calculadas.`,
+  },
+  rm_zero_error: {
+    ru: `MS_error = 0: все субъекты меняются одинаково, F не определён.`,
+    en: `MS_error = 0: all subjects change identically, F is undefined.`,
+    pt: `MS_error = 0: todos os sujeitos variam de forma idêntica, F não está definido.`,
+  },
   scheffe_zero_variance: {
     ru: `Внутри групп нет разброса: MS_within = 0, сравнения не определены.`,
     en: `There is no spread within groups: MS_within = 0, comparisons are undefined.`,

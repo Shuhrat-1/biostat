@@ -176,6 +176,7 @@ const METHOD_MODULES: Record<string, string> = {
   tukey_hsd: "core.stats.anova",
   kruskal_wallis: "core.stats.anova",
   welch_anova: "core.stats.oneway",
+  rm_anova: "core.stats.repeated",
   scheffe_test: "core.stats.oneway",
   treatment_means: "core.stats.anova",
   anova_permutation_test: "core.stats.anova_checks",
@@ -268,6 +269,7 @@ const BLOCKED_METHODS = new Set(["rcbd_anova", "rcbd_subsampling_anova"]);
 /** Структуры вариантов (гл. 8): слоты передаются по имени, пустые — пропускаются. */
 const STRUCTURED_METHODS = new Set([
   "factorial_anova",
+  "rm_anova",
   "nested_anova",
   "treatment_contrasts",
   "polynomial_contrasts",

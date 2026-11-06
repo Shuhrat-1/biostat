@@ -218,6 +218,13 @@
    "source": "кн. стр. 100"
   },
   {
+   "id": "B0.rm",
+   "kind": "leaf",
+   "parent": "B0",
+   "method": "rm_anova",
+   "source": "предл.: Witte гл. 17; поправки — Greenhouse & Geisser 1959, Huynh & Feldt 1976"
+  },
+  {
    "id": "B1",
    "kind": "choice",
    "parent": "B0",

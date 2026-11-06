@@ -184,6 +184,7 @@ def test_catalog_params_match_function_signatures():
         "frequency_table": "core.stats.frequency",
         "describe_by_group": "core.stats.group_summary",
         "welch_anova": "core.stats.oneway",
+        "rm_anova": "core.stats.repeated",
         "scheffe_test": "core.stats.oneway",
         "sampling_scheme_power": "core.stats.sampling",
         "curve_in_blocks": "core.stats.curve_designs",
