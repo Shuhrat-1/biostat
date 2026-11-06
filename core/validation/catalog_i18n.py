@@ -43,6 +43,7 @@ LABELS: dict[str, dict[str, str]] = {
         "Одновыборочный t-тест": "One-sample t-test",
         "Двухвыборочный t-тест": "Two-sample t-test",
         "Одна доля: ДИ и тест H0: p = p₀": "One proportion: CI and test of H0: p = p₀",
+        "Две доли: разность с ДИ": "Two proportions: difference with CI",
         "Тест Манна-Уитни (непараметрический)": "Mann-Whitney test (nonparametric)",
         "Однофакторный ANOVA": "One-way ANOVA",
         "ANOVA Уэлча (неравные дисперсии)": "Welch's ANOVA (unequal variances)",
@@ -111,6 +112,7 @@ LABELS: dict[str, dict[str, str]] = {
         "Одновыборочный t-тест": "Teste t para uma amostra",
         "Двухвыборочный t-тест": "Teste t para duas amostras",
         "Одна доля: ДИ и тест H0: p = p₀": "Uma proporção: IC e teste de H0: p = p₀",
+        "Две доли: разность с ДИ": "Duas proporções: diferença com IC",
         "Тест Манна-Уитни (непараметрический)": "Teste de Mann-Whitney (não paramétrico)",
         "Однофакторный ANOVA": "ANOVA de um fator",
         "ANOVA Уэлча (неравные дисперсии)": "ANOVA de Welch (variâncias desiguais)",
@@ -181,6 +183,7 @@ DESCRIPTIONS: dict[str, dict[str, str]] = {
         "Частоты, доли с ДИ, накопленные проценты, мода и медианный класс; классы по правилам Witte.": "Frequencies, proportions with CIs, cumulative percentages, mode and median class; classes by the Witte rules.",
         "Согласуются ли частоты категорий с заданными долями (или равными): χ², G², φ²c, остатки.": "Do category counts agree with given (or equal) proportions: χ², G², φ²c, residuals.",
         "Доля «успехов»: оценка, ДИ Уилсона и точный, биномиальный и score-тест против p₀.": "Share of successes: estimate, Wilson and exact CIs, binomial and score tests against p₀.",
+        "Разность долей «успехов» двух независимых групп: ДИ Ньюкомба и z-тест (= χ² 2 × 2 без Йейтса).": "Difference in success shares of two independent groups: Newcombe CI and z test (= 2 × 2 χ² without Yates).",
         "n, среднее и медиана, SD, SE, квартили, IQR, размах, CV по каждой группе и в целом.": "n, mean and median, SD, SE, quartiles, IQR, range, CV for each group and overall.",
         "Проверяет, согласуются ли данные с нормальным распределением.": (
             "Tests whether data are consistent with a normal distribution."
@@ -285,6 +288,7 @@ DESCRIPTIONS: dict[str, dict[str, str]] = {
         "Частоты, доли с ДИ, накопленные проценты, мода и медианный класс; классы по правилам Witte.": "Frequências, proporções com IC, percentagens acumuladas, moda e classe mediana; classes pelas regras de Witte.",
         "Согласуются ли частоты категорий с заданными долями (или равными): χ², G², φ²c, остатки.": "As frequências das categorias concordam com proporções dadas (ou iguais): χ², G², φ²c, resíduos.",
         "Доля «успехов»: оценка, ДИ Уилсона и точный, биномиальный и score-тест против p₀.": "Proporção de sucessos: estimativa, IC de Wilson e exato, testes binomial e score contra p₀.",
+        "Разность долей «успехов» двух независимых групп: ДИ Ньюкомба и z-тест (= χ² 2 × 2 без Йейтса).": "Diferença das proporções de sucesso de dois grupos independentes: IC de Newcombe e teste z (= χ² 2 × 2 sem Yates).",
         "n, среднее и медиана, SD, SE, квартили, IQR, размах, CV по каждой группе и в целом.": "n, média e mediana, DP, EP, quartis, AIQ, amplitude, CV por grupo e no total.",
         "Проверяет, согласуются ли данные с нормальным распределением.": (
             "Verifica se os dados são consistentes com uma distribuição normal."

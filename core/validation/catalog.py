@@ -247,6 +247,24 @@ CATALOG: list[MethodSpec] = [
         optional_slots=("count",),
     ),
     MethodSpec(
+        method="two_proportions",
+        label="Две доли: разность с ДИ",
+        group="Сравнение двух групп",
+        slots={"response": _FACTOR, "group": _FACTOR, "count": _NUM},
+        slot_labels={
+            "response": "Колонка категорий",
+            "group": "Колонка групп",
+            "count": "Частота строки (если строки — уже сведённые классы; необязательно)",
+        },
+        params=[
+            Param("success", "Уровень «успех» (пусто — 1 / yes / да или первый)", "text", ""),
+            _ALTERNATIVE,
+            Param("alpha", "Уровень значимости α", "float", 0.05, min=0.001, max=0.2),
+        ],
+        description="Разность долей «успехов» двух независимых групп: ДИ Ньюкомба и z-тест (= χ² 2 × 2 без Йейтса).",
+        optional_slots=("count",),
+    ),
+    MethodSpec(
         method="one_sample_t",
         label="Одновыборочный t-тест",
         group="Сравнение с эталоном",

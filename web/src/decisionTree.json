@@ -175,6 +175,13 @@
    "source": "предл.: Wilson 1927; Witte стр. 228"
   },
   {
+   "id": "G1.two",
+   "kind": "leaf",
+   "parent": "G1",
+   "method": "two_proportions",
+   "source": "предл.: Newcombe 1998"
+  },
+  {
    "id": "G2.poisson",
    "kind": "leaf",
    "parent": "G2",

@@ -165,7 +165,7 @@ def _model_tables(params: dict) -> dict[str, Any]:
 
 _COMPARISONS = {"tukey_hsd", "scheffe_test", "treatment_means", "rcbd_anova",
                 "rcbd_subsampling_anova", "bibd_anova", "mean_comparisons", "rm_anova",
-                "simple_effects"}
+                "simple_effects", "two_proportions"}
 _TABLES = {"factorial_anova", "latin_square_anova", "nested_anova", "unbalanced_anova",
            "split_plot_anova"}
 
@@ -393,6 +393,9 @@ def _comparison_plots(method: str, result: dict) -> dict[str, Any]:
         out["means_ci"] = shares
     if method == "one_proportion" and (share := _one_share(result)):
         out["means_ci"] = share
+    if method == "two_proportions" and (shares := means_from_rows(
+            params.get("proportions", []), back=False)):
+        out["means_ci"] = shares
     return out
 
 

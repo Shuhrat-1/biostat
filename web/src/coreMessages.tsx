@@ -496,6 +496,11 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     en: `Whole non-negative counts are needed.`,
     pt: `São necessárias frequências inteiras não negativas.`,
   },
+  prop_two_groups: {
+    ru: `Нужно ровно 2 группы, найдено {k}.`,
+    en: `Exactly 2 groups are needed, found {k}.`,
+    pt: `São necessários exatamente 2 grupos, encontrados {k}.`,
+  },
   gof_empty: {
     ru: `Нет наблюдений или частоты отрицательны.`,
     en: `There are no observations, or the frequencies are negative.`,

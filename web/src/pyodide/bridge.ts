@@ -177,6 +177,7 @@ const METHOD_MODULES: Record<string, string> = {
   kruskal_wallis: "core.stats.anova",
   welch_anova: "core.stats.oneway",
   rm_anova: "core.stats.repeated",
+  two_proportions: "core.stats.proportions",
   one_proportion: "core.stats.proportions",
   simple_effects: "core.stats.simple_effects",
   chi2_goodness_of_fit: "core.stats.goodness_of_fit",
@@ -300,6 +301,7 @@ const CATEGORICAL_METHODS = new Set([
   "contingency_test",
   "ordinal_regression",
   "frequency_table",
+  "two_proportions",
   "one_proportion",
   "chi2_goodness_of_fit",
 ]);

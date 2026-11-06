@@ -16,7 +16,7 @@ from core.stats.plotsummary import (
     means_from_rows,
     summary_plots,
 )
-from core.stats.proportions import one_proportion
+from core.stats.proportions import one_proportion, two_proportions
 from core.stats.repeated import rm_anova
 from core.stats.simple_effects import simple_effects
 from core.stats.transforms import transformed_means
@@ -107,6 +107,18 @@ def test_one_proportion_share_with_wilson_ci():
     assert (item["label"], item["mean"]) == ("yes", pytest.approx(0.64))
     assert item["lower"] == pytest.approx(res["statistics"]["ci_lower"])
     json.dumps(item, allow_nan=False)
+
+
+def test_two_proportions_difference_and_shares():
+    """two_proportions: ДИ разности (Ньюкомб) и доли групп с ДИ Уилсона (Witte, Review 19.14)."""
+    res = two_proportions(["lived", "perished"] * 2, ["cabin", "cabin", "steerage", "steerage"],
+                          [299, 280, 186, 526], success="lived").to_dict()
+    out = summary_plots("two_proportions", res)
+    item = out["differences"]["items"][0]
+    assert item["diff"] == pytest.approx(res["statistics"]["diff"])
+    assert item["lower"] == pytest.approx(res["statistics"]["ci_lower"])
+    assert [i["mean"] for i in out["means_ci"]["items"]] == pytest.approx([299 / 579, 186 / 712])
+    json.dumps(out, allow_nan=False)
 
 
 def test_half_width_used_when_ci_missing():
