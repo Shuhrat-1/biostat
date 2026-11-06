@@ -123,10 +123,17 @@ def one_sample_t(
     data: np.ndarray | list[float],
     popmean: float,
     alternative: str = "two-sided",
+    confidence: float = 0.95,
 ) -> StatResult:
-    """Одновыборочный t-тест: среднее выборки против заданного значения."""
+    """Одновыборочный t-тест: среднее выборки против заданного значения.
+
+    Оценка (Witte, гл. 13.8): ДИ для μ того же направления, что и t;
+    d = (X̄ − μ_hyp) / s [предл.: Cohen 1988; Witte, стр. 213 — эффект в SD].
+    """
     if alternative not in _ALTERNATIVES:
         raise ValueError(f"alternative ∈ {_ALTERNATIVES}")
+    if not 0 < confidence < 1:
+        raise ValueError("confidence ∈ (0, 1)")
 
     arr = _clean(data)
     result = StatResult(
@@ -147,9 +154,40 @@ def one_sample_t(
         "mean": mean,
         "mean_diff": mean - popmean,
     }
-    result.estimates.append(Estimate(name="mean", value=mean))
+    _add_one_sample_effect(result, res, arr, popmean, confidence)
     _check_normality(arr, result, "sample")
     return result
+
+
+def _add_one_sample_effect(
+    result: StatResult, res, arr: np.ndarray, popmean: float, confidence: float
+) -> None:
+    """Записать SE, ДИ для μ и d новыми ключами [Witte, стр. 240–242].
+
+    ДИ scipy строится для μ (а не для X̄ − μ_hyp).
+    """
+    mean = float(arr.mean())
+    sd = float(arr.std(ddof=1))
+    se = float(sd / np.sqrt(arr.size))
+    lo, hi = _mean_diff_ci(res, confidence)
+    d = (mean - popmean) / sd if sd > 0 else float("nan")
+    result.statistics.update(
+        {
+            "sd": sd,
+            "se_mean": se,
+            "ci_level": confidence,
+            "ci_lower": lo,
+            "ci_upper": hi,
+            "cohens_d": float(d),
+        }
+    )
+    result.estimates.append(
+        Estimate(
+            name="mean", value=mean, ci_lower=lo, ci_upper=hi,
+            ci_level=confidence, std_error=se,
+        )
+    )
+    result.estimates.append(Estimate(name="cohens_d", value=float(d)))
 
 
 def two_sample_t(

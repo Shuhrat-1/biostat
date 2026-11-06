@@ -6,9 +6,16 @@
 
 from __future__ import annotations
 
+import math
+
 import pytest
 
-from core.stats.hypothesis import hedges_correction, paired_t, two_sample_t
+from core.stats.hypothesis import (
+    hedges_correction,
+    one_sample_t,
+    paired_t,
+    two_sample_t,
+)
 from tests import witte_data as W
 
 
@@ -148,3 +155,62 @@ def test_gpa_review_15_7_book_arithmetic_error():
 def test_paired_confidence_validated():
     with pytest.raises(ValueError):
         paired_t(W.EPO_X1, W.EPO_X2, confidence=0)
+
+
+def test_gas_mileage_one_sample_t_table_13_1():
+    """Witte 13.3, стр. 238–240 (Table 13.1): X̄ = 43, s = 2.19, s_X̄ = 0.89, t = −2.25, df 5;
+    H0 сохранена при α = .01 (критическое −3.365). Книга округляет s_X̄ до 0.89:
+    точно s_X̄ = 0.894, t = −2.236."""
+    res = one_sample_t(W.GAS_MILEAGE, 45, alternative="less")
+    assert res.statistics["mean"] == 43
+    assert round(res.statistics["sd"], 2) == 2.19
+    assert round(res.statistics["se_mean"], 2) == 0.89
+    assert round(res.statistics["t"], 3) == -2.236
+    assert res.p_value > 0.01
+    assert res.statistics["ci_lower"] is None  # односторонний «less»: только верхняя граница
+
+
+def test_gas_mileage_ci_formula_13_3():
+    """Witte 13.8, стр. 242 (формула 13.3): 95 % ДИ = 43 ± 2.571 · 0.89 = 40.71…45.29;
+    точно 40.701…45.299. ДИ — для μ, а не для разности X̄ − μ_hyp."""
+    res = one_sample_t(W.GAS_MILEAGE, 45)
+    assert res.statistics["ci_lower"] == pytest.approx(40.701, abs=5e-4)
+    assert res.statistics["ci_upper"] == pytest.approx(45.299, abs=5e-4)
+    est = next(e for e in res.estimates if e.name == "mean")
+    assert (est.value, est.ci_lower, est.ci_upper) == (
+        43, res.statistics["ci_lower"], res.statistics["ci_upper"],
+    )
+
+
+def test_beef_progress_checks_13_2_to_13_4():
+    """Witte, стр. 239, 241 (Progress Checks 13.2–13.4), ответы стр. 436: X̄ = 14.7, s = .82,
+    s_X̄ = .26; t = (14.7 − 16) / .26 = −5.00 (df 9, критическое −1.833);
+    95 % ДИ 14.7 ± 2.26 · .26 = 14.11…15.29. Точно t = −4.993."""
+    res = one_sample_t(W.BEEF_WEIGHTS, 16, alternative="less")
+    assert res.statistics["mean"] == pytest.approx(14.7)
+    assert round(res.statistics["sd"], 2) == 0.82
+    assert round(res.statistics["se_mean"], 2) == 0.26
+    assert round(res.statistics["t"], 3) == -4.993
+    two = one_sample_t(W.BEEF_WEIGHTS, 16)
+    assert round(two.statistics["ci_lower"], 2) == 14.11
+    assert round(two.statistics["ci_upper"], 2) == 15.29
+
+
+def test_one_sample_d_in_sd_units():
+    """[предл.: Cohen 1988] d = (X̄ − μ_hyp) / s; Witte, стр. 213: эффект 7 при σ = 15
+    (≈ половина SD) — «средний» по Коэну. Бензин: d = −2 / 2.19 = −0.91."""
+    res = one_sample_t(W.GAS_MILEAGE, 45)
+    assert round(res.statistics["cohens_d"], 2) == -0.91
+
+
+@pytest.mark.filterwarnings("ignore::RuntimeWarning")
+@pytest.mark.filterwarnings("ignore::UserWarning")
+def test_one_sample_zero_sd_gives_nan_d():
+    """s = 0 → d не определён: NaN (в JSON — null); предупреждения scipy ожидаемы."""
+    d = one_sample_t([107.0, 107.0, 107.0], 100).statistics["cohens_d"]
+    assert math.isnan(d)
+
+
+def test_one_sample_confidence_validated():
+    with pytest.raises(ValueError):
+        one_sample_t(W.GAS_MILEAGE, 45, confidence=1)
