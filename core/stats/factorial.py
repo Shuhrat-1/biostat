@@ -319,10 +319,25 @@ def factorial_anova(
             and _apply_transform(frame, transform_kind, offset, result)):
         _factorial_fit(frame, keys, names, block is not None, result)
         if result.statistics.get("df_resid", 0) > 0:
+            _add_partial_eta(result)
             _factorial_predict(frame, keys, names, settings, result)
             if contrasts.strip():
                 _factorial_contrasts(frame, keys, names, contrasts, result)
     return result
+
+
+def _add_partial_eta(result: StatResult) -> None:
+    """η²_p = SS_член / (SS_член + SS_остатка) для членов вариантов (Witte, ф. 18.3).
+
+    Новые ключи: eta_squared_partial в строках anova_table и eta_p_<член> в statistics.
+    Блок пропускается: его F — не эффект варианта. Сумма η²_p не равна 1.
+    """
+    ss_resid = result.statistics["ss_resid"]
+    for row in result.parameters["anova_table"]:
+        if "F" in row and row.get("stratum") == "unit":
+            eta = row["ss"] / (row["ss"] + ss_resid) if row["ss"] + ss_resid > 0 else float("nan")
+            row["eta_squared_partial"] = eta
+            result.statistics[f"eta_p_{row['term']}"] = eta
 
 
 def _factorial_contrasts(frame: pd.DataFrame, keys: list[str], names: dict[str, str],
