@@ -177,6 +177,8 @@ def tukey_hsd(
 
     Конвенция знака (как в statsmodels): ``mean_diff = mean(group2) -
     mean(group1)``. Положительное значение означает, что group2 больше.
+    ``cohens_d`` в каждой строке — та же разность в единицах √MS_within
+    (Witte, гл. 16.10), знак тот же.
     """
     clean = [_clean_group(g) for g in groups]
     k = len(clean)
@@ -199,6 +201,8 @@ def tukey_hsd(
         n=int(values.size),
         parameters={"alpha": alpha, "labels": labels},
     )
+    ms_within, _ = _pooled_variance(clean)
+    sd = float(np.sqrt(ms_within))
     comparisons = []
     for i, (g1, g2) in enumerate(_pairs(res.groupsunique.tolist())):
         comparisons.append(
@@ -210,9 +214,13 @@ def tukey_hsd(
                 "ci_lower": float(res.confint[i, 0]),
                 "ci_upper": float(res.confint[i, 1]),
                 "reject": bool(res.reject[i]),
+                # Witte, ф. 16.10: d = разность / √MS_within.
+                "cohens_d": float(res.meandiffs[i]) / sd if sd > 0 else float("nan"),
             }
         )
     result.parameters["comparisons"] = comparisons
+    result.statistics["ms_within"] = float(ms_within)
+    result.statistics["pooled_sd"] = sd
     result.statistics["n_comparisons"] = len(comparisons)
     result.statistics["n_significant"] = sum(c["reject"] for c in comparisons)
     return result

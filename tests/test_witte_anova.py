@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import pytest
 
-from core.stats.anova import omega_squared, one_way_anova
+from core.stats.anova import omega_squared, one_way_anova, tukey_hsd
 from core.stats.hypothesis import two_sample_t
 from tests import witte_data as W
 
@@ -91,3 +91,53 @@ def test_f_equals_t_squared_for_two_groups():
     t = two_sample_t(W.EPO_X1, W.EPO_X2, equal_var=True)
     assert f.statistics["F"] == pytest.approx(t.statistics["t"] ** 2)
     assert f.p_value == pytest.approx(t.p_value)
+
+
+def _rows(res) -> dict[tuple[str, str], dict]:
+    return {(c["group1"], c["group2"]): c for c in res.parameters["comparisons"]}
+
+
+def test_sleep_tukey_table_16_8_and_minitab_16_9():
+    """Witte 16.10, стр. 313 (Table 16.8): HSD = 4.34 · √(3.67/3) = 4.77, значима только
+    разность 6 (0 и 48 ч); стр. 317 (Table 16.9, Minitab): q = 4.34, ДИ 0–48: −10.798…−1.202,
+    0–24: −7.798…1.798 (знак «столбец − строка»; у tukey_hsd — group2 − group1).
+    Точно HSD = 4.797: книга округляет √1.22 до 1.10; Minitab печатает пределы на 0.001
+    больше точных (10.797 → 10.798), отсюда допуск 1e-3."""
+    rows = _rows(tukey_hsd(*W.SLEEP_B, labels=W.SLEEP_LABELS))
+    assert [k for k, c in rows.items() if c["reject"]] == [("0", "48")]
+    assert rows[("0", "48")]["ci_lower"] == pytest.approx(1.202, abs=1e-3)
+    assert rows[("0", "48")]["ci_upper"] == pytest.approx(10.798, abs=1e-3)
+    assert rows[("0", "24")]["ci_lower"] == pytest.approx(-1.798, abs=1e-3)
+    hsd = rows[("0", "48")]["mean_diff"] - rows[("0", "48")]["ci_lower"]
+    assert round(hsd, 3) == 4.797
+
+
+def test_sleep_tukey_cohens_d_formula_16_10():
+    """Witte, стр. 313–314 (формула 16.10): d = 6 / √3.67 = 3.13; знак — как у mean_diff."""
+    res = tukey_hsd(*W.SLEEP_B, labels=W.SLEEP_LABELS)
+    assert round(_rows(res)[("0", "48")]["cohens_d"], 2) == 3.13
+    assert round(res.statistics["pooled_sd"], 3) == 1.915
+
+
+def test_eye_contacts_tukey_progress_check_16_7():
+    """Witte, стр. 314 (Progress Check 16.7), ответ стр. 444: значимы 0–2 (3.37), 0–3 (5.87),
+    1–3 (4.37); d = 1.55, 2.69, 2.00. Книга: средние округлены до сотых, √4.74 = 2.18,
+    q взят для df = 24 (нет 28 в таблице). Точно d(0, 3) = 5.875 / 2.177 = 2.698."""
+    rows = _rows(tukey_hsd(*W.EYE_CONTACTS, labels=["0", "1", "2", "3"]))
+    assert sorted(k for k, c in rows.items() if c["reject"]) == [("0", "2"), ("0", "3"), ("1", "3")]
+    assert round(rows[("0", "2")]["cohens_d"], 2) == 1.55
+    assert round(rows[("0", "3")]["cohens_d"], 3) == 2.698
+    assert round(rows[("1", "3")]["cohens_d"], 2) == 2.01
+
+
+def test_unequal_n_tukey_kramer_review_16_10():
+    """Witte, стр. 319 (Review 16.10), ответ стр. 445: HSD с n = 4 → 3.87, значимы 0–48 (6.90)
+    и 24–48 (4.17); d = 3.50 и 2.12. Тьюки–Крамер (точные n = 5, 3, 4) даёт для 24–48
+    p = .052 — НЕ значимо: подстановка n̄ в книге занижает HSD для пары с n = 3.
+    d от поправки не зависит: 3.506 и 2.117."""
+    rows = _rows(tukey_hsd(*W.SLEEP_UNEQUAL, labels=W.SLEEP_LABELS))
+    assert rows[("0", "48")]["reject"]
+    assert not rows[("24", "48")]["reject"]
+    assert round(rows[("24", "48")]["p_adj"], 3) == 0.052
+    assert round(rows[("0", "48")]["cohens_d"], 2) == 3.51
+    assert round(rows[("24", "48")]["cohens_d"], 2) == 2.12
