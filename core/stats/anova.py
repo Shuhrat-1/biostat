@@ -92,12 +92,35 @@ def one_way_anova(
         "ms_between": ms_between,
         "ms_within": ms_within,
         "eta_squared": ss_between / ss_total if ss_total > 0 else float("nan"),
+        **_extra_effect_sizes(ss_between, ss_total, ms_within, df_between),
     }
     for lab, g in zip(labels, clean):
         result.estimates.append(Estimate(name=f"mean_{lab}", value=float(g.mean())))
 
     _check_anova_assumptions(clean, result)
     return result
+
+
+def omega_squared(ss_between: float, ss_total: float, ms_within: float, df_between: int) -> float:
+    """ω² = (SS_b − df_b·MS_w) / (SS_t + MS_w) [предл.: Hays 1963].
+
+    Менее смещённая оценка доли объяснённой дисперсии, чем η² (Witte, стр. 311);
+    при F < 1 становится отрицательной — усекаем до 0.
+    """
+    denom = ss_total + ms_within
+    if denom <= 0:
+        return float("nan")
+    return max(0.0, (ss_between - df_between * ms_within) / denom)
+
+
+def _extra_effect_sizes(
+    ss_between: float, ss_total: float, ms_within: float, df_between: int
+) -> dict[str, float]:
+    """Новые ключи W2: ω² и объединённое SD = √MS_within (Witte, стр. 317)."""
+    return {
+        "omega_squared": omega_squared(ss_between, ss_total, ms_within, df_between),
+        "pooled_sd": float(np.sqrt(ms_within)),
+    }
 
 
 def _check_anova_assumptions(groups: list[np.ndarray], result: StatResult) -> None:
