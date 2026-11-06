@@ -110,7 +110,7 @@ def _statistics(obs: np.ndarray, p0: np.ndarray) -> dict[str, float]:
     return out
 
 
-def chisq_goodness_of_fit(
+def chi2_goodness_of_fit(
     response: list,
     count: list | None = None,
     proportions: str = "",
@@ -121,7 +121,7 @@ def chisq_goodness_of_fit(
     if not 0 < alpha < 1:
         raise ValueError("alpha ∈ (0, 1)")
     observed = _counts(response, count)
-    result = StatResult(method="chisq_goodness_of_fit",
+    result = StatResult(method="chi2_goodness_of_fit",
                         parameters={"alpha": alpha,
                                     "column": (column_names or {}).get("response", "")})
     if len(observed) < 1 or sum(observed.values()) <= 0 or min(observed.values()) < 0:

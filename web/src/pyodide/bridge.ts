@@ -178,7 +178,7 @@ const METHOD_MODULES: Record<string, string> = {
   welch_anova: "core.stats.oneway",
   rm_anova: "core.stats.repeated",
   simple_effects: "core.stats.simple_effects",
-  chisq_goodness_of_fit: "core.stats.goodness_of_fit",
+  chi2_goodness_of_fit: "core.stats.goodness_of_fit",
   scheffe_test: "core.stats.oneway",
   treatment_means: "core.stats.anova",
   anova_permutation_test: "core.stats.anova_checks",
@@ -299,7 +299,7 @@ const CATEGORICAL_METHODS = new Set([
   "contingency_test",
   "ordinal_regression",
   "frequency_table",
-  "chisq_goodness_of_fit",
+  "chi2_goodness_of_fit",
 ]);
 
 /** Множественная регрессия (гл. 14): отклик y и все числовые колонки, выровненные по строкам. */

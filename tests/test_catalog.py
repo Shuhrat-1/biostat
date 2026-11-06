@@ -186,7 +186,7 @@ def test_catalog_params_match_function_signatures():
         "welch_anova": "core.stats.oneway",
         "rm_anova": "core.stats.repeated",
         "simple_effects": "core.stats.simple_effects",
-        "chisq_goodness_of_fit": "core.stats.goodness_of_fit",
+        "chi2_goodness_of_fit": "core.stats.goodness_of_fit",
         "scheffe_test": "core.stats.oneway",
         "sampling_scheme_power": "core.stats.sampling",
         "curve_in_blocks": "core.stats.curve_designs",

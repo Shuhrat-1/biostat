@@ -121,7 +121,7 @@
    "id": "R2.gof",
    "kind": "leaf",
    "parent": "R2",
-   "method": "chisq_goodness_of_fit",
+   "method": "chi2_goodness_of_fit",
    "source": "предл.: Witte гл. 19.1–19.5"
   },
   {

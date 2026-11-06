@@ -173,7 +173,7 @@ CATALOG: list[MethodSpec] = [
         description="n, среднее и медиана, SD, SE, квартили, IQR, размах, CV по каждой группе и в целом.",
     ),
     MethodSpec(
-        method="chisq_goodness_of_fit",
+        method="chi2_goodness_of_fit",
         label="χ² согласия одной классификации",
         group="Описательная статистика",
         slots={"response": _FACTOR, "count": _NUM},
