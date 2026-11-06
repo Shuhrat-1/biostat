@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import pytest
 
-from core.stats.hypothesis import hedges_correction, two_sample_t
+from core.stats.hypothesis import hedges_correction, paired_t, two_sample_t
 from tests import witte_data as W
 
 
@@ -89,3 +89,62 @@ def test_zero_pooled_sd_gives_nan_d():
 def test_confidence_validated():
     with pytest.raises(ValueError):
         two_sample_t(W.EPO_X1, W.EPO_X2, confidence=95)
+
+
+def test_epo_paired_t_table_15_2():
+    """Witte 15.4, стр. 278–280 (Table 15.2): D̄ = 5, SS_D = 14, s_D = 1.67, s_D̄ = 0.68,
+    t = 7.35, df = 5, p < .001 (односторонний). Книга округляет s_D̄ до 0.68:
+    точно s_D̄ = 0.683, t = 7.319."""
+    res = paired_t(W.EPO_X1, W.EPO_X2, alternative="greater")
+    assert res.statistics["df"] == 5
+    assert res.statistics["mean_diff"] == 5
+    assert res.statistics["sd_diff"] ** 2 * 5 == pytest.approx(14)  # SS_D = s²_D · (n − 1)
+    assert round(res.statistics["sd_diff"], 2) == 1.67
+    assert round(res.statistics["se_diff"], 2) == 0.68
+    assert round(res.statistics["t"], 3) == 7.319
+    assert res.p_value < 0.001
+
+
+def test_epo_paired_ci_and_d_formulas_15_6_15_7():
+    """Witte 15.6, стр. 282 (формула 15.6): 95 % ДИ = 5 ± 2.571 · 0.68 = 3.25…6.75
+    (точно 3.244…6.756) — уже, чем −0.17…10.17 для независимых (стр. 260);
+    стр. 283 (формула 15.7): d = 5 / 1.67 = 2.99 (точно 2.988)."""
+    res = paired_t(W.EPO_X1, W.EPO_X2)
+    assert res.statistics["ci_lower"] == pytest.approx(3.244, abs=5e-4)
+    assert res.statistics["ci_upper"] == pytest.approx(6.756, abs=5e-4)
+    assert round(res.statistics["cohens_dz"], 2) == 2.99
+    est = next(e for e in res.estimates if e.name == "mean_diff")
+    assert (est.ci_lower, est.ci_upper) == (res.statistics["ci_lower"], res.statistics["ci_upper"])
+
+
+def test_vitamin_c_progress_checks_15_2_to_15_4():
+    """Witte, стр. 281 (Progress Check 15.2), ответы стр. 440–441: D̄ = −1.5, s_D = 1.27,
+    s_D̄ = 0.40, t = −3.75 (df 9, критическое −1.833); 15.3: ДИ −1.50 ± 2.262 · 0.40 =
+    −2.40…−0.60; 15.4: d = 1.50 / 1.27 = 1.18. Точно: t = −3.737, ДИ −2.408…−0.592."""
+    res = paired_t(W.VITAMIN_C, W.VITAMIN_FAKE, alternative="less")
+    assert res.statistics["mean_diff"] == pytest.approx(-1.5)
+    assert round(res.statistics["sd_diff"], 2) == 1.27
+    assert round(res.statistics["t"], 3) == -3.737
+    assert res.statistics["ci_lower"] is None  # односторонний «less»: нижней границы нет
+    two = paired_t(W.VITAMIN_C, W.VITAMIN_FAKE)
+    assert two.statistics["ci_lower"] == pytest.approx(-2.408, abs=5e-4)
+    assert two.statistics["ci_upper"] == pytest.approx(-0.592, abs=5e-4)
+    assert round(abs(two.statistics["cohens_dz"]), 2) == 1.18
+
+
+def test_gpa_review_15_7_book_arithmetic_error():
+    """Witte, стр. 288–289 (Review Question 15.7), ответ стр. 442: книга берёт ΣD² = .48,
+    SS_D = .13, s_D = .14, t = 4.40, d = 1.57. Ошибка книги: ΣD² = .503, SS_D = .155,
+    s_D = .161, t = 3.664, d = 1.39. Решение то же: t > 3.143 (α = .01, df 6)."""
+    res = paired_t(W.GPA_EXERCISE, W.GPA_CONTROL, alternative="greater")
+    assert round(res.statistics["mean_diff"], 2) == 0.22
+    assert round(res.statistics["sd_diff"], 3) == 0.161
+    assert round(res.statistics["t"], 3) == 3.664
+    assert res.statistics["t"] > 3.143
+    assert res.p_value < 0.01
+    assert round(res.statistics["cohens_dz"], 2) == 1.39
+
+
+def test_paired_confidence_validated():
+    with pytest.raises(ValueError):
+        paired_t(W.EPO_X1, W.EPO_X2, confidence=0)

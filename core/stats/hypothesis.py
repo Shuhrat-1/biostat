@@ -246,10 +246,17 @@ def paired_t(
     a: np.ndarray | list[float],
     b: np.ndarray | list[float],
     alternative: str = "two-sided",
+    confidence: float = 0.95,
 ) -> StatResult:
-    """Парный t-тест: разности связанных измерений (до/после)."""
+    """Парный t-тест: разности связанных измерений (до/после).
+
+    Размер эффекта (Witte, гл. 15.6): ДИ для μD того же направления, что и t;
+    d_z = D̄ / s_D — по SD разностей, с d независимых выборок несравним.
+    """
     if alternative not in _ALTERNATIVES:
         raise ValueError(f"alternative ∈ {_ALTERNATIVES}")
+    if not 0 < confidence < 1:
+        raise ValueError("confidence ∈ (0, 1)")
 
     arr_a = np.asarray(a, dtype=float).ravel()
     arr_b = np.asarray(b, dtype=float).ravel()
@@ -278,9 +285,37 @@ def paired_t(
         "df": diff.size - 1,
         "mean_diff": mean_diff,
     }
-    result.estimates.append(Estimate(name="mean_diff", value=mean_diff))
+    _add_paired_effect(result, res, diff, confidence)
     _check_normality(diff, result, "differences")
     return result
+
+
+def _add_paired_effect(
+    result: StatResult, res, diff: np.ndarray, confidence: float
+) -> None:
+    """Записать ДИ для μD и d_z новыми ключами [Witte, стр. 281–283]."""
+    mean_diff = float(diff.mean())
+    sd_diff = float(diff.std(ddof=1))
+    se = sd_diff / np.sqrt(diff.size)
+    lo, hi = _mean_diff_ci(res, confidence)
+    d_z = mean_diff / sd_diff if sd_diff > 0 else float("nan")
+    result.statistics.update(
+        {
+            "sd_diff": sd_diff,
+            "se_diff": float(se),
+            "ci_level": confidence,
+            "ci_lower": lo,
+            "ci_upper": hi,
+            "cohens_dz": float(d_z),
+        }
+    )
+    result.estimates.append(
+        Estimate(
+            name="mean_diff", value=mean_diff, ci_lower=lo, ci_upper=hi,
+            ci_level=confidence, std_error=float(se),
+        )
+    )
+    result.estimates.append(Estimate(name="cohens_dz", value=float(d_z)))
 
 
 def mann_whitney(
