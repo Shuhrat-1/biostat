@@ -501,6 +501,16 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     en: `Exactly 2 groups are needed, found {k}.`,
     pt: `São necessários exatamente 2 grupos, encontrados {k}.`,
   },
+  mcnemar_levels: {
+    ru: `Нужен бинарный исход: найдено уровней {k}.`,
+    en: `A binary outcome is needed: found {k} levels.`,
+    pt: `É necessário um resultado binário: encontrados {k} níveis.`,
+  },
+  mcnemar_no_discordant: {
+    ru: `Нет несогласных пар: изменений нет, P = 1.`,
+    en: `No discordant pairs: nothing changed, P = 1.`,
+    pt: `Não há pares discordantes: nada mudou, P = 1.`,
+  },
   gof_empty: {
     ru: `Нет наблюдений или частоты отрицательны.`,
     en: `There are no observations, or the frequencies are negative.`,

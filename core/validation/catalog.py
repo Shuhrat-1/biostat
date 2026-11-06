@@ -265,6 +265,18 @@ CATALOG: list[MethodSpec] = [
         optional_slots=("count",),
     ),
     MethodSpec(
+        method="mcnemar_test",
+        label="Мак-Немар: парные бинарные исходы",
+        group="Сравнение двух групп",
+        slots={"first": _FACTOR, "second": _FACTOR},
+        slot_labels={"first": "Первое измерение (категории)", "second": "Второе измерение (категории)"},
+        params=[
+            Param("success", "Уровень «успех» (пусто — 1 / yes / да или первый)", "text", ""),
+            Param("alpha", "Уровень значимости α", "float", 0.05, min=0.001, max=0.2),
+        ],
+        description="До/после у одних объектов (да/нет): точный P по несогласным парам, χ² Мак-Немара, разность долей с ДИ.",
+    ),
+    MethodSpec(
         method="one_sample_t",
         label="Одновыборочный t-тест",
         group="Сравнение с эталоном",

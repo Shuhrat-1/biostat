@@ -232,6 +232,13 @@
    "method": "wilcoxon"
   },
   {
+   "id": "B0.paired.mcnemar",
+   "kind": "leaf",
+   "parent": "B0.paired",
+   "method": "mcnemar_test",
+   "source": "предл.: McNemar 1947"
+  },
+  {
    "id": "B0.repeated",
    "kind": "leaf",
    "parent": "B0",

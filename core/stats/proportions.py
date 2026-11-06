@@ -7,7 +7,10 @@ Witte даёт ДИ процента по Вальду (гл. 12.7, стр. 228)
   statsmodels proportion_confint, proportions_ztest];
 - ``two_proportions``: разность долей независимых групп, ДИ Ньюкомба
   [предл.: Newcombe 1998; statsmodels confint_proportions_2indep], z-тест с
-  объединённой долей (z² = χ² 2 × 2 без Йейтса).
+  объединённой долей (z² = χ² 2 × 2 без Йейтса);
+- ``mcnemar_test``: парные бинарные исходы — точный P по несогласным парам и
+  χ² Мак-Немара [предл.: McNemar 1947; statsmodels mcnemar], разность долей
+  с ДИ Вальда для связанных долей [предл.: Agresti 2002, ф. 10.1].
 """
 
 from __future__ import annotations
@@ -16,6 +19,7 @@ import math
 
 import numpy as np
 from scipy import stats
+from statsmodels.stats.contingency_tables import mcnemar
 from statsmodels.stats.proportion import (
     confint_proportions_2indep,
     proportion_confint,
@@ -223,3 +227,90 @@ def _two_parameters(groups: list[str], level: str, x: np.ndarray, n: np.ndarray,
             "comparisons": [{"group1": groups[0], "group2": groups[1], "mean_diff": fit["diff"],
                              "ci_lower": fit["ci_lower"], "ci_upper": fit["ci_upper"],
                              "p_adj": fit["p"]}]}
+
+
+# --- Мак-Немар ----------------------------------------------------------------------
+
+
+def _paired_table(first: list, second: list, success: str, result: StatResult
+                  ) -> tuple[np.ndarray, str] | None:
+    """2 × 2: строки — первое измерение (успех, нет), столбцы — второе."""
+    pairs = [(_label(a), _label(b)) for a, b in zip(first, second)]
+    pairs = [(a, b) for a, b in pairs if a and b]
+    levels = _natural([v for p in pairs for v in p])
+    if len(levels) > 2:
+        result.add_warning("mcnemar_levels", "Нужен бинарный исход: найдено уровней "
+                           f"{len(levels)}.", Severity.ERROR, params={"k": len(levels)})
+        return None
+    if not pairs:
+        result.add_warning("prop_bad_counts", "Нет полных пар.", Severity.ERROR)
+        return None
+    level = success_level(levels, success, result)
+    if level is None:
+        return None
+    tab = np.zeros((2, 2))
+    for a, b in pairs:
+        tab[0 if a == level else 1, 0 if b == level else 1] += 1
+    return tab, level
+
+
+def _mcnemar_stats(tab: np.ndarray, alpha: float) -> dict[str, float]:
+    """b, c; точный P; χ² с поправкой и без; p₁, p₂, разность с ДИ Вальда (Agresti 10.1)."""
+    n = tab.sum()
+    b, c = tab[0, 1], tab[1, 0]
+    if b + c == 0:  # нет несогласных пар: χ² = 0/0, изменений нет — P = 1
+        chi = {"p_exact": 1.0, "chi2": 0.0, "p_chi2": 1.0, "chi2_corrected": 0.0,
+               "p_chi2_corrected": 1.0}
+    else:
+        exact = mcnemar(tab, exact=True)
+        corr = mcnemar(tab, exact=False, correction=True)
+        raw = mcnemar(tab, exact=False, correction=False)
+        chi = {"p_exact": float(exact.pvalue), "chi2": float(raw.statistic),
+               "p_chi2": float(raw.pvalue), "chi2_corrected": float(corr.statistic),
+               "p_chi2_corrected": float(corr.pvalue)}
+    p1, p2 = tab[0].sum() / n, tab[:, 0].sum() / n
+    se = float(math.sqrt(max((b + c) - (b - c) ** 2 / n, 0.0)) / n)
+    z = float(stats.norm.ppf(1 - alpha / 2))
+    return {"n_pairs": float(n), "discordant_10": float(b), "discordant_01": float(c), **chi,
+            "p1": float(p1), "p2": float(p2), "diff": float(p2 - p1), "se_diff": se,
+            "ci_lower": float(p2 - p1 - z * se), "ci_upper": float(p2 - p1 + z * se)}
+
+
+def mcnemar_test(
+    first: list,
+    second: list,
+    success: str = "",
+    alpha: float = 0.05,
+    column_names: dict[str, str] | None = None,
+) -> StatResult:
+    """Мак-Немар: парные бинарные исходы (до/после у одних объектов) [предл.].
+
+    Основной P — точный биномиальный по несогласным парам; χ² — приближение.
+    Разность — доля успехов во втором измерении минус в первом.
+    """
+    if not 0 < alpha < 1:
+        raise ValueError("alpha ∈ (0, 1)")
+    if len(first) != len(second):
+        raise ValueError("Колонки должны быть одной длины")
+    result = StatResult(method="mcnemar_test", parameters={"alpha": alpha})
+    built = _paired_table(first, second, success, result)
+    if built is None:
+        return result
+    tab, level = built
+    st = _mcnemar_stats(tab, alpha)
+    result.n = int(st["n_pairs"])
+    result.statistics = st
+    result.p_value = st["p_exact"]
+    cn = column_names or {}
+    names = (cn.get("first", "first"), cn.get("second", "second"))
+    result.parameters.update({
+        "success": level, "table": {"rows": [f"{names[0]}: {level}", f"{names[0]}: не {level}"],
+                                    "columns": [f"{names[1]}: {level}", f"{names[1]}: не {level}"],
+                                    "counts": tab.tolist()},
+        "comparisons": [{"group1": names[0], "group2": names[1], "mean_diff": st["diff"],
+                         "ci_lower": st["ci_lower"], "ci_upper": st["ci_upper"],
+                         "p_adj": st["p_exact"]}]})
+    if st["discordant_10"] + st["discordant_01"] == 0:
+        result.add_warning("mcnemar_no_discordant", "Нет несогласных пар: изменений нет, P = 1.",
+                           Severity.INFO)
+    return result

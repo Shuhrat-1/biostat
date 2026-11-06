@@ -165,7 +165,7 @@ def _model_tables(params: dict) -> dict[str, Any]:
 
 _COMPARISONS = {"tukey_hsd", "scheffe_test", "treatment_means", "rcbd_anova",
                 "rcbd_subsampling_anova", "bibd_anova", "mean_comparisons", "rm_anova",
-                "simple_effects", "two_proportions"}
+                "simple_effects", "two_proportions", "mcnemar_test"}
 _TABLES = {"factorial_anova", "latin_square_anova", "nested_anova", "unbalanced_anova",
            "split_plot_anova"}
 

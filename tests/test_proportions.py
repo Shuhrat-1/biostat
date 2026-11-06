@@ -12,7 +12,7 @@ from statsmodels.stats.proportion import proportion_confint
 
 from core.stats.categorical import contingency_test
 from core.stats.goodness_of_fit import chi2_goodness_of_fit
-from core.stats.proportions import one_proportion, two_proportions
+from core.stats.proportions import mcnemar_test, one_proportion, two_proportions
 
 # --- one_proportion ---------------------------------------------------------------------
 
@@ -111,3 +111,52 @@ def test_two_proportions_guards():
     assert two_proportions(["a", "b", "a"], ["x", "y", "z"]).warnings[0].code == "prop_two_groups"
     res = two_proportions(["a", "b", "a", "b"], ["x", "x", "y", "y"], success="a")
     assert res.parameters["comparisons"][0]["group2"] == "y"
+
+
+# --- mcnemar_test -----------------------------------------------------------------------
+
+
+def _paired(a: int, b: int, c: int, d: int) -> tuple[list[str], list[str]]:
+    """2 × 2 [[a, b], [c, d]] (строки — первое измерение y/n) → пары меток."""
+    first = ["y"] * (a + b) + ["n"] * (c + d)
+    second = ["y"] * a + ["n"] * b + ["y"] * c + ["n"] * d
+    return first, second
+
+
+def test_mcnemar_agresti_table_10_1():
+    """[предл.: Agresti 2002, Table 10.1] одобрение президента в двух опросах одних 1600 человек:
+    794, 150, 86, 570. χ² = (150 − 86)²/236 = 17.36; разность .55 − .59 = −.04, ДИ −.06…−.02."""
+    res = mcnemar_test(*_paired(794, 150, 86, 570), success="y")
+    st = res.statistics
+    assert st["chi2"] == pytest.approx(64**2 / 236)
+    assert round(st["chi2"], 2) == 17.36
+    assert st["diff"] == pytest.approx(-0.04)
+    assert (round(st["ci_lower"], 2), round(st["ci_upper"], 2)) == (-0.06, -0.02)
+    assert res.parameters["table"]["counts"] == [[794, 150], [86, 570]]
+
+
+def test_mcnemar_matches_statsmodels_and_exact_binomial():
+    """Точный P = двусторонний биномиальный по несогласным парам (b из b + c, p = .5);
+    χ² с поправкой — как statsmodels mcnemar(correction=True)."""
+    from statsmodels.stats.contingency_tables import mcnemar
+    st = mcnemar_test(*_paired(10, 7, 2, 11), success="y").statistics
+    assert st["p_exact"] == pytest.approx(stats.binomtest(7, 9).pvalue)
+    assert st["chi2_corrected"] == pytest.approx(mcnemar([[10, 7], [2, 11]], exact=False).statistic)
+    assert st["chi2_corrected"] == pytest.approx((abs(7 - 2) - 1) ** 2 / 9)
+
+
+def test_mcnemar_ignores_concordant_pairs():
+    """Согласные пары не влияют на тест (только b и c)."""
+    small = mcnemar_test(*_paired(1, 12, 3, 1), success="y").statistics
+    big = mcnemar_test(*_paired(100, 12, 3, 100), success="y").statistics
+    assert small["p_exact"] == pytest.approx(big["p_exact"])
+    assert small["chi2"] == pytest.approx(big["chi2"])
+
+
+def test_mcnemar_guards():
+    none = mcnemar_test(*_paired(5, 0, 0, 5), success="y")
+    assert none.p_value == pytest.approx(1)
+    assert "mcnemar_no_discordant" in [w.code for w in none.warnings]
+    assert mcnemar_test(["a", "b", "c"], ["a", "b", "c"]).warnings[0].code == "mcnemar_levels"
+    with pytest.raises(ValueError):
+        mcnemar_test(["a"], ["a", "b"])

@@ -16,7 +16,7 @@ from core.stats.plotsummary import (
     means_from_rows,
     summary_plots,
 )
-from core.stats.proportions import one_proportion, two_proportions
+from core.stats.proportions import mcnemar_test, one_proportion, two_proportions
 from core.stats.repeated import rm_anova
 from core.stats.simple_effects import simple_effects
 from core.stats.transforms import transformed_means
@@ -119,6 +119,17 @@ def test_two_proportions_difference_and_shares():
     assert item["lower"] == pytest.approx(res["statistics"]["ci_lower"])
     assert [i["mean"] for i in out["means_ci"]["items"]] == pytest.approx([299 / 579, 186 / 712])
     json.dumps(out, allow_nan=False)
+
+
+def test_mcnemar_difference_of_paired_shares():
+    """mcnemar_test: ДИ разности связанных долей (второе − первое)."""
+    first = ["y"] * 17 + ["n"] * 13
+    second = ["y"] * 10 + ["n"] * 7 + ["y"] * 2 + ["n"] * 11
+    res = mcnemar_test(first, second, success="y").to_dict()
+    item = summary_plots("mcnemar_test", res)["differences"]["items"][0]
+    assert item["diff"] == pytest.approx(12 / 30 - 17 / 30)
+    assert item["upper"] == pytest.approx(res["statistics"]["ci_upper"])
+    json.dumps(item, allow_nan=False)
 
 
 def test_half_width_used_when_ci_missing():
