@@ -11,6 +11,7 @@ import numpy as np
 from scipy import special, stats
 
 from core.report.schema import Estimate, Severity, StatResult
+from core.stats.hodges_lehmann import hl_two_sample
 
 # Порог p для тестов на нарушение допущений (нормальность, равенство дисперсий).
 _ASSUMPTION_ALPHA = 0.05
@@ -360,13 +361,19 @@ def mann_whitney(
     a: np.ndarray | list[float],
     b: np.ndarray | list[float],
     alternative: str = "two-sided",
+    confidence: float = 0.95,
 ) -> StatResult:
     """Тест Манна-Уитни U — непараметрический аналог двухвыборочного t.
 
     Не требует нормальности; сравнивает распределения двух независимых групп.
+    Новые ключи (Witte, гл. 20.3; пакет W2): суммы рангов, U_min — меньшее из U₁, U₂
+    (ф. 20.1, как в таблицах книги); сдвиг Ходжеса–Лемана a − b с ДИ
+    [предл.: Hodges & Lehmann 1963].
     """
     if alternative not in _ALTERNATIVES:
         raise ValueError(f"alternative ∈ {_ALTERNATIVES}")
+    if not 0 < confidence < 1:
+        raise ValueError("confidence ∈ (0, 1)")
 
     arr_a, arr_b = _clean(a), _clean(b)
     result = StatResult(
@@ -385,7 +392,26 @@ def mann_whitney(
         "median_a": float(np.median(arr_a)),
         "median_b": float(np.median(arr_b)),
     }
+    _add_mann_whitney_extras(result, arr_a, arr_b, confidence)
     return result
+
+
+def _add_mann_whitney_extras(
+    result: StatResult, arr_a: np.ndarray, arr_b: np.ndarray, confidence: float
+) -> None:
+    """Суммы рангов, U_min (Witte, ф. 20.1) и сдвиг Ходжеса–Лемана — новыми ключами."""
+    ranks = stats.rankdata(np.concatenate([arr_a, arr_b]))
+    r_a, r_b = float(ranks[: arr_a.size].sum()), float(ranks[arr_a.size:].sum())
+    n_a, n_b = arr_a.size, arr_b.size
+    u_a = r_a - n_a * (n_a + 1) / 2  # = U scipy: пары, где a > b
+    hl = hl_two_sample(arr_a, arr_b, 1 - confidence)
+    result.parameters["hl_ci_method"] = hl.pop("hl_ci_method")  # exact | normal
+    result.statistics.update({"rank_sum_a": r_a, "rank_sum_b": r_b,
+                              "U_min": float(min(u_a, n_a * n_b - u_a)),
+                              "ci_level": confidence, **hl})
+    result.estimates.append(Estimate(name="hl_shift", value=hl["hl_shift"],
+                                     ci_lower=hl["hl_ci_lower"], ci_upper=hl["hl_ci_upper"],
+                                     ci_level=confidence))
 
 
 def wilcoxon(
