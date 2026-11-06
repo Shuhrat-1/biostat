@@ -281,6 +281,13 @@
    "source": "кн. стр. 172"
   },
   {
+   "id": "B2.simple",
+   "kind": "leaf",
+   "parent": "B2",
+   "method": "simple_effects",
+   "source": "предл.: Witte гл. 18.9"
+  },
+  {
    "id": "B2.unbalanced",
    "kind": "leaf",
    "parent": "B2",

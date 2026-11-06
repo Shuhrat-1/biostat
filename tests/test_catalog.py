@@ -185,6 +185,7 @@ def test_catalog_params_match_function_signatures():
         "describe_by_group": "core.stats.group_summary",
         "welch_anova": "core.stats.oneway",
         "rm_anova": "core.stats.repeated",
+        "simple_effects": "core.stats.simple_effects",
         "scheffe_test": "core.stats.oneway",
         "sampling_scheme_power": "core.stats.sampling",
         "curve_in_blocks": "core.stats.curve_designs",

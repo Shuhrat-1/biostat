@@ -423,6 +423,21 @@ CATALOG: list[MethodSpec] = [
         optional_slots=("factor_c", "block"),
     ),
     MethodSpec(
+        method="simple_effects",
+        label="Простые эффекты (A при каждом B и B при каждом A)",
+        group="Сравнение нескольких групп",
+        slots={"value": _NUM, "factor_a": _FACTOR, "factor_b": _FACTOR},
+        slot_labels={
+            "value": "Числовая колонка",
+            "factor_a": "Фактор A",
+            "factor_b": "Фактор B",
+        },
+        params=[
+            Param("alpha", "Уровень значимости α", "float", 0.05, min=0.001, max=0.2),
+        ],
+        description="Разбор взаимодействия: F по уровням другого фактора с общим MS_within, пары ячеек с d.",
+    ),
+    MethodSpec(
         method="nested_anova",
         label="Вложенный ANOVA (группа / член, контроль)",
         group="Сравнение нескольких групп",

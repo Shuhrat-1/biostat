@@ -177,6 +177,7 @@ const METHOD_MODULES: Record<string, string> = {
   kruskal_wallis: "core.stats.anova",
   welch_anova: "core.stats.oneway",
   rm_anova: "core.stats.repeated",
+  simple_effects: "core.stats.simple_effects",
   scheffe_test: "core.stats.oneway",
   treatment_means: "core.stats.anova",
   anova_permutation_test: "core.stats.anova_checks",
@@ -270,6 +271,7 @@ const BLOCKED_METHODS = new Set(["rcbd_anova", "rcbd_subsampling_anova"]);
 const STRUCTURED_METHODS = new Set([
   "factorial_anova",
   "rm_anova",
+  "simple_effects",
   "nested_anova",
   "treatment_contrasts",
   "polynomial_contrasts",

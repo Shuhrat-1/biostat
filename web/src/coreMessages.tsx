@@ -481,6 +481,11 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     en: `Predictions and comparisons refer to a "typical" group (b = 0), not to population-averaged means.`,
     pt: `As previsões e comparações referem-se a um grupo «típico» (b = 0), não a médias populacionais.`,
   },
+  simple_empty_cell: {
+    ru: `Есть пустые ячейки A × B (не хватает: {missing}): простые эффекты не сравнимы между уровнями.`,
+    en: `Some A × B cells are empty (missing: {missing}): simple effects are not comparable across levels.`,
+    pt: `Há células A × B vazias (em falta: {missing}): os efeitos simples não são comparáveis entre níveis.`,
+  },
   rm_incomplete_subjects: {
     ru: `Исключено субъектов с пропусками: {dropped}. При пропусках используйте mixed_model (Welham, гл. 16) — он не требует полных данных.`,
     en: `Subjects with missing values excluded: {dropped}. With missing data use mixed_model (Welham, ch. 16), which does not need complete data.`,
