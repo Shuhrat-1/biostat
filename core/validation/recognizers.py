@@ -443,15 +443,17 @@ def large_groups(ctx: Context) -> Signal | None:
     return None
 
 
-@rule("B4.8", "B4", "kruskal_wallis", HINT, "кн. стр. 127; порог BioStat")
+@rule("B4.8", "B4", "kruskal_wallis", HINT, "кн. стр. 127; Witte стр. 405; порог BioStat")
 def score_response(ctx: Context) -> Signal | None:
+    """Баллы → ранговый тест по числу групп (Witte, Fig. 21.1): 2 — U, 3+ — H."""
     v = _response_values(ctx)
     if v is None or not _is_int(v):
         return None
     distinct = np.unique(v)
     if 2 < distinct.size <= 10 and np.ptp(v) <= 10:
+        method = "mann_whitney" if len(_group_sizes(ctx)) == 2 else "kruskal_wallis"
         return Signal("Отклик — немного целых значений (баллы?): ранговые методы или"
-                      " порядковая регрессия.")
+                      " порядковая регрессия.", {"method": method})
     return None
 
 

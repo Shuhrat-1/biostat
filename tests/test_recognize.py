@@ -315,3 +315,12 @@ def test_regression_hints():
     assert fired["A1.5"]["message"]["params"]["k"] == 4
     assert fired["A1.5"]["message"]["params"]["method"] == "regression_subsets"
     assert fired["A1.5"]["message"]["params"]["variant"] == "subsets"
+
+
+def test_scores_point_to_rank_test_by_group_count():
+    """Witte, Fig. 21.1 (стр. 405): ранги/баллы — U при двух группах, H при трёх и более."""
+    scores = [1, 3, 2, 5, 4, 6, 2, 7, 3, 5, 4, 6]
+    two = _fired({"g": ["a"] * 6 + ["b"] * 6, "y": scores}, value="y", group="g")
+    assert two["B4.8"]["message"]["params"]["method"] == "mann_whitney"
+    three = _fired({"g": ["a", "b", "c"] * 4, "y": scores}, value="y", group="g")
+    assert three["B4.8"]["message"]["params"]["method"] == "kruskal_wallis"
