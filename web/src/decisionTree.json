@@ -214,6 +214,13 @@
    "rnode": "B0"
   },
   {
+   "id": "B0.onesample",
+   "kind": "leaf",
+   "parent": "B0",
+   "method": "one_sample_t",
+   "source": "предл.: Witte стр. 405, 407"
+  },
+  {
    "id": "B0.paired",
    "kind": "test",
    "parent": "B0",

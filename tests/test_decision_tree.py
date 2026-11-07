@@ -60,6 +60,21 @@ def test_leaves_have_no_children_inner_nodes_have_some():
         assert bool(kids) == (node["kind"] != "leaf"), node["id"]
 
 
+def _path(node_id: str) -> list[str]:
+    out = [node_id]
+    while BY_ID[out[-1]]["parent"] is not None:
+        out.append(BY_ID[out[-1]]["parent"])
+    return out[::-1]
+
+
+def test_fig_21_1_one_sample_is_a_difference_question():
+    """Witte, Fig. 21.1 (стр. 405): t одной выборки — проверка различия с μ₀, лист под
+    «Различия» (B0) рядом с описательным D.onesample."""
+    leaves = {n["id"] for n in TREE if n.get("method") == "one_sample_t"}
+    assert leaves == {"D.onesample", "B0.onesample"}
+    assert _path("B0.onesample")[:4] == ["R0", "R2", "Q", "B0"]
+
+
 # --- Связь с каталогом ядра --------------------------------------------------------
 
 def test_every_catalog_method_is_on_the_map():
