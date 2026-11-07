@@ -359,3 +359,38 @@ def test_curve_comparison_curves_marked_by_criteria_table_17_12():
     assert names == ["log10", "poly2", "poly8 (R²adj, AIC)", "inverse_linear (SBC)"]
     assert g["title"] == "models" and len(g["points"]) == len(OLSEN_P)
     json.dumps(g, allow_nan=False)
+
+
+# --- Witte: профили, наблюдаемые/ожидаемые, таблица частот ------------------------------
+
+def test_rm_profiles_lines_and_condition_means():
+    pr = {"subjects": ["s1", "s2"], "conditions": ["c1", "c2", "c3"],
+          "values": [[1.0, 2.0, 3.0], [3.0, 4.0, 5.0]]}
+    out = summary_plots("rm_anova", {"parameters": {"profiles": pr}})["profiles"]
+    assert out["means"] == [2.0, 3.0, 4.0] and len(out["lines"]) == 2
+
+
+def test_rm_profiles_hide_lines_for_many_subjects():
+    from core.stats.plotsummary import MAX_PAIR_LINES
+
+    rows = [[1.0, 2.0]] * (MAX_PAIR_LINES + 1)
+    pr = {"conditions": ["a", "b"], "values": rows}
+    out = summary_plots("rm_anova", {"parameters": {"profiles": pr}})["profiles"]
+    assert out["lines"] == [] and out["means"] == [1.0, 2.0]
+
+
+def test_goodness_of_fit_observed_expected():
+    cells = [{"category": "red", "observed": 12.0, "expected": 8.0},
+             {"category": "blue", "observed": 4.0, "expected": 8.0}]
+    out = summary_plots("chi2_goodness_of_fit", {"parameters": {"cells": cells}})
+    assert out["observed_expected"] == {"labels": ["red", "blue"], "observed": [12.0, 4.0],
+                                        "expected": [8.0, 8.0]}
+
+
+@pytest.mark.parametrize("kind, adjacent", [("grouped", True), ("ungrouped", False),
+                                            ("categorical", False)])
+def test_frequency_bars_adjacent_only_for_classes(kind, adjacent):
+    """Witte стр. 34, 39: классы — без зазоров (гистограмма), категории и дискретные — с зазорами."""
+    table = [{"class": "35–39", "f": 1.0}, {"class": "40–44", "f": 3.0}]
+    out = summary_plots("frequency_table", {"parameters": {"table": table, "kind": kind}})
+    assert out["frequency"]["adjacent"] is adjacent and out["frequency"]["f"] == [1.0, 3.0]

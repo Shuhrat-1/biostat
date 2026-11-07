@@ -441,7 +441,60 @@ def _model_plots(method: str, result: dict) -> dict[str, Any]:
     return out
 
 
+# --- Witte: профили повторных измерений, наблюдаемые/ожидаемые, таблица частот --------
+
+def _profiles(params: dict) -> dict | None:
+    """Профили субъектов по условиям (rm_anova, Witte гл. 17): линия на субъект,
+    поверх — средние условий. Больше 60 субъектов — только средние."""
+    pr = params.get("profiles") or {}
+    conds, values = pr.get("conditions") or [], pr.get("values") or []
+    if len(conds) < 2 or not values or len(conds) > MAX_LEVELS:
+        return None
+    rows = [r for r in values if len(r) == len(conds) and all(_ok(v) for v in r)]
+    if not rows:
+        return None
+    means = [sum(r[j] for r in rows) / len(rows) for j in range(len(conds))]
+    lines = rows if len(rows) <= MAX_PAIR_LINES else []
+    return {"conditions": [str(c) for c in conds], "lines": lines, "means": means}
+
+
+def _observed_expected(params: dict) -> dict | None:
+    """Наблюдаемые и ожидаемые частоты по категориям (одномерный χ², Witte гл. 19)."""
+    cells = [c for c in params.get("cells") or []
+             if "category" in c and _ok(c.get("observed"), c.get("expected"))]
+    if not cells or len(cells) > MAX_LEVELS:
+        return None
+    return {"labels": [str(c["category"]) for c in cells],
+            "observed": [c["observed"] for c in cells],
+            "expected": [c["expected"] for c in cells]}
+
+
+def _frequency(params: dict) -> dict | None:
+    """Таблица частот как график (Witte 2.8–2.10, стр. 39–42): сгруппированные
+    классы — смежные столбцы по классам самой таблицы (гистограмма); категории
+    и несгруппированные дискретные значения — столбцы с зазорами."""
+    table = params.get("table") or []
+    rows = [r for r in table if _ok(r.get("f"))]
+    if not rows or len(rows) > 2 * MAX_LEVELS:
+        return None
+    return {"labels": [str(r.get("class")) for r in rows], "f": [r["f"] for r in rows],
+            "adjacent": params.get("kind") == "grouped"}
+
+
+def _witte_plots(method: str, result: dict) -> dict[str, Any]:
+    params = result.get("parameters", {})
+    builders = {"rm_anova": ("profiles", _profiles),
+                "chi2_goodness_of_fit": ("observed_expected", _observed_expected),
+                "frequency_table": ("frequency", _frequency)}
+    if method not in builders:
+        return {}
+    key, build = builders[method]
+    data = build(params)
+    return {key: data} if data else {}
+
+
 def summary_plots(method: str, result: dict) -> dict[str, Any]:
     """Графики-итоги метода из готового результата. Ключ со значением None —
     убрать график моста (кривые по группам заменяют одиночную кривую)."""
-    return {**_model_plots(method, result), **_comparison_plots(method, result)}
+    return {**_model_plots(method, result), **_comparison_plots(method, result),
+            **_witte_plots(method, result)}

@@ -515,6 +515,53 @@ function surfaceOption(sf: NonNullable<PlotBundle["surface"]>, t: T): Option {
   };
 }
 
+/** Профили повторных измерений: тонкая линия на субъект, жирная — средние. */
+function profilesOption(pr: NonNullable<PlotBundle["profiles"]>, t: T): Option {
+  const all = pr.lines.flat().concat(pr.means);
+  return {
+    grid: { ...BASE_GRID, left: 56, right: 40 },
+    tooltip: { trigger: "item" },
+    xAxis: { type: "category", data: pr.conditions, boundaryGap: false, ...AXIS_STYLE },
+    yAxis: { type: "value", ...AXIS_STYLE, ...bounds(all) },
+    series: [
+      ...pr.lines.map((row) => ({ type: "line", data: row, symbolSize: 4, silent: true,
+        lineStyle: { width: 1, opacity: 0.45, color: MUTED_LINE }, itemStyle: { color: MUTED_LINE } })),
+      { type: "line", name: t("axis.mean_line"), data: pr.means, symbolSize: 9,
+        lineStyle: { width: 3, color: c.accent }, itemStyle: { color: c.accent } },
+    ],
+  };
+}
+
+/** Наблюдаемые и ожидаемые частоты рядом (одномерный χ²); ось от 0 (Witte 2.11). */
+function observedExpectedOption(oe: NonNullable<PlotBundle["observed_expected"]>, t: T): Option {
+  return {
+    grid: { ...BASE_GRID, top: 56 },
+    tooltip: { trigger: "axis", axisPointer: { type: "shadow" } },
+    legend: { top: 8, textStyle: { color: c.muted } },
+    xAxis: { type: "category", data: oe.labels, ...AXIS_STYLE },
+    yAxis: { type: "value", min: 0, name: t("axis.frequency"), ...AXIS_STYLE },
+    series: [
+      { type: "bar", name: t("axis.observed_f"), data: oe.observed, itemStyle: { color: c.accent } },
+      { type: "bar", name: t("axis.expected_f"), data: oe.expected,
+        itemStyle: { color: "#fff", borderColor: c.text, borderType: "dashed", borderWidth: 1.5 } },
+    ],
+  };
+}
+
+/** Таблица частот: классы — смежные столбцы, категории — с зазорами (Witte 2.8–2.10). */
+function frequencyOption(fr: NonNullable<PlotBundle["frequency"]>, t: T): Option {
+  return {
+    grid: { ...BASE_GRID, bottom: 60 },
+    tooltip: { trigger: "axis", axisPointer: { type: "shadow" } },
+    xAxis: { type: "category", data: fr.labels, ...AXIS_STYLE,
+      axisLabel: { color: c.muted, rotate: fr.labels.length > 10 ? 35 : 0 } },
+    yAxis: { type: "value", min: 0, name: t("axis.frequency"), ...AXIS_STYLE },
+    series: [{ type: "bar", data: fr.f, barCategoryGap: fr.adjacent ? "0%" : "40%",
+      itemStyle: { color: c.accent, opacity: 0.8, borderColor: fr.adjacent ? "#fff" : undefined,
+        borderWidth: fr.adjacent ? 1 : 0 } }],
+  };
+}
+
 /* --------------------------- Публичный вид --------------------------- */
 
 interface Item {
@@ -557,6 +604,16 @@ function summaryItems(bundle: PlotBundle, t: T): Item[] {
     items.push({ key: "stacked", title: t("plots.stacked"), option: stackedOption(bundle.stacked, t) });
   }
   items.push(...extraItems(bundle, t, true));
+  if (bundle.frequency) {
+    items.push({ key: "frequency", title: t("plots.frequency"), option: frequencyOption(bundle.frequency, t) });
+  }
+  if (bundle.observed_expected) {
+    items.push({ key: "observed_expected", title: t("plots.observed_expected"),
+      option: observedExpectedOption(bundle.observed_expected, t) });
+  }
+  if (bundle.profiles) {
+    items.push({ key: "profiles", title: t("plots.profiles"), option: profilesOption(bundle.profiles, t) });
+  }
   if (bundle.surface) {
     items.push({ key: "surface", title: t("plots.surface"), option: surfaceOption(bundle.surface, t),
       height: 420 });

@@ -13,6 +13,7 @@ import type {
 } from "./pyodide/bridge";
 import { useLang, useT } from "./i18n";
 import { fillColumns } from "./columnFill";
+import { effectRows } from "./effectSize";
 import { columnLabel, extraTitle } from "./extraLabels";
 import { useCoreMessage } from "./coreMessages";
 import { c, s, typeBadgeStyle } from "./styles";
@@ -1707,6 +1708,8 @@ export function ResultPanel({ result }: { result: StatResult }) {
       <PredictionsBlock params={result.parameters ?? {}} />
       <ExtraTables params={result.parameters ?? {}} method={result.method} />
 
+      <EffectSizes statistics={result.statistics} />
+
       {stats.length > 0 && (
         <div
           style={{
@@ -1748,6 +1751,32 @@ export function ResultPanel({ result }: { result: StatResult }) {
       )}
 
       <ExportButtons result={result} />
+    </div>
+  );
+}
+
+/** Размеры эффекта с подписью по ориентирам Коэна и источником ориентиров. */
+function EffectSizes({ statistics }: { statistics: Record<string, unknown> }) {
+  const t = useT();
+  const rows = effectRows(statistics);
+  if (!rows.length) return null;
+  const sources = [...new Set(rows.map((r) => r.source))].join("; ");
+  return (
+    <div style={{ margin: "0.4rem 0 0.9rem", fontSize: "0.88rem" }}>
+      <div style={{ fontWeight: 600, marginBottom: "0.3rem" }}>{t("effect.title")}</div>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem 1.2rem" }}>
+        {rows.map((r) => (
+          <span key={r.key}>
+            <span style={{ color: c.muted }}>{t(`effect.key.${r.key.startsWith("eta_p_") ? "eta_p" : r.key}`)}
+              {r.key.startsWith("eta_p_") ? ` (${r.key.slice(6)})` : ""}</span>{" "}
+            <span style={s.mono}>{formatNumber(r.value)}</span>{" "}
+            <span style={{ color: c.muted }}>— {t(`effect.${r.size}`)}</span>
+          </span>
+        ))}
+      </div>
+      <div style={{ color: c.muted, fontSize: "0.78rem", marginTop: "0.3rem" }}>
+        {t("effect.note")} ({sources})
+      </div>
     </div>
   );
 }

@@ -698,6 +698,12 @@ export interface PlotBundle {
   bars?: { kind: "msep"; items: { label: string; value: number }[]; best: string };
   /** Поверхность отклика: сетка x1 × x2, ячейки [i, j, подгонка]. */
   surface?: { x1: number[]; x2: number[]; cells: number[][]; names: string[] };
+  /** Профили субъектов по условиям (rm_anova); lines пуст при > 60 субъектах. */
+  profiles?: { conditions: string[]; lines: number[][]; means: number[] };
+  /** Наблюдаемые и ожидаемые частоты (одномерный χ²). */
+  observed_expected?: { labels: string[]; observed: number[]; expected: number[] };
+  /** Таблица частот: adjacent — смежные столбцы (классы), иначе с зазорами. */
+  frequency?: { labels: string[]; f: number[]; adjacent: boolean };
   /** ДИ разностей (group2 − group1) или отношений; margin — граница TOST. */
   differences?: {
     items: { label: string; diff: number; lower: number; upper: number }[];
@@ -752,7 +758,7 @@ if _method in ("normality_test", "mean_ci", "one_sample_t"):
 elif _method in (
     "one_way_anova", "kruskal_wallis", "tukey_hsd", "treatment_means",
     "anova_permutation_test", "bartlett_test", "transformed_means",
-    "welch_anova", "scheffe_test",
+    "welch_anova", "scheffe_test", "describe_by_group",
 ):
     _groups = _t.groups_by(_cols["value"], _cols["group"])
     _bundle["boxplot"] = plotdata.boxplot_data(_groups)
