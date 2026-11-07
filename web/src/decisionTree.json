@@ -745,6 +745,10 @@
   "pre_transform": [
    "B4b.transform"
   ],
+  "numeric_codes": [
+   "R2.gof",
+   "R2.contingency"
+  ],
   "dead_end_censored": [
    "R2.censored"
   ],

@@ -204,6 +204,26 @@ def large_trials(ctx: Context) -> Signal | None:
     return None
 
 
+@rule("R2.11", "R2", "numeric_codes", HINT, "Witte стр. 406; порог BioStat")
+def numeric_codes(ctx: Context) -> Signal | None:
+    """Отклик — подряд идущие целые 0/1…k: возможно, коды классов (Witte, 21.4).
+
+    Witte: смотреть на одно наблюдение — количество это или класс. Порог BioStat:
+    3–10 кодов без пропусков в ряду и в среднем ≥ 5 строк на код (f_e ≥ 5, стр. 380).
+    """
+    v = _response_values(ctx)
+    if v is None or not _is_int(v):
+        return None
+    codes = np.unique(v)
+    lo, k = int(codes[0]), codes.size
+    if not (3 <= k <= 10 and lo in (0, 1) and np.array_equal(codes, np.arange(lo, lo + k))):
+        return None
+    if v.size < 5 * k:
+        return None
+    return Signal("«{c}» — целые {lo}…{hi}: если это коды классов, а не количества или баллы,"
+                  " — частоты и χ².", {"c": ctx.response, "lo": lo, "hi": lo + k - 1})
+
+
 # --- B0. Связанность измерений -------------------------------------------------
 
 @rule("B0.1", "B0", "paired", HINT, "предл.")

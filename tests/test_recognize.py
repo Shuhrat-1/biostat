@@ -30,7 +30,7 @@ SPEC_IDS = (
     + [f"G.{i}" for i in range(1, 5)] + [f"DIAG.{i}" for i in range(1, 5)]
 )
 # Сверх спецификации v2 — правила по Witte, Fig. 21.1 (стр. 405–406).
-WITTE_IDS = ["B0.4"]
+WITTE_IDS = ["B0.4", "R2.11"]
 
 
 def _table(columns: dict[str, list]):
@@ -334,3 +334,14 @@ def test_paired_scores_point_to_wilcoxon():
     assert _fired(data, before="before", after="after")["B0.4"]["suggests"] == "wilcoxon"
     data = {"before": [61.2, 70.4, 58.3, 66.0], "after": [63.1, 71.9, 60.2, 66.8]}
     assert "B0.4" not in _fired(data, before="before", after="after")
+
+
+def test_consecutive_integer_codes_hint_at_classes():
+    """Witte, 21.4 (стр. 406): 1/2/3 могут быть классами, а не количествами → χ²."""
+    data = {"g": ["a", "b"] * 15, "y": [1, 2, 3] * 10}
+    params = _fired(data, value="y", group="g")["R2.11"]["message"]["params"]
+    assert params == {"c": "y", "lo": 1, "hi": 3}
+    gaps = {"g": ["a", "b"] * 15, "y": [1, 3, 5] * 10}  # не подряд — не коды
+    assert "R2.11" not in _fired(gaps, value="y", group="g")
+    few = {"g": ["a", "b"] * 3, "y": [1, 2, 3] * 2}  # < 5 строк на код
+    assert "R2.11" not in _fired(few, value="y", group="g")
