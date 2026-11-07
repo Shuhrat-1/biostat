@@ -227,14 +227,14 @@ def skewed_residuals(ctx: Context) -> Signal | None:
     return None
 
 
-@rule("B4.5", "B4", "dead_end_weighted", STRONG, "кн. стр. 107", cls=COMPUTED)
+@rule("B4.5", "B4", "welch_anova", STRONG, "кн. стр. 107; предл.: Welch 1951", cls=COMPUTED)
 def heterogeneous_unrelated(ctx: Context) -> Signal | None:
     if len(_groups(ctx)) < 3 or heterogeneous_variances(ctx) is None:
         return None
     if sd_grows_with_mean(ctx) is not None:
         return None
-    return Signal("Дисперсии неоднородны и не растут со средним: нужен взвешенный ANOVA"
-                  " (в BioStat нет).")
+    return Signal("Дисперсии неоднородны и не растут со средним: ANOVA Уэлча"
+                  " (книга: взвешенный ANOVA или Уэлч).")
 
 
 @rule("B4.6", "B4", "anova_permutation_test", STRONG, "кн. стр. 102", cls=COMPUTED)

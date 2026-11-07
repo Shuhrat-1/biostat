@@ -84,6 +84,13 @@ def test_heterogeneous_without_mean_trend_is_dead_end():
     assert {"B4.2", "B4.5"} <= set(fired) and "B4.3" not in fired
 
 
+def test_heterogeneous_without_mean_trend_points_to_welch_anova():
+    """Welham, стр. 107: «взвешенный ANOVA или Уэлч» → лист B4b.welch, а не тупик."""
+    groups = {"a": 10 + NORMAL10, "b": 20 + 5 * NORMAL10, "c": 30 + NORMAL10}
+    fired = _computed(_grouped(groups), value="y", group="g")
+    assert fired["B4.5"]["suggests"] == "welch_anova"
+
+
 def test_nonnormal_homogeneous_suggests_permutation():
     groups = {k: off + SKEWED10 for k, off in (("a", 0), ("b", 1), ("c", 2))}
     fired = _computed(_grouped(groups), value="y", group="g")

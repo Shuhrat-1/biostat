@@ -27,7 +27,7 @@ LABELS = json.loads((WEB / "treeLabels.json").read_text(encoding="utf-8"))
 BY_ID = {n["id"]: n for n in TREE}
 SPECS = {s.method: s for s in CATALOG}
 KINDS = {"choice", "test", "pre", "leaf", "post"}
-DEAD_ENDS = {"P.splitpower", "R2.censored", "R2.multivariate", "B4b.weighted", "DIAG.serial"}
+DEAD_ENDS = {"P.splitpower", "R2.censored", "R2.multivariate", "DIAG.serial"}
 
 
 def _children(node_id: str) -> list[dict]:

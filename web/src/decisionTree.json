@@ -379,7 +379,7 @@
    "kind": "leaf",
    "parent": "B4b",
    "method": "welch_anova",
-   "source": "предл.: Welch 1951; Witte стр. 316"
+   "source": "кн. стр. 107; предл.: Welch 1951; Witte стр. 316"
   },
   {
    "id": "B4b.rcbd",
@@ -413,13 +413,6 @@
    "kind": "leaf",
    "parent": "B4b.transform",
    "method": "transformed_means"
-  },
-  {
-   "id": "B4b.weighted",
-   "kind": "leaf",
-   "parent": "B4b",
-   "status": "missing",
-   "source": "кн. стр. 107"
   },
   {
    "id": "B5",
@@ -747,9 +740,6 @@
   ],
   "dead_end_censored": [
    "R2.censored"
-  ],
-  "dead_end_weighted": [
-   "B4b.weighted"
   ],
   "dead_end_serial": [
    "DIAG.serial"
