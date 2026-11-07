@@ -295,6 +295,18 @@ CATALOG: list[MethodSpec] = [
         description="Сравнивает среднее выборки с заданным значением.",
     ),
     MethodSpec(
+        method="one_sample_wilcoxon",
+        label="Тест Уилкоксона одной выборки (непараметрический)",
+        group="Сравнение с эталоном",
+        slots={"value": _NUM},
+        slot_labels={"value": "Числовая колонка"},
+        params=[
+            Param("popmean", "Эталонное значение μ₀ (центр)", "number", 0.0, from_summary="median"),
+            _ALTERNATIVE,
+        ],
+        description="Сравнивает центр выборки с эталоном μ₀ без допущения нормальности: R⁺, R⁻, псевдомедиана Ходжеса–Лемана с ДИ.",
+    ),
+    MethodSpec(
         method="two_sample_t",
         label="Двухвыборочный t-тест",
         group="Сравнение двух групп",

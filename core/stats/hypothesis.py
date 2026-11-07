@@ -471,3 +471,53 @@ def _add_wilcoxon_extras(result: StatResult, diff: np.ndarray, confidence: float
     result.estimates.append(Estimate(name="hl_shift", value=hl["hl_shift"],
                                      ci_lower=hl["hl_ci_lower"], ci_upper=hl["hl_ci_upper"],
                                      ci_level=confidence))
+
+
+def one_sample_wilcoxon(
+    data: np.ndarray | list[float],
+    popmean: float = 0.0,
+    alternative: str = "two-sided",
+    confidence: float = 0.95,
+) -> StatResult:
+    """Знаково-ранговый тест Уилкоксона одной выборки: центр симметрии = μ₀.
+
+    Ранговый аналог one_sample_t [предл.: Wilcoxon 1945; Hollander & Wolfe 1999,
+    гл. 3]: тест по разностям x − μ₀ (нули отбрасываются), R⁺, R⁻, T_min как у
+    wilcoxon; оценка Ходжеса–Лемана центра (псевдомедиана) с ДИ. Допущение —
+    симметрия распределения относительно центра.
+    """
+    if alternative not in _ALTERNATIVES:
+        raise ValueError(f"alternative ∈ {_ALTERNATIVES}")
+    if not 0 < confidence < 1:
+        raise ValueError("confidence ∈ (0, 1)")
+    arr = _clean(data)
+    result = StatResult(method="one_sample_wilcoxon", n=arr.size,
+                        parameters={"alternative": alternative, "popmean": popmean})
+    if arr.size < 1:
+        result.add_warning("empty", "Нет данных после очистки", Severity.ERROR)
+        return result
+    diff = arr - popmean
+    if np.all(diff == 0):
+        result.add_warning("wilcoxon_all_zero",
+                           "Все значения равны μ₀: ненулевых разностей нет, тест не определён.",
+                           Severity.ERROR)
+        return result
+    res = stats.wilcoxon(diff, alternative=alternative)
+    result.p_value = float(res.pvalue)
+    result.statistics = {"W": float(res.statistic), "median": float(np.median(arr)),
+                         "median_diff": float(np.median(diff))}
+    _add_wilcoxon_extras(result, diff, confidence)
+    _add_location(result, popmean, confidence)
+    return result
+
+
+def _add_location(result: StatResult, popmean: float, confidence: float) -> None:
+    """Псевдомедиана μ₀ + сдвиг ХЛ с ДИ (границы None — ДИ не ограничен)."""
+    st = result.statistics
+    shift = {k: (None if st[k] is None else popmean + st[k])
+             for k in ("hl_shift", "hl_ci_lower", "hl_ci_upper")}
+    st.update({"hl_location": shift["hl_shift"], "hl_location_ci_lower": shift["hl_ci_lower"],
+               "hl_location_ci_upper": shift["hl_ci_upper"]})
+    result.estimates.append(Estimate(name="hl_location", value=shift["hl_shift"],
+                                     ci_lower=shift["hl_ci_lower"],
+                                     ci_upper=shift["hl_ci_upper"], ci_level=confidence))

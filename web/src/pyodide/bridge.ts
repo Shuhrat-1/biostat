@@ -177,6 +177,7 @@ const METHOD_MODULES: Record<string, string> = {
   kruskal_wallis: "core.stats.anova",
   welch_anova: "core.stats.oneway",
   rm_anova: "core.stats.repeated",
+  one_sample_wilcoxon: "core.stats.hypothesis",
   friedman: "core.stats.friedman",
   mcnemar_test: "core.stats.proportions",
   two_proportions: "core.stats.proportions",
@@ -749,7 +750,7 @@ def _band(_cv):
     return {"lower": [[a, b] for a, b in zip(_cv["x"], _lo)],
             "upper": [[a, b] for a, b in zip(_cv["x"], _hi)]}
 
-if _method in ("normality_test", "mean_ci", "one_sample_t"):
+if _method in ("normality_test", "mean_ci", "one_sample_t", "one_sample_wilcoxon"):
     _vals = _t.numeric_column(_cols["value"])
     _bundle["histogram"] = plotdata.histogram_data(_vals)
     # Q-Q — главная проверка нормальности (Welham гл. 5.2); Шапиро — дополнение.

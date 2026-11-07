@@ -71,6 +71,13 @@
    "method": "one_sample_t"
   },
   {
+   "id": "D.onesample.w",
+   "kind": "leaf",
+   "parent": "D",
+   "method": "one_sample_wilcoxon",
+   "source": "предл.: Wilcoxon 1945; Hollander & Wolfe 1999"
+  },
+  {
    "id": "D.normality",
    "kind": "leaf",
    "parent": "D",
@@ -219,6 +226,13 @@
    "parent": "B0",
    "method": "one_sample_t",
    "source": "предл.: Witte стр. 405, 407"
+  },
+  {
+   "id": "B0.onesample.w",
+   "kind": "leaf",
+   "parent": "B0",
+   "method": "one_sample_wilcoxon",
+   "source": "предл.: Wilcoxon 1945; ранговый аналог B0.onesample по логике Witte стр. 405, 408"
   },
   {
    "id": "B0.paired",

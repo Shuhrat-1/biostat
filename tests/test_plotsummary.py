@@ -414,3 +414,20 @@ def test_friedman_profiles_and_hl_differences():
                      [str(i) for i in range(6) for _ in range(3)]).to_dict()
     out = summary_plots("friedman", small)
     assert "differences" not in out and len(out["profiles"]["lines"]) == 6
+
+
+def test_one_sample_wilcoxon_uses_histogram_qq_branch():
+    """one_sample_wilcoxon: гистограмма и Q-Q из ветки one_sample_t моста (симметрию
+    распределения видно на гистограмме); своих итоговых графиков нет."""
+    from pathlib import Path
+
+    from core.stats import plotdata
+    from core.stats.hypothesis import one_sample_wilcoxon
+
+    bridge = (Path(__file__).resolve().parents[1] / "web/src/pyodide/bridge.ts").read_text("utf-8")
+    assert '"one_sample_t", "one_sample_wilcoxon")' in bridge
+    values = [1.83, 0.50, 1.62, 2.48, 1.68, 1.88, 1.55, 3.06, 1.30]
+    res = one_sample_wilcoxon(values, popmean=1.0).to_dict()
+    assert summary_plots("one_sample_wilcoxon", res) == {}
+    json.dumps({"histogram": plotdata.histogram_data(values), "qq": plotdata.qq_data(values)},
+               allow_nan=False)

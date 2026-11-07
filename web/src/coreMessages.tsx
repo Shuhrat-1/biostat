@@ -561,6 +561,11 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     en: `Fewer than 10 subjects: the χ² approximation is rough; rely on the Iman–Davenport F.`,
     pt: `Menos de 10 sujeitos: a aproximação χ² é grosseira; use o F de Iman–Davenport.`,
   },
+  wilcoxon_all_zero: {
+    ru: `Все значения равны μ₀: ненулевых разностей нет, тест не определён.`,
+    en: `All values equal μ₀: there are no nonzero differences, the test is undefined.`,
+    pt: `Todos os valores são iguais a μ₀: não há diferenças não nulas, o teste não está definido.`,
+  },
   rm_two_conditions: {
     ru: `Два условия: сферичность выполняется всегда (одна разность), ε = 1, тест Маучли не нужен. Анализ равносилен парному t-тесту.`,
     en: `Two conditions: sphericity always holds (a single difference), ε = 1, Mauchly's test is not needed. The analysis is equivalent to a paired t-test.`,
