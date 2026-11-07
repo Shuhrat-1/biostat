@@ -242,7 +242,8 @@ def kruskal_wallis(
     """Краскел-Уоллис — непараметрический аналог однофакторного ANOVA.
 
     Не требует нормальности и гомогенности дисперсий; сравнивает
-    распределения по рангам.
+    распределения по рангам. Новые ключи (Witte, гл. 20.5): суммы рангов,
+    H без поправки на совпадения (как в книге) и поправка C.
     """
     clean = [_clean_group(g) for g in groups]
     k = len(clean)
@@ -265,7 +266,30 @@ def kruskal_wallis(
         result.estimates.append(
             Estimate(name=f"median_{lab}", value=float(np.median(g)))
         )
+    result.statistics.update(kruskal_rank_sums(clean, labels))
     return result
+
+
+def kruskal_rank_sums(groups: list[np.ndarray], labels: list[str]) -> dict[str, float]:
+    """Новые ключи (Witte, гл. 20.5, ф. 20.3): H без поправки на совпадения и сама поправка.
+
+    H_uncorrected = 12/(N(N + 1))·Σ R²/n − 3(N + 1) — как в книге; scipy делит его на
+    C = 1 − Σ(t³ − t)/(N³ − N) (H = H_uncorrected / C). Суммы рангов — rank_sum_<метка>.
+    """
+    pooled = np.concatenate(groups)
+    ranks = stats.rankdata(pooled)
+    n_total = pooled.size
+    out: dict[str, float] = {}
+    start, acc = 0, 0.0
+    for lab, g in zip(labels, groups):
+        r = float(ranks[start:start + g.size].sum())
+        out[f"rank_sum_{lab}"] = r
+        acc += r**2 / g.size
+        start += g.size
+    _, ties = np.unique(pooled, return_counts=True)
+    out["H_uncorrected"] = 12 / (n_total * (n_total + 1)) * acc - 3 * (n_total + 1)
+    out["tie_correction"] = float(1 - np.sum(ties**3 - ties) / (n_total**3 - n_total))
+    return out
 
 
 def treatment_means(

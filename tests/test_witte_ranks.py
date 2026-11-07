@@ -10,6 +10,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
+from core.stats.anova import kruskal_wallis
 from core.stats.hodges_lehmann import walsh_averages
 from core.stats.hypothesis import mann_whitney, wilcoxon
 
@@ -96,3 +97,33 @@ def test_tv_wilcoxon_hodges_lehmann():
 def test_wilcoxon_confidence_validated():
     with pytest.raises(ValueError):
         wilcoxon([1, 2], [3, 4], confidence=0)
+
+
+def test_cartoons_kruskal_wallis_table_20_4():
+    """Witte 20.5, стр. 397 (Table 20.4): ранги каналов A, B, C; R = 37.5, 40.5, 42 (сумма 120 =
+    15·16/2), H = .05[962.1] − 48 = 0.11 < 5.99 (стр. 399). Точно без поправки 0.105; scipy
+    делит на поправку на совпадения C = .991 → 0.106."""
+    res = kruskal_wallis([8, 4.5, 2, 13, 10], [4.5, 14, 12, 7, 3], [10, 15, 6, 1, 10],
+                         labels=["A", "B", "C"])
+    st = res.statistics
+    assert (st["rank_sum_A"], st["rank_sum_B"], st["rank_sum_C"]) == (37.5, 40.5, 42)
+    assert st["H_uncorrected"] == pytest.approx(0.105)
+    assert st["H"] == pytest.approx(st["H_uncorrected"] / st["tie_correction"])
+    assert res.p_value > 0.05
+
+
+def test_film_ratings_progress_check_20_4_book_error():
+    """Witte, стр. 399 (Progress Check 20.4), ответ стр. 456: R = 114, 75.5, 69, 49.5, 17,
+    H = .02[5239.30] − 78 = 26.79 > 9.49. Ошибка книги: 12/(25·26) = .0185 округлено до .02;
+    точно H = 18.73 без поправки (scipy с поправкой 18.79). Вывод тот же (p < .001); тест — по
+    точным числам, не «исправлять» под книгу."""
+    films = [[15, 20, 19, 17, 23], [8, 16, 14, 10, 7], [12, 7, 13, 8, 9], [7, 11, 6, 4, 9],
+             [6, 0, 4, 0, 2]]
+    res = kruskal_wallis(*films, labels=["NC17", "R", "PG13", "PG", "G"])
+    st = res.statistics
+    assert [st[f"rank_sum_{k}"] for k in ("NC17", "R", "PG13", "PG", "G")] == [114, 75.5, 69, 49.5, 17]
+    assert st["H_uncorrected"] == pytest.approx(12 / 650 * 5239.3 - 78)
+    assert st["H_uncorrected"] == pytest.approx(18.7255, abs=1e-4)
+    assert st["H_uncorrected"] != pytest.approx(26.79, abs=1)  # книжное значение
+    assert st["H"] == pytest.approx(18.7906, abs=1e-4)
+    assert res.p_value < 0.001
