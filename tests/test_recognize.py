@@ -29,6 +29,8 @@ SPEC_IDS = (
     + [f"A1.{i}" for i in range(1, 6)] + [f"A2.{i}" for i in range(1, 7)]
     + [f"G.{i}" for i in range(1, 5)] + [f"DIAG.{i}" for i in range(1, 5)]
 )
+# Сверх спецификации v2 — правила по Witte, Fig. 21.1 (стр. 405–406).
+WITTE_IDS = ["B0.4"]
 
 
 def _table(columns: dict[str, list]):
@@ -57,15 +59,15 @@ def _potato() -> dict[str, list]:
 # --- Реестр ---------------------------------------------------------------------
 
 def test_registry_matches_spec():
-    """56 правил ровно из спецификации, без дублей; реализованы 40 структурных и
-    15 расчётных; без реализации только A2.6 (проверяет сам метод)."""
+    """56 правил спецификации + правила Witte, без дублей; реализованы 40 структурных
+    (+ Witte) и 15 расчётных; без реализации только A2.6 (проверяет сам метод)."""
     from core.validation import recognizers  # noqa: F401
 
     ids = [r.id for r in rz.REGISTRY]
-    assert sorted(ids) == sorted(SPEC_IDS)
-    assert len(ids) == len(set(ids)) == 56
+    assert sorted(ids) == sorted(SPEC_IDS + WITTE_IDS)
+    assert len(ids) == len(set(ids)) == 56 + len(WITTE_IDS)
     done = [r for r in rz.REGISTRY if r.fn is not None]
-    assert sum(r.cls == rz.STRUCTURAL for r in done) == 40
+    assert sum(r.cls == rz.STRUCTURAL for r in done) == 40 + len(WITTE_IDS)
     assert sum(r.cls == rz.COMPUTED for r in done) == 15
     assert [r.id for r in rz.REGISTRY if r.fn is None] == ["A2.6"]
     for r in rz.REGISTRY:
@@ -76,7 +78,7 @@ def test_output_is_json_and_message_codes():
     out = recognize(_table(_potato()), {"value": "yield", "group": "treatment",
                                         "block": "block"})
     json.dumps(out, allow_nan=False)
-    assert len(out["registry"]) == 56
+    assert len(out["registry"]) == 56 + len(WITTE_IDS)
     assert all(f["message"]["code"] == "rec_" + f["id"].replace(".", "_")
                for f in out["fired"])
 
@@ -324,3 +326,11 @@ def test_scores_point_to_rank_test_by_group_count():
     assert two["B4.8"]["message"]["params"]["method"] == "mann_whitney"
     three = _fired({"g": ["a", "b", "c"] * 4, "y": scores}, value="y", group="g")
     assert three["B4.8"]["message"]["params"]["method"] == "kruskal_wallis"
+
+
+def test_paired_scores_point_to_wilcoxon():
+    """Witte, Fig. 21.1 (стр. 405): пары в рангах/баллах — T Уилкоксона; измерения — молчит."""
+    data = {"before": [3, 4, 2, 5, 3, 4, 2, 3], "after": [5, 6, 3, 6, 5, 5, 4, 4]}
+    assert _fired(data, before="before", after="after")["B0.4"]["suggests"] == "wilcoxon"
+    data = {"before": [61.2, 70.4, 58.3, 66.0], "after": [63.1, 71.9, 60.2, 66.8]}
+    assert "B0.4" not in _fired(data, before="before", after="after")

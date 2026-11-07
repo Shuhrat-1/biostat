@@ -51,6 +51,11 @@ def _count_like(v: np.ndarray) -> bool:
             and not set(np.unique(v)) <= {0.0, 1.0})
 
 
+def _score_like(v: np.ndarray) -> bool:
+    """Немного целых значений в узком диапазоне — похоже на баллы [BioStat]."""
+    return _is_int(v) and 2 < np.unique(v).size <= 10 and np.ptp(v) <= 10
+
+
 def _cells(ctx: Context, a: str, b: str) -> Counter:
     """Число строк в каждой паре уровней (a, b); пустые метки пропускаются."""
     pairs = zip(ctx.labels(a), ctx.labels(b))
@@ -242,6 +247,19 @@ def repeated_over_time(ctx: Context) -> Signal | None:
 
 
 # --- B1. Структура единиц ------------------------------------------------------
+
+@rule("B0.4", "B0", "wilcoxon", HINT, "Witte стр. 405; порог BioStat")
+def paired_scores(ctx: Context) -> Signal | None:
+    """Пары «до/после» в баллах → T Уилкоксона (Witte, Fig. 21.1)."""
+    a, b = ctx.role("before"), ctx.role("after")
+    if not (a and b):
+        return None
+    x, y = _valid(ctx.numbers(a)), _valid(ctx.numbers(b))
+    if x.size < 2 or y.size < 2 or not (_score_like(x) and _score_like(y)):
+        return None
+    return Signal("«{a}» и «{b}» — немного целых значений (баллы?): для пар — знаково-"
+                  "ранговый тест Уилкоксона.", {"a": a, "b": b})
+
 
 @rule("B1.1", "B1", "blocks", HINT, "предл.")
 def block_name(ctx: Context) -> Signal | None:
@@ -447,10 +465,9 @@ def large_groups(ctx: Context) -> Signal | None:
 def score_response(ctx: Context) -> Signal | None:
     """Баллы → ранговый тест по числу групп (Witte, Fig. 21.1): 2 — U, 3+ — H."""
     v = _response_values(ctx)
-    if v is None or not _is_int(v):
+    if v is None:
         return None
-    distinct = np.unique(v)
-    if 2 < distinct.size <= 10 and np.ptp(v) <= 10:
+    if _score_like(v):
         method = "mann_whitney" if len(_group_sizes(ctx)) == 2 else "kruskal_wallis"
         return Signal("Отклик — немного целых значений (баллы?): ранговые методы или"
                       " порядковая регрессия.", {"method": method})
