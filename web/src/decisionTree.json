@@ -546,6 +546,13 @@
    "source": "кн. стр. 36–38"
   },
   {
+   "id": "A0.spearman",
+   "kind": "leaf",
+   "parent": "A0",
+   "method": "spearman_correlation",
+   "source": "предл.: Witte стр. 119; ДИ — Fieller, Hartley & Pearson 1957"
+  },
+  {
    "id": "A1",
    "kind": "choice",
    "parent": "A0",

@@ -177,6 +177,7 @@ const METHOD_MODULES: Record<string, string> = {
   kruskal_wallis: "core.stats.anova",
   welch_anova: "core.stats.oneway",
   rm_anova: "core.stats.repeated",
+  spearman_correlation: "core.stats.correlation",
   one_sample_wilcoxon: "core.stats.hypothesis",
   friedman: "core.stats.friedman",
   mcnemar_test: "core.stats.proportions",
@@ -258,6 +259,7 @@ const GROUPED_METHODS = new Set([
 const XY_METHODS = new Set([
   "simple_linear_regression",
   "pearson_correlation",
+  "spearman_correlation",
   "regression_details",
   "inverse_prediction",
   "regression_diagnostics",
@@ -882,7 +884,7 @@ elif _method in ("paired_t", "wilcoxon"):
     _b, _a = _t.paired_columns(_cols["before"], _cols["after"])
     _bundle["paired"] = _paired_plot(list(_b), list(_a), (_cols["before"], _cols["after"]))
 
-elif _method == "pearson_correlation" and "x" in _res.parameters:
+elif _method in ("pearson_correlation", "spearman_correlation") and "x" in _res.parameters:
     # Пары уже очищены от NaN в ядре; линия МНК лишь показывает линейный тренд.
     from scipy import stats as _st
     _x, _y = _res.parameters["x"], _res.parameters["y"]

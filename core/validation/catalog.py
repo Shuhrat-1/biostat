@@ -1337,6 +1337,15 @@ CATALOG: list[MethodSpec] = [
         description="Сколько единиц брать на каждом уровне: дисперсии страт, SED и мощность схем.",
     ),
     MethodSpec(
+        method="spearman_correlation",
+        label="Корреляция Спирмена (ранговая)",
+        group="Связь переменных",
+        slots={"x": _NUM, "y": _NUM},
+        slot_labels={"x": "Переменная X", "y": "Переменная Y"},
+        params=[_ALTERNATIVE, _REG_CI_LEVEL],
+        description="Сила и направление монотонной связи двух переменных по рангам (ρ), ДИ и тест ρ = 0.",
+    ),
+    MethodSpec(
         method="pearson_correlation",
         label="Корреляция Пирсона",
         group="Связь переменных",

@@ -566,6 +566,21 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     en: `All values equal μ₀: there are no nonzero differences, the test is undefined.`,
     pt: `Todos os valores são iguais a μ₀: não há diferenças não nulas, o teste não está definido.`,
   },
+  spearman_small_n: {
+    ru: `Пар меньше 10: P по t-приближению грубый.`,
+    en: `Fewer than 10 pairs: the t-approximation P is rough.`,
+    pt: `Menos de 10 pares: o P pela aproximação t é grosseiro.`,
+  },
+  spearman_ties: {
+    ru: `Есть совпадения: ρ посчитан как r Пирсона по средним рангам; формула 1 − 6ΣD²/(n(n² − 1)) в этом случае лишь приближение.`,
+    en: `There are ties: ρ is computed as the Pearson r of mid-ranks; the formula 1 − 6ΣD²/(n(n² − 1)) is then only an approximation.`,
+    pt: `Há empates: ρ é calculado como r de Pearson dos postos médios; a fórmula 1 − 6ΣD²/(n(n² − 1)) é então só uma aproximação.`,
+  },
+  correlation_monotonic_only: {
+    ru: `ρ измеряет монотонную связь (растёт ли y вместе с x), не обязательно линейную; корреляция не означает причинности.`,
+    en: `ρ measures a monotonic association (whether y rises with x), not necessarily a linear one; correlation does not imply causation.`,
+    pt: `ρ mede uma associação monótona (se y cresce com x), não necessariamente linear; correlação não implica causalidade.`,
+  },
   rm_two_conditions: {
     ru: `Два условия: сферичность выполняется всегда (одна разность), ε = 1, тест Маучли не нужен. Анализ равносилен парному t-тесту.`,
     en: `Two conditions: sphericity always holds (a single difference), ε = 1, Mauchly's test is not needed. The analysis is equivalent to a paired t-test.`,

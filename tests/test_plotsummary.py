@@ -431,3 +431,20 @@ def test_one_sample_wilcoxon_uses_histogram_qq_branch():
     assert summary_plots("one_sample_wilcoxon", res) == {}
     json.dumps({"histogram": plotdata.histogram_data(values), "qq": plotdata.qq_data(values)},
                allow_nan=False)
+
+
+def test_spearman_scatter_uses_ranks_in_pearson_branch():
+    """spearman_correlation: ветка рассеяния pearson_correlation моста, точки — ранги
+    (Witte, стр. 119: ρ — r Пирсона по рангам; Table 6.1, стр. 108)."""
+    from pathlib import Path
+
+    from core.stats import plotdata
+    from core.stats.correlation import spearman_correlation
+
+    bridge = (Path(__file__).resolve().parents[1] / "web/src/pyodide/bridge.ts").read_text("utf-8")
+    assert '_method in ("pearson_correlation", "spearman_correlation")' in bridge
+    res = spearman_correlation(W.CARDS_SENT, W.CARDS_RECEIVED).to_dict()
+    x, y = res["parameters"]["x"], res["parameters"]["y"]
+    assert sorted(x) == [1, 2, 3, 4, 5] and sorted(y) == [1, 2, 3, 4, 5]
+    json.dumps(plotdata.scatter_regression_data(x, y, 0.9, 0.3), allow_nan=False)
+    assert summary_plots("spearman_correlation", res) == {}

@@ -185,6 +185,7 @@ def test_catalog_params_match_function_signatures():
         "describe_by_group": "core.stats.group_summary",
         "welch_anova": "core.stats.oneway",
         "rm_anova": "core.stats.repeated",
+        "spearman_correlation": "core.stats.correlation",
         "one_sample_wilcoxon": "core.stats.hypothesis",
         "friedman": "core.stats.friedman",
         "mcnemar_test": "core.stats.proportions",
