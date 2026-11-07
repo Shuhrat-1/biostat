@@ -393,6 +393,9 @@ def _comparison_plots(method: str, result: dict) -> dict[str, Any]:
         out["means_ci"] = shares
     if method == "one_proportion" and (share := _one_share(result)):
         out["means_ci"] = share
+    if method == "friedman" and (diff := differences_from(
+            [{**c, "mean_diff": c.get("hl_shift")} for c in params.get("comparisons", [])])):
+        out["differences"] = diff  # сдвиг Ходжеса–Лемана с ДИ, не разность средних
     if method == "two_proportions" and (shares := means_from_rows(
             params.get("proportions", []), back=False)):
         out["means_ci"] = shares
@@ -484,6 +487,7 @@ def _frequency(params: dict) -> dict | None:
 def _witte_plots(method: str, result: dict) -> dict[str, Any]:
     params = result.get("parameters", {})
     builders = {"rm_anova": ("profiles", _profiles),
+                "friedman": ("profiles", _profiles),
                 "chi2_goodness_of_fit": ("observed_expected", _observed_expected),
                 "frequency_table": ("frequency", _frequency)}
     if method not in builders:

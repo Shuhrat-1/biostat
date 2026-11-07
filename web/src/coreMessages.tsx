@@ -546,6 +546,21 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     en: `Subjects with missing values excluded: {dropped}. With missing data use mixed_model (Welham, ch. 16), which does not need complete data.`,
     pt: `Sujeitos com valores em falta excluídos: {dropped}. Com dados em falta use mixed_model (Welham, cap. 16), que não exige dados completos.`,
   },
+  friedman_all_tied: {
+    ru: `У каждого субъекта все условия равны: ранги не различаются.`,
+    en: `Every subject has equal values in all conditions: the ranks do not differ.`,
+    pt: `Cada sujeito tem valores iguais em todas as condições: os postos não diferem.`,
+  },
+  friedman_two_conditions: {
+    ru: `Два условия: критерий Фридмана равносилен знаковому тесту; мощнее знаково-ранговый тест Уилкоксона (wilcoxon).`,
+    en: `Two conditions: the Friedman test is equivalent to the sign test; the Wilcoxon signed-rank test (wilcoxon) is more powerful.`,
+    pt: `Duas condições: o teste de Friedman equivale ao teste dos sinais; o teste de postos sinalizados de Wilcoxon (wilcoxon) é mais potente.`,
+  },
+  friedman_small_n: {
+    ru: `Субъектов меньше 10: χ²-приближение грубое, опирайтесь на F Имана–Давенпорта.`,
+    en: `Fewer than 10 subjects: the χ² approximation is rough; rely on the Iman–Davenport F.`,
+    pt: `Menos de 10 sujeitos: a aproximação χ² é grosseira; use o F de Iman–Davenport.`,
+  },
   rm_two_conditions: {
     ru: `Два условия: сферичность выполняется всегда (одна разность), ε = 1, тест Маучли не нужен. Анализ равносилен парному t-тесту.`,
     en: `Two conditions: sphericity always holds (a single difference), ε = 1, Mauchly's test is not needed. The analysis is equivalent to a paired t-test.`,

@@ -394,3 +394,23 @@ def test_frequency_bars_adjacent_only_for_classes(kind, adjacent):
     table = [{"class": "35–39", "f": 1.0}, {"class": "40–44", "f": 3.0}]
     out = summary_plots("frequency_table", {"parameters": {"table": table, "kind": kind}})
     assert out["frequency"]["adjacent"] is adjacent and out["frequency"]["f"] == [1.0, 3.0]
+
+
+def test_friedman_profiles_and_hl_differences():
+    """friedman: профили как у rm_anova и ДИ сдвигов ХЛ пар (пример RoundingTimes из R,
+    22 субъекта). При n = 6 (Witte, Progress Check 17.2, стр. 332) ДИ с Бонферрони не
+    ограничены — графика разностей нет, профили есть."""
+    from core.stats.friedman import friedman
+    from tests.test_friedman import METHODS, ROUNDING, _long
+
+    res = friedman(*_long(ROUNDING, METHODS)).to_dict()
+    out = summary_plots("friedman", res)
+    assert out["profiles"]["conditions"] == METHODS
+    assert len(out["profiles"]["lines"]) == len(ROUNDING)
+    assert [i["diff"] for i in out["differences"]["items"]] == pytest.approx(
+        [c["hl_shift"] for c in res["parameters"]["comparisons"]])
+    json.dumps(out, allow_nan=False)
+    small = friedman([v for row in W.RM_NOISE for v in row], W.RM_NOISE_LABELS * 6,
+                     [str(i) for i in range(6) for _ in range(3)]).to_dict()
+    out = summary_plots("friedman", small)
+    assert "differences" not in out and len(out["profiles"]["lines"]) == 6

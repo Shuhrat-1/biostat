@@ -177,6 +177,7 @@ const METHOD_MODULES: Record<string, string> = {
   kruskal_wallis: "core.stats.anova",
   welch_anova: "core.stats.oneway",
   rm_anova: "core.stats.repeated",
+  friedman: "core.stats.friedman",
   mcnemar_test: "core.stats.proportions",
   two_proportions: "core.stats.proportions",
   one_proportion: "core.stats.proportions",
@@ -275,6 +276,7 @@ const BLOCKED_METHODS = new Set(["rcbd_anova", "rcbd_subsampling_anova"]);
 const STRUCTURED_METHODS = new Set([
   "factorial_anova",
   "rm_anova",
+  "friedman",
   "simple_effects",
   "nested_anova",
   "treatment_contrasts",

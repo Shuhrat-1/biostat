@@ -260,6 +260,13 @@
    "source": "предл.: Witte гл. 17; поправки — Greenhouse & Geisser 1959, Huynh & Feldt 1976"
   },
   {
+   "id": "B0.friedman",
+   "kind": "leaf",
+   "parent": "B0",
+   "method": "friedman",
+   "source": "предл.: Friedman 1937; Conover 1999; ранговый аналог B0.rm по логике Witte стр. 405, 408"
+  },
+  {
    "id": "B1",
    "kind": "choice",
    "parent": "B0",

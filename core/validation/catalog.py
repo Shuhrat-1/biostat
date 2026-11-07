@@ -338,6 +338,21 @@ CATALOG: list[MethodSpec] = [
         description="Одни и те же субъекты во всех условиях: F, η²p, поправки ГГ/ХФ, сравнения пар.",
     ),
     MethodSpec(
+        method="friedman",
+        label="Критерий Фридмана (ранги, повторные измерения)",
+        group="Сравнение нескольких групп",
+        slots={"value": _NUM, "condition": _FACTOR, "subject": _FACTOR},
+        slot_labels={
+            "value": "Числовая колонка",
+            "condition": "Колонка условий",
+            "subject": "Колонка субъектов",
+        },
+        params=[
+            Param("alpha", "Уровень значимости α", "float", 0.05, min=0.001, max=0.2),
+        ],
+        description="Одни и те же субъекты во всех условиях, ранги внутри субъекта: χ², W Кендалла, F Имана–Давенпорта, пары Уилкоксона.",
+    ),
+    MethodSpec(
         method="welch_anova",
         label="ANOVA Уэлча (неравные дисперсии)",
         group="Сравнение нескольких групп",
