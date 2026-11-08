@@ -65,6 +65,30 @@ def test_two_sample_auto_selects_welch_on_unequal_var():
     assert r.parameters["variant"] == "welch"
 
 
+def test_two_sample_defaults_to_student_and_warns():
+    """По умолчанию Стьюдент даже при неравных дисперсиях; Левене → совет Уэлча."""
+    rng = np.random.default_rng(7)
+    a = rng.normal(10, 1, 40)
+    b = rng.normal(10, 8, 40)
+    r = two_sample_t(a, b)
+    assert r.parameters["variant"] == "student"
+    assert any(w.code == "unequal_variance" for w in r.warnings)
+
+
+@pytest.mark.parametrize("variant, equal_var", [("student", True), ("welch", False)])
+def test_two_sample_variant_overrides_equal_var(variant: str, equal_var: bool):
+    a, b = [5.1, 4.8, 6.0, 5.5, 5.2], [6.9, 7.4, 5.8, 8.1, 7.0, 6.2]
+    r = two_sample_t(a, b, equal_var=not equal_var, variant=variant)
+    ref = stats.ttest_ind(a, b, equal_var=equal_var)
+    assert r.parameters["variant"] == variant
+    assert r.p_value == pytest.approx(ref.pvalue)
+
+
+def test_two_sample_rejects_unknown_variant():
+    with pytest.raises(ValueError):
+        two_sample_t([1.0, 2.0, 3.0], [2.0, 3.0, 4.0], variant="pooled")
+
+
 def test_two_sample_warns_on_forced_equal_var():
     rng = np.random.default_rng(7)
     a = rng.normal(10, 1, 40)

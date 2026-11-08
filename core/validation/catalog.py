@@ -312,9 +312,12 @@ CATALOG: list[MethodSpec] = [
         group="Сравнение двух групп",
         slots={"value": _NUM, "group": _CAT},
         slot_labels={"value": "Числовая колонка", "group": "Колонка групп"},
-        params=[_ALTERNATIVE],
+        params=[
+            Param("variant", "Вариант", "select", "student", options=["student", "welch"]),
+            _ALTERNATIVE,
+        ],
         n_groups=2,
-        description="Сравнивает средние двух групп (авто-выбор Стьюдент/Уэлч).",
+        description="Сравнивает средние двух групп: Стьюдент (объединённая дисперсия) или Уэлч.",
     ),
     MethodSpec(
         method="mann_whitney",

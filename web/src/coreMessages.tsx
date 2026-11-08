@@ -72,9 +72,9 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     pt: `Os dados não passaram no teste de normalidade. Considere um método não paramétrico ou uma transformação.`,
   },
   unequal_variance: {
-    ru: `Дисперсии групп неравны, но задан классический t-тест. Рассмотри поправку Уэлча.`,
-    en: `Group variances are unequal, but the classic t-test was requested. Consider Welch's correction.`,
-    pt: `As variâncias dos grupos são desiguais, mas foi pedido o teste t clássico. Considere a correção de Welch.`,
+    ru: `Дисперсии групп неравны (тест Левене), а выбран вариант Стьюдента. Рассмотри вариант Уэлча (параметр «Вариант»).`,
+    en: `Group variances are unequal (Levene's test), but the Student variant is selected. Consider the Welch variant ("Variant" parameter).`,
+    pt: `As variâncias dos grupos são desiguais (teste de Levene), mas foi escolhida a variante de Student. Considere a variante de Welch (parâmetro «Variante»).`,
   },
   variance_heterogeneity: {
     ru: `Дисперсии групп неравны (тест Левене). Рассмотри Уэлча ANOVA или Краскела-Уоллиса.`,

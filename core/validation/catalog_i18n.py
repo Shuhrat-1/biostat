@@ -200,8 +200,8 @@ DESCRIPTIONS: dict[str, dict[str, str]] = {
         "Сравнивает среднее выборки с заданным значением.": (
             "Compares the sample mean to a given value."
         ),
-        "Сравнивает средние двух групп (авто-выбор Стьюдент/Уэлч).": (
-            "Compares the means of two groups (auto Student/Welch)."
+        "Сравнивает средние двух групп: Стьюдент (объединённая дисперсия) или Уэлч.": (
+            "Compares the means of two groups: Student (pooled variance) or Welch."
         ),
         "Сравнение двух групп без предположения о нормальности.": (
             "Compares two groups without assuming normality."
@@ -308,8 +308,8 @@ DESCRIPTIONS: dict[str, dict[str, str]] = {
         "Сравнивает среднее выборки с заданным значением.": (
             "Compara a média da amostra com um valor dado."
         ),
-        "Сравнивает средние двух групп (авто-выбор Стьюдент/Уэлч).": (
-            "Compara as médias de dois grupos (Student/Welch automático)."
+        "Сравнивает средние двух групп: Стьюдент (объединённая дисперсия) или Уэлч.": (
+            "Compara as médias de dois grupos: Student (variância conjunta) ou Welch."
         ),
         "Сравнение двух групп без предположения о нормальности.": (
             "Compara dois grupos sem assumir normalidade."
@@ -446,6 +446,7 @@ LABELS_MISC: dict[str, dict[str, str]] = {
         "Переменная X": "Variable X",
         "Переменная Y": "Variable Y",
         "Гипотеза": "Alternative",
+        "Вариант": "Variant",
         "Уровень доверия": "Confidence level",
         "Эталонное среднее μ": "Reference mean μ",
         "Эталонное значение μ₀ (центр)": "Reference value μ₀ (centre)",
@@ -605,6 +606,7 @@ LABELS_MISC: dict[str, dict[str, str]] = {
         "Переменная X": "Variável X",
         "Переменная Y": "Variável Y",
         "Гипотеза": "Hipótese",
+        "Вариант": "Variante",
         "Уровень доверия": "Nível de confiança",
         "Эталонное среднее μ": "Média de referência μ",
         "Эталонное значение μ₀ (центр)": "Valor de referência μ₀ (centro)",

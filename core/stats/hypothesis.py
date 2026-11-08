@@ -63,8 +63,8 @@ def _choose_equal_var(
         result.add_warning(
             "unequal_variance",
             f"Тест Левене указывает на неравенство дисперсий "
-            f"(p={levene_p:.4f}), но задан equal_var=True. "
-            f"Рассмотри поправку Уэлча.",
+            f"(p={levene_p:.4f}), а выбран вариант Стьюдента. "
+            f"Рассмотри вариант Уэлча (параметр «Вариант»).",
             Severity.WARNING,
         )
     return equal_var
@@ -191,18 +191,24 @@ def _add_one_sample_effect(
     result.estimates.append(Estimate(name="cohens_d", value=float(d)))
 
 
+_VARIANTS = {"student": True, "welch": False, "auto": None}
+
+
 def two_sample_t(
     a: np.ndarray | list[float],
     b: np.ndarray | list[float],
-    equal_var: bool | None = None,
+    equal_var: bool | None = True,
     alternative: str = "two-sided",
     confidence: float = 0.95,
+    variant: str | None = None,
 ) -> StatResult:
     """Двухвыборочный t-тест: сравнение средних двух групп.
 
-    ``equal_var=None`` — автоматический выбор по тесту Левене:
-    равные дисперсии → классический t-тест, иначе → поправка Уэлча.
-    Явное значение переопределяет автоматику.
+    По умолчанию — Стьюдент с объединённой дисперсией (Welham, гл. 2.4.2;
+    решение BioStat 8.11.2026): Левене считается всегда, при неравных
+    дисперсиях — предупреждение с советом Уэлча. ``variant`` (из интерфейса)
+    перекрывает ``equal_var``: "student", "welch" или "auto" (выбор по
+    Левене, ``equal_var=None``).
 
     Размер эффекта (Witte, гл. 14.8–14.9): ДИ разности того же варианта
     и направления, что и t; d Коэна по объединённому SD; g Хеджеса.
@@ -212,6 +218,10 @@ def two_sample_t(
     if not 0 < confidence < 1:
         raise ValueError("confidence ∈ (0, 1)")
 
+    if variant is not None:
+        if variant not in _VARIANTS:
+            raise ValueError(f"variant ∈ {tuple(_VARIANTS)}")
+        equal_var = _VARIANTS[variant]
     arr_a, arr_b = _clean(a), _clean(b)
     result = StatResult(
         method="two_sample_t",
