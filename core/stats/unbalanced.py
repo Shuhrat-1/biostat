@@ -226,27 +226,36 @@ def _prediction_table(frame: pd.DataFrame, fit: dict, cols: list[str], keys: lis
         out_rows.append({"label": label, "mean": mean, "se": se, "estimable": bool(good),
                          "ci_lower": None if mean is None else mean - t_crit * se,
                          "ci_upper": None if mean is None else mean + t_crit * se})
-    comps = _comparisons(labels, rows, ok, fit, t_crit)
+    comps, identical = _comparisons(labels, rows, ok, fit, t_crit)
     seds = [c["sed"] for c in comps]
     return {"term": ".".join(names[k] for k in keys), "rows": out_rows, "comparisons": comps,
-            "t_crit": t_crit, "df": fit["df"],
+            "identical_pairs": identical, "t_crit": t_crit, "df": fit["df"],
             "sed_min": min(seds) if seds else None, "sed_max": max(seds) if seds else None}
 
 
 def _comparisons(labels: list[str], rows: np.ndarray, ok: np.ndarray, fit: dict,
-                 t_crit: float) -> list[dict]:
-    """Попарные разности оцениваемых предсказаний: SED, t, P, ДИ."""
-    out = []
+                 t_crit: float) -> tuple[list[dict], int]:
+    """Попарные разности оцениваемых предсказаний: SED, t, P, ДИ.
+
+    Пары с SED = 0 (ячейки различаются только факторами, выпавшими из итоговой
+    модели, — предсказания совпадают тождественно) не сравниваются; их число — второе
+    значение.
+    """
+    out, identical = [], 0
+    scale = float(np.sqrt(np.max(np.abs(np.diag(fit["cov"]))))) if fit["cov"].size else 0.0
     for i, j in combinations(range(len(labels)), 2):
         if not (ok[i] and ok[j]):
             continue
         d = rows[j] - rows[i]
-        diff, sed = float(d @ fit["beta"]), float(np.sqrt(d @ fit["cov"] @ d))
+        diff, sed = float(d @ fit["beta"]), float(np.sqrt(max(d @ fit["cov"] @ d, 0.0)))
+        if sed <= 1e-7 * max(scale, 1e-300):
+            identical += 1
+            continue
         out.append({"group1": labels[i], "group2": labels[j], "mean_diff": diff, "sed": sed,
                     "lsd": t_crit * sed, "t": diff / sed,
                     "p_unadjusted": float(2 * stats.t.sf(abs(diff / sed), fit["df"])),
                     "ci_lower": diff - t_crit * sed, "ci_upper": diff + t_crit * sed})
-    return out
+    return out, identical
 
 
 # --- Хили–Уэстмакотт ----------------------------------------------------------
@@ -381,6 +390,13 @@ def _predictions(ctx: dict, final: list, result: StatResult) -> None:
     tables = [_prediction_table(frame, fit, cols, g, names, alpha) for g in groups]
     _finish_tables(tables, ctx["settings"], result)
     result.statistics.update({"df_resid_final": fit["df"], "ms_resid_final": fit["s2"]})
+    if tables[0]["identical_pairs"]:
+        result.add_warning(
+            "prediction_identical_cells",
+            "Итоговая модель не содержит части факторов: ячейки, различающиеся только ими, "
+            f"имеют одинаковые предсказания, их пары ({tables[0]['identical_pairs']}) не сравниваются.",
+            Severity.INFO,
+            params={"pairs": tables[0]["identical_pairs"]})
     if any(not r["estimable"] for r in tables[0]["rows"]):
         result.add_warning("prediction_not_estimable",
                            "Часть комбинаций не оценивается итоговой моделью (пустые ячейки "

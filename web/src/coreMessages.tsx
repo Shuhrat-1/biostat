@@ -766,6 +766,11 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     en: `The factors are non-orthogonal ({pairs}): sums of squares depend on the fitting order — compare the sequential tables and Type II SS.`,
     pt: `Os fatores não são ortogonais ({pairs}): as somas de quadrados dependem da ordem de ajustamento — compare as tabelas sequenciais e as SS de tipo II.`,
   },
+  prediction_identical_cells: {
+    ru: `Итоговая модель не содержит части факторов: ячейки, различающиеся только ими, имеют одинаковые предсказания, их пары ({pairs}) не сравниваются.`,
+    en: `The final model omits some factors: cells that differ only in them have identical predictions, so their pairs ({pairs}) are not compared.`,
+    pt: `O modelo final omite alguns fatores: células que diferem só neles têm previsões idênticas, os seus pares ({pairs}) não são comparados.`,
+  },
   prediction_not_estimable: {
     ru: `Часть комбинаций не оценивается итоговой моделью (пустые ячейки при взаимодействии): их предсказания пропущены.`,
     en: `Some combinations cannot be estimated by the final model (empty cells with an interaction): their predictions are omitted.`,

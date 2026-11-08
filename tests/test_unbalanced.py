@@ -297,3 +297,21 @@ def test_saturated_model_rejected() -> None:
 def test_unbalanced_results_serialisable(cross, cuttings) -> None:
     for result in (cross, cuttings, _elisa(exclude=(4, 11, 15, 17, 20))):
         json.dumps(result.to_dict(), allow_nan=False)
+
+
+def test_dropped_factor_cells_not_compared() -> None:
+    """Регрессия (замер 8.11): сбалансированный 2×3, B без эффекта — отбор оставляет A,
+    в таблице A × B пары ячеек, различающиеся только B, имеют SED = 0. Раньше —
+    ZeroDivisionError; теперь пары пропущены, число — в identical_pairs, + INFO."""
+    rng = np.random.default_rng(5)
+    a = ["a1", "a2"] * 12
+    b = [f"b{(i // 2) % 3 + 1}" for i in range(24)]
+    y = [10 + 3 * (lv == "a2") + e for lv, e in zip(a, rng.normal(0, 0.5, 24))]
+    res = unbalanced_anova(y, a, b)
+    assert res.parameters["final_terms"] == ["A"]
+    cells = res.parameters["tables"][0]
+    assert cells["identical_pairs"] == 6  # по C(3, 2) = 3 пары внутри каждого уровня A
+    assert len(cells["comparisons"]) == 15 - 6
+    assert all(c["sed"] > 0 for c in cells["comparisons"])
+    assert "prediction_identical_cells" in {w.code for w in res.warnings}
+    json.dumps(res.to_dict(), allow_nan=False)
