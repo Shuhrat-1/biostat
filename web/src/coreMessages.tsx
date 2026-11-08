@@ -766,6 +766,11 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     en: `The factors are non-orthogonal ({pairs}): sums of squares depend on the fitting order — compare the sequential tables and Type II SS.`,
     pt: `Os fatores não são ortogonais ({pairs}): as somas de quadrados dependem da ordem de ajustamento — compare as tabelas sequenciais e as SS de tipo II.`,
   },
+  lack_of_fit_no_repeats: {
+    ru: `Уровней x {levels} при {n} наблюдениях: x почти не повторяется, чистой ошибки нет — неадекватность не проверялась, остаток модели — общий (гл. 12.8). Для проверки нужно в среднем ≥ 2 наблюдений на уровень x и ≤ {max_levels} уровней.`,
+    en: `{levels} x levels for {n} observations: x hardly repeats, there is no pure error — lack of fit was not tested, the model residual is the overall one (ch. 12.8). Testing needs on average ≥ 2 observations per x level and ≤ {max_levels} levels.`,
+    pt: `{levels} níveis de x para {n} observações: x quase não se repete, não há erro puro — a falta de ajuste não foi testada, o resíduo do modelo é o global (cap. 12.8). O teste exige em média ≥ 2 observações por nível de x e ≤ {max_levels} níveis.`,
+  },
   prediction_identical_cells: {
     ru: `Итоговая модель не содержит части факторов: ячейки, различающиеся только ими, имеют одинаковые предсказания, их пары ({pairs}) не сравниваются.`,
     en: `The final model omits some factors: cells that differ only in them have identical predictions, so their pairs ({pairs}) are not compared.`,

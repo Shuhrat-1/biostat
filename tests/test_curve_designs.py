@@ -134,3 +134,39 @@ def test_nonlinear_group_models_and_selection():
                                  group_model="all")
     labels = [p["term"] for p in forced.parameters["parameter_tests"]]
     assert {"gamma A", "gamma B", "beta A", "beta B"} <= set(labels)
+
+
+def _continuous(n: int = 60, seed: int = 4) -> tuple[list[float], list[float], list[str]]:
+    """RCBD без повторов x: x непрерывный (все значения разные), 4 блока."""
+    rng = np.random.default_rng(seed)
+    x = rng.uniform(0, 200, n)
+    block = np.tile(["1", "2", "3", "4"], n // 4)
+    y = 8 - 5 * np.exp(-0.015 * x) + np.array([_BEFF[b] for b in block]) + rng.normal(0, .2, n)
+    return y.tolist(), x.tolist(), block.tolist()
+
+
+@pytest.mark.parametrize("method", ["blocked", "curve", "nonlinear"])
+def test_no_lack_of_fit_without_x_repeats(method):
+    """Гл. 12.8: неадекватность требует повторов x. Непрерывный x (замер 8.11: уровней ≈ n,
+    матрица n × n) — FacX не подгоняется, F_lack_of_fit нет, INFO lack_of_fit_no_repeats;
+    остаток — общий остаток модели."""
+    y, x, block = _continuous()
+    fn = {"blocked": lambda: blocked_regression(y, x, block),
+          "curve": lambda: curve_in_blocks(y, x, block=block, degree=2),
+          "nonlinear": lambda: nonlinear_in_blocks(y, x, block=block)}[method]
+    res = fn()
+    assert "F_lack_of_fit" not in res.statistics
+    note = next(w for w in res.warnings if w.code == "lack_of_fit_no_repeats")
+    assert note.params["levels"] == 60 and note.params["n"] == 60
+    assert not any(r["term"].startswith("+ Fac") for r in res.parameters.get("sequential", []))
+    if method == "nonlinear":
+        assert res.parameters["lack_of_fit"] is None
+    assert res.statistics["df_resid"] > 40
+
+
+def test_lack_of_fit_kept_for_replicated_doses():
+    """Книга: Table 15.13 (стр. 408) — 5 доз × 4 блока, повторы есть: FacN остаётся."""
+    res = blocked_regression([r[3] for r in FORAGE], [r[2] for r in FORAGE],
+                             [str(r[0]) for r in FORAGE])
+    assert "F_lack_of_fit" in res.statistics
+    assert "lack_of_fit_no_repeats" not in {w.code for w in res.warnings}

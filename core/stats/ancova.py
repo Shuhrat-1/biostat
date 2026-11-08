@@ -252,6 +252,34 @@ def _independent(design: np.ndarray) -> list[int]:
     return keep
 
 
+# --- Неадекватность только при повторах x ---------------------------------------
+
+_LOF_MIN_REPLICATION = 2.0  # в среднем ≥ 2 наблюдений на уровень x (иначе нет чистой ошибки)
+_LOF_MAX_LEVELS = 200  # [порог BioStat] больше уровней — x непрерывный; матрица n × k медленна
+
+
+def x_replicated(frame: pd.DataFrame, cols: tuple[str, ...] = ("facx",)) -> tuple[bool, int]:
+    """Можно ли проверять неадекватность (гл. 12.8): x повторяется.
+
+    Уровней (ячеек cols) не больше n/2 и не больше _LOF_MAX_LEVELS. Возвращает
+    (можно, число уровней).
+    """
+    levels = int(frame[list(cols)].drop_duplicates().shape[0])
+    ok = len(frame) >= _LOF_MIN_REPLICATION * levels and levels <= _LOF_MAX_LEVELS
+    return ok, levels
+
+
+def note_no_lack_of_fit(result: StatResult, levels: int, n: int) -> None:
+    """INFO: неадекватность не проверялась — x почти не повторяется."""
+    result.add_warning(
+        "lack_of_fit_no_repeats",
+        f"Уровней x {levels} при {n} наблюдениях: x почти не повторяется, чистой ошибки "
+        f"нет — неадекватность не проверялась, остаток модели — общий (гл. 12.8). "
+        f"Для проверки нужно в среднем ≥ 2 наблюдений на уровень x и ≤ {_LOF_MAX_LEVELS} "
+        f"уровней.", Severity.INFO,
+        params={"levels": levels, "n": n, "max_levels": _LOF_MAX_LEVELS})
+
+
 # --- blocked_regression ---------------------------------------------------------
 
 
@@ -273,10 +301,14 @@ def blocked_regression(
     if not _transform_column(frame, "y", transform_kind, offset, result) or not _blocked_guard(
             frame, result):
         return result
-    model = Terms(frame, ["block", "facx"], ["x"])
+    replicated, levels = x_replicated(frame)
+    lof_terms = [("facx",)] if replicated else []
+    model = Terms(frame, ["block"] + ["facx"] * replicated, ["x"])
     labels = {**names, "facx": "Fac" + names["x"]}
-    seq = sequential_rows(model, [("block",), ("x",), ("facx",)], labels)
+    seq = sequential_rows(model, [("block",), ("x",)] + lof_terms, labels)
     result.parameters["sequential"] = seq
+    if not replicated:
+        note_no_lack_of_fit(result, levels, len(frame))
     _blocked_fit(model, labels, seq, result)
     return result
 
@@ -294,7 +326,7 @@ def _blocked_fit(model: Terms, names: dict[str, str], seq: list[dict], result: S
     """Параллельные линии по блокам, прямая для средних условий опыта (стр. 408–409)."""
     alpha = result.parameters["alpha"]
     rows, fit = parameter_rows(model, [("block",), ("x",)], names, alpha)
-    lof = seq[2]
+    lof = seq[2] if seq[2]["term"] != "Residual" else {}
     result.parameters["parameter_tests"] = rows
     blocks = model.levels["block"]
     w = np.zeros(len(rows))
@@ -304,15 +336,16 @@ def _blocked_fit(model: Terms, names: dict[str, str], seq: list[dict], result: S
     slope = rows[-1]
     result.parameters["line"] = {"intercept": icept, "intercept_se": se,
                                  "slope": slope["estimate"], "slope_se": slope["se"]}
-    result.statistics.update({"F_x": seq[1]["F"], "p_x": seq[1]["p"], "F_lack_of_fit": lof["F"],
-                              "p_lack_of_fit": lof["p"], "ms_resid": fit["s2"],
+    result.statistics.update({"F_x": seq[1]["F"], "p_x": seq[1]["p"], "ms_resid": fit["s2"],
                               "df_resid": fit["df"], "intercept_averaged": icept})
+    if "F" in lof:
+        result.statistics.update({"F_lack_of_fit": lof["F"], "p_lack_of_fit": lof["p"]})
     result.estimates += [Estimate("intercept (среднее по блокам)", icept, std_error=se),
                          Estimate("slope", slope["estimate"], slope["ci_lower"],
                                   slope["ci_upper"], 1 - alpha, slope["se"])]
     result.p_value = seq[1]["p"]
     result.parameters["plots"] = _residual_plots(fit, model.frame)
-    if lof["p"] < alpha:
+    if lof.get("p", 1.0) < alpha:
         result.add_warning("lack_of_fit", "Отклонения средних по уровням x от прямой "
                            "значимы: прямая не описывает зависимость (гл. 12.8).")
 

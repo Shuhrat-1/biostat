@@ -22,7 +22,15 @@ import pandas as pd
 from scipy import optimize, stats
 
 from core.report.schema import Estimate, Severity, StatResult
-from core.stats.ancova import Terms, _frame, _label, parameter_rows, sequential_rows
+from core.stats.ancova import (
+    Terms,
+    _frame,
+    _label,
+    note_no_lack_of_fit,
+    parameter_rows,
+    sequential_rows,
+    x_replicated,
+)
 from core.stats.curves import X_TRANSFORMS, x_transform
 from core.stats.factorial import _new_result, _settings
 from core.stats.linear_regression import parse_numbers
@@ -91,13 +99,15 @@ def _power_columns(frame: pd.DataFrame, curve: str, degree: int, kind: str,
     return [f"w{k}" for k in range(1, degree + 1)]
 
 
-def _linear_terms(ws: list[str], has_block: bool, has_group: bool) -> list[tuple[str, ...]]:
-    """Block, степени, Group, степени.Group, FacX, FacX.Group."""
+def _linear_terms(ws: list[str], has_block: bool, has_group: bool,
+                  has_lof: bool = True) -> list[tuple[str, ...]]:
+    """Block, степени, Group, степени.Group, [FacX, FacX.Group — при повторах x]."""
     terms = [("block",)] if has_block else []
     terms += [(w,) for w in ws]
     if has_group:
         terms += [("group",)] + [(w, "group") for w in ws]
-    terms += [("facx",)] + ([("facx", "group")] if has_group else [])
+    if has_lof:
+        terms += [("facx",)] + ([("facx", "group")] if has_group else [])
     return terms
 
 
@@ -198,21 +208,25 @@ def _fill_linear(frame: pd.DataFrame, ws: list[str], spec: tuple[str, str, float
                  x_predict: str, names: dict[str, str], result: StatResult) -> None:
     """Последовательная ANOVA, выбор модели, параметры, предсказания и кривые."""
     alpha, has_block, has_group = result.parameters["alpha"], "block" in frame, "group" in frame
-    factors = [f for f in ("block", "group", "facx") if f in frame]
+    has_lof, levels = x_replicated(frame, ("facx", "group") if has_group else ("facx",))
+    factors = [f for f in ("block", "group") if f in frame] + ["facx"] * has_lof
     model = Terms(frame, factors, ws)
     labels = {**names, **{w: (names["x"] + ("" if w == "w1" else "^" + w[1:])
                               if spec[0] == "polynomial" else f"{spec[1]}({names['x']})")
                           for w in ws}}
-    seq = sequential_rows(model, _linear_terms(ws, has_block, has_group), labels)
-    raw_seq = sequential_rows(model, _linear_terms(ws, has_block, has_group),
+    seq = sequential_rows(model, _linear_terms(ws, has_block, has_group, has_lof), labels)
+    raw_seq = sequential_rows(model, _linear_terms(ws, has_block, has_group, has_lof),
                               {w: w for w in [*ws, "group", "block", "facx"]})
     terms = _curve_terms(raw_seq, ws, has_block, has_group, alpha)
     params, fit = parameter_rows(model, terms, labels, alpha)
     result.parameters.update({"sequential": seq, "parameter_tests": params,
                               "model_terms": [_label(t, labels) for t in terms]})
-    lof = next(r for r in seq if r["term"] == "+ " + names["facx"])
-    result.statistics.update({"F_lack_of_fit": lof.get("F"), "p_lack_of_fit": lof.get("p"),
-                              "ms_resid": seq[-2]["ms"], "df_resid": seq[-2]["df"]})
+    lof = next((r for r in seq if r["term"] == "+ " + names["facx"]), {})
+    result.statistics.update({"ms_resid": seq[-2]["ms"], "df_resid": seq[-2]["df"]})
+    if has_lof:
+        result.statistics.update({"F_lack_of_fit": lof.get("F"), "p_lack_of_fit": lof.get("p")})
+    else:
+        note_no_lack_of_fit(result, levels, len(frame))
     if lof.get("p", 1.0) < alpha:
         result.add_warning("curve_lack_of_fit", "Средние по уровням x значимо отклоняются от "
                            "кривой (гл. 12.8).")
@@ -421,7 +435,12 @@ def _choose(rows: list[dict], alpha: float) -> str:
 
 
 def _lack_of_fit(frame: pd.DataFrame, fit: dict) -> dict | None:
-    """Неадекватность: модель против Block + FacX(.Group) — остаток чистой ошибки (Table 15.13)."""
+    """Неадекватность: модель против Block + FacX(.Group) — остаток чистой ошибки (Table 15.13).
+
+    None — если x не повторяется (x_replicated): чистой ошибки нет.
+    """
+    if not x_replicated(frame, ("facx", "group") if "group" in frame else ("facx",))[0]:
+        return None
     cells = frame["facx"] + ("|" + frame["group"] if "group" in frame else "")
     data = frame.assign(cell=cells)
     factors = ["cell"] + (["block"] if "block" in frame else [])
@@ -517,6 +536,10 @@ def _report_nonlinear(nd: NonlinearDesign, fit: dict, x_predict: str, names: dic
         if points.size else [], "curves": curves, "formula": nd.curve.formula,
         "points": {"x": nd.x.tolist(), "y": nd.y.tolist()}})
     result.statistics.update({"rss": fit["rss"], "df_resid": fit["df"], "ms_resid": fit["s2"]})
+    replicated, levels = x_replicated(
+        nd.frame, ("facx", "group") if "group" in nd.frame else ("facx",))
+    if not replicated:
+        note_no_lack_of_fit(result, levels, len(nd.frame))
     if lof:
         result.statistics.update({"F_lack_of_fit": lof["F"], "p_lack_of_fit": lof["p"]})
         if lof["p"] < alpha:
