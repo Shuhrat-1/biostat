@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <title>BioStat — замер методов</title>
+    <style>
+      body { font: 14px/1.4 system-ui, sans-serif; margin: 16px; color: #1d2433; background: #fff; }
+      table { border-collapse: collapse; margin-top: 12px; }
+      th, td { border: 1px solid #d5dae3; padding: 3px 8px; text-align: right; }
+      th:first-child, td:first-child { text-align: left; }
+      .slow { background: #fde8d8; } .mid { background: #fff6d6; }
+      #log { white-space: pre-wrap; color: #4a5468; }
+    </style>
+  </head>
+  <body>
+    <h1>Замер методов в браузере</h1>
+    <p>
+      Только для разработки (<code>npm run dev</code> → <code>/bench.html</code>), в сборку не входит.
+      Параметры: <code>?sizes=100,1000,5000&amp;only=glmm_analysis,mixed_model</code>.
+      Расчёт идёт в основном потоке — страница замирает на медленных методах, это и меряем.
+    </p>
+    <p><button id="start">Запустить</button> <a id="save" hidden download="bench-browser.json">Сохранить JSON</a></p>
+    <div id="log"></div>
+    <table id="out"></table>
+    <script type="module" src="/src/bench/bench.ts"></script>
+  </body>
+</html>
