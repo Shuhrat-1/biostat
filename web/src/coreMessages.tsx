@@ -72,9 +72,19 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     pt: `Os dados não passaram no teste de normalidade. Considere um método não paramétrico ou uma transformação.`,
   },
   unequal_variance: {
-    ru: `Дисперсии групп неравны (тест Левене), а выбран вариант Стьюдента. Рассмотри вариант Уэлча (параметр «Вариант»).`,
-    en: `Group variances are unequal (Levene's test), but the Student variant is selected. Consider the Welch variant ("Variant" parameter).`,
-    pt: `As variâncias dos grupos são desiguais (teste de Levene), mas foi escolhida a variante de Student. Considere a variante de Welch (parâmetro «Variante»).`,
+    ru: `SD групп различаются в {sd_ratio} раза: рассмотри вариант Уэлча (параметр «Вариант»).`,
+    en: `Group SDs differ {sd_ratio}-fold: consider the Welch variant ("Variant" parameter).`,
+    pt: `Os DP dos grupos diferem {sd_ratio} vezes: considere a variante de Welch (parâmetro «Variante»).`,
+  },
+  unequal_variance_unbalanced: {
+    ru: `SD различаются в {sd_ratio} раза при неравных n (в {n_ratio} раза); большая SD — в большей группе, P Стьюдента завышен (консервативен): рассмотри вариант Уэлча (параметр «Вариант»).`,
+    en: `SDs differ {sd_ratio}-fold with unequal n ({n_ratio}-fold); the larger SD is in the larger group, so Student's P is too large (conservative): consider the Welch variant ("Variant" parameter).`,
+    pt: `Os DP diferem {sd_ratio} vezes com n desiguais ({n_ratio} vezes); o DP maior está no grupo maior, o P de Student fica sobrestimado (conservador): considere a variante de Welch (parâmetro «Variante»).`,
+  },
+  unequal_variance_liberal: {
+    ru: `SD различаются в {sd_ratio} раза при неравных n (в {n_ratio} раза); большая SD — в меньшей группе, P Стьюдента занижен: рассмотри вариант Уэлча (параметр «Вариант»).`,
+    en: `SDs differ {sd_ratio}-fold with unequal n ({n_ratio}-fold); the larger SD is in the smaller group, so Student's P is too small: consider the Welch variant ("Variant" parameter).`,
+    pt: `Os DP diferem {sd_ratio} vezes com n desiguais ({n_ratio} vezes); o DP maior está no grupo menor, o P de Student fica subestimado: considere a variante de Welch (parâmetro «Variante»).`,
   },
   variance_heterogeneity: {
     ru: `Дисперсии групп неравны (тест Левене). Рассмотри Уэлча ANOVA или Краскела-Уоллиса.`,

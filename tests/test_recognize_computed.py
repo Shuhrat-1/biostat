@@ -105,6 +105,18 @@ def test_two_groups_point_to_mann_whitney_and_welch():
     spread = _computed(_grouped({"a": NORMAL10, "b": 6 * NORMAL10}), value="y", group="g")
     assert _params(spread, "B4.2")["variant"] == "welch"
     assert _params(spread, "B4.2")["method"] == "two_sample_t"
+    assert _params(spread, "B4.2")["sd_ratio"] == pytest.approx(6.0, rel=0.01)
+
+
+def test_two_groups_variance_rule_uses_sd_ratio_and_balance():
+    """Две группы: правило welch_rule вместо Бартлетта (общее с ядром)."""
+    mild = _computed(_grouped({"a": NORMAL10, "b": 1.8 * NORMAL10}), value="y", group="g")
+    assert "B4.2" not in mild  # n равны, SD < 2 раз — Стьюдент уместен
+    small_wide = _computed(_grouped({"a": 1.8 * NORMAL10,
+                                     "b": np.concatenate([NORMAL10, NORMAL10])}),
+                           value="y", group="g")
+    assert _params(small_wide, "B4.2")["variant"] == "welch_liberal"
+    assert "{" not in small_wide["B4.2"]["message"]["message"]
 
 
 # --- A. Регрессия -------------------------------------------------------------------------

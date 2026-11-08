@@ -12,6 +12,7 @@ from scipy import special, stats
 
 from core.report.schema import Estimate, Severity, StatResult
 from core.stats.hodges_lehmann import hl_one_sample, hl_two_sample
+from core.stats.welch_rule import welch_advice
 
 # Порог p для тестов на нарушение допущений (нормальность, равенство дисперсий).
 _ASSUMPTION_ALPHA = 0.05
@@ -40,33 +41,39 @@ def levene_p_value(*groups: np.ndarray) -> float | None:
     return float(res.pvalue)
 
 
+_ADVICE_CODES = {"welch": "unequal_variance",
+                 "welch_unbalanced": "unequal_variance_unbalanced",
+                 "welch_liberal": "unequal_variance_liberal"}
+_ADVICE_TEXT = {
+    "welch": "SD групп различаются в {r} раза",
+    "welch_unbalanced": "SD различаются в {r} раза при неравных n; большая SD — в "
+                        "большей группе, P Стьюдента завышен (консервативен)",
+    "welch_liberal": "SD различаются в {r} раза при неравных n; большая SD — в "
+                     "меньшей группе, P Стьюдента занижен",
+}
+
+
 def _choose_equal_var(
     arr_a: np.ndarray, arr_b: np.ndarray, equal_var: bool | None, result: StatResult
 ) -> bool:
-    """Выбрать Стьюдента или Уэлча по Левене; при вырожденном Левене — Стьюдент.
+    """Стьюдент или Уэлч; при Стьюденте — совет Уэлча по правилу welch_rule.
 
-    Объединённая дисперсия — вариант книги по умолчанию (гл. 2.4.2).
+    Левене считается как справка (levene_p). ``equal_var=None`` — выбор по
+    тому же правилу, а не по P Левене.
     """
     levene_p = levene_p_value(arr_a, arr_b)
-    if levene_p is None:
-        result.add_warning(
-            "levene_undefined",
-            "Тест Левене не определён (слишком мало наблюдений в группах); "
-            "равенство дисперсий не проверено.",
-            Severity.INFO,
-        )
-        return True if equal_var is None else equal_var
-    result.statistics["levene_p"] = levene_p
+    if levene_p is not None:
+        result.statistics["levene_p"] = levene_p
+    advice = welch_advice(arr_a, arr_b)
     if equal_var is None:
-        return levene_p >= _ASSUMPTION_ALPHA
-    if equal_var and levene_p < _ASSUMPTION_ALPHA:
+        return advice is None
+    if equal_var and advice is not None:
+        params = {"sd_ratio": round(advice.sd_ratio, 2), "n_ratio": round(advice.n_ratio, 2)}
         result.add_warning(
-            "unequal_variance",
-            f"Тест Левене указывает на неравенство дисперсий "
-            f"(p={levene_p:.4f}), а выбран вариант Стьюдента. "
-            f"Рассмотри вариант Уэлча (параметр «Вариант»).",
-            Severity.WARNING,
-        )
+            _ADVICE_CODES[advice.case],
+            _ADVICE_TEXT[advice.case].format(r=params["sd_ratio"])
+            + ": рассмотри вариант Уэлча (параметр «Вариант»).",
+            Severity.WARNING, params=params)
     return equal_var
 
 
@@ -205,10 +212,10 @@ def two_sample_t(
     """Двухвыборочный t-тест: сравнение средних двух групп.
 
     По умолчанию — Стьюдент с объединённой дисперсией (Welham, гл. 2.4.2;
-    решение BioStat 8.11.2026): Левене считается всегда, при неравных
-    дисперсиях — предупреждение с советом Уэлча. ``variant`` (из интерфейса)
-    перекрывает ``equal_var``: "student", "welch" или "auto" (выбор по
-    Левене, ``equal_var=None``).
+    решение BioStat 8.11.2026): Левене считается как справка, при неравных
+    SD (правило welch_rule) — предупреждение с советом Уэлча. ``variant``
+    (из интерфейса) перекрывает ``equal_var``: "student", "welch" или "auto"
+    (выбор по тому же правилу, ``equal_var=None``).
 
     Размер эффекта (Witte, гл. 14.8–14.9): ДИ разности того же варианта
     и направления, что и t; d Коэна по объединённому SD; g Хеджеса.

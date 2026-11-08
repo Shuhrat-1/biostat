@@ -62,11 +62,11 @@ def test_two_sample_t_pairs_uses_pooled_variant():
     r = two_sample_t([1.0, 2.5], [4.0, 3.5])
     assert r.parameters["variant"] == "student"
     assert r.statistics["t"] == pytest.approx(stats.ttest_ind([1.0, 2.5], [4.0, 3.5]).statistic)
-    assert "levene_undefined" in {w.code for w in r.warnings}
+    assert "levene_p" not in r.statistics  # Левене не определён; совет — по правилу SD
 
 
 def test_two_sample_t_normal_case_unchanged():
-    """Обычный случай: выбор по Левене как прежде (Example 2.1C → Стьюдент)."""
+    """Обычный случай (Example 2.1C): Стьюдент, Левене — справка."""
     r = two_sample_t([7, 9, 6, 12, 4, 6, 9], [12, 8, 12, 9, 8, 16, 7])
     assert r.parameters["variant"] == "student"
     assert r.statistics["levene_p"] == pytest.approx(0.6947, abs=5e-4)

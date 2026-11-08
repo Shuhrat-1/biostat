@@ -19,6 +19,7 @@ from dataclasses import dataclass
 import numpy as np
 from scipy import stats
 
+from core.stats.welch_rule import welch_advice
 from core.validation.recognize import COMPUTED, HINT, STRONG, Context, Signal, rule
 from core.validation.recognizers import (
     _TIME, _count_like, _levels, _trials_column, binary_response,
@@ -178,18 +179,39 @@ def nonnormal_residuals(ctx: Context) -> Signal | None:
     return Signal("Остатки модели отклоняются от нормальности (Шапиро–Уилк p = {p}).", params)
 
 
-@rule("B4.2", "B4", "heterogeneous", STRONG, "кн. стр. 105–107", cls=COMPUTED)
+def _welch_params(ctx: Context) -> tuple[str, dict] | None:
+    """Две группы: случай правила welch_rule (отношение SD и баланс n) и параметры."""
+    groups = _groups(ctx)
+    advice = welch_advice(groups[0], groups[1])
+    if advice is None:
+        return None
+    return advice.case, {"sd_ratio": round(advice.sd_ratio, 2),
+                         "n_ratio": round(advice.n_ratio, 2), "method": "two_sample_t"}
+
+
+@rule("B4.2", "B4", "heterogeneous", STRONG,
+      "кн. стр. 105–107; две группы — порог BioStat [предл.: Ruxton 2006]", cls=COMPUTED)
 def heterogeneous_variances(ctx: Context) -> Signal | None:
+    if len(_groups(ctx)) == 2:  # не Бартлетт: правило, общее с two_sample_t
+        res = ctx.memo("welch_rule", lambda: _welch_params(ctx))
+        if res is None:
+            return None
+        case, p = res
+        if case == "welch_liberal":
+            return Signal("SD различаются в {sd_ratio} раза при неравных n (в {n_ratio} раза),"
+                          " большая SD — в меньшей группе: P Стьюдента занижен, t-тест в"
+                          " варианте Уэлча.", {**p, "variant": "welch_liberal"})
+        if case == "welch_unbalanced":
+            return Signal("SD различаются в {sd_ratio} раза при неравных n (в {n_ratio} раза),"
+                          " большая SD — в большей группе: t-тест в варианте Уэлча.",
+                          {**p, "variant": "welch_unbalanced"})
+        return Signal("SD двух групп различаются в {sd_ratio} раза: t-тест в варианте Уэлча.",
+                      {**p, "variant": "welch"})
     res = ctx.memo("bartlett", lambda: _bartlett(ctx))
     if res is None or res[0] <= res[1]:
         return None
-    stat, crit, t = res
-    params = {"x2": round(stat, 2), "crit": round(crit, 2)}
-    if t == 2:
-        return Signal("Дисперсии двух групп неоднородны (Бартлетт X² = {x2} > {crit}):"
-                      " t-тест в варианте Уэлча.",
-                      {**params, "method": "two_sample_t", "variant": "welch"})
-    return Signal("Дисперсии групп неоднородны (Бартлетт X² = {x2} > {crit}).", params)
+    return Signal("Дисперсии групп неоднородны (Бартлетт X² = {x2} > {crit}).",
+                  {"x2": round(res[0], 2), "crit": round(res[1], 2)})
 
 
 def _sd_tracks_mean(ctx: Context) -> float | None:
