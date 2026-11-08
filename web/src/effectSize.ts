@@ -24,7 +24,7 @@ const W: Family = { marks: [0.1, 0.3, 0.5], source: "Cohen 1988 [предл.]" }
 /** Ключ результата ядра → семейство ориентиров. */
 export function familyOf(key: string): Family | null {
   if (["cohens_d", "hedges_g", "cohens_dz"].includes(key)) return D;
-  if (["eta_squared", "omega_squared"].includes(key) || key.startsWith("eta_p_")) return ETA;
+  if (["eta_squared", "eta_squared_partial", "omega_squared"].includes(key) || key.startsWith("eta_p_")) return ETA;
   if (["phi_c_squared", "cramers_v_squared"].includes(key)) return PHI;
   if (key === "cohens_w") return W;
   return null;

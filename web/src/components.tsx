@@ -1767,7 +1767,7 @@ function EffectSizes({ statistics }: { statistics: Record<string, unknown> }) {
       <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem 1.2rem" }}>
         {rows.map((r) => (
           <span key={r.key}>
-            <span style={{ color: c.muted }}>{t(`effect.key.${r.key.startsWith("eta_p_") ? "eta_p" : r.key}`)}
+            <span style={{ color: c.muted }}>{t(`effect.key.${r.key.startsWith("eta_p_") || r.key === "eta_squared_partial" ? "eta_p" : r.key}`)}
               {r.key.startsWith("eta_p_") ? ` (${r.key.slice(6)})` : ""}</span>{" "}
             <span style={s.mono}>{formatNumber(r.value)}</span>{" "}
             <span style={{ color: c.muted }}>— {t(`effect.${r.size}`)}</span>
