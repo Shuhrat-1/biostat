@@ -47,22 +47,42 @@ _NONE = "none"
 # --- Общие вычисления ---------------------------------------------------------
 
 
+def _term_codes(frame: pd.DataFrame, term: tuple[str, ...]) -> tuple[np.ndarray, int]:
+    """Номер комбинации уровней члена для каждой строки (0…k−1) и число комбинаций k.
+
+    Векторно: коды факторов (pd.factorize) сворачиваются в одно целое, затем
+    сжимаются np.unique — без построчной склейки строк.
+    """
+    codes = np.zeros(len(frame), dtype=np.int64)
+    for col in term:
+        part, levels = pd.factorize(frame[col].astype(str), sort=True)
+        codes = codes * len(levels) + part
+    uniq, inverse = np.unique(codes, return_inverse=True)
+    return inverse.ravel(), uniq.size
+
+
 def _design_matrix(frame: pd.DataFrame, terms: list[tuple[str, ...]]) -> np.ndarray:
     """Константа и индикаторы уровней (или комбинаций уровней) каждого члена."""
-    blocks = [np.ones((len(frame), 1))]
+    n = len(frame)
+    blocks = [np.ones((n, 1))]
     for term in terms:
-        labels = frame[list(term)].astype(str).agg("|".join, axis=1)
-        blocks.append(pd.get_dummies(labels).to_numpy(float))
+        codes, k = _term_codes(frame, term)
+        dummies = np.zeros((n, k))
+        dummies[np.arange(n), codes] = 1.0
+        blocks.append(dummies)
     return np.hstack(blocks)
 
 
 def _rss(frame: pd.DataFrame, terms: list[tuple[str, ...]]) -> tuple[float, int]:
-    """Остаточная SS и ранг модели y ~ [1] + члены (МНК с вырожденностью)."""
+    """Остаточная SS и ранг модели y ~ [1] + члены (МНК с вырожденностью).
+
+    Ранг — из того же SVD, что и lstsq (порог eps·max(n, p)·σ_max, как matrix_rank).
+    """
     x = _design_matrix(frame, terms)
     y = frame["y"].to_numpy(float)
-    coef, *_ = np.linalg.lstsq(x, y, rcond=None)
+    coef, _, rank, _ = np.linalg.lstsq(x, y, rcond=None)
     resid = y - x @ coef
-    return float(resid @ resid), int(np.linalg.matrix_rank(x))
+    return float(resid @ resid), int(rank)
 
 
 def _sequential(frame: pd.DataFrame, steps: list[tuple[str, list[tuple[str, ...]]]]
