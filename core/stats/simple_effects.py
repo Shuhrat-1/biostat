@@ -11,7 +11,8 @@ F_se = MS_se / MS_within (ф. 18.5), SS_se = Σ n·(ȳ_ячейки − ȳ_ур�
 простых эффектов не корректирует.
 
 Пары ячеек внутри каждого простого эффекта — Тьюки(–Крамер) на MS_within с
-q(число ячеек, df_within) и d = разность/√MS_within (стр. 357).
+q(число ячеек, df_within) и d = разность/√MS_within (стр. 357). q — через
+qrange.q_critical: scipy ppf стоил ≈ 0.14 с на каждый простой эффект.
 """
 
 from __future__ import annotations
@@ -22,6 +23,7 @@ from scipy import stats
 
 from core.report.schema import Severity, StatResult
 from core.stats.factorial import factorial_anova
+from core.stats.qrange import q_critical
 
 
 def _frame(values: list[float], factor_a: list[str], factor_b: list[str]) -> pd.DataFrame:
@@ -56,7 +58,7 @@ def _pairs(sub: pd.DataFrame, by: str, at: str, ms_w: float, df_w: int,
            alpha: float) -> list[dict]:
     """Тьюки–Крамер для ячеек одного простого эффекта; d = разность/√MS_within."""
     k = len(sub)
-    q_crit = float(stats.studentized_range.ppf(1 - alpha, k, df_w))
+    q_crit = q_critical(alpha, k, df_w)  # кэш по (α, k, df): один расчёт на набор
     rows, recs = [], sub.to_dict("records")
     for i in range(k):
         for j in range(i + 1, k):
