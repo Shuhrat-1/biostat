@@ -57,7 +57,10 @@ async function startup(): Promise<Record<string, number>> {
 /** Модуль данных в ФС Pyodide (Worker); случаи и роли из него. */
 async function loadCases(): Promise<{ cases: Record<string, Case>; roles: ColumnSelection }> {
   const json = await runPython<string>(
-    `open("/home/pyodide/bench_data.py", "w", encoding="utf-8").write(__src)
+    `import sys
+if "" not in sys.path:
+    sys.path.insert(0, "")
+open("bench_data.py", "w", encoding="utf-8").write(__src)
 import bench_data
 bench_data.cases_json()`,
     { __src: benchData },
@@ -66,7 +69,10 @@ bench_data.cases_json()`,
 }
 
 async function tableBytes(name: string, n: number): Promise<Uint8Array> {
-  return runPython<Uint8Array>(`bench_data.table_bytes(${JSON.stringify(name)}, ${n})`);
+  // У каждого вызова свои globals: модуль берём из sys.modules заново.
+  return runPython<Uint8Array>(
+    `import bench_data\nbench_data.table_bytes(${JSON.stringify(name)}, ${n})`,
+  );
 }
 
 /** Один метод на текущей таблице: run (первый + лучший) и графики. */
@@ -121,7 +127,11 @@ function render(results: Results): void {
   document.getElementById("out")!.innerHTML = head + rows.join("");
 }
 
-document.getElementById("start")!.addEventListener("click", async () => {
+document.getElementById("start")!.addEventListener("click", () => {
+  run().catch((e) => log(`Ошибка: ${e instanceof Error ? e.message : String(e)}`));
+});
+
+async function run(): Promise<void> {
   log("Загрузка Pyodide…");
   const start = await startup();
   log(`Старт рантайма, мс: ${JSON.stringify(start, (_, v) => (typeof v === "number" ? Math.round(v) : v))}`);
@@ -136,4 +146,4 @@ document.getElementById("start")!.addEventListener("click", async () => {
   save.href = URL.createObjectURL(blob);
   save.hidden = false;
   log("Готово.");
-});
+}
