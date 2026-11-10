@@ -20,6 +20,9 @@ const D: Family = { marks: [0.2, 0.5, 0.8], source: "Witte, Table 14.2" };
 const ETA: Family = { marks: [0.01, 0.09, 0.25], source: "Witte, Table 16.7" };
 const PHI: Family = { marks: [0.01, 0.09, 0.25], source: "Witte, Table 19.6" };
 const W: Family = { marks: [0.1, 0.3, 0.5], source: "Cohen 1988 [предл.]" };
+/** Связь (r Пирсона, ρ Спирмена) и согласованность W Кендалла: ориентиры
+ *  Коэна для r; для W — по аналогии с r, как принято [предл.]. */
+const R: Family = { marks: [0.1, 0.3, 0.5], source: "Cohen 1988 [предл.]" };
 
 /** Ключ результата ядра → семейство ориентиров. */
 export function familyOf(key: string): Family | null {
@@ -27,6 +30,7 @@ export function familyOf(key: string): Family | null {
   if (["eta_squared", "eta_squared_partial", "omega_squared"].includes(key) || key.startsWith("eta_p_")) return ETA;
   if (["phi_c_squared", "cramers_v_squared"].includes(key)) return PHI;
   if (key === "cohens_w") return W;
+  if (["r", "rho", "kendalls_w"].includes(key)) return R;
   return null;
 }
 
