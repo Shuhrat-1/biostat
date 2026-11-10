@@ -1,12 +1,12 @@
 /// <reference types="vite/client" />
 /**
- * Замер методов в браузере (шаг 1 задачи Web Worker): те же данные и
- * случаи, что `tools/bench_methods.py` в CPython, но через сам мост.
+ * Замер методов в браузере: те же данные и случаи, что `tools/bench_methods.py`
+ * в CPython, но через сам мост (Python — в Web Worker'е, как на сайте).
  * Страница для разработки: `web/bench.html`, в сборку не входит.
  */
 
 import benchData from "../../../tools/bench_data.py?raw";
-import { initRuntime } from "../pyodide/runtime";
+import { initRuntime, runPython } from "../pyodide/runtime";
 import {
   getPlotData,
   parseFile,
@@ -54,19 +54,19 @@ async function startup(): Promise<Record<string, number>> {
   return marks;
 }
 
-/** Модуль данных в ФС Pyodide; случаи и роли из него. */
+/** Модуль данных в ФС Pyodide (Worker); случаи и роли из него. */
 async function loadCases(): Promise<{ cases: Record<string, Case>; roles: ColumnSelection }> {
-  const py = await initRuntime();
-  py.FS.writeFile("/home/pyodide/bench_data.py", benchData);
-  return JSON.parse(py.runPython("import bench_data\nbench_data.cases_json()"));
+  const json = await runPython<string>(
+    `open("/home/pyodide/bench_data.py", "w", encoding="utf-8").write(__src)
+import bench_data
+bench_data.cases_json()`,
+    { __src: benchData },
+  );
+  return JSON.parse(json);
 }
 
 async function tableBytes(name: string, n: number): Promise<Uint8Array> {
-  const py = await initRuntime();
-  const proxy = py.runPython(`bench_data.table_bytes(${JSON.stringify(name)}, ${n})`);
-  const bytes = proxy.toJs() as Uint8Array;
-  proxy.destroy();
-  return bytes;
+  return runPython<Uint8Array>(`bench_data.table_bytes(${JSON.stringify(name)}, ${n})`);
 }
 
 /** Один метод на текущей таблице: run (первый + лучший) и графики. */

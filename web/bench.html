@@ -19,7 +19,7 @@
     <p>
       Только для разработки (<code>npm run dev</code> → <code>/bench.html</code>), в сборку не входит.
       Параметры: <code>?sizes=100,1000,5000&amp;only=glmm_analysis,mixed_model</code>.
-      Расчёт идёт в основном потоке — страница замирает на медленных методах, это и меряем.
+      Расчёт идёт в Web Worker'е, как на сайте: страница не замирает.
     </p>
     <p><button id="start">Запустить</button> <a id="save" hidden download="bench-browser.json">Сохранить JSON</a></p>
     <div id="log"></div>

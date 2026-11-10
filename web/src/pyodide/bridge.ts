@@ -1,16 +1,17 @@
 /**
  * Мост между JS и расчётным ядром на Python.
  *
- * ЕДИНСТВЕННАЯ точка вызова Python из интерфейса. При добавлении других
- * бэкендов (WebGPU, cloud) меняется только этот файл — компоненты UI
- * продолжают вызывать те же функции.
+ * ЕДИНСТВЕННАЯ точка вызова Python из интерфейса. Python исполняется в
+ * Web Worker'е (runtime.ts, worker.ts); при добавлении других бэкендов
+ * меняется только мост и рантайм — компоненты UI вызывают те же функции.
  *
  * Обмен идёт через JSON: граница остаётся чистой, JS получает обычные
  * объекты, нет утечек памяти от Python-прокси. Разобранная таблица живёт
  * в Python-глобальных и не гоняется туда-обратно при каждом расчёте.
  */
 
-import { initRuntime } from "./runtime";
+import { PRIORITY, type Priority } from "./protocol";
+import { runPython, setWarmModules } from "./runtime";
 
 export type Severity = "info" | "warning" | "error";
 
@@ -239,6 +240,16 @@ const METHOD_MODULES: Record<string, string> = {
   normality_test: "core.stats.diagnostics",
 };
 
+// Фоновый импорт модулей ядра после загрузки: первый расчёт не ждёт импортов
+// (в браузере до 2 с). Распознаватели карты — тоже: их зовут при выборе колонок.
+setWarmModules([
+  "core.validation.parser",
+  "core.validation.recognizers",
+  "core.validation.recognizers_computed",
+  "core.stats.plotsummary",
+  ...Object.values(METHOD_MODULES),
+]);
+
 /** Методы, которым нужна числовая колонка + колонка групп. */
 const GROUPED_METHODS = new Set([
   "one_way_anova",
@@ -332,16 +343,19 @@ const PAIRED_METHODS = new Set(["paired_t", "wilcoxon"]);
 async function runJson<T>(
   code: string,
   variables: Record<string, string> = {},
+  priority: Priority = PRIORITY.user,
 ): Promise<T> {
-  const pyodide = await initRuntime();
   try {
-    const raw = await pyodide.runPythonAsync(code, {
-      globals: pyodide.toPy(variables),
-    });
-    return JSON.parse(raw) as T;
+    return JSON.parse(await runPython<string>(code, variables, { priority })) as T;
   } catch (error) {
-    throw new Error(formatPythonError(error));
+    throw pythonError(error);
   }
+}
+
+/** Ошибка Python → короткое сообщение; отмену (CancelledError) не трогаем. */
+function pythonError(error: unknown): Error {
+  if (error instanceof Error && error.name === "CancelledError") return error;
+  return new Error(formatPythonError(error));
 }
 
 /**
@@ -359,7 +373,6 @@ export async function parseFile(
     lang: string;
   }> = {},
 ): Promise<ParsedTable> {
-  const pyodide = await initRuntime();
   const lang = overrides.lang ?? "ru";
   // lang не входит в аргументы parse_file — вынимаем его отдельно.
   const parseOverrides = { ...overrides };
@@ -381,15 +394,15 @@ _payload["suggestions"] = suggest_methods(_table.profiles, ${JSON.stringify(lang
 json.dumps(_payload, ensure_ascii=False)
 `;
   try {
-    const raw = await pyodide.runPythonAsync(code, {
-      globals: pyodide.toPy({
-        __overrides_json: JSON.stringify(parseOverrides),
-        __file_bytes: bytes,
-      }),
-    });
+    // restore: после отмены (перезапуска Worker'а) таблица разбирается заново.
+    const raw = await runPython<string>(
+      code,
+      { __overrides_json: JSON.stringify(parseOverrides), __file_bytes: bytes },
+      { restore: true },
+    );
     return JSON.parse(raw) as ParsedTable;
   } catch (error) {
-    throw new Error(formatPythonError(error));
+    throw pythonError(error);
   }
 }
 
@@ -593,6 +606,7 @@ else:
 json.dumps(_out, ensure_ascii=False)
 `,
     { __roles_json: JSON.stringify(roles), __rec_cls: cls },
+    PRIORITY.hint,
   );
 }
 

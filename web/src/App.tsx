@@ -31,7 +31,8 @@ import {
   type PlotBundle,
   type StatResult,
 } from "./pyodide/bridge";
-import { initRuntime, type LoadProgress } from "./pyodide/runtime";
+import { cancelRun, initRuntime, type LoadProgress } from "./pyodide/runtime";
+import { RunStatus, slowHint } from "./RunStatus";
 import { I18nContext, LANGUAGES, useT, type Lang } from "./i18n";
 import { c, s } from "./styles";
 import { SensoryMap } from "./SensoryMap";
@@ -76,12 +77,22 @@ function AppInner({
   // Режим планирования без данных: список методов, которым файл не нужен.
   const [planning, setPlanning] = useState<MethodSuggestion[] | null>(null);
   const [busy, setBusy] = useState(false);
+  // Расчёт пользователя идёт (для плашки «Остановить»), подсказка о долгом методе,
+  // перезапуск Worker'а после отмены, рантайм хоть раз загрузился (UI не размонтируем).
+  const [running, setRunning] = useState(false);
+  const [hint, setHint] = useState<string | null>(null);
+  const [restarting, setRestarting] = useState(false);
+  const [booted, setBooted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const map = useMapSync(table);
 
   useEffect(() => {
     let cancelled = false;
-    initRuntime((p) => !cancelled && setProgress(p)).catch((e) => {
+    initRuntime((p) => {
+      if (cancelled) return;
+      setProgress(p);
+      if (p.stage === "ready") setBooted(true);
+    }).catch((e) => {
       if (!cancelled) {
         setError(e instanceof Error ? e.message : String(e));
         setProgress({ stage: "error", message: "" });
@@ -153,6 +164,8 @@ function AppInner({
     kwargs: Record<string, unknown>,
   ) => {
     setBusy(true);
+    setRunning(true);
+    setHint(slowHint(method, table?.n_rows ?? 0));
     setError(null);
     setPlots(null);
     try {
@@ -164,10 +177,23 @@ function AppInner({
         setPlots(null);
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      if (!isCancel(e)) setError(e instanceof Error ? e.message : String(e));
       setResult(null);
     } finally {
       setBusy(false);
+      setRunning(false);
+    }
+  };
+
+  // Отмена: Worker останавливается и запускается заново (таблица восстанавливается).
+  const handleCancel = async () => {
+    setRestarting(true);
+    try {
+      await cancelRun();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setRestarting(false);
     }
   };
 
@@ -196,7 +222,8 @@ function AppInner({
     setError(null);
   };
 
-  const ready = progress.stage === "ready";
+  // После первой загрузки интерфейс не прячем: перезапуск после отмены — плашка.
+  const ready = booted;
 
   // Результат, графики и сброс — одинаковы для данных и для планирования.
   const resultsBlock = (
@@ -266,6 +293,7 @@ function AppInner({
         </div>
 
         {!ready && <LoadingBar progress={progress} />}
+        <RunStatus active={running} hint={hint} restarting={restarting} onCancel={handleCancel} />
         {error && <div style={s.error}>{error}</div>}
 
         {ready && (
@@ -288,7 +316,7 @@ function AppInner({
                   suggestions={planning}
                   summaryValues={{}}
                   onRun={handleRun}
-                  busy={busy}
+                  busy={busy || restarting}
                 />
                 {resultsBlock}
               </>
@@ -322,7 +350,7 @@ function AppInner({
                   suggestions={table.suggestions}
                   summaryValues={table.summary_values}
                   onRun={handleRun}
-                  busy={busy}
+                  busy={busy || restarting}
                   request={map.request}
                   onSelection={map.onSelection}
                 />
@@ -380,4 +408,9 @@ function LoadingBar({ progress }: { progress: LoadProgress }) {
       </div>
     </div>
   );
+}
+
+/** Расчёт остановлен пользователем — не ошибка. */
+function isCancel(e: unknown): boolean {
+  return e instanceof Error && e.name === "CancelledError";
 }
