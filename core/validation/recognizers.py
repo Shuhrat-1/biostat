@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import re
 from collections import Counter
+from dataclasses import dataclass
 from itertools import combinations
 
 import numpy as np
@@ -56,10 +57,33 @@ def _score_like(v: np.ndarray) -> bool:
     return _is_int(v) and 2 < np.unique(v).size <= 10 and np.ptp(v) <= 10
 
 
+def _pairs(xs: list[str], ys: list[str]) -> Counter:
+    """Число строк в каждой паре меток (x, y); пустые метки пропускаются."""
+    return Counter((x, y) for x, y in zip(xs, ys) if x and y)
+
+
 def _cells(ctx: Context, a: str, b: str) -> Counter:
-    """Число строк в каждой паре уровней (a, b); пустые метки пропускаются."""
-    pairs = zip(ctx.labels(a), ctx.labels(b))
-    return Counter((x, y) for x, y in pairs if x and y)
+    """Число строк в каждой паре уровней колонок (a, b)."""
+    return _pairs(ctx.labels(a), ctx.labels(b))
+
+
+def _treatment_columns(ctx: Context) -> list[str]:
+    """Колонки факторов вариантов: основной, второй, третий (без повторов)."""
+    names = [ctx.factor, ctx.role("factor_b"), ctx.role("factor_c")]
+    return [n for i, n in enumerate(names) if n and n not in names[:i]]
+
+
+def _treatment_labels(ctx: Context) -> list[str]:
+    """Метка варианта по строкам: комбинация уровней всех факторов («a1|b2»).
+
+    Вариант в факторном опыте — комбинация уровней, а не уровень одного
+    фактора [кн. гл. 8]; пустая метка любого фактора — пропуск ("").
+    """
+    def build() -> list[str]:
+        cols = [ctx.labels(c) for c in _treatment_columns(ctx)]
+        return ["|".join(row) if all(row) else "" for row in zip(*cols)]
+
+    return ctx.memo("treatment_labels", build)
 
 
 def _levels(ctx: Context, column: str) -> list[str]:
@@ -291,30 +315,52 @@ def block_name(ctx: Context) -> Signal | None:
     return None
 
 
-def _trt_block(ctx: Context) -> tuple[str, str] | None:
-    trt, blk = ctx.factor, ctx.role("block")
-    return (trt, blk) if trt and blk else None
+@dataclass(frozen=True)
+class Layout:
+    """Раскладка вариантов по блокам: строки в ячейках, списки уровней."""
+
+    cells: Counter  # (вариант, блок) -> число строк
+    treatments: list[str]
+    blocks: list[str]
+    n_factors: int
+
+    @property
+    def complete(self) -> bool:
+        return len(self.cells) == len(self.treatments) * len(self.blocks)
+
+
+def _layout(ctx: Context) -> Layout | None:
+    """Ячейки «вариант × блок», где вариант — комбинация всех факторов."""
+    blk = ctx.role("block")
+    if not (ctx.factor and blk):
+        return None
+    cells = _pairs(_treatment_labels(ctx), ctx.labels(blk))
+    return Layout(cells, sorted({t for t, _ in cells}), sorted({b for _, b in cells}),
+                  len(_treatment_columns(ctx)))
 
 
 @rule("B1.2", "B1", "rcbd_anova", STRONG, "кн. стр. 58")
 def rcbd_layout(ctx: Context) -> Signal | None:
-    pair = _trt_block(ctx)
-    if pair is None:
+    lay = _layout(ctx)
+    if lay is None or not lay.complete or set(lay.cells.values()) != {1}:
         return None
-    cells = _cells(ctx, *pair)
-    t, b = len(_levels(ctx, pair[0])), len(_levels(ctx, pair[1]))
-    if len(cells) == t * b and set(cells.values()) == {1}:
+    t, b = len(lay.treatments), len(lay.blocks)
+    if lay.n_factors == 1:
         return Signal("Каждый вариант ровно раз в каждом блоке ({t} × {b}): RCBD.",
                       {"t": t, "b": b})
-    return None
+    if split_plot_layout(ctx) is not None:  # блоки те же, но рандомизация в два этапа
+        return None
+    return Signal("Каждая комбинация факторов ровно раз в каждом блоке ({t} × {b}):"
+                  " факторный опыт в полных блоках.",
+                  {"t": t, "b": b, "method": "factorial_anova", "variant": "factorial"})
 
 
 @rule("B1.3", "B1", "rcbd_subsampling_anova", STRONG, "кн. стр. 46, 145")
 def subsamples(ctx: Context) -> Signal | None:
-    pair = _trt_block(ctx)
-    if pair is None:
+    lay = _layout(ctx)
+    if lay is None:
         return None
-    counts = set(_cells(ctx, *pair).values())
+    counts = set(lay.cells.values())
     if len(counts) == 1 and (k := counts.pop()) > 1:
         return Signal("В каждой ячейке блок × вариант {k} строк: субвыборки"
                       " (анализ на уровне делянок, не строк).", {"k": k})
@@ -323,11 +369,10 @@ def subsamples(ctx: Context) -> Signal | None:
 
 @rule("B1.4", "B1", "bibd_anova", STRONG, "кн. стр. 232–234")
 def bibd_layout(ctx: Context) -> Signal | None:
-    pair = _trt_block(ctx)
-    if pair is None:
+    lay = _layout(ctx)
+    if lay is None:
         return None
-    cells = _cells(ctx, *pair)
-    trts = _levels(ctx, pair[0])
+    cells, trts = lay.cells, lay.treatments
     by_block: dict[str, set] = {}
     for (t, b) in cells:
         by_block.setdefault(b, set()).add(t)
@@ -375,12 +420,10 @@ def split_plot_layout(ctx: Context) -> Signal | None:
 
 @rule("B1.7", "B1", "unbalanced", STRONG, "кн. стр. 258, 427")
 def unequal_replication(ctx: Context) -> Signal | None:
-    pair = _trt_block(ctx)
-    if pair is None:
+    lay = _layout(ctx)
+    if lay is None:
         return None
-    cells = _cells(ctx, *pair)
-    t, b = len(_levels(ctx, pair[0])), len(_levels(ctx, pair[1]))
-    if len(set(cells.values())) > 1 or (len(cells) < t * b and not bibd_layout(ctx)):
+    if len(set(lay.cells.values())) > 1 or (not lay.complete and not bibd_layout(ctx)):
         return Signal("Повторность в ячейках блок × вариант неравная или есть пустые"
                       " ячейки: несбалансированный анализ или смешанная модель.")
     return None
@@ -469,6 +512,16 @@ def _group_sizes(ctx: Context) -> list[int]:
     v = ctx.numbers(resp)
     labels = ctx.labels(trt)
     counts = Counter(lab for lab, x in zip(labels, v) if lab and not np.isnan(x))
+    return list(counts.values())
+
+
+def _treatment_sizes(ctx: Context) -> list[int]:
+    """Число наблюдений отклика в каждой комбинации факторов."""
+    resp = ctx.response
+    if not (resp and ctx.factor):
+        return []
+    v = ctx.numbers(resp)
+    counts = Counter(t for t, x in zip(_treatment_labels(ctx), v) if t and not np.isnan(x))
     return list(counts.values())
 
 
@@ -621,13 +674,13 @@ def random_grouping(ctx: Context) -> Signal | None:
 
 @rule("DIAG.3", "DIAG", "power_note", STRONG, "кн. стр. 521")
 def residual_df(ctx: Context) -> Signal | None:
-    sizes = _group_sizes(ctx)
+    sizes = _treatment_sizes(ctx)
     if not sizes:
         return None
     n, t = sum(sizes), len(sizes)
     df = n - t
-    if (pair := _trt_block(ctx)) and rcbd_layout(ctx):
-        df = (t - 1) * (len(_levels(ctx, pair[1])) - 1)
+    if (lay := _layout(ctx)) and rcbd_layout(ctx):
+        df = (len(lay.treatments) - 1) * (len(lay.blocks) - 1)
     if 0 < df < 10:
         return Signal("Остаточных df {df} < 10: мощность сравнений мала.", {"df": df})
     return None

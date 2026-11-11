@@ -167,6 +167,88 @@ def test_unequal_replication_flags_b1_7():
     assert "B1.7" in fired and "B1.2" not in fired
 
 
+def _noise(n: int) -> np.ndarray:
+    """N(0, 1) без генератора: нормальные квантили в перемешанном порядке."""
+    from scipy import stats
+
+    q = stats.norm.ppf((np.arange(n) + 0.5) / n)
+    return q[(np.arange(n) * 7 + 3) % n] if n % 7 else q[(np.arange(n) * 5 + 3) % n]
+
+
+def _factorial_blocks(samples: int = 1, b_effect: float = 5.0) -> dict[str, list]:
+    """Факториал A (2) × B (3) в 4 полных блоках; ``samples`` образцов на делянку.
+
+    Синтетика: отклик = 50 + эффект A + сильный эффект B + блок + шум N(0, 1).
+    """
+    data: dict[str, list] = {"blk": [], "A": [], "B": [], "unit": [], "y": []}
+    noise = iter(_noise(24 * samples))
+    for b in range(4):
+        for i, a in enumerate(("a1", "a2")):
+            for j, lv in enumerate(("b1", "b2", "b3")):
+                for _ in range(samples):
+                    y = 50 + 2 * i + b_effect * (j - 1) + b + next(noise)
+                    row = (f"k{b + 1}", a, lv, f"k{b + 1}-{a}-{lv}", round(float(y), 3))
+                    for key, value in zip(data, row):
+                        data[key].append(value)
+    return data
+
+
+_FACTORIAL_ROLES = dict(value="y", factor_a="A", factor_b="B", block="blk")
+
+
+def test_factorial_in_blocks_is_rcbd_not_subsamples():
+    """Вариант — комбинация факторов: в ячейке блок × (A, B) одна строка.
+
+    Раньше ячейкой считалась пара блок × A (по 3 строки) и B1.3 давало strong
+    «субвыборки». Теперь B1.2 ведёт к factorial_anova (блок — его слот).
+    """
+    fired = _fired(_factorial_blocks(), **_FACTORIAL_ROLES)
+    assert "B1.3" not in fired and "B1.7" not in fired
+    params = fired["B1.2"]["message"]["params"]
+    assert params == {"t": 6, "b": 4, "method": "factorial_anova", "variant": "factorial"}
+    assert "B2.1" in fired
+
+
+def test_factorial_in_blocks_with_two_samples_per_plot_is_subsampling():
+    fired = _fired(_factorial_blocks(samples=2), unit="unit", **_FACTORIAL_ROLES)
+    assert fired["B1.3"]["message"]["params"] == {"k": 2}
+    assert "B1.2" not in fired
+
+
+def test_factorial_in_blocks_lost_plot_is_unbalanced():
+    data = {k: v[:-1] for k, v in _factorial_blocks().items()}
+    fired = _fired(data, **_FACTORIAL_ROLES)
+    assert "B1.7" in fired and "B1.2" not in fired and "B1.3" not in fired
+
+
+def test_one_factor_rcbd_signal_unchanged():
+    """Однофакторный RCBD картофеля (Table 7.1): прежний текст, без method."""
+    fired = _fired(_potato(), value="yield", group="treatment", block="block")
+    assert fired["B1.2"]["message"]["params"] == {"t": 5, "b": 4}
+
+
+def test_split_plot_with_blocks_is_not_reported_as_factorial_rcbd():
+    """Split-plot (Table 9.10): комбинации тоже раз в блоке, но рандомизация в два этапа."""
+    data: dict[str, list] = {"block": [], "plot": [], "irr": [], "species": [], "y": []}
+    for block, plots in COMPETITION.items():
+        for wp, (irr, cells) in enumerate(plots, 1):
+            for species, value in cells:
+                sp = species if species != "-" else "none_sp"
+                for k, v in zip(data, (f"B{block}", f"{block}-{wp}", irr, sp, value)):
+                    data[k].append(v)
+    roles = dict(value="y", factor_a="irr", factor_b="species", block="block")
+    assert "B1.2" in _fired(data, **roles)  # без роли делянки отличить нельзя
+    fired = _fired(data, whole_plot="plot", **roles)
+    assert "B1.6" in fired and "B1.2" not in fired
+
+
+def test_residual_df_counts_factor_combinations():
+    """DIAG.3: в факториале 2 × 3 в 4 блоках остаточных df (6 − 1)(4 − 1) = 15 ≥ 10."""
+    assert "DIAG.3" not in _fired(_factorial_blocks(), **_FACTORIAL_ROLES)
+    two_blocks = {k: v[:12] for k, v in _factorial_blocks().items()}
+    assert _fired(two_blocks, **_FACTORIAL_ROLES)["DIAG.3"]["message"]["params"] == {"df": 5}
+
+
 def test_block_name_hint_only_without_block_role():
     assert "B1.1" in _fired(_potato(), value="yield", group="treatment")
     assert "B1.1" not in _fired(_potato(), value="yield", group="treatment", block="block")
