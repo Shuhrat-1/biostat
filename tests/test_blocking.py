@@ -174,3 +174,62 @@ def test_unequal_column_lengths_raise():
 
 def test_result_json_safe():
     json.dumps(rcbd_subsampling_anova(*_row_data()).to_dict(), allow_nan=False)
+
+
+# --- Трансформация отклика (аудит 01-03) ----------------------------------------------
+
+def _potato_columns() -> tuple[list[float], list[str], list[str]]:
+    values, treatments, blocks = [], [], []
+    for block, plots in LAYOUT.items():
+        for pos, trt in enumerate(plots):
+            values.append(PLOT_YIELD[block][pos])
+            treatments.append(trt)
+            blocks.append(f"B{block}")
+    return values, treatments, blocks
+
+
+def test_rcbd_transform_equals_analysis_of_transformed_values():
+    """Параметр «Трансформация» = тот же анализ по log10(y); средние — на исходной шкале.
+
+    Данные Table 7.1 (стр. 131); обратный перевод средних и отношения — гл. 6.3–6.4
+    (стр. 122–126). Без трансформации F = 9.576, как в Table 7.4 (стр. 137).
+    """
+    values, treatments, blocks = _potato_columns()
+    assert rcbd_anova(values, treatments, blocks).statistics["F"] == pytest.approx(9.576, abs=5e-4)
+    logged = rcbd_anova(values, treatments, blocks, transform_kind="log10")
+    manual = rcbd_anova(list(np.log10(values)), treatments, blocks)
+    assert logged.statistics["F"] == pytest.approx(manual.statistics["F"])
+    assert logged.p_value == pytest.approx(manual.p_value)
+    for back, log in zip(logged.estimates, manual.estimates):
+        assert back.name == log.name and back.std_error is None
+        assert back.value == pytest.approx(10 ** log.value)
+        assert back.ci_lower == pytest.approx(10 ** log.ci_lower)
+    first = manual.parameters["comparisons"][0]
+    ratio = logged.parameters["ratios"][0]
+    assert ratio["ratio"] == pytest.approx(10 ** first["mean_diff"])
+    assert logged.parameters["transform"] == "log10"
+    assert logged.parameters["transformed"]["means"]["mean_Control"] == pytest.approx(
+        manual.estimates[0].value)
+
+
+def test_rcbd_transform_domain_error_and_default():
+    values, treatments, blocks = _potato_columns()
+    bad = rcbd_anova([-v for v in values], treatments, blocks, transform_kind="log10")
+    assert [w.code for w in bad.warnings] == ["transform_domain"]
+    plain = rcbd_anova(values, treatments, blocks)
+    assert "transform" not in plain.parameters and "ratios" not in plain.parameters
+    with pytest.raises(ValueError):
+        rcbd_anova(values, treatments, blocks, transform_kind="cube")
+
+
+def test_rcbd_subsampling_transforms_measurements_before_plot_means():
+    """Субвыборки: преобразуются измерения, затем средние делянок (гл. 6, 7.5)."""
+    values, treatments, blocks = _potato_columns()
+    doubled = [v * f for v in values for f in (0.9, 1.1)]
+    trt2 = [t for t in treatments for _ in range(2)]
+    blk2 = [b for b in blocks for _ in range(2)]
+    units = [f"{b}-{t}" for b, t in zip(blk2, trt2)]
+    logged = rcbd_subsampling_anova(doubled, trt2, blk2, units, transform_kind="ln")
+    manual = rcbd_subsampling_anova(list(np.log(doubled)), trt2, blk2, units)
+    assert logged.statistics["F"] == pytest.approx(manual.statistics["F"])
+    assert logged.estimates[0].value == pytest.approx(float(np.exp(manual.estimates[0].value)))

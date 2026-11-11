@@ -390,6 +390,18 @@
    "method": "mann_whitney"
   },
   {
+   "id": "B4a.transform",
+   "kind": "pre",
+   "parent": "B4a",
+   "source": "кн. стр. 113–126"
+  },
+  {
+   "id": "B4a.transform.means",
+   "kind": "leaf",
+   "parent": "B4a.transform",
+   "method": "transformed_means"
+  },
+  {
    "id": "B4b",
    "kind": "test",
    "parent": "B3",
@@ -817,6 +829,9 @@
   "collinearity": [],
   "overdispersion": [],
   "outliers": [],
-  "factor_codes": []
+  "factor_codes": [],
+  "transform_groups": [
+   "B4b.transform.means"
+  ]
  }
 }

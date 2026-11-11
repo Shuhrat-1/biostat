@@ -38,7 +38,12 @@ for (const n of NODES) {
   if (n.parent) KIDS.set(n.parent, [...(KIDS.get(n.parent) ?? []), n]);
 }
 
-type LabelDict = Record<Lang, { nodes: Record<string, string>; rec: Record<string, string> }>;
+type LabelDict = Record<Lang, {
+  nodes: Record<string, string>;
+  rec: Record<string, string>;
+  /** Оговорки, которые ядро дописывает к сигналу (выброс). */
+  notes: Record<string, string>;
+}>;
 const LABELS = labels as LabelDict;
 
 export function getNode(id: string): TreeNode | undefined {
@@ -88,9 +93,11 @@ export function signalsAt(node: TreeNode, fired: FiredSignal[]): FiredSignal[] {
 export function recMessage(signal: FiredSignal, lang: Lang): string {
   const params = signal.message.params ?? {};
   const key = params.variant ? `${signal.id}#${params.variant}` : signal.id;
-  const template = LABELS[lang].rec[key] ?? LABELS.ru.rec[key];
-  if (!template) return signal.message.message;
-  return template.replace(/\{(\w+)\}/g, (_, name: string) =>
+  const base = LABELS[lang].rec[key] ?? LABELS.ru.rec[key];
+  if (!base) return signal.message.message;
+  // Сигнал, пониженный из-за кандидата в выбросы, несёт оговорку о нём.
+  const note = params.outlier_row === undefined ? "" : LABELS[lang].notes.outlier;
+  return (base + note).replace(/\{(\w+)\}/g, (_, name: string) =>
     params[name] === undefined ? `{${name}}` : String(params[name]),
   );
 }

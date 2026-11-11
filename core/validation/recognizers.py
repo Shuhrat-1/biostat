@@ -267,8 +267,13 @@ def right_skew(ctx: Context) -> Signal | None:
     skew = float(stats.skew(v))
     if skew > 1:
         return Signal("Все значения > 0, асимметрия {skew}: кандидат на log-преобразование.",
-                      {"skew": round(skew, 2)})
+                      {"skew": round(skew, 2), "branch": transform_branch(ctx)})
     return None
+
+
+def transform_branch(ctx: Context) -> str:
+    """Узел «преобразовать отклик»: свой в ветке двух групп и трёх и более."""
+    return "B4a.transform" if len(_group_sizes(ctx)) == 2 else "B4b.transform"
 
 
 @rule("R2.8", "R2", "dead_end_censored", HINT, "кн. стр. 274; предл.")
@@ -305,7 +310,8 @@ def large_trials(ctx: Context) -> Signal | None:
     v, m = _successes_and_trials(ctx, col)
     p = v / m
     if m.min() > 20 and np.mean((p > 0.1) & (p < 0.9)) >= 0.9:
-        return Signal("m > 20, доли не у краёв: допустим и logit с линейной моделью.")
+        return Signal("m > 20, доли не у краёв: допустим и logit с линейной моделью.",
+                      {"branch": transform_branch(ctx)})
     return None
 
 
@@ -581,8 +587,11 @@ def control_level(ctx: Context) -> Signal | None:
 @rule("B2.5", "B2", "ancova", HINT, "кн. стр. 409")
 def covariate_candidate(ctx: Context) -> Signal | None:
     resp, trt = ctx.response, ctx.factor
-    if not (resp and trt) or ctx.role("covariate"):
+    if not (resp and trt):
         return None
+    if ctx.role("covariate"):  # назначена в форме: это уже не догадка
+        return Signal("Сопутствующая переменная «{c}» назначена: ковариационный анализ.",
+                      {"c": ctx.role("covariate"), "variant": "assigned"}, strength=STRONG)
     others = [c for c in _variable_columns(ctx)
               if c not in ctx.roles.values() and not _BLOCK_NAME.search(c)]
     if others:

@@ -96,7 +96,7 @@ export function SensoryMap(props: Props) {
             context={props.context} onPick={pick}
           />
           <Details
-            focus={focus} fired={fired} marks={marks} available={available}
+            focus={focus} suggestions={suggestions} fired={fired} marks={marks} available={available}
             selected={selection?.method} methodLeaf={methodLeaf?.id}
             registry={recognition?.registry ?? []} computing={props.computing}
             context={props.context} hasRoles={props.hasRoles}
@@ -277,6 +277,7 @@ function NodeButton(props: {
 
 interface DetailsProps {
   focus: string;
+  suggestions: MethodSuggestion[];
   fired: FiredSignal[];
   marks: Marks;
   available: Set<string>;
@@ -288,13 +289,32 @@ interface DetailsProps {
   hasRoles: boolean;
 }
 
+/** Узел, под которым лежат все планы с независимыми единицами (линейные модели). */
+const DESIGNS_ROOT = "B1";
+
 /**
  * Сигналы узлов на пути к фокусу и в его ветках, плюс диагностика (DIAG):
  * выбросы и серийная корреляция касаются любой модели, где бы ни был фокус.
+ * Сигналы о допущениях (B4) видны на любом плане опыта: факториал, split-plot
+ * или ANCOVA опираются на те же нормальность и однородность, что и
+ * однофакторный анализ, хотя их листья и стоят выше развилки допущений.
  */
 function signalsAround(focus: string, fired: FiredSignal[]): FiredSignal[] {
-  const ids = new Set([...pathTo(focus), ...children(focus)].map((n) => n.id));
-  return fired.filter((sig) => sig.node === "DIAG" || owners(sig.node).some((o) => ids.has(o.id)));
+  const path = pathTo(focus);
+  const ids = new Set([...path, ...children(focus)].map((n) => n.id));
+  const design = path.some((n) => n.id === DESIGNS_ROOT);
+  return fired.filter((sig) => sig.node === "DIAG" || (design && sig.node === "B4")
+    || owners(sig.node).some((o) => ids.has(o.id)));
+}
+
+/** Сигналы, которые советуют преобразовать отклик. */
+const TRANSFORM_SIGNALS = new Set(["B4.3", "B4.4", "R2.7"]);
+
+/** У метода листа есть свой параметр «Трансформация» — отдельный метод не нужен. */
+function hasOwnTransform(method: string | undefined, suggestions: MethodSuggestion[]): boolean {
+  if (!method || method === "transformed_means") return false;
+  const spec = suggestions.find((m) => m.method === method);
+  return Boolean(spec?.params.some((p) => p.name === "transform_kind"));
 }
 
 /** Пояснения под колонками: лист, заметки контекста, сигналы данных. */
@@ -316,6 +336,10 @@ function Details(props: DetailsProps) {
   if (node?.kind === "leaf" && node.id === props.methodLeaf) lines.push({ text: t("map.inForm"), tone: "muted" });
   ctxNotes.forEach((text) => lines.push({ text, tone: "warn" }));
   if (pending) lines.push({ text: t("map.awaits"), tone: "muted" });
+  if (signals.some((sig) => TRANSFORM_SIGNALS.has(sig.id))
+    && hasOwnTransform(node?.method, props.suggestions)) {
+    lines.push({ text: t("map.transformParam"), tone: "warn" });
+  }
   if (!props.hasRoles) lines.push({ text: t("map.noRoles"), tone: "muted" });
 
   return (

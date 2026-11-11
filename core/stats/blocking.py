@@ -16,6 +16,9 @@
 
 from __future__ import annotations
 
+import copy
+from functools import partial
+
 import numpy as np
 import pandas as pd
 import statsmodels.formula.api as smf
@@ -25,6 +28,12 @@ from statsmodels.stats.anova import anova_lm
 
 from core.report.schema import Severity, StatResult
 from core.stats.anova import _add_mean_estimates, _lsd_comparisons
+from core.stats.transforms import (
+    _LOG_BASE, TRANSFORMS, _add_back_estimates, _add_ratios, _check_back_range,
+    _transformed_summary, back_transform, transform,
+)
+
+_NONE = "none"
 
 _OUTLIER_CUTOFF = 2.0
 
@@ -34,10 +43,16 @@ def rcbd_anova(
     treatments: list[str],
     blocks: list[str],
     alpha: float = 0.05,
+    transform_kind: str = _NONE,
+    offset: float = 0.0,
 ) -> StatResult:
-    """Блочный ANOVA RCBD: одно наблюдение на вариант в каждом блоке (гл. 7.1–7.4)."""
+    """Блочный ANOVA RCBD: одно наблюдение на вариант в каждом блоке (гл. 7.1–7.4).
+
+    ``transform_kind`` — анализ на трансформированной шкале (гл. 6): средние и
+    ДИ возвращаются на исходной, для log — ещё и отношения средних.
+    """
     frame = _frame(values, treatments, blocks, None)
-    return _analyse(frame, "rcbd_anova", alpha)
+    return _analyse(frame, "rcbd_anova", alpha, transform_kind, offset)
 
 
 def rcbd_subsampling_anova(
@@ -46,10 +61,16 @@ def rcbd_subsampling_anova(
     blocks: list[str],
     units: list[str],
     alpha: float = 0.05,
+    transform_kind: str = _NONE,
+    offset: float = 0.0,
 ) -> StatResult:
-    """Multi-stratum ANOVA RCBD с субвыборками внутри делянок (гл. 7.5)."""
+    """Multi-stratum ANOVA RCBD с субвыборками внутри делянок (гл. 7.5).
+
+    При ``transform_kind`` преобразуются отдельные измерения, затем берутся
+    средние делянок на трансформированной шкале (гл. 6).
+    """
     frame = _frame(values, treatments, blocks, units)
-    return _analyse(frame, "rcbd_subsampling_anova", alpha)
+    return _analyse(frame, "rcbd_subsampling_anova", alpha, transform_kind, offset)
 
 
 def _frame(
@@ -69,11 +90,16 @@ def _frame(
     return frame.dropna().reset_index(drop=True)
 
 
-def _analyse(frame: pd.DataFrame, method: str, alpha: float) -> StatResult:
+def _analyse(frame: pd.DataFrame, method: str, alpha: float,
+             kind: str = _NONE, offset: float = 0.0) -> StatResult:
     """Проверить дизайн, построить страты, средние вариантов и остатки."""
     if not 0.0 < alpha < 1.0:
         raise ValueError("alpha должен быть в (0, 1)")
+    if kind != _NONE and kind not in TRANSFORMS:
+        raise ValueError(f"transform_kind ∈ {(_NONE, *TRANSFORMS)}")
     result = StatResult(method=method, n=len(frame), parameters={"alpha": alpha})
+    if not _transform_response(frame, kind, offset, result):
+        return result
     plots, k = _plot_level(frame, result)
     if plots is None:
         return result
@@ -87,7 +113,38 @@ def _analyse(frame: pd.DataFrame, method: str, alpha: float) -> StatResult:
     _fill_strata(table, frame, k, result)
     _fill_means(plots, table, alpha, result)
     _fill_residuals(fit, plots, result)
+    if kind != _NONE:
+        _to_original_scale(result, kind, offset)
     return result
+
+
+def _transform_response(frame: pd.DataFrame, kind: str, offset: float,
+                        result: StatResult) -> bool:
+    """Трансформировать отклик (гл. 6); значения вне области — ошибка с подсказкой."""
+    if kind == _NONE:
+        return True
+    try:
+        frame["y"] = transform(frame["y"].to_numpy(float), kind, offset)
+    except ValueError as exc:
+        result.add_warning("transform_domain", str(exc), Severity.ERROR)
+        return False
+    return True
+
+
+def _to_original_scale(result: StatResult, kind: str, offset: float) -> None:
+    """Средние и ДИ — на исходной шкале, для log — отношения средних (стр. 122–126).
+
+    Таблица ANOVA, SED, LSD и попарные сравнения остаются на шкале анализа;
+    сводка на ней же — в ``parameters["transformed"]``, как у transformed_means.
+    """
+    base = copy.copy(result)
+    base.estimates, result.estimates = list(result.estimates), []
+    _add_back_estimates(base, partial(back_transform, kind=kind, offset=offset), result)
+    result.parameters.update({"transform": kind, "offset": offset,
+                              "transformed": _transformed_summary(base)})
+    if kind in _LOG_BASE:
+        _add_ratios(base, _LOG_BASE[kind], result)
+    _check_back_range(base, result, kind)
 
 
 def _plot_level(frame: pd.DataFrame, result: StatResult) -> tuple[pd.DataFrame | None, int]:

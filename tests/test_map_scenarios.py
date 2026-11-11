@@ -21,8 +21,10 @@ from core.validation.recognize import HINT, STRONG, recognize
 from tests.map_scenarios import SCENARIOS, grouped, q
 
 BY_ID = {s["id"]: s for s in SCENARIOS}
-TARGETS = json.loads((Path(__file__).parent.parent / "web" / "src" / "decisionTree.json")
-                     .read_text(encoding="utf-8"))["targets"]
+_TREE = json.loads((Path(__file__).parent.parent / "web" / "src" / "decisionTree.json")
+                   .read_text(encoding="utf-8"))
+TARGETS = _TREE["targets"]
+NODES = {n["id"]: n for n in _TREE["nodes"]}
 
 
 def _table(columns: dict[str, list]):
@@ -197,3 +199,92 @@ def test_01_13_label_response_points_to_ordinal_regression():
 
 def test_01_13_factorial_with_numeric_response_still_recognized():
     assert "B2.1" in _stage("S15", "full")
+
+
+# --- 01-01. Выброс не меняет метод -------------------------------------------------------
+
+_B4_SOFT = ("B4.2", "B4.5")
+
+
+def test_01_01_outlier_softens_assumption_signals():
+    """S10 (кальций, Table 4.5, одно значение ×3): сначала проверить запись [кн. стр. 109–110]."""
+    fired = _stage("S10", "one-way")
+    assert fired["DIAG.1"]["strength"] == STRONG
+    for rid in _B4_SOFT:
+        assert fired[rid]["strength"] == HINT
+        assert fired[rid]["message"]["params"]["outlier_row"] == 11
+        assert "выброса в строке 11" in fired[rid]["message"]["message"]
+
+
+def test_01_01_outlier_found_in_a_small_trial():
+    """3 группы × 3: |r| не может превысить √6 — выброс ловит удалённый остаток [предл.]."""
+    data = grouped({"a": [20.1, 20.9, 19.6], "b": [24.8, 25.5, 24.2], "c": [29.9, 30.4, 47.0]})
+    fired = _run(data, {"value": "y", "group": "group"})
+    assert fired["DIAG.1"]["message"]["params"] == {"rows": "9", "variant": "single"}
+    assert all(f["strength"] == HINT for rid, f in fired.items() if rid in ("B4.2", "B4.3", "B4.5"))
+
+
+def test_01_01_skewed_data_are_not_called_outliers():
+    """S07 (Table 6.1): большие значения — свойство шкалы; совет log остаётся уверенным."""
+    fired = _stage("S07", "one-way")
+    assert fired["B4.3"]["strength"] == STRONG
+    assert "outlier_row" not in fired["B4.3"]["message"]["params"] and "DIAG.1" not in fired
+
+
+def test_01_01_clean_data_are_untouched():
+    assert not {"DIAG.1", "B4.2", "B4.5"} & set(_stage("S05", "one-way"))
+
+
+# --- 01-03. Допущения на листьях планов; трансформация — параметр метода -----------------
+
+def test_01_03_assumption_signals_fire_for_a_factorial():
+    """S14 (Welham Example 8.1): на факториале жуков дисперсия растёт со средним."""
+    fired = _stage("S14", "full")
+    assert fired["B4.3"]["strength"] == STRONG and fired["B4.3"]["node"] == "B4"
+    assert TARGETS["transform_groups"] == ["B4b.transform.means"]
+
+
+def test_01_03_designs_have_their_own_transformation_parameter():
+    """Подсказка о трансформации ведёт к параметру метода — он должен быть у каждого плана."""
+    from core.validation.catalog import CATALOG
+
+    specs = {sp.method: sp for sp in CATALOG}
+    for method in ("rcbd_anova", "rcbd_subsampling_anova", "factorial_anova", "nested_anova",
+                   "latin_square_anova", "split_plot_anova", "bibd_anova", "unbalanced_anova",
+                   "ancova", "mixed_model"):
+        assert any(p.name == "transform_kind" for p in specs[method].params), method
+
+
+# --- 01-09. Две группы с асимметрией ------------------------------------------------------
+
+def test_01_09_skewed_two_groups_get_no_welch_advice():
+    """S03: при правой асимметрии SD различаются из-за неё — ранговый тест или log."""
+    fired = _stage("S03", "one-way")
+    assert "B4.2" not in fired
+    assert fired["B4.1"]["message"]["params"]["method"] == "mann_whitney"
+    assert fired["R2.7"]["message"]["params"]["branch"] == "B4a.transform"
+
+
+def test_01_09_two_group_branch_has_a_transformation_leaf():
+    leaf = NODES["B4a.transform.means"]
+    assert leaf["method"] == "transformed_means" and NODES[leaf["parent"]]["parent"] == "B4a"
+    # При трёх и более группах подсказка ведёт в свою ветку.
+    assert _stage("S10", "one-way")["R2.7"]["message"]["params"]["branch"] == "B4b.transform"
+
+
+def test_01_09_unequal_spread_without_skew_still_advises_welch():
+    """S02 при n = 10 в группе: симметричные данные, SD ×4 — совет Уэлча остаётся."""
+    fired = _run(_two_groups(10), {"value": "y", "group": "group"})
+    assert fired["B4.2"]["strength"] == STRONG
+
+
+# --- 01-11. ANCOVA -------------------------------------------------------------------------
+
+def test_01_11_assigned_covariate_points_to_ancova_and_enters_the_model():
+    """S32 (Welham Table 15.15): с ковариатой в модели ложной неоднородности нет."""
+    start = _stage("S32", "one-way")
+    assert start["B2.5"]["strength"] == HINT and {"B4.2", "B4.3"} <= set(start)
+    fired = _stage("S32", "full")
+    assert fired["B2.5"]["strength"] == STRONG
+    assert fired["B2.5"]["message"]["params"] == {"c": "damage", "variant": "assigned"}
+    assert not {"B4.2", "B4.3", "B4.5"} & set(fired)

@@ -15,15 +15,16 @@ VIF. Модель строится по ролям колонок формы:
 from __future__ import annotations
 
 from dataclasses import dataclass
+from functools import wraps
 
 import numpy as np
 from scipy import stats
 
 from core.stats.welch_rule import welch_advice
-from core.validation.recognize import COMPUTED, HINT, STRONG, Context, Signal, rule
+from core.validation.recognize import COMPUTED, HINT, STRONG, Context, Rule, Signal, rule
 from core.validation.recognizers import (
     _TIME, _count_like, _treatment_labels, _trials_column, _trials_guess, binary_response,
-    in_glm_branch, many_zeros,
+    in_glm_branch, many_zeros, right_skew, transform_branch,
 )
 
 _ALPHA = 0.05
@@ -76,20 +77,34 @@ def _factor_terms(ctx: Context) -> list[str]:
     return [n for i, n in enumerate(names) if n and n not in names[:i]]
 
 
+def _covariate(ctx: Context) -> np.ndarray | None:
+    """Значения ковариаты по строкам, если она назначена и числовая."""
+    col = ctx.role("covariate")
+    return ctx.numbers(col) if col and col in ctx.columns_of("numeric") else None
+
+
 def _factor_fit(ctx: Context) -> Fit | None:
-    """Модель вариантов: y ~ A (+ B + A×B) (+ блок)."""
+    """Модель вариантов: y ~ A (+ B + A×B) (+ блок) (+ ковариата).
+
+    Ковариата входит в модель: иначе разброс, который она объясняет,
+    выглядит как неоднородность или ненормальность остатков [кн. стр. 409].
+    """
     resp, terms = ctx.response, _factor_terms(ctx)
     if resp is None or not terms or ctx.factor is None:
         return None
-    y = ctx.numbers(resp)
+    y, z = ctx.numbers(resp), _covariate(ctx)
     labels = [ctx.labels(t) for t in terms]
     ok = ~np.isnan(y) & np.all([[bool(v) for v in col] for col in labels], axis=0)
+    if z is not None:
+        ok &= ~np.isnan(z)
     if ok.sum() < 4:
         return None
     cols = [[v for v, k in zip(col, ok) if k] for col in labels]
     parts = [np.ones((int(ok.sum()), 1))] + [_dummies(c) for c in cols]
     if ctx.role("factor_b") and len(terms) >= 2:
         parts.append(_dummies([f"{a}\x1f{b}" for a, b in zip(cols[0], cols[1])]))
+    if z is not None:
+        parts.append(z[ok].reshape(-1, 1))
     return _ols(y[ok], np.hstack(parts), np.flatnonzero(ok) + 1)
 
 
@@ -160,32 +175,40 @@ def _spreads(ctx: Context) -> list[Spread]:
     Без блоков — выборочные дисперсии групп, как в книге для CRD
     [кн. стр. 105–107]. С блоком книга формального теста не даёт (для RCBD —
     только графики остатков, стр. 137), поэтому [предл.]: дисперсии считаются
-    по остаткам модели «вариант + блок», см. :func:`_block_adjusted`.
+    по остаткам модели «вариант + блок», см. :func:`_adjusted`; так же при ковариате.
     """
     if not (ctx.response and ctx.factor):
         return []
-    if ctx.role("block"):
-        return ctx.memo("spreads", lambda: _block_adjusted(ctx))
+    if ctx.role("block") or _covariate(ctx) is not None:
+        return ctx.memo("spreads", lambda: _adjusted(ctx))
     return [Spread(float(g.mean()), float(g.var(ddof=1)), g.size - 1.0)
             for g in _groups(ctx) if g.size >= 2]
 
 
-def _block_adjusted(ctx: Context) -> list[Spread]:
-    """Дисперсии вариантов по остаткам модели y ~ вариант + блок [предл.].
+def _adjusted(ctx: Context) -> list[Spread]:
+    """Дисперсии вариантов по остаткам модели y ~ вариант (+ блок) (+ ковариата) [предл.].
 
-    Сырой разброс варианта в блочном опыте включает различия блоков, поэтому
-    сравниваются выборочные дисперсии остатков по вариантам (df = n − 1).
-    Имитация при равных дисперсиях (RCBD от 3 × 8 до 10 × 3, 4000 повторов):
-    Бартлетт по таким дисперсиям ошибается в 2–4 % случаев при номинальных 5 %.
+    Сырой разброс варианта в блочном опыте включает различия блоков, а при
+    ковариате — её влияние, поэтому сравниваются выборочные дисперсии
+    остатков по вариантам (df = n − 1). Имитация при равных дисперсиях (RCBD
+    от 3 × 8 до 10 × 3, 4000 повторов): Бартлетт по таким дисперсиям
+    ошибается в 2–4 % случаев при номинальных 5 %.
     """
-    y = ctx.numbers(ctx.response)
+    y, z = ctx.numbers(ctx.response), _covariate(ctx)
     cells = np.array(_treatment_labels(ctx), dtype=object)
-    blocks = np.array(ctx.labels(ctx.role("block")), dtype=object)
-    ok = ~np.isnan(y) & (cells != "") & (blocks != "")
+    ok = ~np.isnan(y) & (cells != "")
+    parts = []
+    if ctx.role("block"):
+        blocks = np.array(ctx.labels(ctx.role("block")), dtype=object)
+        ok &= blocks != ""
+        parts.append(lambda: _dummies(list(blocks[ok])))
+    if z is not None:
+        ok &= ~np.isnan(z)
+        parts.append(lambda: z[ok].reshape(-1, 1))
     if ok.sum() < 4:
         return []
     y, cells = y[ok], cells[ok]
-    X = np.hstack([np.ones((y.size, 1)), _dummies(list(cells)), _dummies(list(blocks[ok]))])
+    X = np.hstack([np.ones((y.size, 1)), _dummies(list(cells))] + [make() for make in parts])
     fit = _ols(y, X, np.flatnonzero(ok) + 1)
     if fit is None:
         return []
@@ -243,6 +266,74 @@ def nonnormal_residuals(ctx: Context) -> Signal | None:
     return Signal("Остатки модели отклоняются от нормальности (Шапиро–Уилк p = {p}).", params)
 
 
+def _outlier_candidates(fit: Fit) -> np.ndarray:
+    """Позиции наблюдений — кандидатов в выбросы.
+
+    Два признака: (1) правило DIAG.1 по стандартизованным остаткам; (2) тест
+    выброса по удалённому остатку с поправкой Бонферрони [предл.: Cook &
+    Weisberg 1982] — он работает и на малых опытах, где |r| не может
+    превысить √(n − p), а значит порог 3 недостижим.
+    """
+    r = fit.standardized()
+    hits = set(np.flatnonzero(np.abs(r) > 2)) if _too_many_large(np.abs(r)) else set()
+    df = fit.df - 1
+    if df >= 1:
+        inside = r**2 < fit.df
+        t = np.where(inside, r * np.sqrt(df / np.clip(fit.df - r**2, 1e-12, None)), np.inf)
+        p = 2 * stats.t.sf(np.abs(t), df) * r.size
+        hits |= set(np.flatnonzero(p < _ALPHA))
+    return np.array(sorted(hits, key=lambda i: -abs(r[i])), dtype=int)
+
+
+def _log_scale_clears(ctx: Context, fit: Fit) -> bool:
+    """Крайнее значение объясняется шкалой: на log-шкале кандидатов в выбросы нет.
+
+    При правой асимметрии или SD, растущей со средним, большие значения
+    ожидаемы; выбросом считается то, что выделяется и после преобразования,
+    которое книга для таких данных и предлагает [кн. стр. 113–116].
+    """
+    skewed = (ctx.memo("sd_mean", lambda: _sd_tracks_mean(ctx)) is not None
+              or right_skew(ctx) is not None)
+    if not skewed or fit.y.min() <= 0:
+        return False
+    logged = _ols(np.log(fit.y), fit.X, fit.rows)
+    return logged is not None and _outlier_candidates(logged).size == 0
+
+
+def _outlier_row(ctx: Context) -> int | None:
+    """Номер строки самого резкого кандидата в выбросы в модели вариантов."""
+    def find() -> int | None:
+        fit = factor_fit(ctx)
+        if fit is None or fit.df < 3:
+            return None
+        hits = _outlier_candidates(fit)
+        if hits.size == 0 or _log_scale_clears(ctx, fit):
+            return None
+        return int(fit.rows[hits[0]])
+
+    return ctx.memo("outlier_row", find)
+
+
+_OUTLIER_NOTE = " Возможно, это из-за выброса в строке {outlier_row} — сначала проверьте запись."
+
+
+def outlier_aware(fn: Rule) -> Rule:
+    """При кандидате в выбросы сигнал правила — подсказка с оговоркой, а не указание.
+
+    Выброс раздувает дисперсию своей группы и ломает нормальность остатков;
+    книга велит сначала проверить запись, а не менять метод [кн. стр. 109–110].
+    """
+    @wraps(fn)
+    def wrapped(ctx: Context) -> Signal | None:
+        signal = fn(ctx)
+        row = _outlier_row(ctx) if signal is not None else None
+        if row is None:
+            return signal
+        return Signal(signal.note + _OUTLIER_NOTE, {**signal.params, "outlier_row": row}, HINT)
+
+    return wrapped
+
+
 def _anova_applies(ctx: Context) -> bool:
     """Отклик годится для линейной модели: не 0/1 и не счёты с избытком нулей.
 
@@ -266,12 +357,13 @@ def _welch_params(ctx: Context) -> tuple[str, dict] | None:
 
 @rule("B4.2", "B4", "heterogeneous", STRONG,
       "кн. стр. 105–107; две группы — порог BioStat [предл.: Ruxton 2006]", cls=COMPUTED)
+@outlier_aware
 def heterogeneous_variances(ctx: Context) -> Signal | None:
     if not _anova_applies(ctx):
         return None
     if len(_groups(ctx)) == 2:  # не Бартлетт: правило, общее с two_sample_t
         res = ctx.memo("welch_rule", lambda: _welch_params(ctx))
-        if res is None:
+        if res is None or _skew_explains_spread(ctx):
             return None
         case, p = res
         if case == "small_n":  # при n < 8 отношение SD ненадёжно: справка, не совет
@@ -295,6 +387,15 @@ def heterogeneous_variances(ctx: Context) -> Signal | None:
                   {"x2": round(res[0], 2), "crit": round(res[1], 2)})
 
 
+def _skew_explains_spread(ctx: Context) -> bool:
+    """Правая асимметрия и ненормальные остатки: SD различаются из-за самой асимметрии.
+
+    Тогда отклик преобразуют (или берут ранговый тест), а совет Уэлча только
+    спорил бы с ними [кн. стр. 115].
+    """
+    return right_skew(ctx) is not None and nonnormal_residuals(ctx) is not None
+
+
 def _sd_tracks_mean(ctx: Context) -> float | None:
     """r между log SD и log среднего групп; None — связи нет [BioStat]."""
     spreads = _spreads(ctx)
@@ -308,8 +409,9 @@ def _sd_tracks_mean(ctx: Context) -> float | None:
     return r if r >= 0.8 else None
 
 
-@rule("B4.3", "B4", "transformed_means", STRONG, "кн. стр. 96–97, 115; критерий BioStat",
+@rule("B4.3", "B4", "transform_groups", STRONG, "кн. стр. 96–97, 115; критерий BioStat",
       cls=COMPUTED)
+@outlier_aware
 def sd_grows_with_mean(ctx: Context) -> Signal | None:
     r = ctx.memo("sd_mean", lambda: _sd_tracks_mean(ctx)) if _anova_applies(ctx) else None
     if r is None:
@@ -335,11 +437,13 @@ def skewed_residuals(ctx: Context) -> Signal | None:
     g = float(stats.skew(fit.resid))
     if abs(g) > 1:
         return Signal("Остатки асимметричны (коэффициент асимметрии {g}): попробуйте"
-                      " трансформацию отклика.", {"g": round(g, 2)})
+                      " трансформацию отклика.",
+                      {"g": round(g, 2), "branch": transform_branch(ctx)})
     return None
 
 
 @rule("B4.5", "B4", "welch_anova", STRONG, "кн. стр. 107; предл.: Welch 1951", cls=COMPUTED)
+@outlier_aware
 def heterogeneous_unrelated(ctx: Context) -> Signal | None:
     if len(_groups(ctx)) < 3 or heterogeneous_variances(ctx) is None:
         return None
@@ -350,6 +454,7 @@ def heterogeneous_unrelated(ctx: Context) -> Signal | None:
 
 
 @rule("B4.6", "B4", "anova_permutation_test", STRONG, "кн. стр. 102", cls=COMPUTED)
+@outlier_aware
 def nonnormal_homogeneous(ctx: Context) -> Signal | None:
     if len(_groups(ctx)) < 3 or nonnormal_residuals(ctx) is None:
         return None
@@ -535,12 +640,19 @@ def outliers(ctx: Context) -> Signal | None:
     fit = model_fit(ctx)
     if fit is None or fit.df < 3:
         return None
+    if not ctx.role("x") and _log_scale_clears(ctx, fit):
+        return None  # большие значения — свойство шкалы, а не ошибки записи
     r = np.abs(fit.standardized())
     big = fit.rows[r > 2]
-    if not _too_many_large(r):
+    if _too_many_large(r):
+        return Signal("|Стандартизованный остаток| > 2 у {k} наблюдений (строки {rows}):"
+                      " проверьте записи.", {"k": int(big.size), "rows": _row_list(big)})
+    hits = _outlier_candidates(fit)
+    if hits.size == 0:
         return None
-    return Signal("|Стандартизованный остаток| > 2 у {k} наблюдений (строки {rows}):"
-                  " проверьте записи.", {"k": int(big.size), "rows": _row_list(big)})
+    return Signal("Наблюдение в строке {rows} резко выделяется на фоне остальных (тест"
+                  " выброса с поправкой Бонферрони): проверьте запись.",
+                  {"rows": _row_list(fit.rows[hits]), "variant": "single"})
 
 
 # На 10–12 наблюдениях Дарбин–Уотсон выходит за (1, 3) случайно в 8–13 % прогонов

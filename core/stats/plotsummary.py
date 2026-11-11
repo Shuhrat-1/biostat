@@ -141,6 +141,16 @@ def _transformed_means(result: dict) -> dict | None:
     return means_from_rows(rows, back=False)
 
 
+def _labelled_means(result: dict) -> dict | None:
+    """Средние с ДИ из оценок mean_<вариант> (блочные методы), как есть — на исходной шкале."""
+    est = {e["name"]: e for e in result.get("estimates", [])}
+    rows = [{"label": lab, "mean": est[f"mean_{lab}"].get("value"),
+             "ci_lower": est[f"mean_{lab}"].get("ci_lower"),
+             "ci_upper": est[f"mean_{lab}"].get("ci_upper")}
+            for lab in result["parameters"].get("labels", []) if f"mean_{lab}" in est]
+    return means_from_rows(rows, back=False)
+
+
 def _adjusted_means(params: dict) -> dict | None:
     """Скорректированные средние ANCOVA: ± SE (df в результате нет)."""
     rows = [{"label": r["group"], "mean": r["mean"],
@@ -166,6 +176,7 @@ def _model_tables(params: dict) -> dict[str, Any]:
 _COMPARISONS = {"tukey_hsd", "scheffe_test", "treatment_means", "rcbd_anova",
                 "rcbd_subsampling_anova", "bibd_anova", "mean_comparisons", "rm_anova",
                 "simple_effects", "two_proportions", "mcnemar_test"}
+_BLOCKED = {"rcbd_anova", "rcbd_subsampling_anova"}
 _TABLES = {"factorial_anova", "latin_square_anova", "nested_anova", "unbalanced_anova",
            "split_plot_anova"}
 
@@ -379,6 +390,13 @@ def _comparison_plots(method: str, result: dict) -> dict[str, Any]:
             out["means_ci"] = _numeric_levels(means) if method == "polynomial_contrasts" else means
     if method == "transformed_means":
         if means := _transformed_means(result):
+            out["means_ci"] = means
+        if ratios := _ratios(params.get("ratios", [])):
+            out["differences"] = ratios
+    if method in _BLOCKED and _transformed(params):
+        # Блочный анализ на трансформированной шкале: средние с асимметричным ДИ
+        # на исходной шкале, для log — отношения вместо разностей (гл. 6.3–6.4).
+        if means := _labelled_means(result):
             out["means_ci"] = means
         if ratios := _ratios(params.get("ratios", [])):
             out["differences"] = ratios

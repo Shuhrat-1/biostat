@@ -475,6 +475,8 @@ CATALOG: list[MethodSpec] = [
         },
         params=[
             Param("alpha", "Уровень значимости α", "float", 0.05, min=0.001, max=0.2),
+            _TRANSFORM_NONE,
+            Param("offset", "Сдвиг c", "float", 0.0, min=0.0, max=1000.0),
         ],
         description="Каждый вариант по одному разу в каждом блоке; блоки отделяются от фона.",
     ),
@@ -491,6 +493,8 @@ CATALOG: list[MethodSpec] = [
         },
         params=[
             Param("alpha", "Уровень значимости α", "float", 0.05, min=0.001, max=0.2),
+            _TRANSFORM_NONE,
+            Param("offset", "Сдвиг c", "float", 0.0, min=0.0, max=1000.0),
         ],
         description="Несколько измерений на делянку (ряды, растения): варианты против разброса делянок.",
     ),

@@ -57,6 +57,8 @@
    "B4a": "Две группы",
    "B4a.t": "t-тест",
    "B4a.mw": "Манна–Уитни",
+   "B4a.transform": "Преобразовать отклик",
+   "B4a.transform.means": "Сравнение на шкале log / √ / logit",
    "B4b": "Три и больше групп",
    "B4b.anova": "Однофакторный ANOVA",
    "B4b.welch": "ANOVA Уэлча (неравные дисперсии)",
@@ -145,6 +147,7 @@
    "B2.3": "Каждый уровень «{m}» встречается только в одной группе «{g}»: вложенная структура.",
    "B2.4": "В «{c}» есть уровень «{lv}»: контроль.",
    "B2.5": "Есть ещё числовая колонка «{c}»: если это сопутствующая переменная — ковариационный анализ.",
+   "B2.5#assigned": "Сопутствующая переменная «{c}» назначена: ковариационный анализ.",
    "B2.6": "В числовой колонке «{c}» всего {k} разных значений, каждое повторяется: если это номера вариантов, смените её тип на «категория» — станут доступны методы сравнения групп.",
    "B3.1": "Уровней фактора: {t}.",
    "B4.7": "Во всех группах n > 30: при отклонении от нормальности параметрика всё ещё вероятно допустима (эвристика ЦПТ, не правило книги).",
@@ -181,6 +184,7 @@
    "A2.5": "x похож на время, а остатки идут волнами (серий {runs} при ожидаемых {exp}): возможна периодичность.",
    "G.1": "Остаточный девианс {d} > χ²₀.₉₅({df}) = {crit}: сверхдисперсия — оцените φ и сравнивайте по F.",
    "DIAG.1": "|Стандартизованный остаток| > 2 у {k} наблюдений (строки {rows}): проверьте записи.",
+   "DIAG.1#single": "Наблюдение в строке {rows} резко выделяется на фоне остальных (тест выброса с поправкой Бонферрони): проверьте запись.",
    "DIAG.2": "Остатки по порядку строк коррелированы (Дарбин–Уотсон {dw}): серийная корреляция.",
    "DIAG.4": "Точки с большим рычагом или влиянием (расстояние Кука): строки {rows} — проверьте их вклад в наклон."
   },
@@ -208,6 +212,9 @@
     "observation": "В наблюдении ковариата может быть связана с вариантами — проверьте это до ANCOVA [кн. стр. 410].",
     "unknown": "Укажите контекст: в наблюдении ковариата может быть связана с вариантами."
    }
+  },
+  "notes": {
+   "outlier": " Возможно, это из-за выброса в строке {outlier_row} — сначала проверьте запись."
   }
  },
  "en": {
@@ -268,6 +275,8 @@
    "B4a": "Two groups",
    "B4a.t": "t-test",
    "B4a.mw": "Mann–Whitney",
+   "B4a.transform": "Transform the response",
+   "B4a.transform.means": "Comparison on the log / √ / logit scale",
    "B4b": "Three or more groups",
    "B4b.anova": "One-way ANOVA",
    "B4b.welch": "Welch's ANOVA (unequal variances)",
@@ -356,6 +365,7 @@
    "B2.3": "Each level of «{m}» occurs in only one group of «{g}»: nested structure.",
    "B2.4": "«{c}» has the level «{lv}»: a control.",
    "B2.5": "There is another numeric column «{c}»: if it is a covariate, use analysis of covariance.",
+   "B2.5#assigned": "Covariate «{c}» is assigned: analysis of covariance.",
    "B2.6": "Numeric column «{c}» has only {k} distinct values, each repeated: if these are treatment numbers, change its type to “categorical” — the group-comparison methods will become available.",
    "B3.1": "Factor levels: {t}.",
    "B4.7": "n > 30 in every group: if normality is rejected, a parametric test is still probably acceptable (CLT heuristic, not a rule of the book).",
@@ -392,6 +402,7 @@
    "A2.5": "x looks like time and residuals run in waves ({runs} runs vs {exp} expected): possible periodicity.",
    "G.1": "Residual deviance {d} > χ²₀.₉₅({df}) = {crit}: overdispersion — estimate φ and compare with F.",
    "DIAG.1": "|Standardized residual| > 2 for {k} observations (rows {rows}): check the records.",
+   "DIAG.1#single": "The observation in row {rows} stands out sharply from the rest (outlier test with Bonferroni correction): check the record.",
    "DIAG.2": "Residuals in row order are correlated (Durbin–Watson {dw}): serial correlation.",
    "DIAG.4": "Points with high leverage or influence (Cook's distance): rows {rows} — check their effect on the slope."
   },
@@ -419,6 +430,9 @@
     "observation": "In an observational study the covariate may be related to the groups — check this before ANCOVA [book p. 410].",
     "unknown": "Set the context: in an observational study the covariate may be related to the groups."
    }
+  },
+  "notes": {
+   "outlier": " This may be due to the outlier in row {outlier_row} — check the record first."
   }
  },
  "pt": {
@@ -479,6 +493,8 @@
    "B4a": "Dois grupos",
    "B4a.t": "Teste t",
    "B4a.mw": "Mann–Whitney",
+   "B4a.transform": "Transformar a resposta",
+   "B4a.transform.means": "Comparação na escala log / √ / logit",
    "B4b": "Três ou mais grupos",
    "B4b.anova": "ANOVA de um fator",
    "B4b.welch": "ANOVA de Welch (variâncias desiguais)",
@@ -567,6 +583,7 @@
    "B2.3": "Cada nível de «{m}» ocorre num só grupo de «{g}»: estrutura hierárquica.",
    "B2.4": "«{c}» tem o nível «{lv}»: um controlo.",
    "B2.5": "Há outra coluna numérica «{c}»: se for covariável, use análise de covariância.",
+   "B2.5#assigned": "A covariável «{c}» está indicada: análise de covariância.",
    "B2.6": "A coluna numérica «{c}» tem apenas {k} valores distintos, todos repetidos: se forem números de tratamentos, mude o tipo para «categórica» — os métodos de comparação de grupos ficam disponíveis.",
    "B3.1": "Níveis do fator: {t}.",
    "B4.7": "n > 30 em todos os grupos: se a normalidade for rejeitada, um teste paramétrico ainda é provavelmente aceitável (heurística do TLC, não regra do livro).",
@@ -603,6 +620,7 @@
    "A2.5": "x parece tempo e os resíduos andam em ondas ({runs} sequências para {exp} esperadas): possível periodicidade.",
    "G.1": "Desvio residual {d} > χ²₀.₉₅({df}) = {crit}: sobredispersão — estime φ e compare com F.",
    "DIAG.1": "|Resíduo padronizado| > 2 em {k} observações (linhas {rows}): verifique os registos.",
+   "DIAG.1#single": "A observação na linha {rows} destaca-se claramente das restantes (teste de outlier com correção de Bonferroni): verifique o registo.",
    "DIAG.2": "Os resíduos pela ordem das linhas estão correlacionados (Durbin–Watson {dw}): correlação serial.",
    "DIAG.4": "Pontos com alavanca ou influência elevada (distância de Cook): linhas {rows} — verifique o seu efeito no declive."
   },
@@ -630,6 +648,9 @@
     "observation": "Num estudo observacional a covariável pode estar relacionada com os grupos — verifique antes da ANCOVA [livro p. 410].",
     "unknown": "Indique o contexto: num estudo observacional a covariável pode estar relacionada com os grupos."
    }
+  },
+  "notes": {
+   "outlier": " Pode dever-se ao valor anómalo na linha {outlier_row} — verifique primeiro o registo."
   }
  }
 }
