@@ -27,8 +27,10 @@ SKEWED10 = stats.expon.ppf(np.linspace(0.05, 0.95, 10))
 MIXED10 = NORMAL10[[3, 7, 0, 5, 9, 2, 6, 1, 8, 4]]
 
 
-def _computed(columns: dict[str, list], **roles: str) -> dict[str, dict]:
-    out = recognize(_table(columns), roles, cls=COMPUTED)
+def _computed(columns: dict[str, list], method: str | None = None,
+              **roles: str) -> dict[str, dict]:
+    """Сработавшие расчётные правила; ``method`` — метод, открытый в форме."""
+    out = recognize(_table(columns), roles, cls=COMPUTED, method=method)
     return {f["id"]: f for f in out["fired"]}
 
 
@@ -227,7 +229,8 @@ def test_straight_line_has_no_curve_signals():
 def test_monthly_temperature_is_periodic():
     """Гл. 17: температура по месяцам — волна, не прямая."""
     fired = _computed({"month": list(range(1, 13)), "t": TEMPERATURE}, x="month", y="t")
-    assert {"A2.3", "A2.5", "DIAG.2"} <= set(fired)
+    assert {"A2.3", "A2.5"} <= set(fired)
+    assert "DIAG.2" not in fired  # 12 точек: Дарбин–Уотсон при n < 15 не считается (01-07)
     renamed = _computed({"dose": list(range(1, 13)), "t": TEMPERATURE}, x="dose", y="t")
     assert "A2.5" not in renamed  # без признака времени периодичность не предлагаем
 
@@ -250,9 +253,11 @@ def test_collinear_predictors():
 
 def test_aphid_counts_overdispersed():
     data = {"field": [f"F{r[0]}" for r in APHIDS], "y": [r[2] for r in APHIDS]}
-    fired = _computed(data, value="y", group="field")
+    fired = _computed(data, "glm_analysis", value="y", group="field")
     p = _params(fired, "G.1")
     assert p["d"] > p["crit"]
+    # Пока открыт метод сравнения средних, сверхдисперсию не считаем (01-08).
+    assert "G.1" not in _computed(data, "one_way_anova", value="y", group="field")
 
 
 def test_overdispersion_not_judged_when_trials_are_only_guessed():
@@ -266,10 +271,10 @@ def test_overdispersion_not_judged_when_trials_are_only_guessed():
 
     data = {"dose": [f"d{r[0]}" for r in DEMETHYLATION], "y": [r[1] for r in DEMETHYLATION],
             "m": [r[2] for r in DEMETHYLATION]}
-    assert "G.1" not in _computed(data, value="y", group="dose")
-    assert "G.1" not in _computed(data, value="y", group="dose", trials="m")
+    assert "G.1" not in _computed(data, "glm_analysis", value="y", group="dose")
+    assert "G.1" not in _computed(data, "glm_analysis", value="y", group="dose", trials="m")
     del data["m"]  # без колонки m это просто счёты: Пуассон и сверхдисперсия
-    assert "G.1" in _computed(data, value="y", group="dose")
+    assert "G.1" in _computed(data, "glm_analysis", value="y", group="dose")
 
 
 def test_non_count_response_has_no_glm_signal():

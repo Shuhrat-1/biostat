@@ -9,6 +9,11 @@
 Пороги — BioStat [предл.: Ruxton 2006; Zimmerman 2004], в книгах их нет:
 n уравновешены (отношение ≤ 1.5) — совет Уэлча при отношении SD > 2;
 n неуравновешены — при отношении SD > 1.5. Общее для ядра и карты (B4.2).
+
+При n < 8 в группе отношение выборочных SD ненадёжно: при равных дисперсиях
+оно превышает 2 в 40 % случаев при n = 3 и в 22 % при n = 5 (имитация,
+аудит 01-06), поэтому совет помечается ``reliable = False`` и подаётся как
+справка, а не как предупреждение. Порог 8 — BioStat.
 """
 
 from __future__ import annotations
@@ -20,6 +25,7 @@ import numpy as np
 SD_RATIO_BALANCED = 2.0
 SD_RATIO_UNBALANCED = 1.5
 N_RATIO_UNBALANCED = 1.5
+MIN_N_RELIABLE = 8
 
 
 @dataclass(frozen=True)
@@ -34,6 +40,12 @@ class WelchAdvice:
     sd_ratio: float
     n_ratio: float
     case: str
+    n_min: int = MIN_N_RELIABLE
+
+    @property
+    def reliable(self) -> bool:
+        """В меньшей группе хватает наблюдений, чтобы верить отношению SD."""
+        return self.n_min >= MIN_N_RELIABLE
 
 
 def welch_advice(a: np.ndarray, b: np.ndarray) -> WelchAdvice | None:
@@ -44,11 +56,14 @@ def welch_advice(a: np.ndarray, b: np.ndarray) -> WelchAdvice | None:
     if min(sd_a, sd_b) <= 0:
         return None
     sd_ratio = max(sd_a, sd_b) / min(sd_a, sd_b)
-    n_ratio = max(a.size, b.size) / min(a.size, b.size)
+    n_min = int(min(a.size, b.size))
+    n_ratio = max(a.size, b.size) / n_min
     if n_ratio <= N_RATIO_UNBALANCED:
-        return WelchAdvice(sd_ratio, n_ratio, "welch") if sd_ratio > SD_RATIO_BALANCED else None
+        if sd_ratio <= SD_RATIO_BALANCED:
+            return None
+        return WelchAdvice(sd_ratio, n_ratio, "welch", n_min)
     if sd_ratio <= SD_RATIO_UNBALANCED:
         return None
     larger_sd_in_smaller = (sd_a > sd_b) == (a.size < b.size)
-    return WelchAdvice(sd_ratio, n_ratio,
-                       "welch_liberal" if larger_sd_in_smaller else "welch_unbalanced")
+    case = "welch_liberal" if larger_sd_in_smaller else "welch_unbalanced"
+    return WelchAdvice(sd_ratio, n_ratio, case, n_min)

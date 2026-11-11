@@ -593,10 +593,13 @@ export interface Recognition {
  * Роли — слоты формы метода (value, group, block, x …). ``cls`` —
  * «structural» (дёшево, сразу) или «computed» (подгонка модели, вторым
  * запросом). Без файла возвращает реестр и пустой список сработавших.
+ * ``method`` — метод, открытый в форме: правила ветки GLM (сверхдисперсия)
+ * считаются, только когда пользователь в ней.
  */
 export async function recognizeStructure(
   roles: ColumnSelection,
   cls: "structural" | "computed" = "structural",
+  method: string | null = null,
 ): Promise<Recognition> {
   return runJson<Recognition>(
     `
@@ -609,10 +612,10 @@ _roles = {k: v for k, v in json.loads(__roles_json).items() if v}
 if _t is None:
     _out = {"registry": [r.meta() for r in REGISTRY], "fired": [], "errors": []}
 else:
-    _out = recognize(_t, _roles, cls=__rec_cls)
+    _out = recognize(_t, _roles, cls=__rec_cls, method=__rec_method or None)
 json.dumps(_out, ensure_ascii=False)
 `,
-    { __roles_json: JSON.stringify(roles), __rec_cls: cls },
+    { __roles_json: JSON.stringify(roles), __rec_cls: cls, __rec_method: method ?? "" },
     PRIORITY.hint,
   );
 }

@@ -65,6 +65,10 @@ def _choose_equal_var(
     if levene_p is not None:
         result.statistics["levene_p"] = levene_p
     advice = welch_advice(arr_a, arr_b)
+    if advice is not None and not advice.reliable:
+        if equal_var is not False:
+            _note_small_samples(advice, result)
+        return True if equal_var is None else equal_var
     if equal_var is None:
         return advice is None
     if equal_var and advice is not None:
@@ -75,6 +79,16 @@ def _choose_equal_var(
             + ": рассмотри вариант Уэлча (параметр «Вариант»).",
             Severity.WARNING, params=params)
     return equal_var
+
+
+def _note_small_samples(advice, result: StatResult) -> None:
+    """Справка вместо совета Уэлча: при n < 8 отношение SD ненадёжно (welch_rule)."""
+    params = {"sd_ratio": round(advice.sd_ratio, 2), "n_min": advice.n_min}
+    result.add_warning(
+        "unequal_variance_small_n",
+        f"SD групп различаются в {params['sd_ratio']} раза, но в меньшей группе всего "
+        f"{advice.n_min} наблюдений: по таким выборкам о дисперсиях судить нельзя.",
+        Severity.INFO, params=params)
 
 
 def _mean_diff_ci(res, confidence: float) -> tuple[float | None, float | None]:

@@ -142,6 +142,34 @@ def _trials_column(ctx: Context) -> str | None:
     return col if col and _successes_and_trials(ctx, col) is not None else None
 
 
+def _variable_columns(ctx: Context, keep_response: bool = False) -> list[str]:
+    """Числовые колонки, годные как переменные: не константа и не номера подряд.
+
+    Год сбора, один на весь файл, и номер делянки — не переменные анализа.
+    """
+    out = []
+    for col in ctx.columns_of("numeric"):
+        v = _valid(ctx.numbers(col))
+        if col == ctx.response and not keep_response:
+            continue
+        if v.size >= 2 and np.ptp(v) > 0 and not _index_like(v):
+            out.append(col)
+    return out
+
+
+# Методы ветки G: только в их форме считаются сверхдисперсия и модель счётов.
+_GLM_METHODS = frozenset({"glm_analysis", "glmm_analysis", "count_regression"})
+
+
+def in_glm_branch(ctx: Context) -> bool:
+    """Пользователь анализирует долю или счёт: форма метода GLM или его слоты.
+
+    Целые измерения (время, баллы) похожи на счёты; пока человек сравнивает
+    средние, сверхдисперсия пуассоновской модели ему ни о чём не говорит.
+    """
+    return ctx.method in _GLM_METHODS or ctx.role("count", "trials") is not None
+
+
 def _index_like(m: np.ndarray) -> bool:
     """Все значения разные и идут подряд: номера делянок или строк, а не m."""
     return m.size > 2 and np.unique(m).size == m.size and np.ptp(m) == m.size - 1
@@ -217,10 +245,18 @@ def many_zeros(ctx: Context) -> Signal | None:
     if v is None or not _count_like(v):
         return None
     share = float(np.mean(v == 0))
-    if share >= 0.3 and len(np.unique(v)) > 2:
-        return Signal("Нулей {share}%: возможно избыточное число нулей.",
-                      {"share": round(100 * share)})
-    return None
+    if share < _ZERO_SHARE or len(np.unique(v)) <= 2:
+        return None
+    if share >= _ZERO_SHARE_STRONG:
+        return Signal("Нулей {share}%: счёты с избытком нулей — модель для избыточных"
+                      " нулей, а не ANOVA и не трансформация.",
+                      {"share": round(100 * share), "variant": "half"}, strength=STRONG)
+    return Signal("Нулей {share}%: возможно избыточное число нулей.",
+                  {"share": round(100 * share)})
+
+
+_ZERO_SHARE = 0.3  # доля нулей, с которой R2.6 подсказывает [BioStat]
+_ZERO_SHARE_STRONG = 0.5  # с которой указывает уверенно [BioStat; кн. стр. 126, 512]
 
 
 @rule("R2.7", "R2", "pre_log", HINT, "кн. стр. 115; порог BioStat")
@@ -242,7 +278,8 @@ def detection_limit(ctx: Context) -> Signal | None:
         return None
     low = v.min()
     share = float(np.mean(v == low))
-    if share >= 0.1 and not (low == 0 and _is_int(v)):
+    # Целые измерения совпадают и без предела обнаружения; два совпадения — случайность.
+    if share >= 0.1 and np.sum(v == low) >= 3 and not _is_int(v):
         return Signal("{share}% значений равны минимуму {low}: возможен предел обнаружения.",
                       {"share": round(100 * share), "low": float(low)})
     return None
@@ -500,7 +537,7 @@ def _crossed(ctx: Context) -> tuple[Counter, int] | None:
 
 @rule("B2.1", "B2", "factorial_anova", STRONG, "кн. стр. 172")
 def full_factorial(ctx: Context) -> Signal | None:
-    crossed = _crossed(ctx)
+    crossed = _crossed(ctx) if _response_values(ctx) is not None else None
     if crossed and len(crossed[0]) == crossed[1] and len(set(crossed[0].values())) == 1:
         return Signal("Все комбинации факторов с равной повторностью: факторный анализ.")
     return None
@@ -508,7 +545,8 @@ def full_factorial(ctx: Context) -> Signal | None:
 
 @rule("B2.2", "B2", "unbalanced_anova", STRONG, "кн. стр. 258")
 def unbalanced_factorial(ctx: Context) -> Signal | None:
-    crossed = _crossed(ctx)
+    # Без числового отклика это таблица частот: неравные ячейки — сами данные.
+    crossed = _crossed(ctx) if _response_values(ctx) is not None else None
     if crossed and (len(crossed[0]) < crossed[1] or len(set(crossed[0].values())) > 1):
         missing = crossed[1] - len(crossed[0])
         return Signal("Комбинации факторов неполные (пустых: {missing}) или повторность"
@@ -545,11 +583,37 @@ def covariate_candidate(ctx: Context) -> Signal | None:
     resp, trt = ctx.response, ctx.factor
     if not (resp and trt) or ctx.role("covariate"):
         return None
-    others = [c for c in ctx.columns_of("numeric") if c != resp and not _BLOCK_NAME.search(c)]
+    others = [c for c in _variable_columns(ctx)
+              if c not in ctx.roles.values() and not _BLOCK_NAME.search(c)]
     if others:
         return Signal("Есть ещё числовая колонка «{c}»: если это сопутствующая"
                       " переменная — ковариационный анализ.", {"c": others[0]})
     return None
+
+
+@rule("B2.6", "B2", "factor_codes", HINT, "предл.: Witte стр. 406")
+def numeric_factor_codes(ctx: Context) -> Signal | None:
+    """Числовая колонка с немногими повторяющимися целыми — возможно, номера вариантов.
+
+    Пока тип колонки «числовая», методы для групп файлу не предлагаются.
+    Срабатывает, только если фактор ещё не назначен.
+    """
+    if ctx.factor:
+        return None
+    for col in ctx.columns_of("numeric"):
+        v = _valid(ctx.numbers(col))
+        if col in ctx.roles.values() or v.size < 6 or not _is_int(v):
+            continue
+        levels, counts = np.unique(v, return_counts=True)
+        if 2 <= levels.size <= _MAX_CODE_LEVELS and counts.min() >= 2:
+            return Signal("В числовой колонке «{c}» всего {k} разных значений, каждое"
+                          " повторяется: если это номера вариантов, смените её тип на"
+                          " «категория» — станут доступны методы сравнения групп.",
+                          {"c": col, "k": int(levels.size)})
+    return None
+
+
+_MAX_CODE_LEVELS = 10  # больше — скорее измерение, чем номера вариантов [BioStat]
 
 
 # --- B3–B5. Уровни, допущения (структурная часть), сравнения ---------------------
@@ -612,8 +676,8 @@ def numeric_levels(ctx: Context) -> Signal | None:
     if trt is None:
         return None
     levels = _levels(ctx, trt)
-    numeric = [lv for lv in levels if _to_float(lv) is not None]
-    if len(levels) >= 3 and len(numeric) == len(levels):
+    numeric = [x for x in map(_to_float, levels) if x is not None]
+    if len(levels) >= 3 and len(numeric) == len(levels) and not _code_like(numeric):
         return Signal("Уровни «{c}» — числа (дозы?): тренд по дозе вместо попарных"
                       " сравнений.", {"c": trt})
     return None
@@ -626,10 +690,16 @@ def _to_float(text: str) -> float | None:
         return None
 
 
+def _code_like(values: list[float]) -> bool:
+    """Номера 1 … k или 0 … k − 1 подряд: коды вариантов, а не дозы."""
+    ordered = sorted(values)
+    return ordered[0] in (0.0, 1.0) and all(b - a == 1 for a, b in zip(ordered, ordered[1:]))
+
+
 @rule("B5.2", "B5", "dunnett", HINT, "кн. стр. 201")
 def control_for_dunnett(ctx: Context) -> Signal | None:
     hit = control_level(ctx)
-    if hit:
+    if hit and len(_levels(ctx, hit.params["c"])) >= 3:  # при двух уровнях сравнение одно
         return Signal("Есть контроль «{lv}»: сравнения каждого варианта с контролем"
                       " (Даннет).", {"lv": hit.params["lv"]})
     return None
@@ -647,31 +717,41 @@ def structured_treatments(ctx: Context) -> Signal | None:
 
 @rule("A1.1", "A1", "multiple_regression", HINT, "кн. гл. 14")
 def several_numeric(ctx: Context) -> Signal | None:
-    if len(ctx.columns_of("numeric")) >= 3:
-        return Signal("Числовых колонок {n}: возможна множественная регрессия.",
-                      {"n": len(ctx.columns_of("numeric"))})
+    n = len(_variable_columns(ctx, keep_response=True))
+    if n >= 3:
+        return Signal("Числовых колонок {n}: возможна множественная регрессия.", {"n": n})
     return None
 
 
 @rule("A1.2", "A1", "regression_with_groups", HINT, "кн. стр. 382")
 def x_with_groups(ctx: Context) -> Signal | None:
-    if ctx.role("x") and ctx.columns_of("categorical"):
-        return Signal("Есть колонка групп «{g}»: линии по группам.",
-                      {"g": ctx.columns_of("categorical")[0]})
+    """Группа, назначенная в форме, — уверенно; найденная в файле — подсказка."""
+    if not ctx.role("x"):
+        return None
+    if ctx.factor:
+        return Signal("Есть колонка групп «{g}»: линии по группам.", {"g": ctx.factor},
+                      strength=STRONG)
+    free = [c for c in ctx.columns_of("categorical") if c not in ctx.roles.values()]
+    if free:
+        return Signal("Есть колонка групп «{g}»: линии по группам.", {"g": free[0]})
     return None
 
 
 @rule("A1.3", "A1", "blocked_regression", HINT, "кн. стр. 406")
 def x_with_blocks(ctx: Context) -> Signal | None:
-    named = [c for c in ctx.table.header if _BLOCK_NAME.search(c.strip())]
-    if ctx.role("x") and (ctx.role("block") or named):
-        return Signal("Есть блоки: регрессия внутри блоков.")
+    if not ctx.role("x"):
+        return None
+    target = {"branch": "A1.blocks"}  # прямая или кривая в блоках — решает форма связи
+    if ctx.role("block"):  # блок назначен в форме: структура опыта известна
+        return Signal("Есть блоки: регрессия внутри блоков.", target, strength=STRONG)
+    if any(_BLOCK_NAME.search(c.strip()) for c in ctx.table.header):
+        return Signal("Есть блоки: регрессия внутри блоков.", target)
     return None
 
 
 @rule("A1.5", "A1", "selection", STRONG, "кн. стр. 366")
 def selection_size(ctx: Context) -> Signal | None:
-    k = len(ctx.columns_of("numeric")) - 1
+    k = len(_variable_columns(ctx, keep_response=True)) - 1
     if k < 3:
         return None
     if k <= 12:
@@ -699,7 +779,7 @@ def repeated_x(ctx: Context) -> Signal | None:
 @rule("G.2", "G", "count_regression", HINT, "кн. стр. 512; порог BioStat")
 def overdispersed_counts(ctx: Context) -> Signal | None:
     v = _response_values(ctx)
-    if v is None or v.size < 10 or not _count_like(v) or v.mean() == 0:
+    if not in_glm_branch(ctx) or v is None or v.size < 10 or not _count_like(v) or v.mean() == 0:
         return None
     ratio = float(v.var(ddof=1) / v.mean())
     if ratio > 2:

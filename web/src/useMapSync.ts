@@ -52,6 +52,7 @@ export function mergeRoles(prev: ColumnSelection, columns: ColumnSelection): Col
 /** Двухфазный вызов распознавателей; ошибка расчётной фазы не гасит структурную. */
 async function runRecognition(
   roles: ColumnSelection,
+  method: string | null,
   cache: Map<string, FiredSignal[]>,
   isStale: () => boolean,
   setRecognition: (r: Recognition | null) => void,
@@ -59,7 +60,7 @@ async function runRecognition(
 ): Promise<void> {
   let structural: Recognition;
   try {
-    structural = await recognizeStructure(roles, "structural");
+    structural = await recognizeStructure(roles, "structural", method);
   } catch (err) {
     warnCallFailure("structural", err);
     if (!isStale()) setRecognition(null);
@@ -67,7 +68,7 @@ async function runRecognition(
   }
   warnRuleErrors("structural", structural);
   if (isStale()) return;
-  const key = JSON.stringify(Object.entries(roles).sort());
+  const key = JSON.stringify([method, Object.entries(roles).sort()]);
   const cached = cache.get(key);
   setRecognition({ ...structural, fired: [...structural.fired, ...(cached ?? [])] });
   if (cached || !Object.keys(roles).length) {
@@ -76,7 +77,7 @@ async function runRecognition(
   }
   setComputing(true);
   try {
-    const result = await recognizeStructure(roles, "computed");
+    const result = await recognizeStructure(roles, "computed", method);
     warnRuleErrors("computed", result);
     const computed = result.fired;
     cache.set(key, computed);
@@ -107,16 +108,21 @@ export function useMapSync(table: ParsedTable | null) {
     computedCache.current.clear();
   }, [table]);
 
+  // Метод, открытый в форме: правила ветки GLM считаются, только когда человек в ней.
+  const method = selection?.method ?? null;
+
   // Сначала структурные (сразу), затем расчётные (подгонка модели, кэш);
   // устаревший ответ отбрасываем.
   useEffect(() => {
     if (!table) return;
     let stale = false;
-    void runRecognition(roles, computedCache.current, () => stale, setRecognition, setComputing);
+    void runRecognition(
+      roles, method, computedCache.current, () => stale, setRecognition, setComputing,
+    );
     return () => {
       stale = true;
     };
-  }, [table, roles]);
+  }, [table, roles, method]);
 
   const onSelection = (
     method: string,

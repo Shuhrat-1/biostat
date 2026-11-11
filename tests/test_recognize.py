@@ -31,8 +31,9 @@ SPEC_IDS = (
 )
 # Сверх спецификации v2 — правила по Witte, Fig. 21.1 (стр. 405–406).
 WITTE_IDS = ["B0.4", "R2.11"]
-# Добавлены при исправлениях (ноябрь 2026): догадка о числе испытаний m.
-EXTRA_IDS = ["R2.12"]
+# Добавлены при исправлениях (ноябрь 2026): догадка о числе испытаний m (R2.12),
+# числовые коды вариантов (B2.6, аудит 01-02).
+EXTRA_IDS = ["R2.12", "B2.6"]
 
 
 def _table(columns: dict[str, list]):
@@ -43,8 +44,10 @@ def _table(columns: dict[str, list]):
     return parse_file(text.encode("utf-8"))
 
 
-def _fired(columns: dict[str, list], **roles: str) -> dict[str, dict]:
-    out = recognize(_table(columns), roles)
+def _fired(columns: dict[str, list], method: str | None = None,
+           **roles: str) -> dict[str, dict]:
+    """Сработавшие правила; ``method`` — метод, открытый в форме."""
+    out = recognize(_table(columns), roles, method=method)
     return {f["id"]: f for f in out["fired"]}
 
 

@@ -757,12 +757,10 @@
  ],
  "targets": {
   "ordinal_or_contingency#response": [
-   "R2.ordinal",
-   "R2.contingency"
+   "R2.ordinal"
   ],
   "ordinal_or_contingency#file": [
-   "R2.contingency",
-   "R2.ordinal"
+   "R2.contingency"
   ],
   "pre_log": [
    "B4b.transform"
@@ -793,9 +791,7 @@
   "dunnett": [
    "B5.dunnett"
   ],
-  "lack_of_fit": [
-   "A3.details"
-  ],
+  "lack_of_fit": [],
   "curves": [
    "A2.curve"
   ],
@@ -820,6 +816,7 @@
   "heterogeneous": [],
   "collinearity": [],
   "overdispersion": [],
-  "outliers": []
+  "outliers": [],
+  "factor_codes": []
  }
 }

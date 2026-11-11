@@ -86,6 +86,11 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     en: `SDs differ {sd_ratio}-fold with unequal n ({n_ratio}-fold); the larger SD is in the smaller group, so Student's P is too small: consider the Welch variant ("Variant" parameter).`,
     pt: `Os DP diferem {sd_ratio} vezes com n desiguais ({n_ratio} vezes); o DP maior está no grupo menor, o P de Student fica subestimado: considere a variante de Welch (parâmetro «Variante»).`,
   },
+  unequal_variance_small_n: {
+    ru: `SD групп различаются в {sd_ratio} раза, но в меньшей группе всего {n_min} наблюдений: по таким выборкам о дисперсиях судить нельзя.`,
+    en: `Group SDs differ {sd_ratio}-fold, but the smaller group has only {n_min} observations: samples this small say little about the variances.`,
+    pt: `Os DP dos grupos diferem {sd_ratio} vezes, mas o grupo menor tem apenas {n_min} observações: amostras tão pequenas dizem pouco sobre as variâncias.`,
+  },
   variance_heterogeneity: {
     ru: `Дисперсии групп неравны (тест Левене). Рассмотри Уэлча ANOVA или Краскела-Уоллиса.`,
     en: `Group variances are unequal (Levene's test). Consider Welch's ANOVA or Kruskal-Wallis.`,

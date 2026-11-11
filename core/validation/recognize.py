@@ -40,6 +40,9 @@ class Signal:
 
     note: str  # русский текст-фолбэк
     params: dict[str, Any] = field(default_factory=dict)
+    # Сила этого срабатывания, если она отличается от силы правила в реестре:
+    # тот же признак на малой выборке — подсказка, а не уверенное указание.
+    strength: str | None = None
 
 
 Rule = Callable[["Context"], "Signal | None"]
@@ -87,10 +90,12 @@ def declare(id: str, node: str, suggests: str, strength: str, source: str,
 class Context:
     """Таблица и роли колонок с кэшированными выборками значений."""
 
-    def __init__(self, table: Any, roles: dict[str, str] | None = None) -> None:
+    def __init__(self, table: Any, roles: dict[str, str] | None = None,
+                 method: str | None = None) -> None:
         self.table = table
         names = set(table.header)
         self.roles = {k: v for k, v in (roles or {}).items() if v in names}
+        self.method = method  # метод, открытый в форме (если карта его знает)
         # Общие для нескольких правил расчёты (подгонка модели): ключ → результат.
         self.cache: dict[str, Any] = {}
 
@@ -147,8 +152,11 @@ def _fill(note: str, params: dict[str, Any]) -> str:
 
 
 def recognize(table: Any, roles: dict[str, str] | None = None,
-              cls: str | None = None) -> dict[str, Any]:
+              cls: str | None = None, method: str | None = None) -> dict[str, Any]:
     """Прогнать реализованные распознаватели (``cls`` — только этого класса).
+
+    ``method`` — метод, открытый в форме: правила одной ветки (сверхдисперсия
+    GLM) не срабатывают, пока пользователь в другой.
 
     Возвращает реестр (метаданные всех правил, в т.ч. ещё не реализованных),
     список сработавших (id, узел, ветка, сила, сообщение для перевода) и
@@ -159,7 +167,7 @@ def recognize(table: Any, roles: dict[str, str] | None = None,
     """
     from core.validation import recognizers  # noqa: F401  регистрирует правила
 
-    ctx = Context(table, roles)
+    ctx = Context(table, roles, method)
     fired, errors = [], []
     for rec in REGISTRY:
         if rec.fn is None or (cls is not None and rec.cls != cls):
@@ -171,7 +179,7 @@ def recognize(table: Any, roles: dict[str, str] | None = None,
             errors.append({"id": rec.id,
                            "error": f"{type(exc).__name__}: {exc}"[:_ERROR_LIMIT]})
         if signal is not None:
-            fired.append({**rec.meta(), "message": msg(
+            fired.append({**rec.meta(), "strength": signal.strength or rec.strength, "message": msg(
                 f"rec_{rec.id.replace('.', '_')}", _fill(signal.note, signal.params),
                 **signal.params)})
     return {"registry": [r.meta() for r in REGISTRY], "fired": fired, "errors": errors}

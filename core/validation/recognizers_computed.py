@@ -23,6 +23,7 @@ from core.stats.welch_rule import welch_advice
 from core.validation.recognize import COMPUTED, HINT, STRONG, Context, Signal, rule
 from core.validation.recognizers import (
     _TIME, _count_like, _treatment_labels, _trials_column, _trials_guess, binary_response,
+    in_glm_branch, many_zeros,
 )
 
 _ALPHA = 0.05
@@ -233,7 +234,7 @@ def _departure_matters(ctx: Context) -> bool:
 
 @rule("B4.1", "B4", "nonnormal", STRONG, "кн. стр. 101; порог BioStat", cls=COMPUTED)
 def nonnormal_residuals(ctx: Context) -> Signal | None:
-    p = ctx.memo("shapiro", lambda: _shapiro(ctx))
+    p = ctx.memo("shapiro", lambda: _shapiro(ctx)) if _anova_applies(ctx) else None
     if p is None or p >= _ALPHA or not _departure_matters(ctx):
         return None
     params = {"p": round(p, 4)}
@@ -242,12 +243,23 @@ def nonnormal_residuals(ctx: Context) -> Signal | None:
     return Signal("Остатки модели отклоняются от нормальности (Шапиро–Уилк p = {p}).", params)
 
 
+def _anova_applies(ctx: Context) -> bool:
+    """Отклик годится для линейной модели: не 0/1 и не счёты с избытком нулей.
+
+    Для бинарных данных и при множестве нулей ни трансформация, ни проверка
+    остатков ANOVA не помогают [кн. стр. 126, 501, 512] — нужна ветка GLM.
+    """
+    return binary_response(ctx) is None and many_zeros(ctx) is None
+
+
 def _welch_params(ctx: Context) -> tuple[str, dict] | None:
     """Две группы: случай правила welch_rule (отношение SD и баланс n) и параметры."""
     groups = _groups(ctx)
     advice = welch_advice(groups[0], groups[1])
     if advice is None:
         return None
+    if not advice.reliable:
+        return "small_n", {"sd_ratio": round(advice.sd_ratio, 2), "n_min": advice.n_min}
     return advice.case, {"sd_ratio": round(advice.sd_ratio, 2),
                          "n_ratio": round(advice.n_ratio, 2), "method": "two_sample_t"}
 
@@ -255,11 +267,17 @@ def _welch_params(ctx: Context) -> tuple[str, dict] | None:
 @rule("B4.2", "B4", "heterogeneous", STRONG,
       "кн. стр. 105–107; две группы — порог BioStat [предл.: Ruxton 2006]", cls=COMPUTED)
 def heterogeneous_variances(ctx: Context) -> Signal | None:
+    if not _anova_applies(ctx):
+        return None
     if len(_groups(ctx)) == 2:  # не Бартлетт: правило, общее с two_sample_t
         res = ctx.memo("welch_rule", lambda: _welch_params(ctx))
         if res is None:
             return None
         case, p = res
+        if case == "small_n":  # при n < 8 отношение SD ненадёжно: справка, не совет
+            return Signal("SD двух групп различаются в {sd_ratio} раза, но в меньшей группе"
+                          " всего {n_min} наблюдений: по таким выборкам о дисперсиях судить"
+                          " нельзя.", {**p, "variant": "small_n"}, strength=HINT)
         if case == "welch_liberal":
             return Signal("SD различаются в {sd_ratio} раза при неравных n (в {n_ratio} раза),"
                           " большая SD — в меньшей группе: P Стьюдента занижен, t-тест в"
@@ -293,16 +311,25 @@ def _sd_tracks_mean(ctx: Context) -> float | None:
 @rule("B4.3", "B4", "transformed_means", STRONG, "кн. стр. 96–97, 115; критерий BioStat",
       cls=COMPUTED)
 def sd_grows_with_mean(ctx: Context) -> Signal | None:
-    r = ctx.memo("sd_mean", lambda: _sd_tracks_mean(ctx))
+    r = ctx.memo("sd_mean", lambda: _sd_tracks_mean(ctx)) if _anova_applies(ctx) else None
     if r is None:
         return None
+    if len(_spreads(ctx)) < _MIN_GROUPS_FOR_TREND:
+        # По трём точкам r ≥ 0.8 часто выходит случайно (13 % при 3 × 3, аудит 01-07).
+        return Signal("SD трёх групп растут вместе со средними (r = {r} по логарифмам), но"
+                      " по трём группам такая связь часто случайна: трансформация отклика"
+                      " (log) — под вопросом.", {"r": round(r, 2), "variant": "three"},
+                      strength=HINT)
     return Signal("SD групп растут вместе со средними (r = {r} по логарифмам):"
                   " трансформация отклика (log).", {"r": round(r, 2)})
 
 
+_MIN_GROUPS_FOR_TREND = 4  # групп, с которых связь SD и среднего — уверенный сигнал [BioStat]
+
+
 @rule("B4.4", "B4", "pre_transform", HINT, "кн. стр. 102, 115; порог BioStat", cls=COMPUTED)
 def skewed_residuals(ctx: Context) -> Signal | None:
-    fit = factor_fit(ctx)
+    fit = factor_fit(ctx) if _anova_applies(ctx) else None
     if fit is None or fit.resid.size < 8:
         return None
     g = float(stats.skew(fit.resid))
@@ -473,7 +500,7 @@ def _glm_deviance(ctx: Context) -> tuple[float, int] | None:
 
 @rule("G.1", "G", "overdispersion", STRONG, "кн. стр. 488–493; порог BioStat", cls=COMPUTED)
 def overdispersion(ctx: Context) -> Signal | None:
-    res = _glm_deviance(ctx)
+    res = _glm_deviance(ctx) if in_glm_branch(ctx) else None
     if res is None or res[1] < 1:
         return None
     dev, df = res
@@ -516,11 +543,16 @@ def outliers(ctx: Context) -> Signal | None:
                   " проверьте записи.", {"k": int(big.size), "rows": _row_list(big)})
 
 
+# На 10–12 наблюдениях Дарбин–Уотсон выходит за (1, 3) случайно в 8–13 % прогонов
+# (аудит 01-07); с 15 — в пределах 5 % [BioStat].
+_MIN_N_SERIAL = 15
+
+
 @rule("DIAG.2", "DIAG", "dead_end_serial", HINT, "кн. стр. 98–100; пороги BioStat",
       cls=COMPUTED)
 def serial_correlation(ctx: Context) -> Signal | None:
     fit = model_fit(ctx)
-    if fit is None or fit.resid.size < 10:
+    if fit is None or fit.resid.size < _MIN_N_SERIAL:
         return None
     e = fit.resid  # в порядке строк файла
     dw = float(np.sum(np.diff(e) ** 2) / (e @ e))
