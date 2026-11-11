@@ -4,7 +4,7 @@
  */
 
 import { useEffect, useRef, useState } from "react";
-import { knownRoles } from "./columnFill";
+import { ACTIVE_ONLY, equivalents, knownRoles } from "./columnFill";
 import type { MethodRequest } from "./components";
 import type { TreeNode } from "./decisionTree";
 import type { Context } from "./mapState";
@@ -16,13 +16,22 @@ import {
 /**
  * Роли копятся по всем методам формы: выбранный однажды блок остаётся
  * известен карте и после перехода к методу без слота «блок».
- * Пустое значение слота снимает роль.
+ * Пустое значение слота снимает роль. Слоты одного смысла вытесняют друг
+ * друга (новый отклик y снимает прежний value), а x действует, только
+ * пока он выбран в форме текущего метода.
  */
 export function mergeRoles(prev: ColumnSelection, columns: ColumnSelection): ColumnSelection {
   const next: Record<string, string> = { ...(prev as Record<string, string>) };
+  for (const slot of ACTIVE_ONLY) {
+    if (!columns[slot]) delete next[slot];
+  }
   for (const [slot, name] of Object.entries(columns)) {
-    if (name) next[slot] = name;
-    else delete next[slot];
+    if (!name) {
+      delete next[slot];
+      continue;
+    }
+    equivalents(slot as keyof ColumnSelection).slice(1).forEach((twin) => delete next[twin]);
+    next[slot] = name;
   }
   return JSON.stringify(next) === JSON.stringify(prev) ? prev : next;
 }

@@ -26,8 +26,10 @@ from core.validation.types import is_missing, parse_number
 STRONG, HINT = "strong", "hint"
 STRUCTURAL, COMPUTED = "structural", "computed"
 
-# Слоты формы, которые означают отклик / основной фактор.
-_RESPONSE_SLOTS = ("value", "y", "response")
+# Слоты формы, которые означают отклик / основной фактор. Состав обязан
+# совпадать с web/src/roleFamilies.json (проверяет tests/test_recognize.py):
+# фронт по той же таблице вытесняет прежний отклик новым.
+_RESPONSE_SLOTS = ("value", "y", "response", "count")
 _FACTOR_SLOTS = ("group", "factor_a")
 
 

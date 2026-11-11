@@ -58,6 +58,24 @@ def _potato() -> dict[str, list]:
     return data
 
 
+# --- Роли ------------------------------------------------------------------------
+
+def test_count_slot_is_a_response():
+    """Слот count (count_regression, GLM) — отклик, как value / y / response."""
+    table = _table({"field": ["a", "a", "b", "b"], "aphids": [3, 5, 9, 12]})
+    assert rz.Context(table, {"count": "aphids"}).response == "aphids"
+
+
+def test_slot_families_match_frontend_table():
+    """Ядро и фронт (mergeRoles, columnFill) считают одни и те же слоты откликом и фактором."""
+    from pathlib import Path
+
+    path = Path(__file__).parent.parent / "web" / "src" / "roleFamilies.json"
+    families = json.loads(path.read_text(encoding="utf-8"))
+    assert tuple(families["response"]) == rz._RESPONSE_SLOTS
+    assert tuple(families["factor"]) == rz._FACTOR_SLOTS
+
+
 # --- Реестр ---------------------------------------------------------------------
 
 def test_registry_matches_spec():

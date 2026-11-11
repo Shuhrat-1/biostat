@@ -8,15 +8,23 @@
  * поэтому роли сопоставляются по семействам.
  */
 
+import families from "./roleFamilies.json";
 import type { ColumnSelection, FiredSignal, MethodSuggestion } from "./pyodide/bridge";
 
 type Slot = keyof ColumnSelection;
 
-/** Слоты одного смысла: отклик и основной фактор в разных методах. */
-const FAMILIES: Slot[][] = [
-  ["value", "y", "response", "count"] as Slot[],
-  ["group", "factor_a"],
-];
+/**
+ * Слоты одного смысла: отклик и основной фактор в разных методах. Таблица
+ * общая с ядром (core/validation/recognize.py, состав сверяет pytest).
+ */
+const FAMILIES: Slot[][] = [families.response as Slot[], families.factor as Slot[]];
+
+/**
+ * Слоты, роль которых действует, только пока слот есть в форме текущего
+ * метода: по наличию x ядро выбирает модель для диагностики (регрессия
+ * или модель вариантов).
+ */
+export const ACTIVE_ONLY = families.activeOnly as Slot[];
 
 /** Слоты, из которых можно взять колонку для данного (сначала — тот же). */
 export function equivalents(slot: Slot): Slot[] {

@@ -1,0 +1,15 @@
+{
+ "response": [
+  "value",
+  "y",
+  "response",
+  "count"
+ ],
+ "factor": [
+  "group",
+  "factor_a"
+ ],
+ "activeOnly": [
+  "x"
+ ]
+}
