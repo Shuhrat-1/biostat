@@ -12,6 +12,19 @@ import type { MapSelection } from "./SensoryMap";
 import {
   recognizeStructure, type ColumnSelection, type FiredSignal, type ParsedTable, type Recognition,
 } from "./pyodide/bridge";
+import { CancelledError } from "./pyodide/runtime";
+
+/** Сбои распознавателей — в консоль: пользователю не показываем, контур не меняем. */
+function warnRuleErrors(phase: string, result: Recognition): void {
+  for (const { id, error } of result.errors ?? []) {
+    console.warn(`[map] rule ${id} failed (${phase}): ${error}`);
+  }
+}
+
+/** Сбой всего вызова распознавателей; остановка расчёта пользователем — не сбой. */
+function warnCallFailure(phase: string, err: unknown): void {
+  if (!(err instanceof CancelledError)) console.warn(`[map] recognition failed (${phase}):`, err);
+}
 
 /**
  * Роли копятся по всем методам формы: выбранный однажды блок остаётся
@@ -47,10 +60,12 @@ async function runRecognition(
   let structural: Recognition;
   try {
     structural = await recognizeStructure(roles, "structural");
-  } catch {
+  } catch (err) {
+    warnCallFailure("structural", err);
     if (!isStale()) setRecognition(null);
     return;
   }
+  warnRuleErrors("structural", structural);
   if (isStale()) return;
   const key = JSON.stringify(Object.entries(roles).sort());
   const cached = cache.get(key);
@@ -61,11 +76,14 @@ async function runRecognition(
   }
   setComputing(true);
   try {
-    const computed = (await recognizeStructure(roles, "computed")).fired;
+    const result = await recognizeStructure(roles, "computed");
+    warnRuleErrors("computed", result);
+    const computed = result.fired;
     cache.set(key, computed);
     if (!isStale()) setRecognition({ ...structural, fired: [...structural.fired, ...computed] });
-  } catch {
+  } catch (err) {
     // Расчётные — подсказка, не обязательная часть карты.
+    warnCallFailure("computed", err);
   } finally {
     if (!isStale()) setComputing(false);
   }

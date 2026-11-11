@@ -575,9 +575,16 @@ export interface FiredSignal extends RecognizerMeta {
   message: CoreMsg;
 }
 
+/** Правило, упавшее с исключением: в ``fired`` его нет, текст — для консоли. */
+export interface RecognizerError {
+  id: string;
+  error: string;
+}
+
 export interface Recognition {
   registry: RecognizerMeta[];
   fired: FiredSignal[];
+  errors: RecognizerError[];
 }
 
 /**
@@ -600,7 +607,7 @@ from core.validation import recognizers  # noqa: F401
 _t = getattr(builtins, "__biostat_table", None)
 _roles = {k: v for k, v in json.loads(__roles_json).items() if v}
 if _t is None:
-    _out = {"registry": [r.meta() for r in REGISTRY], "fired": []}
+    _out = {"registry": [r.meta() for r in REGISTRY], "fired": [], "errors": []}
 else:
     _out = recognize(_t, _roles, cls=__rec_cls)
 json.dumps(_out, ensure_ascii=False)

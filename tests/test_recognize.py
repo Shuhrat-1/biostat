@@ -96,6 +96,32 @@ def test_registry_matches_spec():
         assert r.strength in (rz.STRONG, rz.HINT) and r.source
 
 
+def test_failing_rule_is_reported_and_others_still_fire(monkeypatch):
+    """Упавшее правило — в errors, а не молчаливое «не сработало».
+
+    Раньше исключение глоталось: ответ был неотличим от «допущения выполнены».
+    """
+    from core.validation import recognizers  # noqa: F401
+
+    def broken(ctx):
+        raise ZeroDivisionError("x" * 500)
+
+    registry = [rz.Recognizer(r.id, r.node, r.suggests, r.strength, r.cls, r.source, fn=broken)
+                if r.id == "B3.1" else r for r in rz.REGISTRY]
+    monkeypatch.setattr(rz, "REGISTRY", registry)
+    out = recognize(_table(_potato()), {"value": "yield", "group": "treatment", "block": "block"})
+    assert [e["id"] for e in out["errors"]] == ["B3.1"]
+    assert out["errors"][0]["error"].startswith("ZeroDivisionError: x")
+    assert len(out["errors"][0]["error"]) == 200
+    ids = {f["id"] for f in out["fired"]}
+    assert "B3.1" not in ids and {"B1.2", "B2.4"} <= ids
+
+
+def test_no_errors_on_book_data():
+    out = recognize(_table(_potato()), {"value": "yield", "group": "treatment", "block": "block"})
+    assert out["errors"] == []
+
+
 def test_output_is_json_and_message_codes():
     out = recognize(_table(_potato()), {"value": "yield", "group": "treatment",
                                         "block": "block"})

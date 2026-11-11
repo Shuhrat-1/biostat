@@ -24,6 +24,7 @@ from core.validation.messages import msg
 from core.validation.types import is_missing, parse_number
 
 STRONG, HINT = "strong", "hint"
+_ERROR_LIMIT = 200  # символов текста исключения в ответе recognize()
 STRUCTURAL, COMPUTED = "structural", "computed"
 
 # Слоты формы, которые означают отклик / основной фактор. Состав обязан
@@ -149,24 +150,28 @@ def recognize(table: Any, roles: dict[str, str] | None = None,
               cls: str | None = None) -> dict[str, Any]:
     """Прогнать реализованные распознаватели (``cls`` — только этого класса).
 
-    Возвращает реестр (метаданные всех правил, в т.ч. ещё не реализованных)
-    и список сработавших: id, узел, ветка, сила, сообщение для перевода.
-    Ошибка одного правила не роняет остальные — правило просто не срабатывает.
+    Возвращает реестр (метаданные всех правил, в т.ч. ещё не реализованных),
+    список сработавших (id, узел, ветка, сила, сообщение для перевода) и
+    ``errors`` — правила, упавшие с исключением: ``{id, error}``.
+    Ошибка одного правила не роняет остальные: оно не попадает в ``fired``,
+    но и не выглядит как «проверено, всё в порядке» — запись остаётся в ``errors``.
     Карта зовёт структурные сразу, расчётные — вторым вызовом (раздел 8).
     """
     from core.validation import recognizers  # noqa: F401  регистрирует правила
 
     ctx = Context(table, roles)
-    fired = []
+    fired, errors = [], []
     for rec in REGISTRY:
         if rec.fn is None or (cls is not None and rec.cls != cls):
             continue
         try:
             signal = rec.fn(ctx)
-        except Exception:  # noqa: BLE001 — сбой правила ≠ сбой карты
+        except Exception as exc:  # noqa: BLE001 — сбой правила ≠ сбой карты
             signal = None
+            errors.append({"id": rec.id,
+                           "error": f"{type(exc).__name__}: {exc}"[:_ERROR_LIMIT]})
         if signal is not None:
             fired.append({**rec.meta(), "message": msg(
                 f"rec_{rec.id.replace('.', '_')}", _fill(signal.note, signal.params),
                 **signal.params)})
-    return {"registry": [r.meta() for r in REGISTRY], "fired": fired}
+    return {"registry": [r.meta() for r in REGISTRY], "fired": fired, "errors": errors}
