@@ -119,6 +119,78 @@ def test_two_groups_variance_rule_uses_sd_ratio_and_balance():
     assert "{" not in small_wide["B4.2"]["message"]["message"]
 
 
+NORMAL6 = stats.norm.ppf(np.linspace(0.1, 0.9, 6))
+_CELLS = [(a, b) for a in ("a1", "a2") for b in ("b1", "b2", "b3")]
+
+
+def _factorial(values: dict[tuple[str, str], np.ndarray]) -> dict[str, list]:
+    """Колонки A, B, y из значений по ячейкам факториала 2 × 3."""
+    return {"A": [a for (a, _), v in values.items() for _ in v],
+            "B": [b for (_, b), v in values.items() for _ in v],
+            "y": [round(float(x), 4) for v in values.values() for x in v]}
+
+
+def test_factorial_cells_not_pooled_over_second_factor():
+    """Группа — ячейка A × B, а не уровень A.
+
+    Синтетика: эффект B есть только при a2 (взаимодействие), шум в ячейках
+    одинаков. Раньше группы брались по A: у a2 разброс включал эффект B, SD
+    различались в 8 раз, и B4.2 советовало t-тест Уэлча для двух «групп».
+    """
+    shift = {"b1": 0.0, "b2": 10.0, "b3": 20.0}
+    values = {(a, b): 50 + (shift[b] if a == "a2" else 0.0) + np.roll(NORMAL6, i)
+              for i, (a, b) in enumerate(_CELLS)}
+    fired = _computed(_factorial(values), value="y", factor_a="A", factor_b="B")
+    assert not {"B4.2", "B4.3", "B4.5"} & set(fired)
+
+
+def test_factorial_cells_with_sd_growing_with_mean():
+    """SD ячеек пропорционально среднему (5 … 160): Бартлетт по 6 ячейкам и B4.3 → log.
+
+    Раньше при двух уровнях A групп было две: Бартлетт заменялся правилом
+    Уэлча, а B4.3 (нужно ≥ 3 групп) молчало.
+    """
+    means = dict(zip(_CELLS, (5, 10, 20, 40, 80, 160)))
+    values = {cell: m * (1 + 0.2 * np.roll(NORMAL6, i))
+              for i, (cell, m) in enumerate(means.items())}
+    fired = _computed(_factorial(values), value="y", factor_a="A", factor_b="B")
+    assert _params(fired, "B4.2")["crit"] == 11.07  # χ²₀.₉₅(5): шесть ячеек
+    assert "variant" not in _params(fired, "B4.2")
+    assert _params(fired, "B4.3")["r"] >= 0.8 and "B4.5" not in fired
+
+
+def _blocked(noise_scale: dict[str, float]) -> dict[str, list]:
+    """RCBD 4 варианта × 6 блоков с сильным эффектом блока (шаг 10) [синтетика]."""
+    data: dict[str, list] = {"blk": [], "trt": [], "y": []}
+    for i, trt in enumerate(("t1", "t2", "t3", "t4")):
+        noise = np.roll(NORMAL6, i) * noise_scale.get(trt, 1.0)
+        for b in range(6):
+            for key, value in zip(data, (f"k{b + 1}", trt, round(30 + 3 * i + 10 * b + noise[b], 4))):
+                data[key].append(value)
+    return data
+
+
+def test_blocked_design_uses_residual_variances():
+    """С блоком однородность проверяется по остаткам модели «вариант + блок» [предл.].
+
+    Сырые SD вариантов здесь ≈ 19 у всех (различия блоков), и вариант с шумом
+    в 8 раз больше остальных был не виден; по остаткам Бартлетт его находит.
+    """
+    roles = dict(value="y", group="trt", block="blk")
+    assert "B4.2" not in _computed(_blocked({}), **roles)
+    fired = _computed(_blocked({"t3": 8.0}), **roles)
+    assert _params(fired, "B4.2")["x2"] > _params(fired, "B4.2")["crit"] == 7.81
+    assert "B4.5" in fired and "B4.3" not in fired
+
+
+def test_bartlett_statistic_equals_scipy_without_blocks():
+    """Без блоков — тест книги для CRD (стр. 105–107): X² как у scipy.stats.bartlett."""
+    groups = {k: np.array(v, float) for k, v in BEETLES.items()}
+    fired = _computed(_grouped(groups), value="y", group="g")
+    expected = stats.bartlett(*groups.values()).statistic
+    assert _params(fired, "B4.2")["x2"] == pytest.approx(expected, abs=0.005)
+
+
 # --- A. Регрессия -------------------------------------------------------------------------
 
 def test_lack_of_fit_matches_table_12_7():

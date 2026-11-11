@@ -22,7 +22,7 @@ from scipy import stats
 from core.stats.welch_rule import welch_advice
 from core.validation.recognize import COMPUTED, HINT, STRONG, Context, Signal, rule
 from core.validation.recognizers import (
-    _TIME, _count_like, _levels, _trials_column, _trials_guess, binary_response,
+    _TIME, _count_like, _treatment_labels, _trials_column, _trials_guess, binary_response,
 )
 
 _ALPHA = 0.05
@@ -127,17 +127,68 @@ def model_fit(ctx: Context) -> Fit | None:
 
 
 def _groups(ctx: Context) -> list[np.ndarray]:
-    """Значения отклика по уровням основного фактора (пропуски выброшены)."""
+    """Значения отклика по вариантам — комбинациям всех факторов (без пропусков).
+
+    В факториале группа — ячейка A × B, а не уровень A: иначе эффект второго
+    фактора попадает в разброс «внутри группы».
+    """
     return ctx.memo("groups", lambda: _split_groups(ctx))
 
 
 def _split_groups(ctx: Context) -> list[np.ndarray]:
-    resp, trt = ctx.response, ctx.factor
-    if not (resp and trt):
+    resp = ctx.response
+    if not (resp and ctx.factor):
         return []
-    y, labels = ctx.numbers(resp), np.array(ctx.labels(trt), dtype=object)
+    y, labels = ctx.numbers(resp), np.array(_treatment_labels(ctx), dtype=object)
     ok = ~np.isnan(y) & (labels != "")
-    return [y[ok & (labels == level)] for level in _levels(ctx, trt)]
+    return [y[ok & (labels == level)] for level in sorted(set(labels[ok]))]
+
+
+@dataclass(frozen=True)
+class Spread:
+    """Разброс внутри варианта: среднее, оценка дисперсии и её df."""
+
+    mean: float
+    var: float
+    df: float
+
+
+def _spreads(ctx: Context) -> list[Spread]:
+    """Дисперсии вариантов для проверки однородности (группы с n ≥ 2).
+
+    Без блоков — выборочные дисперсии групп, как в книге для CRD
+    [кн. стр. 105–107]. С блоком книга формального теста не даёт (для RCBD —
+    только графики остатков, стр. 137), поэтому [предл.]: дисперсии считаются
+    по остаткам модели «вариант + блок», см. :func:`_block_adjusted`.
+    """
+    if ctx.role("block"):
+        return ctx.memo("spreads", lambda: _block_adjusted(ctx))
+    return [Spread(float(g.mean()), float(g.var(ddof=1)), g.size - 1.0)
+            for g in _groups(ctx) if g.size >= 2]
+
+
+def _block_adjusted(ctx: Context) -> list[Spread]:
+    """Дисперсии вариантов по остаткам модели y ~ вариант + блок [предл.].
+
+    Сырой разброс варианта в блочном опыте включает различия блоков, поэтому
+    сравниваются выборочные дисперсии остатков по вариантам (df = n − 1).
+    Имитация при равных дисперсиях (RCBD от 3 × 8 до 10 × 3, 4000 повторов):
+    Бартлетт по таким дисперсиям ошибается в 2–4 % случаев при номинальных 5 %.
+    """
+    y = ctx.numbers(ctx.response)
+    cells = np.array(_treatment_labels(ctx), dtype=object)
+    blocks = np.array(ctx.labels(ctx.role("block")), dtype=object)
+    ok = ~np.isnan(y) & (cells != "") & (blocks != "")
+    if ok.sum() < 4:
+        return []
+    y, cells = y[ok], cells[ok]
+    X = np.hstack([np.ones((y.size, 1)), _dummies(list(cells)), _dummies(list(blocks[ok]))])
+    fit = _ols(y, X, np.flatnonzero(ok) + 1)
+    if fit is None:
+        return []
+    picks = [cells == level for level in sorted(set(cells))]
+    return [Spread(float(y[p].mean()), float(fit.resid[p].var(ddof=1)), p.sum() - 1.0)
+            for p in picks if p.sum() >= 2]
 
 
 # --- B4. Допущения ---------------------------------------------------------------
@@ -149,13 +200,23 @@ def _shapiro(ctx: Context) -> float | None:
     return float(stats.shapiro(fit.resid[:_SHAPIRO_MAX]).pvalue)
 
 
+def _bartlett_statistic(spreads: list[Spread]) -> float:
+    """X² Бартлетта по дисперсиям групп и их df [кн. стр. 105–106]."""
+    df = np.array([s.df for s in spreads])
+    var = np.array([s.var for s in spreads])
+    total = df.sum()
+    pooled = float(df @ var / total)
+    correction = 1 + (np.sum(1 / df) - 1 / total) / (3 * (df.size - 1))
+    return float((total * np.log(pooled) - df @ np.log(var)) / correction)
+
+
 def _bartlett(ctx: Context) -> tuple[float, float, int] | None:
-    """(X², критическое χ²₀.₉₅(t − 1), t) по группам с n ≥ 2 [кн. стр. 105–107]."""
-    groups = [g for g in _groups(ctx) if g.size >= 2]
-    if len(groups) < 2 or any(np.var(g) == 0 for g in groups):
+    """(X², критическое χ²₀.₉₅(t − 1), t) по вариантам с n ≥ 2 [кн. стр. 105–107]."""
+    spreads = _spreads(ctx)
+    if len(spreads) < 2 or any(s.var <= 0 for s in spreads):
         return None
-    stat = float(stats.bartlett(*groups).statistic)
-    return stat, float(stats.chi2.ppf(1 - _ALPHA, len(groups) - 1)), len(groups)
+    crit = float(stats.chi2.ppf(1 - _ALPHA, len(spreads) - 1))
+    return _bartlett_statistic(spreads), crit, len(spreads)
 
 
 def _departure_matters(ctx: Context) -> bool:
@@ -216,11 +277,11 @@ def heterogeneous_variances(ctx: Context) -> Signal | None:
 
 def _sd_tracks_mean(ctx: Context) -> float | None:
     """r между log SD и log среднего групп; None — связи нет [BioStat]."""
-    groups = [g for g in _groups(ctx) if g.size >= 2]
-    means = np.array([g.mean() for g in groups])
-    if len(groups) < 3 or means.min() <= 0:
+    spreads = _spreads(ctx)
+    means = np.array([s.mean for s in spreads])
+    if len(spreads) < 3 or means.min() <= 0:
         return None
-    sds = np.array([g.std(ddof=1) for g in groups])
+    sds = np.sqrt([s.var for s in spreads])
     if sds.min() <= 0 or sds.max() / sds.min() < 2:
         return None
     r = float(np.corrcoef(np.log(means), np.log(sds))[0, 1])
