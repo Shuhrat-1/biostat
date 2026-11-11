@@ -161,6 +161,8 @@ def _spreads(ctx: Context) -> list[Spread]:
     только графики остатков, стр. 137), поэтому [предл.]: дисперсии считаются
     по остаткам модели «вариант + блок», см. :func:`_block_adjusted`.
     """
+    if not (ctx.response and ctx.factor):
+        return []
     if ctx.role("block"):
         return ctx.memo("spreads", lambda: _block_adjusted(ctx))
     return [Spread(float(g.mean()), float(g.var(ddof=1)), g.size - 1.0)

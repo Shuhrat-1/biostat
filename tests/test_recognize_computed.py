@@ -183,6 +183,22 @@ def test_blocked_design_uses_residual_variances():
     assert "B4.5" in fired and "B4.3" not in fired
 
 
+def test_block_without_factor_is_not_an_error():
+    """Регрессия в блоках (роли value, x, block): фактора нет — групп для Бартлетта нет.
+
+    После патча 103 B4.2 и B4.3 падали здесь с ValueError (запись в errors):
+    дисперсии по остаткам считались без проверки, что фактор задан.
+    """
+    from tests.book_ch15_data import FORAGE
+
+    data = {"block": [f"B{r[0]}" for r in FORAGE], "nitrogen": [r[2] for r in FORAGE],
+            "yield": [r[3] for r in FORAGE]}
+    out = recognize(_table(data), {"value": "yield", "x": "nitrogen", "block": "block"},
+                    cls=COMPUTED)
+    assert out["errors"] == []
+    assert not {"B4.2", "B4.3", "B4.5"} & {f["id"] for f in out["fired"]}
+
+
 def test_bartlett_statistic_equals_scipy_without_blocks():
     """Без блоков — тест книги для CRD (стр. 105–107): X² как у scipy.stats.bartlett."""
     groups = {k: np.array(v, float) for k, v in BEETLES.items()}
