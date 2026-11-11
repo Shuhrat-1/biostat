@@ -116,19 +116,55 @@ def count_response(ctx: Context) -> Signal | None:
     return Signal("Отклик — неотрицательные целые: похоже на счёты (GLM, Пуассон).")
 
 
-def _trials_column(ctx: Context) -> str | None:
-    """Целая колонка m ≥ отклика в каждой строке (число испытаний)."""
+def _successes_and_trials(ctx: Context, col: str) -> tuple[np.ndarray, np.ndarray] | None:
+    """Пары (успехи, m) по полным строкам, если колонка годится как число испытаний.
+
+    Отклик и m — целые, отклик ≥ 0, m ≥ 1 и m ≥ отклика в каждой строке.
+    """
     resp = ctx.response
-    v = ctx.numbers(resp) if resp else None
-    if v is None or not _is_int(v) or np.nanmin(v) < 0:
+    if resp is None or col == resp:
         return None
-    candidates = [ctx.role("trials")] if ctx.role("trials") else ctx.columns_of("numeric")
-    for col in candidates:
-        if col == resp:
+    v, m = ctx.numbers(resp), ctx.numbers(col)
+    ok = ~np.isnan(v) & ~np.isnan(m)
+    v, m = v[ok], m[ok]
+    if v.size < 2 or not (_is_int(v) and _is_int(m)) or v.min() < 0:
+        return None
+    return (v, m) if np.all(m >= v) and np.all(m >= 1) else None
+
+
+def _trials_column(ctx: Context) -> str | None:
+    """Колонка числа испытаний m — только та, что назначена в слот ``trials``.
+
+    Перебора колонок здесь нет: посторонняя целая колонка (год, номер делянки)
+    тоже ≥ отклика в каждой строке. Догадка без слота — :func:`_trials_guess`.
+    """
+    col = ctx.role("trials")
+    return col if col and _successes_and_trials(ctx, col) is not None else None
+
+
+def _index_like(m: np.ndarray) -> bool:
+    """Все значения разные и идут подряд: номера делянок или строк, а не m."""
+    return m.size > 2 and np.unique(m).size == m.size and np.ptp(m) == m.size - 1
+
+
+def _trials_guess(ctx: Context) -> str | None:
+    """Колонка, похожая на число испытаний, когда слот ``trials`` не задан [предл.].
+
+    Кандидат — числовая колонка без роли, где m ≥ отклика везде и m > отклика
+    хотя бы в одной строке; не год (все значения в 1900–2100), не номера
+    подряд и не единицы (бинарные данные). Постоянное m допустимо: одинаковое
+    число семян или особей на единицу — обычный случай.
+    """
+    if ctx.role("trials"):
+        return None
+    taken = set(ctx.roles.values())
+    for col in ctx.columns_of("numeric"):
+        pair = None if col in taken else _successes_and_trials(ctx, col)
+        if pair is None:
             continue
-        m = ctx.numbers(col)
-        ok = ~np.isnan(v) & ~np.isnan(m)
-        if ok.sum() >= 2 and _is_int(m[ok]) and np.all(m[ok] >= v[ok]) and np.all(m[ok] >= 1):
+        v, m = pair
+        year = m.min() >= 1900 and m.max() <= 2100
+        if np.any(m > v) and not year and not _index_like(m) and not np.all(m == 1):
             return col
     return None
 
@@ -140,6 +176,15 @@ def proportion_with_trials(ctx: Context) -> Signal | None:
         return Signal("Колонка «{m}» ≥ отклика в каждой строке: отклик — число успехов из m.",
                       {"m": col})
     return None
+
+
+@rule("R2.12", "R2", "G1", HINT, "предл.")
+def possible_trials(ctx: Context) -> Signal | None:
+    col = _trials_guess(ctx)
+    if col is None:
+        return None
+    return Signal("Колонка «{m}» может быть числом испытаний m: укажите её в слоте"
+                  " «Число испытаний m», если отклик — успехи из m.", {"m": col})
 
 
 @rule("R2.4", "R2", "G1", HINT, "кн. стр. 120")
@@ -220,10 +265,9 @@ def large_trials(ctx: Context) -> Signal | None:
     col = _trials_column(ctx)
     if col is None:
         return None
-    v, m = ctx.numbers(ctx.response), ctx.numbers(col)
-    ok = ~np.isnan(v) & ~np.isnan(m)
-    p = v[ok] / m[ok]
-    if m[ok].min() > 20 and np.mean((p > 0.1) & (p < 0.9)) >= 0.9:
+    v, m = _successes_and_trials(ctx, col)
+    p = v / m
+    if m.min() > 20 and np.mean((p > 0.1) & (p < 0.9)) >= 0.9:
         return Signal("m > 20, доли не у краёв: допустим и logit с линейной моделью.")
     return None
 
@@ -284,10 +328,25 @@ def repeated_over_time(ctx: Context) -> Signal | None:
     ids = [p.name for p in ctx.table.profiles
            if p.detected_type.value in ("categorical", "id") and p.n_unique < p.n_total
            and p.name not in time_cols]
-    if time_cols and ids:
-        return Signal("Колонка времени «{t}» и повторяющиеся объекты «{o}»: повторные"
-                      " измерения, наблюдения коррелированы.", {"t": time_cols[0], "o": ids[0]})
+    for t in time_cols:
+        hit = next((o for o in ids if _measured_repeatedly(ctx, o, t)), None)
+        if hit:
+            return Signal("Колонка времени «{t}» и повторяющиеся объекты «{o}»: повторные"
+                          " измерения, наблюдения коррелированы.", {"t": t, "o": hit})
     return None
+
+
+def _measured_repeatedly(ctx: Context, obj: str, time: str) -> bool:
+    """Объект измерен в несколько моментов, в каждый — не более раза [BioStat].
+
+    Фактор вариантов с повторностями встречается в один момент много раз, а
+    при одном значении времени (год сбора) повторных измерений нет вовсе.
+    """
+    cells = _cells(ctx, obj, time)
+    if not cells or set(cells.values()) != {1}:
+        return False
+    times = Counter(o for o, _ in cells)
+    return min(times.values()) >= 2
 
 
 # --- B1. Структура единиц ------------------------------------------------------

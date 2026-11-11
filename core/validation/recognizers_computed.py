@@ -22,7 +22,7 @@ from scipy import stats
 from core.stats.welch_rule import welch_advice
 from core.validation.recognize import COMPUTED, HINT, STRONG, Context, Signal, rule
 from core.validation.recognizers import (
-    _TIME, _count_like, _levels, _trials_column, binary_response,
+    _TIME, _count_like, _levels, _trials_column, _trials_guess, binary_response,
 )
 
 _ALPHA = 0.05
@@ -395,6 +395,8 @@ def _glm_deviance(ctx: Context) -> tuple[float, int] | None:
     if fit is None or binary_response(ctx) is not None:
         return None
     trials = _trials_column(ctx)
+    if trials is None and _trials_guess(ctx) is not None:
+        return None  # возможно, доли из m: Пуассон по числу успехов ничего не скажет
     if trials is not None:
         m = ctx.numbers(trials)[fit.rows - 1]
         endog, family = np.column_stack([fit.y, m - fit.y]), families.Binomial()

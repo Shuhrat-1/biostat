@@ -31,6 +31,8 @@ SPEC_IDS = (
 )
 # Сверх спецификации v2 — правила по Witte, Fig. 21.1 (стр. 405–406).
 WITTE_IDS = ["B0.4", "R2.11"]
+# Добавлены при исправлениях (ноябрь 2026): догадка о числе испытаний m.
+EXTRA_IDS = ["R2.12"]
 
 
 def _table(columns: dict[str, list]):
@@ -59,15 +61,17 @@ def _potato() -> dict[str, list]:
 # --- Реестр ---------------------------------------------------------------------
 
 def test_registry_matches_spec():
-    """56 правил спецификации + правила Witte, без дублей; реализованы 40 структурных
-    (+ Witte) и 15 расчётных; без реализации только A2.6 (проверяет сам метод)."""
+    """56 правил спецификации + правила Witte + R2.12, без дублей; реализованы 40
+    структурных (+ Witte, + R2.12) и 15 расчётных; без реализации только A2.6
+    (проверяет сам метод)."""
     from core.validation import recognizers  # noqa: F401
 
     ids = [r.id for r in rz.REGISTRY]
-    assert sorted(ids) == sorted(SPEC_IDS + WITTE_IDS)
-    assert len(ids) == len(set(ids)) == 56 + len(WITTE_IDS)
+    added = WITTE_IDS + EXTRA_IDS
+    assert sorted(ids) == sorted(SPEC_IDS + added)
+    assert len(ids) == len(set(ids)) == 56 + len(added)
     done = [r for r in rz.REGISTRY if r.fn is not None]
-    assert sum(r.cls == rz.STRUCTURAL for r in done) == 40 + len(WITTE_IDS)
+    assert sum(r.cls == rz.STRUCTURAL for r in done) == 40 + len(added)
     assert sum(r.cls == rz.COMPUTED for r in done) == 15
     assert [r.id for r in rz.REGISTRY if r.fn is None] == ["A2.6"]
     for r in rz.REGISTRY:
@@ -78,7 +82,7 @@ def test_output_is_json_and_message_codes():
     out = recognize(_table(_potato()), {"value": "yield", "group": "treatment",
                                         "block": "block"})
     json.dumps(out, allow_nan=False)
-    assert len(out["registry"]) == 56 + len(WITTE_IDS)
+    assert len(out["registry"]) == 56 + len(WITTE_IDS + EXTRA_IDS)
     assert all(f["message"]["code"] == "rec_" + f["id"].replace(".", "_")
                for f in out["fired"])
 
@@ -331,16 +335,88 @@ def test_numeric_levels_suggest_trend():
 def test_trials_column_demethylation():
     data = {"dose": [r[0] for r in DEMETHYLATION], "y": [r[1] for r in DEMETHYLATION],
             "m": [r[2] for r in DEMETHYLATION]}
-    fired = _fired(data, value="y")
+    fired = _fired(data, value="y", trials="m")
     assert fired["R2.3"]["message"]["params"] == {"m": "m"}
     # m = 60–100, но доли у краёв (59 из 60): logit книга не разрешает.
     assert "R2.10" not in fired and "R2.9" not in fired and "R2.1" not in fired
+    # Без слота «число испытаний» — только подсказка, не strong.
+    fired = _fired(data, value="y")
+    assert "R2.3" not in fired
+    assert fired["R2.12"]["strength"] == "hint"
+    assert fired["R2.12"]["message"]["params"] == {"m": "m"}
 
 
 def test_small_trials_suggest_glm():
     data = {"y": [1, 3, 0, 4, 2, 5], "m": [6, 6, 6, 6, 6, 6]}
-    fired = _fired(data, value="y")
+    fired = _fired(data, value="y", trials="m")
     assert "R2.3" in fired and fired["R2.9"]["message"]["params"] == {"m": 6.0}
+    assert "R2.9" not in _fired(data, value="y")  # m не назначено — правило молчит
+
+
+def _aphids_by_year() -> dict[str, list]:
+    """Синтетика: 4 варианта × 6 повторов, счёты тли (средние 5…20), год сбора 2024."""
+    counts = {"t1": [3, 5, 4, 7, 6, 5], "t2": [9, 12, 8, 11, 10, 13],
+              "t3": [14, 17, 13, 16, 18, 15], "t4": [19, 23, 18, 21, 22, 20]}
+    return {"trt": [t for t, v in counts.items() for _ in v],
+            "aphids": [x for v in counts.values() for x in v], "year": [2024] * 24}
+
+
+def test_year_column_is_not_trials():
+    """Год ≥ счёта в каждой строке, но это не число испытаний.
+
+    Раньше R2.3 давало strong «доля из m, m = year» и уводило в биномиальную GLM.
+    """
+    fired = _fired(_aphids_by_year(), value="aphids", group="trt")
+    assert "R2.3" not in fired and "R2.12" not in fired
+    assert "R2.2" in fired  # счёты → Пуассон, как и должно быть
+
+
+def test_plot_numbers_are_not_trials():
+    data = _aphids_by_year()
+    data["plot"] = list(range(101, 125))
+    assert "R2.12" not in _fired(data, value="aphids", group="trt")
+
+
+def _successes_of_20() -> dict[str, list]:
+    """Синтетика: успехи из m = 20, доли ~0.2 / 0.4 / 0.6 / 0.8 по вариантам."""
+    k = {"a": [3, 4, 5, 4, 2, 6], "b": [8, 7, 9, 8, 10, 6],
+         "c": [12, 13, 11, 12, 14, 10], "d": [16, 17, 15, 18, 16, 14]}
+    return {"trt": [t for t, v in k.items() for _ in v],
+            "k": [x for v in k.values() for x in v], "m": [20] * 24}
+
+
+def test_constant_trials_column_hint_then_strong_with_slot():
+    """Постоянное m (20 семян на чашку) — обычный случай: без слота hint, со слотом strong."""
+    fired = _fired(_successes_of_20(), value="k", group="trt")
+    assert "R2.3" not in fired and fired["R2.12"]["message"]["params"] == {"m": "m"}
+    assert fired["R2.12"]["strength"] == "hint" and fired["R2.12"]["suggests"] == "G1"
+    fired = _fired(_successes_of_20(), value="k", group="trt", trials="m")
+    assert fired["R2.3"]["strength"] == "strong" and "R2.12" not in fired
+
+
+def test_column_with_another_role_is_not_guessed_as_trials():
+    assert "R2.12" not in _fired(_successes_of_20(), value="k", group="trt", covariate="m")
+
+
+# --- B0.3. Повторные измерения ---------------------------------------------------------
+
+def test_treatment_factor_is_not_a_repeated_object():
+    """Год один на весь файл, а «объект» — фактор вариантов с повторностями.
+
+    Раньше B0.3 сообщало «повторные измерения, объекты = trt».
+    """
+    assert "B0.3" not in _fired(_aphids_by_year(), value="aphids", group="trt")
+    two_years = _aphids_by_year()
+    two_years["year"] = [2023, 2024] * 12  # вариант × год: по 3 строки в ячейке
+    assert "B0.3" not in _fired(two_years, value="aphids", group="trt")
+
+
+def test_objects_measured_at_several_times_are_repeated_measures():
+    data = {"plant": [p for p in ("p1", "p2", "p3", "p4") for _ in range(3)],
+            "day": [1, 7, 14] * 4,
+            "height": [5.1, 9.8, 15.2, 4.7, 9.1, 14.0, 5.5, 10.4, 16.1, 4.9, 9.5, 14.8]}
+    fired = _fired(data, value="height")
+    assert fired["B0.3"]["message"]["params"] == {"t": "day", "o": "plant"}
 
 
 def test_counts_aphids():

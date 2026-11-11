@@ -167,6 +167,23 @@ def test_aphid_counts_overdispersed():
     assert p["d"] > p["crit"]
 
 
+def test_overdispersion_not_judged_when_trials_are_only_guessed():
+    """Успехи из разного m (Table 18.1, стр. 481) без слота «число испытаний».
+
+    Пуассон по числу успехов принял бы разницу m (60 и 100) за сверхдисперсию:
+    девианс 68.3 при χ²₀.₉₅(18) = 28.9. Биномиальная модель с m — 12.5, её нет.
+    Пока m только угадано (R2.12), G.1 не считается; со слотом — биномиальная.
+    """
+    from tests.book_ch18_data import DEMETHYLATION
+
+    data = {"dose": [f"d{r[0]}" for r in DEMETHYLATION], "y": [r[1] for r in DEMETHYLATION],
+            "m": [r[2] for r in DEMETHYLATION]}
+    assert "G.1" not in _computed(data, value="y", group="dose")
+    assert "G.1" not in _computed(data, value="y", group="dose", trials="m")
+    del data["m"]  # без колонки m это просто счёты: Пуассон и сверхдисперсия
+    assert "G.1" in _computed(data, value="y", group="dose")
+
+
 def test_non_count_response_has_no_glm_signal():
     assert "G.1" not in _computed(_potato(), value="yield", group="treatment")
 
