@@ -16,6 +16,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 from functools import cached_property
+from numbers import Integral
 from typing import Any, Callable
 
 import numpy as np
@@ -145,10 +146,37 @@ class Context:
         return arr
 
 
+_HOLE = re.compile(r"\{(\w+)((?:\|[^{}|]+)*)\}")
+
+
+def plural_form(n: Any, forms: list[str]) -> str:
+    """Форма слова при числе n: две формы (1 / много) или три русские (1 / 2–4 / 5+).
+
+    Дробное число (и любой float: он печатается с точкой) в русском требует
+    вторую форму: «в 2.5 раза». Та же функция — ``pluralForm`` во фронтенде.
+    """
+    if len(forms) == 2:
+        return forms[0] if n == 1 else forms[1]
+    if isinstance(n, bool) or not isinstance(n, Integral):
+        return forms[1]
+    k = abs(int(n))
+    if k % 10 == 1 and k % 100 != 11:
+        return forms[0]
+    return forms[1] if 2 <= k % 10 <= 4 and not 12 <= k % 100 <= 14 else forms[2]
+
+
 def _fill(note: str, params: dict[str, Any]) -> str:
-    """Русский фолбэк с подставленными {param}; неизвестные остаются как есть."""
-    return re.sub(r"\{(\w+)\}",
-                  lambda m: str(params.get(m.group(1), m.group(0))), note)
+    """Русский фолбэк: {param} — значение, {param|форма|…} — слово в нужном числе.
+
+    Неизвестный параметр остаётся как есть.
+    """
+    def put(m: re.Match) -> str:
+        name, forms = m.group(1), m.group(2)
+        if name not in params:
+            return m.group(0)
+        return plural_form(params[name], forms[1:].split("|")) if forms else str(params[name])
+
+    return _HOLE.sub(put, note)
 
 
 def recognize(table: Any, roles: dict[str, str] | None = None,

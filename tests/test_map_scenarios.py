@@ -17,7 +17,7 @@ import pytest
 from core.report.schema import Severity
 from core.stats.hypothesis import two_sample_t
 from core.validation.parser import parse_file
-from core.validation.recognize import HINT, STRONG, recognize
+from core.validation.recognize import HINT, STRONG, plural_form, recognize
 from tests.map_scenarios import SCENARIOS, grouped, q
 
 BY_ID = {s["id"]: s for s in SCENARIOS}
@@ -305,3 +305,109 @@ def test_01_11_assigned_covariate_points_to_ancova_and_enters_the_model():
     assert fired["B2.5"]["strength"] == STRONG
     assert fired["B2.5"]["message"]["params"] == {"c": "damage", "variant": "assigned"}
     assert not {"B4.2", "B4.3", "B4.5"} & set(fired)
+
+
+# --- 01-05. Колонки без роли: блок, второй фактор, вложенность -----------------------------
+
+def _method_leaves(method: str) -> list[str]:
+    return [i for i, n in NODES.items() if n.get("method") == method]
+
+
+def test_01_05_unassigned_block_column_is_noticed():
+    """Welham Table 7.1, стр. 137: картофель в RCBD, в форме указан только вариант."""
+    hit = _stage("S13", "one-way")["B1.8"]
+    assert hit["strength"] == HINT and hit["suggests"] == "rcbd_anova"
+    assert hit["message"]["params"] == {"c": "block", "t": 5, "b": 4}
+    assert _method_leaves("rcbd_anova") == ["B4b.rcbd"]
+    assert "B1.8" not in _stage("S13", "full")
+
+
+def test_01_05_unassigned_subjects_are_noticed():
+    """Witte Progress Check 17.2, стр. 331: шесть субъектов в трёх условиях."""
+    params = _stage("S24", "one-way")["B1.8"]["message"]["params"]
+    assert params == {"c": "subject", "t": 3, "b": 6}
+
+
+def test_01_05_unassigned_rows_and_columns_point_to_the_latin_square():
+    """Welham Table 9.1, стр. 209: люпин, латинский квадрат 4 × 4."""
+    params = _stage("S20", "one-way")["B1.8"]["message"]["params"]
+    assert params == {"a": "row", "b": "col", "method": "latin_square_anova",
+                      "variant": "latin"}
+    assert _method_leaves("latin_square_anova") == ["B1.latin"]
+
+
+def test_01_05_unassigned_incomplete_blocks_point_to_the_block_branch():
+    """Welham Table 9.20, стр. 232: BIBD, 7 сортов в 7 блоках по 4."""
+    sc = BY_ID["S21"]
+    params = _run(sc["columns"], {"value": "y", "group": "variety"})["B1.8"]["message"]["params"]
+    assert params == {"c": "block", "branch": "B1", "variant": "incomplete"}
+    assert NODES["B1"]["kind"] != "leaf"
+
+
+def test_01_05_unassigned_second_factor_is_noticed():
+    """Welham Example 8.1, стр. 151: жуки, 2 × 2 по 10 самок, в форме один фактор."""
+    hit = _stage("S14", "one-way")["B2.7"]
+    assert hit["strength"] == HINT and hit["suggests"] == "factorial_anova"
+    assert hit["message"]["params"] == {"c": "mate", "f": "species", "k": 10}
+    assert "B2.7" not in _stage("S14", "full")
+
+
+def test_01_05_factor_nested_in_a_free_column_is_noticed():
+    """Welham Table 8.10, стр. 173: изоляты внутри видов, в форме только изолят."""
+    hit = _stage("S22", "one-way")["B2.8"]
+    assert hit["strength"] == HINT and hit["suggests"] == "nested_anova"
+    assert hit["message"]["params"] == {"c": "species", "f": "isolate", "variant": "outer"}
+    assert "B2.8" not in _stage("S22", "full")
+
+
+def test_01_05_rows_within_a_plant_are_not_independent_replicates():
+    """Welham стр. 46, 100: 8 растений по 4 даты — строки растения не повторности."""
+    params = _stage("S25", "one-way")["B2.8"]["message"]["params"]
+    assert params == {"c": "plant", "f": "treatment"}
+
+
+def test_01_05_plain_one_way_data_get_no_structure_hints():
+    """Welham Table 4.5: однофакторный опыт без лишних колонок — правила молчат."""
+    fired = _stage("S05", "one-way")
+    assert not {"B1.8", "B2.7", "B2.8"} & set(fired)
+    labels = dict(BY_ID["S05"]["columns"], note=["ok"] * len(BY_ID["S05"]["columns"]["y"]))
+    assert not {"B1.8", "B2.7", "B2.8"} & set(_run(labels, BY_ID["S05"]["stages"]["one-way"]))
+
+
+def test_01_05_numbered_blocks_are_noticed_too():
+    """Блоки, записанные номерами 1…4 (числовая колонка), — тот же картофель."""
+    cols = dict(BY_ID["S13"]["columns"])
+    codes = {b: i + 1 for i, b in enumerate(dict.fromkeys(cols["block"]))}
+    cols["block"] = [codes[b] for b in cols["block"]]
+    assert _run(cols, BY_ID["S13"]["stages"]["one-way"])["B1.8"]["message"]["params"]["c"] == "block"
+
+
+# --- 01-16. Тексты: согласование числа, один уровень фактора ----------------------------
+
+@pytest.mark.parametrize("n, word", [(1, "уровень"), (2, "уровня"), (4, "уровня"),
+                                     (5, "уровней"), (11, "уровней"), (21, "уровень"),
+                                     (22, "уровня"), (112, "уровней")])
+def test_01_16_russian_plural_forms(n: int, word: str):
+    assert plural_form(n, ["уровень", "уровня", "уровней"]) == word
+
+
+def test_01_16_plural_of_fractions_and_two_form_languages():
+    assert plural_form(2.5, ["раз", "раза", "раз"]) == "раза"
+    assert plural_form(5.0, ["раз", "раза", "раз"]) == "раза"  # печатается как «5.0»
+    assert [plural_form(n, ["row", "rows"]) for n in (1, 2, 5)] == ["row", "rows", "rows"]
+
+
+def test_01_16_signal_texts_agree_in_number():
+    """«4 уровня», а не «4 уровней»; «2 раза», а не «2 раз» (S13 в блоках по два — BIBD)."""
+    codes = _run(BY_ID["S41"]["columns"], {"value": "y"})["B2.6"]["message"]["message"]
+    assert "всего 4 разных значения" in codes
+    two = {"dose": [1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4],
+           "y": [2.1, 2.4, 1.9, 3.0, 3.3, 2.8, 4.2, 3.9, 4.4, 5.1, 4.8, 5.3]}
+    assert "(4 уровня)" in _run(two, {"x": "dose", "y": "y"})["A2.1"]["message"]["message"]
+
+
+def test_01_16_single_level_factor_gets_a_note():
+    hit = _stage("S45", next(iter(BY_ID["S45"]["stages"])))["B3.1"]
+    assert hit["strength"] == HINT
+    assert hit["message"]["params"]["branch"] == "D" and NODES["D"]["kind"] != "leaf"
+    assert "один уровень" in hit["message"]["message"]

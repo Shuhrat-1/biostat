@@ -10,7 +10,6 @@
 
 from __future__ import annotations
 
-import re
 from collections import Counter
 from dataclasses import dataclass
 from itertools import combinations
@@ -18,19 +17,12 @@ from itertools import combinations
 import numpy as np
 from scipy import stats
 
+from core.validation import column_names as names
 from core.validation.recognize import (
     HINT, STRONG, STRUCTURAL, Context, Signal, declare, rule,
 )
 
 # --- Помощники ----------------------------------------------------------------
-
-_BLOCK_NAME = re.compile(r"^(block|blk|bloco|rep|replicate|блок|повтор(ность)?)\b", re.I)
-_CONTROL = re.compile(r"^(control|ctrl|check|standard|untreated|testemunha|"
-                      r"контроль|контр|стандарт)$", re.I)
-_BEFORE = re.compile(r"(before|pre|до|t0|day ?1|день ?1)$", re.I)
-_AFTER = re.compile(r"(after|post|после|t1|day ?2|день ?2)$", re.I)
-_TIME = re.compile(r"(time|day|date|week|month|year|время|день|дата|неделя|месяц|год|сутки|mês|mes)", re.I)
-_PERCENT = re.compile(r"(%|pct|percent|процент|доля)", re.I)
 
 
 def _valid(arr: np.ndarray) -> np.ndarray:
@@ -221,7 +213,7 @@ def proportion_scale(ctx: Context) -> Signal | None:
     if v is None or _is_int(v):
         return None
     in_unit = v.min() >= 0 and v.max() <= 1
-    named = bool(_PERCENT.search(ctx.response or "")) and v.min() >= 0 and v.max() <= 100
+    named = names.is_percent(ctx.response or "") and v.min() >= 0 and v.max() <= 100
     if in_unit or named:
         return Signal("Значения похожи на доли или проценты: биномиальная GLM или logit.")
     return None
@@ -340,8 +332,8 @@ def numeric_codes(ctx: Context) -> Signal | None:
 @rule("B0.1", "B0", "paired", HINT, "предл.")
 def before_after_names(ctx: Context) -> Signal | None:
     nums = ctx.columns_of("numeric")
-    before = [c for c in nums if _BEFORE.search(c.strip())]
-    after = [c for c in nums if _AFTER.search(c.strip())]
+    before = [c for c in nums if names.is_before(c)]
+    after = [c for c in nums if names.is_after(c) and c not in before]
     if before and after:
         return Signal("Колонки «{a}» и «{b}» похожи на измерения до/после.",
                       {"a": before[0], "b": after[0]})
@@ -367,7 +359,7 @@ def correlated_twins(ctx: Context) -> Signal | None:
 
 @rule("B0.3", "B0", "mixed_model", HINT, "кн. стр. 100")
 def repeated_over_time(ctx: Context) -> Signal | None:
-    time_cols = [c for c in ctx.table.header if _TIME.search(c)]
+    time_cols = [c for c in ctx.table.header if names.is_time(c)]
     ids = [p.name for p in ctx.table.profiles
            if p.detected_type.value in ("categorical", "id") and p.n_unique < p.n_total
            and p.name not in time_cols]
@@ -411,7 +403,9 @@ def paired_scores(ctx: Context) -> Signal | None:
 def block_name(ctx: Context) -> Signal | None:
     if ctx.role("block"):
         return None
-    named = [c for c in ctx.table.header if _BLOCK_NAME.search(c.strip())]
+    found = unassigned_units(ctx)  # раскладка говорит больше, чем имя
+    seen = set(found.params.values()) if found else set()
+    named = [c for c in ctx.table.header if names.is_block(c) and c not in seen]
     if named:
         return Signal("Колонка «{c}» похожа на блоки / повторности.", {"c": named[0]})
     return None
@@ -464,7 +458,7 @@ def subsamples(ctx: Context) -> Signal | None:
         return None
     counts = set(lay.cells.values())
     if len(counts) == 1 and (k := counts.pop()) > 1:
-        return Signal("В каждой ячейке блок × вариант {k} строк: субвыборки"
+        return Signal("В каждой ячейке блок × вариант {k} {k|строка|строки|строк}: субвыборки"
                       " (анализ на уровне делянок, не строк).", {"k": k})
     return None
 
@@ -483,7 +477,8 @@ def bibd_layout(ctx: Context) -> Signal | None:
         return None
     lam = {sum(1 for s in by_block.values() if {a, c} <= s) for a, c in combinations(trts, 2)}
     if len(lam) == 1 and (lam_val := lam.pop()) > 0:
-        return Signal("Блок меньше числа вариантов, каждая пара вместе {lam} раз: BIBD.",
+        return Signal("Блок меньше числа вариантов, каждая пара вместе {lam} {lam|раз|раза|раз}:"
+                      " BIBD.",
                       {"lam": lam_val})
     return None
 
@@ -529,6 +524,101 @@ def unequal_replication(ctx: Context) -> Signal | None:
         return Signal("Повторность в ячейках блок × вариант неравная или есть пустые"
                       " ячейки: несбалансированный анализ или смешанная модель.")
     return None
+
+
+# Роли, которыми пользователь уже описал единицы опыта: правила «без ролей» молчат.
+_UNIT_SLOTS = ("block", "subject", "row", "column", "whole_plot", "unit", "stratum_1")
+
+
+@dataclass(frozen=True)
+class FreeColumn:
+    """Колонка без роли и её раскладка относительно вариантов."""
+
+    name: str
+    cells: Counter  # (вариант, уровень колонки) -> число строк
+    treatments: int
+    levels: int
+
+    @property
+    def crossed(self) -> bool:
+        return len(self.cells) == self.treatments * self.levels
+
+    @property
+    def once(self) -> bool:
+        return set(self.cells.values()) == {1}
+
+    def spread(self, axis: int) -> int:
+        """Наименьшее число партнёров: axis 0 — колонок у варианта, 1 — вариантов у уровня."""
+        partners: dict[str, set] = {}
+        for cell in self.cells:
+            partners.setdefault(cell[axis], set()).add(cell[1 - axis])
+        return min(len(p) for p in partners.values())
+
+
+def _free_columns(ctx: Context) -> list[FreeColumn]:
+    """Колонки-метки без роли при заданных отклике и факторе [предл., аудит 01-05].
+
+    Кандидат — категориальная колонка с повторами или числовая с немногими
+    повторяющимися целыми (блоки часто записаны номерами 1, 2, 3).
+    """
+    def build() -> list[FreeColumn]:
+        if _response_values(ctx) is None or not ctx.factor:
+            return []
+        taken = set(ctx.roles.values())
+        labelled = [p.name for p in ctx.table.profiles
+                    if p.detected_type.value in ("categorical", "id")
+                    and 2 <= p.n_unique < p.n_total]
+        coded = [c for c in ctx.columns_of("numeric") if _code_levels(ctx, c)]
+        trts = _treatment_labels(ctx)
+        out = []
+        for col in (c for c in ctx.table.header if c in labelled or c in coded):
+            cells = _pairs(trts, ctx.labels(col))
+            if col not in taken and cells:
+                out.append(FreeColumn(col, cells, len({t for t, _ in cells}),
+                                      len({u for _, u in cells})))
+        return out
+
+    return ctx.memo("free_columns", build)
+
+
+def _latin_pair(ctx: Context, units: list[FreeColumn]) -> tuple[str, str] | None:
+    """Две колонки, каждая t × t с вариантами и друг с другом: ряды и колонки квадрата."""
+    square = [u for u in units if u.crossed and u.levels == u.treatments]
+    for a, b in combinations(square, 2):
+        grid = _cells(ctx, a.name, b.name)
+        if len(grid) == a.levels * b.levels and set(grid.values()) == {1}:
+            return a.name, b.name
+    return None
+
+
+@rule("B1.8", "B1", "rcbd_anova", HINT, "кн. стр. 41, 69; предл.")
+def unassigned_units(ctx: Context) -> Signal | None:
+    """Колонка без роли, в каждом уровне которой вариант встречается не более раза.
+
+    Так выглядят блоки и объекты с повторными измерениями; однофакторный
+    анализ таких данных неверен при любых допущениях [кн. стр. 69].
+    """
+    if ctx.role(*_UNIT_SLOTS):
+        return None
+    units = [f for f in _free_columns(ctx)
+             if f.once and f.spread(0) >= 2 and f.spread(1) >= 2]
+    if not units:
+        return None
+    latin = _latin_pair(ctx, units)
+    if latin:
+        return Signal("Каждый вариант ровно раз в каждом уровне «{a}» и «{b}»: похоже на"
+                      " латинский квадрат — укажите ряды и колонки.",
+                      {"a": latin[0], "b": latin[1], "method": "latin_square_anova",
+                       "variant": "latin"})
+    unit = units[0]
+    if unit.crossed:
+        return Signal("Каждый вариант ровно раз в каждом уровне «{c}» ({t} × {b}): похоже на"
+                      " блоки или повторные измерения одних объектов — анализ без этой"
+                      " колонки тогда неверен.",
+                      {"c": unit.name, "t": unit.treatments, "b": unit.levels})
+    return Signal("В каждом уровне «{c}» — часть вариантов, каждый не более раза: похоже на"
+                  " неполные блоки — анализ без этой колонки тогда неверен.",
+                  {"c": unit.name, "branch": "B1", "variant": "incomplete"})
 
 
 # --- B2. Структура вариантов ---------------------------------------------------
@@ -578,7 +668,7 @@ def nested_members(ctx: Context) -> Signal | None:
 @rule("B2.4", "B2", "control_present", HINT, "кн. стр. 179; предл.")
 def control_level(ctx: Context) -> Signal | None:
     for col in filter(None, (ctx.role(s) for s in ("group", "factor_a", "factor_b"))):
-        hit = next((lv for lv in _levels(ctx, col) if _CONTROL.match(lv)), None)
+        hit = next((lv for lv in _levels(ctx, col) if names.is_control(lv)), None)
         if hit:
             return Signal("В «{c}» есть уровень «{lv}»: контроль.", {"c": col, "lv": hit})
     return None
@@ -593,7 +683,7 @@ def covariate_candidate(ctx: Context) -> Signal | None:
         return Signal("Сопутствующая переменная «{c}» назначена: ковариационный анализ.",
                       {"c": ctx.role("covariate"), "variant": "assigned"}, strength=STRONG)
     others = [c for c in _variable_columns(ctx)
-              if c not in ctx.roles.values() and not _BLOCK_NAME.search(c)]
+              if c not in ctx.roles.values() and not names.is_block(c)]
     if others:
         return Signal("Есть ещё числовая колонка «{c}»: если это сопутствующая"
                       " переменная — ковариационный анализ.", {"c": others[0]})
@@ -610,15 +700,62 @@ def numeric_factor_codes(ctx: Context) -> Signal | None:
     if ctx.factor:
         return None
     for col in ctx.columns_of("numeric"):
-        v = _valid(ctx.numbers(col))
-        if col in ctx.roles.values() or v.size < 6 or not _is_int(v):
-            continue
-        levels, counts = np.unique(v, return_counts=True)
-        if 2 <= levels.size <= _MAX_CODE_LEVELS and counts.min() >= 2:
-            return Signal("В числовой колонке «{c}» всего {k} разных значений, каждое"
+        k = None if col in ctx.roles.values() else _code_levels(ctx, col)
+        if k:
+            return Signal("В числовой колонке «{c}» всего {k}"
+                          " {k|разное значение|разных значения|разных значений}, каждое"
                           " повторяется: если это номера вариантов, смените её тип на"
                           " «категория» — станут доступны методы сравнения групп.",
-                          {"c": col, "k": int(levels.size)})
+                          {"c": col, "k": k})
+    return None
+
+
+def _code_levels(ctx: Context, col: str) -> int | None:
+    """Число уровней числовой колонки, похожей на коды: немного целых, каждое с повтором."""
+    v = _valid(ctx.numbers(col))
+    if v.size < 6 or not _is_int(v):
+        return None
+    levels, counts = np.unique(v, return_counts=True)
+    ok = 2 <= levels.size <= _MAX_CODE_LEVELS and counts.min() >= 2
+    return int(levels.size) if ok else None
+
+
+@rule("B2.7", "B2", "factorial_anova", HINT, "кн. стр. 151; предл.")
+def unassigned_factor(ctx: Context) -> Signal | None:
+    """Колонка без роли, полностью скрещённая с вариантами при равных повторностях."""
+    if ctx.role("factor_b", "member"):
+        return None
+    for f in _free_columns(ctx):
+        k = next(iter(f.cells.values()))
+        if f.crossed and k >= 2 and set(f.cells.values()) == {k} and not names.is_block(f.name):
+            return Signal("«{c}» полностью скрещена с «{f}» (в каждой комбинации {k}"
+                          " {k|строка|строки|строк}): если это второй фактор — факторный"
+                          " анализ.", {"c": f.name, "f": ctx.factor, "k": k})
+    return None
+
+
+@rule("B2.8", "B2", "nested_anova", HINT, "кн. стр. 46, 173; предл.")
+def unassigned_nesting(ctx: Context) -> Signal | None:
+    """Колонка без роли вложена в фактор или фактор вложен в неё.
+
+    Строки внутри вложенной единицы (растения на делянке, изоляты вида) —
+    не независимые повторности варианта [кн. стр. 46].
+    """
+    if ctx.role("member", "factor_b") or ctx.role(*_UNIT_SLOTS):
+        return None
+    for f in _free_columns(ctx):
+        rows: Counter = Counter()
+        for (_, unit), n in f.cells.items():
+            rows[unit] += n
+        if f.levels > f.treatments and len(f.cells) == f.levels and min(rows.values()) >= 2:
+            return Signal("Каждый уровень «{c}» относится только к одному варианту «{f}», и в"
+                          " нём несколько строк: строки внутри «{c}» — не независимые"
+                          " повторности (вложенная структура).",
+                          {"c": f.name, "f": ctx.factor})
+        if 2 <= f.levels < f.treatments and len(f.cells) == f.treatments:
+            return Signal("Каждый уровень «{f}» относится только к одному уровню «{c}»:"
+                          " «{f}» вложен в «{c}» — вложенный анализ.",
+                          {"c": f.name, "f": ctx.factor, "variant": "outer"})
     return None
 
 
@@ -634,6 +771,10 @@ def level_count(ctx: Context) -> Signal | None:
     t = len(_levels(ctx, ctx.factor))
     if t >= 2:
         return Signal("Уровней фактора: {t}.", {"t": t, "branch": "B4a" if t == 2 else "B4b"})
+    if t == 1:  # сравнение невозможно: ведём в ветку «описать» [аудит 01-16]
+        return Signal("У фактора «{c}» один уровень: сравнивать группы не с чем — опишите"
+                      " выборку или сравните её среднее с известным значением.",
+                      {"c": ctx.factor, "branch": "D", "variant": "single"}, strength=HINT)
     return None
 
 
@@ -753,7 +894,7 @@ def x_with_blocks(ctx: Context) -> Signal | None:
     target = {"branch": "A1.blocks"}  # прямая или кривая в блоках — решает форма связи
     if ctx.role("block"):  # блок назначен в форме: структура опыта известна
         return Signal("Есть блоки: регрессия внутри блоков.", target, strength=STRONG)
-    if any(_BLOCK_NAME.search(c.strip()) for c in ctx.table.header):
+    if any(names.is_block(c) for c in ctx.table.header):
         return Signal("Есть блоки: регрессия внутри блоков.", target)
     return None
 
@@ -778,8 +919,8 @@ def repeated_x(ctx: Context) -> Signal | None:
     v = _valid(ctx.numbers(x))
     levels, counts = np.unique(v, return_counts=True)
     if levels.size >= 3 and counts.max() > 1:
-        return Signal("Значения x повторяются ({k} уровней): можно проверить неадекватность"
-                      " прямой.", {"k": int(levels.size)})
+        return Signal("Значения x повторяются ({k} {k|уровень|уровня|уровней}): можно проверить"
+                      " неадекватность прямой.", {"k": int(levels.size)})
     return None
 
 
@@ -792,7 +933,7 @@ def overdispersed_counts(ctx: Context) -> Signal | None:
         return None
     ratio = float(v.var(ddof=1) / v.mean())
     if ratio > 2:
-        return Signal("Дисперсия счётов в {r} раз больше среднего: возможна"
+        return Signal("Дисперсия счётов в {r} {r|раз|раза|раз} больше среднего: возможна"
                       " отрицательная биномиальная модель.", {"r": round(ratio, 1)})
     return None
 
@@ -812,9 +953,11 @@ def random_grouping(ctx: Context) -> Signal | None:
         return None
     k = len(_levels(ctx, stratum))
     if k >= 5:
-        return Signal("У «{c}» {k} уровней: подходит как случайный фактор (GLMM).",
+        return Signal("У «{c}» {k} {k|уровень|уровня|уровней}: подходит как случайный фактор"
+                      " (GLMM).",
                       {"c": stratum, "k": k, "variant": "glmm"})
-    return Signal("У «{c}» всего {k} уровней: лучше как фиксированный блок в GLM.",
+    return Signal("У «{c}» всего {k} {k|уровень|уровня|уровней}: лучше как фиксированный блок"
+                  " в GLM.",
                   {"c": stratum, "k": k, "variant": "block"})
 
 

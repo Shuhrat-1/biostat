@@ -159,6 +159,23 @@ export function leafForMethod(
 }
 
 /** Заметка контекста для узла; при «не указано» — просьба указать. */
+/**
+ * Методы, результат которых не читают как «вариант вызвал различие»: описание,
+ * проверка допущений, сравнение с эталоном, планирование. Остальные сравнивают
+ * группы или связывают переменные — к ним относится оговорка о причинности.
+ */
+const NO_CAUSAL_READING = new Set([
+  "describe_all", "describe_by_group", "frequency_table", "mean_ci", "chi2_goodness_of_fit",
+  "normality_test", "bartlett_test", "anova_residuals",
+  "one_proportion", "one_sample_t", "one_sample_wilcoxon",
+  "replication_power", "sampling_scheme_power",
+]);
+
+/** Результату метода в наблюдательном исследовании нужна оговорка [кн. стр. 3]. */
+export function needsCausalityCaveat(method: string, ctx: Context): boolean {
+  return ctx === "observation" && !NO_CAUSAL_READING.has(method);
+}
+
 export function contextNote(nodeId: string, ctx: Context, lang: Lang): string | undefined {
   const notes = CTX[lang].ctx[nodeId] ?? CTX.ru.ctx[nodeId];
   return notes?.[ctx];

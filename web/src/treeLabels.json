@@ -46,7 +46,7 @@
    "B1.bibd": "Неполные блоки (BIBD)",
    "B1.latin": "Ряды × колонки (латинский квадрат)",
    "B1.split": "Крупные и мелкие делянки (split-plot)",
-   "B1.mixed": "Несбалансированная иерархия",
+   "B1.mixed": "Неравные повторности или пропуски (смешанная модель)",
    "B2": "Без блоков или полные блоки: структура вариантов",
    "B2.factorial": "Все комбинации факторов",
    "B2.simple": "Разбор взаимодействия: простые эффекты",
@@ -86,7 +86,7 @@
    "A2": "Одна x: форма связи",
    "A3": "Прямая",
    "A3.slr": "Простая регрессия",
-   "A3.details": "Наклон, через 0, неадекватность",
+   "A3.details": "Проверки прямой: наклон, ноль, кривизна",
    "A3.inverse": "Калибровка: x по y",
    "A2.curve": "Кривая",
    "A2.curve.xt": "Преобразование x",
@@ -137,8 +137,8 @@
    "B1.1": "Колонка «{c}» похожа на блоки / повторности.",
    "B1.2": "Каждый вариант ровно раз в каждом блоке ({t} × {b}): RCBD.",
    "B1.2#factorial": "Каждая комбинация факторов ровно раз в каждом блоке ({t} × {b}): факторный опыт в полных блоках.",
-   "B1.3": "В каждой ячейке блок × вариант {k} строк: субвыборки (анализ на уровне делянок, не строк).",
-   "B1.4": "Блок меньше числа вариантов, каждая пара вместе {lam} раз: BIBD.",
+   "B1.3": "В каждой ячейке блок × вариант {k} {k|строка|строки|строк}: субвыборки (анализ на уровне делянок, не строк).",
+   "B1.4": "Блок меньше числа вариантов, каждая пара вместе {lam} {lam|раз|раза|раз}: BIBD.",
    "B1.5": "Каждый вариант ровно раз в каждом ряду и колонке: латинский квадрат.",
    "B1.6": "«{a}» постоянен внутри «{u}», «{b}» меняется: split-plot.",
    "B1.7": "Повторность в ячейках блок × вариант неравная или есть пустые ячейки: несбалансированный анализ или смешанная модель.",
@@ -148,7 +148,7 @@
    "B2.4": "В «{c}» есть уровень «{lv}»: контроль.",
    "B2.5": "Есть ещё числовая колонка «{c}»: если это сопутствующая переменная — ковариационный анализ.",
    "B2.5#assigned": "Сопутствующая переменная «{c}» назначена: ковариационный анализ.",
-   "B2.6": "В числовой колонке «{c}» всего {k} разных значений, каждое повторяется: если это номера вариантов, смените её тип на «категория» — станут доступны методы сравнения групп.",
+   "B2.6": "В числовой колонке «{c}» всего {k} {k|разное значение|разных значения|разных значений}, каждое повторяется: если это номера вариантов, смените её тип на «категория» — станут доступны методы сравнения групп.",
    "B3.1": "Уровней фактора: {t}.",
    "B4.7": "Во всех группах n > 30: при отклонении от нормальности параметрика всё ещё вероятно допустима (эвристика ЦПТ, не правило книги).",
    "B4.8": "Отклик — немного целых значений (баллы?): ранговые методы или порядковая регрессия.",
@@ -160,18 +160,18 @@
    "A1.3": "Есть блоки: регрессия внутри блоков.",
    "A1.5#subsets": "Кандидатов x: {k} — можно перебрать все подмножества.",
    "A1.5#stepwise": "Кандидатов x: {k} — пошаговый отбор.",
-   "A2.1": "Значения x повторяются ({k} уровней): можно проверить неадекватность прямой.",
-   "G.2": "Дисперсия счётов в {r} раз больше среднего: возможна отрицательная биномиальная модель.",
+   "A2.1": "Значения x повторяются ({k} {k|уровень|уровня|уровней}): можно проверить неадекватность прямой.",
+   "G.2": "Дисперсия счётов в {r} {r|раз|раза|раз} больше среднего: возможна отрицательная биномиальная модель.",
    "G.3": "Бинарные данные: φ не оценивается; по возможности суммируйте по единицам опыта.",
-   "G.4#glmm": "У «{c}» {k} уровней: подходит как случайный фактор (GLMM).",
-   "G.4#block": "У «{c}» всего {k} уровней: лучше как фиксированный блок в GLM.",
+   "G.4#glmm": "У «{c}» {k} {k|уровень|уровня|уровней}: подходит как случайный фактор (GLMM).",
+   "G.4#block": "У «{c}» всего {k} {k|уровень|уровня|уровней}: лучше как фиксированный блок в GLM.",
    "DIAG.3": "Остаточных df {df} < 10: мощность сравнений мала.",
    "B4.1": "Остатки модели отклоняются от нормальности (Шапиро–Уилк p = {p}).",
    "B4.2": "Дисперсии групп неоднородны (Бартлетт X² = {x2} > {crit}).",
-   "B4.2#welch": "SD двух групп различаются в {sd_ratio} раза: t-тест в варианте Уэлча.",
-   "B4.2#welch_unbalanced": "SD различаются в {sd_ratio} раза при неравных n (в {n_ratio} раза), большая SD — в большей группе: t-тест в варианте Уэлча.",
-   "B4.2#welch_liberal": "SD различаются в {sd_ratio} раза при неравных n (в {n_ratio} раза), большая SD — в меньшей группе: P Стьюдента занижен, t-тест в варианте Уэлча.",
-   "B4.2#small_n": "SD двух групп различаются в {sd_ratio} раза, но в меньшей группе всего {n_min} наблюдений: по таким выборкам о дисперсиях судить нельзя.",
+   "B4.2#welch": "SD двух групп различаются в {sd_ratio} {sd_ratio|раз|раза|раз}: t-тест в варианте Уэлча.",
+   "B4.2#welch_unbalanced": "SD различаются в {sd_ratio} {sd_ratio|раз|раза|раз} при неравных n (в {n_ratio} {n_ratio|раз|раза|раз}), большая SD — в большей группе: t-тест в варианте Уэлча.",
+   "B4.2#welch_liberal": "SD различаются в {sd_ratio} {sd_ratio|раз|раза|раз} при неравных n (в {n_ratio} {n_ratio|раз|раза|раз}), большая SD — в меньшей группе: P Стьюдента занижен, t-тест в варианте Уэлча.",
+   "B4.2#small_n": "SD двух групп различаются в {sd_ratio} {sd_ratio|раз|раза|раз}, но в меньшей группе всего {n_min} {n_min|наблюдение|наблюдения|наблюдений}: по таким выборкам о дисперсиях судить нельзя.",
    "B4.3": "SD групп растут вместе со средними (r = {r} по логарифмам): трансформация отклика (log).",
    "B4.3#three": "SD трёх групп растут вместе со средними (r = {r} по логарифмам), но по трём группам такая связь часто случайна: трансформация отклика (log) — под вопросом.",
    "B4.4": "Остатки асимметричны (коэффициент асимметрии {g}): попробуйте трансформацию отклика.",
@@ -182,11 +182,18 @@
    "A2.3": "Остатки прямой изогнуты дугой (квадратичный член p = {p}): кривая.",
    "A2.4": "Разброс y растёт вместе с подогнанным значением (ρ = {r}): трансформация отклика.",
    "A2.5": "x похож на время, а остатки идут волнами (серий {runs} при ожидаемых {exp}): возможна периодичность.",
-   "G.1": "Остаточный девианс {d} > χ²₀.₉₅({df}) = {crit}: сверхдисперсия — оцените φ и сравнивайте по F.",
-   "DIAG.1": "|Стандартизованный остаток| > 2 у {k} наблюдений (строки {rows}): проверьте записи.",
+   "G.1": "Остаточный девианс {d} > χ²₀.₉₅({df}) = {crit}: разброс больше, чем допускает модель (сверхдисперсия), — оценивайте параметр дисперсии φ по данным и сравнивайте по F.",
+   "DIAG.1": "|Стандартизованный остаток| > 2 у {k} {k|наблюдения|наблюдений|наблюдений} (строки {rows}): проверьте записи.",
    "DIAG.1#single": "Наблюдение в строке {rows} резко выделяется на фоне остальных (тест выброса с поправкой Бонферрони): проверьте запись.",
    "DIAG.2": "Остатки по порядку строк коррелированы (Дарбин–Уотсон {dw}): серийная корреляция.",
-   "DIAG.4": "Точки с большим рычагом или влиянием (расстояние Кука): строки {rows} — проверьте их вклад в наклон."
+   "DIAG.4": "Точки с большим рычагом или влиянием (расстояние Кука): строки {rows} — проверьте их вклад в наклон.",
+   "B1.8": "Каждый вариант ровно раз в каждом уровне «{c}» ({t} × {b}): похоже на блоки или повторные измерения одних объектов — анализ без этой колонки тогда неверен.",
+   "B1.8#latin": "Каждый вариант ровно раз в каждом уровне «{a}» и «{b}»: похоже на латинский квадрат — укажите ряды и колонки.",
+   "B1.8#incomplete": "В каждом уровне «{c}» — часть вариантов, каждый не более раза: похоже на неполные блоки — анализ без этой колонки тогда неверен.",
+   "B2.7": "«{c}» полностью скрещена с «{f}» (в каждой комбинации {k} {k|строка|строки|строк}): если это второй фактор — факторный анализ.",
+   "B2.8": "Каждый уровень «{c}» относится только к одному варианту «{f}», и в нём несколько строк: строки внутри «{c}» — не независимые повторности (вложенная структура).",
+   "B2.8#outer": "Каждый уровень «{f}» относится только к одному уровню «{c}»: «{f}» вложен в «{c}» — вложенный анализ.",
+   "B3.1#single": "У фактора «{c}» один уровень: сравнивать группы не с чем — опишите выборку или сравните её среднее с известным значением."
   },
   "ctx": {
    "R0": {
@@ -215,6 +222,12 @@
   },
   "notes": {
    "outlier": " Возможно, это из-за выброса в строке {outlier_row} — сначала проверьте запись."
+  },
+  "dead": {
+   "P.splitpower": "Расчёт мощности для split-plot в ядре BioStat уже есть (SED и df каждого сравнения, кн. стр. 252), но формы для него пока нет. До её появления — расчёт в R или GenStat.",
+   "R2.censored": "Значения ниже предела обнаружения — цензурированные данные: подстановка нуля или половины предела смещает средние и занижает разброс. В BioStat таких моделей нет; в R — регрессия для цензурированных данных: survival::survreg или пакет NADA2.",
+   "R2.multivariate": "Несколько откликов, которые анализируют вместе, — многомерные методы (MANOVA, главные компоненты). В BioStat их нет: в R — manova() и prcomp(), в GenStat — раздел Multivariate Analysis. Каждый отклик можно проанализировать здесь отдельно, но связи между откликами такой анализ не учитывает.",
+   "DIAG.serial": "Наблюдения, идущие подряд во времени или в ряду, коррелированы: обычные стандартные ошибки и P ненадёжны. Моделей с автокорреляцией в BioStat нет: в R — nlme::gls или nlme::lme с corAR1, в GenStat — REML с корреляционной моделью. Если это повторные измерения одних объектов, здесь подойдёт смешанная модель с объектом как случайным фактором."
   }
  },
  "en": {
@@ -264,7 +277,7 @@
    "B1.bibd": "Incomplete blocks (BIBD)",
    "B1.latin": "Rows × columns (Latin square)",
    "B1.split": "Main and sub-plots (split-plot)",
-   "B1.mixed": "Unbalanced hierarchy",
+   "B1.mixed": "Unequal replication or gaps (mixed model)",
    "B2": "No blocks or complete blocks: treatments",
    "B2.factorial": "All factor combinations",
    "B2.simple": "Unpacking an interaction: simple effects",
@@ -304,7 +317,7 @@
    "A2": "One x: shape of the relation",
    "A3": "Straight line",
    "A3.slr": "Simple regression",
-   "A3.details": "Slope, through 0, lack of fit",
+   "A3.details": "Checks of the line: slope, origin, curvature",
    "A3.inverse": "Calibration: x from y",
    "A2.curve": "Curve",
    "A2.curve.xt": "Transform x",
@@ -355,8 +368,8 @@
    "B1.1": "Column «{c}» looks like blocks / replicates.",
    "B1.2": "Each treatment exactly once in each block ({t} × {b}): RCBD.",
    "B1.2#factorial": "Each factor combination exactly once in each block ({t} × {b}): a factorial in complete blocks.",
-   "B1.3": "{k} rows in every block × treatment cell: subsamples (analyse plots, not rows).",
-   "B1.4": "Block smaller than the number of treatments, each pair together {lam} times: BIBD.",
+   "B1.3": "{k} {k|row|rows} in every block × treatment cell: subsamples (analyse plots, not rows).",
+   "B1.4": "Block smaller than the number of treatments, each pair together {lam} {lam|time|times}: BIBD.",
    "B1.5": "Each treatment exactly once in each row and column: Latin square.",
    "B1.6": "«{a}» is constant within «{u}», «{b}» varies: split-plot.",
    "B1.7": "Unequal replication or empty block × treatment cells: unbalanced analysis or mixed model.",
@@ -389,7 +402,7 @@
    "B4.2#welch": "The SDs of the two groups differ {sd_ratio}-fold: use the Welch version of the t-test.",
    "B4.2#welch_unbalanced": "The SDs differ {sd_ratio}-fold with unequal n ({n_ratio}-fold), the larger SD in the larger group: use the Welch version of the t-test.",
    "B4.2#welch_liberal": "The SDs differ {sd_ratio}-fold with unequal n ({n_ratio}-fold), the larger SD in the smaller group: Student's P is too small, use the Welch version of the t-test.",
-   "B4.2#small_n": "The SDs of the two groups differ {sd_ratio}-fold, but the smaller group has only {n_min} observations: samples this small say little about the variances.",
+   "B4.2#small_n": "The SDs of the two groups differ {sd_ratio}-fold, but the smaller group has only {n_min} {n_min|observation|observations}: samples this small say little about the variances.",
    "B4.3": "Group SDs grow with the means (r = {r} on log scale): transform the response (log).",
    "B4.3#three": "The SDs of the three groups grow with the means (r = {r} on log scale), but with three groups this often happens by chance: a log transformation is only a possibility.",
    "B4.4": "Residuals are skewed (skewness {g}): try transforming the response.",
@@ -400,11 +413,18 @@
    "A2.3": "Residuals of the line bend in an arc (quadratic term p = {p}): a curve.",
    "A2.4": "Spread of y grows with the fitted value (ρ = {r}): transform the response.",
    "A2.5": "x looks like time and residuals run in waves ({runs} runs vs {exp} expected): possible periodicity.",
-   "G.1": "Residual deviance {d} > χ²₀.₉₅({df}) = {crit}: overdispersion — estimate φ and compare with F.",
-   "DIAG.1": "|Standardized residual| > 2 for {k} observations (rows {rows}): check the records.",
+   "G.1": "Residual deviance {d} > χ²₀.₉₅({df}) = {crit}: the spread is larger than the model allows (overdispersion) — estimate the dispersion parameter φ from the data and compare with F.",
+   "DIAG.1": "|Standardized residual| > 2 for {k} {k|observation|observations} (rows {rows}): check the records.",
    "DIAG.1#single": "The observation in row {rows} stands out sharply from the rest (outlier test with Bonferroni correction): check the record.",
    "DIAG.2": "Residuals in row order are correlated (Durbin–Watson {dw}): serial correlation.",
-   "DIAG.4": "Points with high leverage or influence (Cook's distance): rows {rows} — check their effect on the slope."
+   "DIAG.4": "Points with high leverage or influence (Cook's distance): rows {rows} — check their effect on the slope.",
+   "B1.8": "Every treatment occurs exactly once in each level of «{c}» ({t} × {b}): these look like blocks or repeated measurements of the same units — an analysis that ignores this column is then wrong.",
+   "B1.8#latin": "Every treatment occurs exactly once in each level of «{a}» and of «{b}»: this looks like a Latin square — assign the rows and columns.",
+   "B1.8#incomplete": "Each level of «{c}» holds only some of the treatments, each at most once: these look like incomplete blocks — an analysis that ignores this column is then wrong.",
+   "B2.7": "«{c}» is fully crossed with «{f}» ({k} {k|row|rows} in every combination): if it is a second factor, use a factorial analysis.",
+   "B2.8": "Each level of «{c}» belongs to a single treatment of «{f}» and holds several rows: rows within «{c}» are not independent replicates (nested structure).",
+   "B2.8#outer": "Each level of «{f}» belongs to a single level of «{c}»: «{f}» is nested within «{c}» — use a nested analysis.",
+   "B3.1#single": "Factor «{c}» has a single level: there is nothing to compare the group with — describe the sample or compare its mean with a known value."
   },
   "ctx": {
    "R0": {
@@ -433,6 +453,12 @@
   },
   "notes": {
    "outlier": " This may be due to the outlier in row {outlier_row} — check the record first."
+  },
+  "dead": {
+   "P.splitpower": "The BioStat core already computes split-plot power (SED and df of each comparison, book p. 252), but there is no form for it yet. Until there is, do the calculation in R or GenStat.",
+   "R2.censored": "Values below the detection limit are censored data: substituting zero or half the limit biases the means and understates the spread. BioStat has no such models; in R use censored regression: survival::survreg or the NADA2 package.",
+   "R2.multivariate": "Several responses analysed together call for multivariate methods (MANOVA, principal components). BioStat does not have them: in R use manova() and prcomp(), in GenStat the Multivariate Analysis menu. Each response can be analysed here on its own, but that ignores the relations between responses.",
+   "DIAG.serial": "Observations that follow one another in time or along a row are correlated: the usual standard errors and P-values are unreliable. BioStat has no models with autocorrelation: in R use nlme::gls or nlme::lme with corAR1, in GenStat REML with a correlation model. If these are repeated measurements of the same units, a mixed model with the unit as a random factor is available here."
   }
  },
  "pt": {
@@ -482,7 +508,7 @@
    "B1.bibd": "Blocos incompletos (BIBD)",
    "B1.latin": "Linhas × colunas (quadrado latino)",
    "B1.split": "Parcelas e subparcelas (split-plot)",
-   "B1.mixed": "Hierarquia desequilibrada",
+   "B1.mixed": "Repetições desiguais ou falhas (modelo misto)",
    "B2": "Sem blocos ou blocos completos: tratamentos",
    "B2.factorial": "Todas as combinações",
    "B2.simple": "Decompor a interação: efeitos simples",
@@ -522,7 +548,7 @@
    "A2": "Um x: forma da relação",
    "A3": "Reta",
    "A3.slr": "Regressão simples",
-   "A3.details": "Declive, pela origem, falta de ajustamento",
+   "A3.details": "Verificações da reta: declive, origem, curvatura",
    "A3.inverse": "Calibração: x a partir de y",
    "A2.curve": "Curva",
    "A2.curve.xt": "Transformar x",
@@ -573,8 +599,8 @@
    "B1.1": "A coluna «{c}» parece blocos / repetições.",
    "B1.2": "Cada tratamento exatamente uma vez em cada bloco ({t} × {b}): RCBD.",
    "B1.2#factorial": "Cada combinação de fatores exatamente uma vez em cada bloco ({t} × {b}): fatorial em blocos completos.",
-   "B1.3": "{k} linhas em cada célula bloco × tratamento: subamostras (analisar parcelas, não linhas).",
-   "B1.4": "Bloco menor que o número de tratamentos, cada par junto {lam} vezes: BIBD.",
+   "B1.3": "{k} {k|linha|linhas} em cada célula bloco × tratamento: subamostras (analisar parcelas, não linhas).",
+   "B1.4": "Bloco menor que o número de tratamentos, cada par junto {lam} {lam|vez|vezes}: BIBD.",
    "B1.5": "Cada tratamento exatamente uma vez em cada linha e coluna: quadrado latino.",
    "B1.6": "«{a}» é constante dentro de «{u}», «{b}» varia: split-plot.",
    "B1.7": "Repetição desigual ou células bloco × tratamento vazias: análise desequilibrada ou modelo misto.",
@@ -607,7 +633,7 @@
    "B4.2#welch": "Os DP dos dois grupos diferem {sd_ratio} vezes: use o teste t na versão de Welch.",
    "B4.2#welch_unbalanced": "Os DP diferem {sd_ratio} vezes com n desiguais ({n_ratio} vezes), o DP maior no grupo maior: use o teste t na versão de Welch.",
    "B4.2#welch_liberal": "Os DP diferem {sd_ratio} vezes com n desiguais ({n_ratio} vezes), o DP maior no grupo menor: o P de Student fica subestimado, use o teste t na versão de Welch.",
-   "B4.2#small_n": "Os DP dos dois grupos diferem {sd_ratio} vezes, mas o grupo menor tem apenas {n_min} observações: amostras tão pequenas dizem pouco sobre as variâncias.",
+   "B4.2#small_n": "Os DP dos dois grupos diferem {sd_ratio} vezes, mas o grupo menor tem apenas {n_min} {n_min|observação|observações}: amostras tão pequenas dizem pouco sobre as variâncias.",
    "B4.3": "Os DP dos grupos crescem com as médias (r = {r} em logaritmos): transforme a resposta (log).",
    "B4.3#three": "Os DP dos três grupos crescem com as médias (r = {r} em logaritmos), mas com três grupos isso acontece muitas vezes por acaso: a transformação log é apenas uma possibilidade.",
    "B4.4": "Os resíduos são assimétricos (assimetria {g}): experimente transformar a resposta.",
@@ -618,11 +644,18 @@
    "A2.3": "Os resíduos da reta formam um arco (termo quadrático p = {p}): uma curva.",
    "A2.4": "A dispersão de y cresce com o valor ajustado (ρ = {r}): transforme a resposta.",
    "A2.5": "x parece tempo e os resíduos andam em ondas ({runs} sequências para {exp} esperadas): possível periodicidade.",
-   "G.1": "Desvio residual {d} > χ²₀.₉₅({df}) = {crit}: sobredispersão — estime φ e compare com F.",
-   "DIAG.1": "|Resíduo padronizado| > 2 em {k} observações (linhas {rows}): verifique os registos.",
+   "G.1": "Desvio residual {d} > χ²₀.₉₅({df}) = {crit}: a dispersão é maior do que o modelo permite (sobredispersão) — estime o parâmetro de dispersão φ a partir dos dados e compare com F.",
+   "DIAG.1": "|Resíduo padronizado| > 2 em {k} {k|observação|observações} (linhas {rows}): verifique os registos.",
    "DIAG.1#single": "A observação na linha {rows} destaca-se claramente das restantes (teste de outlier com correção de Bonferroni): verifique o registo.",
    "DIAG.2": "Os resíduos pela ordem das linhas estão correlacionados (Durbin–Watson {dw}): correlação serial.",
-   "DIAG.4": "Pontos com alavanca ou influência elevada (distância de Cook): linhas {rows} — verifique o seu efeito no declive."
+   "DIAG.4": "Pontos com alavanca ou influência elevada (distância de Cook): linhas {rows} — verifique o seu efeito no declive.",
+   "B1.8": "Cada tratamento aparece exatamente uma vez em cada nível de «{c}» ({t} × {b}): parecem blocos ou medições repetidas das mesmas unidades — uma análise sem esta coluna fica então errada.",
+   "B1.8#latin": "Cada tratamento aparece exatamente uma vez em cada nível de «{a}» e de «{b}»: parece um quadrado latino — indique as linhas e as colunas.",
+   "B1.8#incomplete": "Cada nível de «{c}» contém só parte dos tratamentos, cada um no máximo uma vez: parecem blocos incompletos — uma análise sem esta coluna fica então errada.",
+   "B2.7": "«{c}» está totalmente cruzada com «{f}» ({k} {k|linha|linhas} em cada combinação): se for um segundo fator, use a análise fatorial.",
+   "B2.8": "Cada nível de «{c}» pertence a um único tratamento de «{f}» e tem várias linhas: as linhas dentro de «{c}» não são repetições independentes (estrutura hierárquica).",
+   "B2.8#outer": "Cada nível de «{f}» pertence a um único nível de «{c}»: «{f}» está aninhado em «{c}» — use a análise hierárquica.",
+   "B3.1#single": "O fator «{c}» tem um único nível: não há com que comparar o grupo — descreva a amostra ou compare a média com um valor conhecido."
   },
   "ctx": {
    "R0": {
@@ -651,6 +684,12 @@
   },
   "notes": {
    "outlier": " Pode dever-se ao valor anómalo na linha {outlier_row} — verifique primeiro o registo."
+  },
+  "dead": {
+   "P.splitpower": "O núcleo do BioStat já calcula a potência para split-plot (EPD e gl de cada comparação, livro p. 252), mas ainda não há formulário. Até lá, faça o cálculo no R ou no GenStat.",
+   "R2.censored": "Valores abaixo do limite de deteção são dados censurados: substituir por zero ou por metade do limite enviesa as médias e subestima a dispersão. O BioStat não tem estes modelos; no R use regressão para dados censurados: survival::survreg ou o pacote NADA2.",
+   "R2.multivariate": "Várias respostas analisadas em conjunto pedem métodos multivariados (MANOVA, componentes principais). O BioStat não os tem: no R use manova() e prcomp(), no GenStat o menu Multivariate Analysis. Cada resposta pode ser analisada aqui em separado, mas isso ignora as relações entre respostas.",
+   "DIAG.serial": "Observações consecutivas no tempo ou ao longo de uma linha estão correlacionadas: os erros-padrão e os P habituais não são fiáveis. O BioStat não tem modelos com autocorrelação: no R use nlme::gls ou nlme::lme com corAR1, no GenStat REML com um modelo de correlação. Se forem medições repetidas das mesmas unidades, o modelo misto com a unidade como fator aleatório está disponível aqui."
   }
  }
 }

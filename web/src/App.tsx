@@ -228,7 +228,7 @@ function AppInner({
   // Результат, графики и сброс — одинаковы для данных и для планирования.
   const resultsBlock = (
     <>
-      {result && <ResultPanel result={result} />}
+      {result && <ResultPanel result={result} context={map.context} />}
       {plots && (
         <div style={s.panel}>
           <h2 style={s.h2}>{t("plots.title")}</h2>

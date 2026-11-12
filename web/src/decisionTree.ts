@@ -43,6 +43,8 @@ type LabelDict = Record<Lang, {
   rec: Record<string, string>;
   /** Оговорки, которые ядро дописывает к сигналу (выброс). */
   notes: Record<string, string>;
+  /** Тупики: что это за метод и где его сделать (по id листа). */
+  dead: Record<string, string>;
 }>;
 const LABELS = labels as LabelDict;
 
@@ -79,9 +81,36 @@ export function nodeLabel(id: string, lang: Lang): string {
   return LABELS[lang].nodes[id] ?? LABELS.ru.nodes[id] ?? id;
 }
 
+/** Текст тупика: свой у каждого листа; нет — undefined (общий текст интерфейса). */
+export function deadEndNote(id: string, lang: Lang): string | undefined {
+  return LABELS[lang].dead[id] ?? LABELS.ru.dead[id];
+}
+
 /** Сигналы распознавателей, которые относятся к узлу (по rnode). */
 export function signalsAt(node: TreeNode, fired: FiredSignal[]): FiredSignal[] {
   return node.rnode ? fired.filter((f) => f.node === node.rnode) : [];
+}
+
+/**
+ * Форма слова при числе n: две формы (1 / много) или три русские (1 / 2–4 / 5+).
+ * Дробное число в русском требует вторую форму («в 2.5 раза»). Та же функция —
+ * `plural_form` в ядре (core/validation/recognize.py).
+ */
+export function pluralForm(n: unknown, forms: string[]): string {
+  if (forms.length === 2) return n === 1 ? forms[0] : forms[1];
+  if (typeof n !== "number" || !Number.isInteger(n)) return forms[1];
+  const k = Math.abs(n);
+  if (k % 10 === 1 && k % 100 !== 11) return forms[0];
+  const few = k % 10 >= 2 && k % 10 <= 4 && !(k % 100 >= 12 && k % 100 <= 14);
+  return few ? forms[1] : forms[2];
+}
+
+/** Шаблон: {param} — значение, {param|форма|…} — слово, согласованное с числом. */
+export function fillTemplate(template: string, params: Record<string, unknown>): string {
+  return template.replace(/\{(\w+)((?:\|[^{}|]+)*)\}/g, (hole, name: string, forms: string) => {
+    if (params[name] === undefined) return hole;
+    return forms ? pluralForm(params[name], forms.slice(1).split("|")) : String(params[name]);
+  });
 }
 
 /**
@@ -97,7 +126,5 @@ export function recMessage(signal: FiredSignal, lang: Lang): string {
   if (!base) return signal.message.message;
   // Сигнал, пониженный из-за кандидата в выбросы, несёт оговорку о нём.
   const note = params.outlier_row === undefined ? "" : LABELS[lang].notes.outlier;
-  return (base + note).replace(/\{(\w+)\}/g, (_, name: string) =>
-    params[name] === undefined ? `{${name}}` : String(params[name]),
-  );
+  return fillTemplate(base + note, params);
 }

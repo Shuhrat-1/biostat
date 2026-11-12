@@ -16,6 +16,7 @@ import { fillColumns } from "./columnFill";
 import { effectRows } from "./effectSize";
 import { columnLabel, extraTitle } from "./extraLabels";
 import { useCoreMessage } from "./coreMessages";
+import { needsCausalityCaveat, type Context } from "./mapState";
 import { c, s, typeBadgeStyle } from "./styles";
 
 /* ------------------------------ Загрузка ------------------------------ */
@@ -1619,9 +1620,11 @@ function ExtraTables({ params, method }: { params: Raw; method: string }) {
   );
 }
 
-export function ResultPanel({ result }: { result: StatResult }) {
+export function ResultPanel({ result, context }: { result: StatResult; context: Context }) {
   const t = useT();
   const tm = useCoreMessage();
+  // Наблюдение, а не эксперимент: связь не доказывает причину [кн. стр. 3].
+  const caveat = needsCausalityCaveat(result.method, context) ? t("result.observational") : null;
 
   // Сводная статистика — особый рендер: таблица метрик по колонкам.
   if (result.method === "describe_all") {
@@ -1757,7 +1760,22 @@ export function ResultPanel({ result }: { result: StatResult }) {
         </div>
       )}
 
-      <ExportButtons result={result} />
+      {caveat && (
+        <div
+          style={{
+            marginTop: "0.6rem",
+            padding: "0.55rem 0.8rem",
+            background: SEVERITY_STYLE.info.bg,
+            color: SEVERITY_STYLE.info.fg,
+            borderRadius: 6,
+            fontSize: "0.85rem",
+          }}
+        >
+          {caveat}
+        </div>
+      )}
+
+      <ExportButtons result={result} context={context} caveat={caveat} />
     </div>
   );
 }
@@ -2155,10 +2173,20 @@ function renderTablePng(matrix: (string | number)[][], filename: string): void {
   }, "image/png");
 }
 
-function ExportButtons({ result }: { result: StatResult }) {
+function ExportButtons({
+  result,
+  context,
+  caveat,
+}: {
+  result: StatResult;
+  context: Context;
+  caveat: string | null;
+}) {
   const t = useT();
   const download = () => {
-    const blob = new Blob([JSON.stringify(result, null, 2)], {
+    // Тип исследования и оговорка о причинности уходят в файл вместе с результатом.
+    const report = { ...result, study_context: context, ...(caveat ? { causality_note: caveat } : {}) };
+    const blob = new Blob([JSON.stringify(report, null, 2)], {
       type: "application/json",
     });
     const url = URL.createObjectURL(blob);

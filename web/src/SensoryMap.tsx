@@ -9,7 +9,7 @@
 
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { children, getNode, leafCount, nodeLabel, pathTo, ROOT, type TreeNode } from "./decisionTree";
-import { recMessage } from "./decisionTree";
+import { deadEndNote, recMessage } from "./decisionTree";
 import { useLang, useT, type Lang } from "./i18n";
 import {
   awaitsComputation, buildMarks, childStates, contextNote, leafForMethod,
@@ -330,7 +330,9 @@ function Details(props: DetailsProps) {
     && pathTo(props.focus).some((n) => awaitsComputation(n, props.registry));
   const signals = signalsAround(props.focus, props.fired);
   const lines: { text: string; tone: "warn" | "muted" | "bad" }[] = [];
-  if (node?.status === "missing") lines.push({ text: t("map.missing"), tone: "bad" });
+  if (node?.status === "missing") {
+    lines.push({ text: deadEndNote(node.id, lang) ?? t("map.missing"), tone: "bad" });
+  }
   if (node?.status === "experimental") lines.push({ text: t("map.experimental"), tone: "warn" });
   if (node?.method && !props.available.has(node.method)) lines.push({ text: t("map.unavailable"), tone: "muted" });
   if (node?.kind === "leaf" && node.id === props.methodLeaf) lines.push({ text: t("map.inForm"), tone: "muted" });

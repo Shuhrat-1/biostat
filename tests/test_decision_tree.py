@@ -146,6 +146,23 @@ def test_every_node_labelled(lang):
     assert all(text.strip() for text in names.values())
 
 
+@pytest.mark.parametrize("lang", ["ru", "en", "pt"])
+def test_every_dead_end_has_its_own_text(lang):
+    """Аудит 01-16: тупик называет метод и где его сделать, общий текст — запасной."""
+    dead = {n["id"] for n in TREE if n.get("status") == "missing"}
+    texts = LABELS[lang]["dead"]
+    assert set(texts) == dead
+    assert len(set(texts.values())) == len(dead) and all(len(t) > 80 for t in texts.values())
+
+
+def test_split_plot_power_dead_end_does_not_send_away_for_a_missing_method():
+    """Расчёт в ядре есть (core/stats/power.py), нет только формы — текст об этом."""
+    from core.stats.power import split_plot_power
+
+    assert callable(split_plot_power)
+    assert "в ядре BioStat уже есть" in LABELS["ru"]["dead"]["P.splitpower"]
+
+
 CONTEXTS = {"experiment", "observation", "unknown"}
 
 
@@ -191,12 +208,35 @@ def test_recognizer_templates_match_rules_in_all_languages():
     assert set(LABELS["ru"]["rec"]) == set(notes)
     for key, ru in notes.items():
         assert LABELS["ru"]["rec"][key] == ru, f"{key}: ru разошёлся с правилом"
-        holes = set(re.findall(r"\{(\w+)\}", ru))
+        holes = set(re.findall(r"\{(\w+)[|}]", ru))
         for lang in ("en", "pt"):
-            assert set(re.findall(r"\{(\w+)\}", LABELS[lang]["rec"][key])) == holes, (key, lang)
+            assert set(re.findall(r"\{(\w+)[|}]", LABELS[lang]["rec"][key])) == holes, (key, lang)
 
 
 def test_every_implemented_recognizer_has_a_template():
     implemented = {r.id for r in REGISTRY if r.fn is not None}
     covered = {k.split("#")[0] for k in LABELS["ru"]["rec"]}
     assert implemented == covered
+
+
+# --- Контекст исследования (аудит 01-15) --------------------------------------------------
+
+def test_causality_caveat_reaches_result_and_export():
+    """Флажок «наблюдение» доходит до результата и файла экспорта [кн. стр. 3]."""
+    i18n = (WEB / "i18n.tsx").read_text(encoding="utf-8")
+    assert i18n.count('"result.observational":') == 3  # ru, en, pt
+    panel = (WEB / "components.tsx").read_text(encoding="utf-8")
+    assert "study_context: context" in panel and "causality_note: caveat" in panel
+    assert "<ResultPanel result={result} context={map.context} />" in (
+        WEB / "App.tsx").read_text(encoding="utf-8")
+
+
+def test_methods_exempt_from_causality_caveat_exist_and_compare_nothing():
+    """Без оговорки — только описание, допущения, эталон и планирование."""
+    src = (WEB / "mapState.ts").read_text(encoding="utf-8")
+    body = src[src.index("const NO_CAUSAL_READING"):src.index("]);", src.index("NO_CAUSAL_READING"))]
+    exempt = set(re.findall(r'"(\w+)"', body))
+    assert exempt and exempt <= set(SPECS)
+    allowed = {"Описательная статистика", "Проверка допущений", "Сравнение с эталоном",
+               "Планирование опыта"}
+    assert {SPECS[m].group for m in exempt} <= allowed

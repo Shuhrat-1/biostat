@@ -32,8 +32,9 @@ SPEC_IDS = (
 # Сверх спецификации v2 — правила по Witte, Fig. 21.1 (стр. 405–406).
 WITTE_IDS = ["B0.4", "R2.11"]
 # Добавлены при исправлениях (ноябрь 2026): догадка о числе испытаний m (R2.12),
-# числовые коды вариантов (B2.6, аудит 01-02).
-EXTRA_IDS = ["R2.12", "B2.6"]
+# числовые коды вариантов (B2.6, аудит 01-02), колонки без роли (B1.8, B2.7,
+# B2.8, аудит 01-05).
+EXTRA_IDS = ["R2.12", "B2.6", "B1.8", "B2.7", "B2.8"]
 
 
 def _table(columns: dict[str, list]):
@@ -301,8 +302,12 @@ def test_residual_df_counts_factor_combinations():
 
 
 def test_block_name_hint_only_without_block_role():
-    assert "B1.1" in _fired(_potato(), value="yield", group="treatment")
-    assert "B1.1" not in _fired(_potato(), value="yield", group="treatment", block="block")
+    """Имя «block» — подсказка, пока раскладка сама не выдаёт блоки (тогда — B1.8)."""
+    doubled = {k: v + v for k, v in _potato().items()}  # по две строки в ячейке
+    assert "B1.1" in _fired(doubled, value="yield", group="treatment")
+    assert "B1.1" not in _fired(doubled, value="yield", group="treatment", block="block")
+    one_way = _fired(_potato(), value="yield", group="treatment")
+    assert "B1.1" not in one_way and one_way["B1.8"]["message"]["params"]["c"] == "block"
 
 
 # --- B2. Структура вариантов -------------------------------------------------------

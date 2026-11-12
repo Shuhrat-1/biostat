@@ -22,9 +22,10 @@ from scipy import stats
 
 from core.stats.outliers import outlier_candidate
 from core.stats.welch_rule import welch_advice
+from core.validation import column_names as names
 from core.validation.recognize import COMPUTED, HINT, STRONG, Context, Rule, Signal, rule
 from core.validation.recognizers import (
-    _TIME, _count_like, _treatment_labels, _trials_column, _trials_guess, binary_response,
+    _count_like, _treatment_labels, _trials_column, _trials_guess, binary_response,
     in_glm_branch, many_zeros, right_skew, transform_branch,
 )
 
@@ -387,18 +388,22 @@ def heterogeneous_variances(ctx: Context) -> Signal | None:
             return None
         case, p = res
         if case == "small_n":  # при n < 8 отношение SD ненадёжно: справка, не совет
-            return Signal("SD двух групп различаются в {sd_ratio} раза, но в меньшей группе"
-                          " всего {n_min} наблюдений: по таким выборкам о дисперсиях судить"
-                          " нельзя.", {**p, "variant": "small_n"}, strength=HINT)
+            return Signal("SD двух групп различаются в {sd_ratio} {sd_ratio|раз|раза|раз},"
+                          " но в меньшей группе всего {n_min}"
+                          " {n_min|наблюдение|наблюдения|наблюдений}: по таким выборкам"
+                          " о дисперсиях судить нельзя.", {**p, "variant": "small_n"}, strength=HINT)
         if case == "welch_liberal":
-            return Signal("SD различаются в {sd_ratio} раза при неравных n (в {n_ratio} раза),"
+            return Signal("SD различаются в {sd_ratio} {sd_ratio|раз|раза|раз} при неравных n"
+                          " (в {n_ratio} {n_ratio|раз|раза|раз}),"
                           " большая SD — в меньшей группе: P Стьюдента занижен, t-тест в"
                           " варианте Уэлча.", {**p, "variant": "welch_liberal"})
         if case == "welch_unbalanced":
-            return Signal("SD различаются в {sd_ratio} раза при неравных n (в {n_ratio} раза),"
+            return Signal("SD различаются в {sd_ratio} {sd_ratio|раз|раза|раз} при неравных n"
+                          " (в {n_ratio} {n_ratio|раз|раза|раз}),"
                           " большая SD — в большей группе: t-тест в варианте Уэлча.",
                           {**p, "variant": "welch_unbalanced"})
-        return Signal("SD двух групп различаются в {sd_ratio} раза: t-тест в варианте Уэлча.",
+        return Signal("SD двух групп различаются в {sd_ratio} {sd_ratio|раз|раза|раз}:"
+                      " t-тест в варианте Уэлча.",
                       {**p, "variant": "welch"})
     res = ctx.memo("bartlett", lambda: _bartlett(ctx))
     if res is None or res[0] <= res[1]:
@@ -592,7 +597,7 @@ def _runs_z(resid: np.ndarray) -> tuple[int, float, float] | None:
 @rule("A2.5", "A2", "trigonometric_regression", HINT, "предл.", cls=COMPUTED)
 def periodic_residuals(ctx: Context) -> Signal | None:
     x, fit = ctx.role("x"), line_fit(ctx)
-    if not (x and fit) or not _TIME.search(x) or fit.y.size < 12:
+    if not (x and fit) or not names.is_time(x) or fit.y.size < 12:
         return None
     order = np.argsort(fit.X[:, 1], kind="stable")
     res = _runs_z(fit.resid[order])
@@ -637,8 +642,9 @@ def overdispersion(ctx: Context) -> Signal | None:
     # На тысячах строк χ² ловит и φ ≈ 1.03; нужна заметная сверхдисперсия [BioStat].
     if dev <= crit or dev / df <= 1.2:
         return None
-    return Signal("Остаточный девианс {d} > χ²₀.₉₅({df}) = {crit}: сверхдисперсия —"
-                  " оцените φ и сравнивайте по F.",
+    return Signal("Остаточный девианс {d} > χ²₀.₉₅({df}) = {crit}: разброс больше, чем"
+                  " допускает модель (сверхдисперсия), — оценивайте параметр дисперсии φ"
+                  " по данным и сравнивайте по F.",
                   {"d": round(dev, 1), "df": df, "crit": round(crit, 1)})
 
 
@@ -670,7 +676,8 @@ def outliers(ctx: Context) -> Signal | None:
     r = np.abs(fit.standardized())
     big = fit.rows[r > 2]
     if _too_many_large(r):
-        return Signal("|Стандартизованный остаток| > 2 у {k} наблюдений (строки {rows}):"
+        return Signal("|Стандартизованный остаток| > 2 у {k} {k|наблюдения|наблюдений|наблюдений}"
+                      " (строки {rows}):"
                       " проверьте записи.", {"k": int(big.size), "rows": _row_list(big)})
     return Signal("Наблюдение в строке {rows} резко выделяется на фоне остальных (тест"
                   " выброса с поправкой Бонферрони): проверьте запись.",
