@@ -17,7 +17,7 @@ import pytest
 from core.report.schema import Severity
 from core.stats.hypothesis import two_sample_t
 from core.validation.parser import parse_file
-from core.validation.recognize import HINT, STRONG, plural_form, recognize
+from core.validation.recognize import COMPUTED, HINT, STRONG, plural_form, recognize
 from tests.map_scenarios import SCENARIOS, grouped, q
 
 BY_ID = {s["id"]: s for s in SCENARIOS}
@@ -379,7 +379,8 @@ def test_01_05_numbered_blocks_are_noticed_too():
     cols = dict(BY_ID["S13"]["columns"])
     codes = {b: i + 1 for i, b in enumerate(dict.fromkeys(cols["block"]))}
     cols["block"] = [codes[b] for b in cols["block"]]
-    assert _run(cols, BY_ID["S13"]["stages"]["one-way"])["B1.8"]["message"]["params"]["c"] == "block"
+    hit = _run(cols, BY_ID["S13"]["stages"]["one-way"])["B1.8"]
+    assert hit["message"]["params"]["c"] == "block"
 
 
 # --- 01-16. Тексты: согласование числа, один уровень фактора ----------------------------
@@ -411,3 +412,92 @@ def test_01_16_single_level_factor_gets_a_note():
     assert hit["strength"] == HINT
     assert hit["message"]["params"]["branch"] == "D" and NODES["D"]["kind"] != "leaf"
     assert "один уровень" in hit["message"]["message"]
+
+
+# --- 01-12. Связанные измерения и случайная группировка -----------------------------------
+
+def _computed(columns: dict[str, list], roles: dict[str, str]) -> dict[str, dict]:
+    out = recognize(_table(columns), roles, cls=COMPUTED)
+    assert out["errors"] == []
+    return {f["id"]: f for f in out["fired"]}
+
+
+def test_01_12_random_grouping_with_a_continuous_response_is_a_mixed_model():
+    """Welham Table 16.4, стр. 427–440: сорняки на 59 полях 37 ферм, отклик — log."""
+    fired = _stage("S40", "full")
+    hit = fired["B1.9"]
+    assert hit["strength"] == STRONG and hit["node"] == "B1" and hit["suggests"] == "mixed_model"
+    assert hit["message"]["params"] == {"c": "farm", "k": 37}
+    assert NODES["B1.mixed"]["method"] == "mixed_model"
+    assert "G.4" not in fired  # GLMM — для долей и счётов, не для измерений
+
+
+def test_01_12_random_grouping_with_counts_still_points_to_glmm():
+    """Счёты жуков в ловушках на шести участках [BioStat]: группировка — правило G.4."""
+    counts = {"site": [s for s in "abcdef" for _ in range(4)],
+              "trap": ["t1", "t2", "t3", "t4"] * 6,
+              "beetles": [3, 0, 5, 2, 7, 4, 9, 6, 1, 0, 2, 1,
+                          12, 8, 15, 10, 4, 3, 6, 2, 0, 1, 0, 2]}
+    fired = _run(counts, {"value": "beetles", "factor_a": "trap", "stratum_1": "site"})
+    assert fired["G.4"]["message"]["params"]["variant"] == "glmm" and "B1.9" not in fired
+
+
+def test_01_12_few_random_levels_only_hint():
+    cols = dict(BY_ID["S25"]["columns"])
+    cols["bench"] = ["b1" if p in ("p1", "p2", "p5", "p6") else "b2" for p in cols["plant"]]
+    hit = _run(cols, {"value": "height", "factor_a": "treatment", "stratum_1": "bench"})["B1.9"]
+    assert hit["strength"] == HINT and hit["message"]["params"]["variant"] == "few"
+
+
+def test_01_12_each_subject_once_in_each_condition_is_rm_anova():
+    """Witte Progress Check 17.2, стр. 331: 6 субъектов × 3 уровня шума."""
+    hit = _stage("S24", "full")["B0.5"]
+    assert hit["strength"] == STRONG and hit["suggests"] == "rm_anova"
+    assert hit["message"]["params"] == {"s": "subject", "c": "condition", "n": 6, "k": 3}
+    assert NODES["B0.rm"]["method"] == "rm_anova"
+    assert "Каждый из 6 объектов" in hit["message"]["message"]
+
+
+def test_01_12_incomplete_repeated_measures_go_to_the_mixed_model():
+    """Тот же опыт без одного измерения: полной таблицы субъект × условие нет."""
+    cols = {k: v[:-1] for k, v in BY_ID["S24"]["columns"].items()}
+    hit = _run(cols, BY_ID["S24"]["stages"]["full"])["B0.5"]
+    assert hit["strength"] == HINT
+    assert hit["message"]["params"]["method"] == "mixed_model"
+
+
+def test_01_12_repeated_scores_point_to_friedman():
+    """Witte Fig. 21.1, стр. 405: баллы в связанных выборках → ранговый тест."""
+    scores = {"judge": [j for j in ("j1", "j2", "j3", "j4", "j5", "j6") for _ in range(3)],
+              "wine": ["a", "b", "c"] * 6,
+              "score": [3, 5, 4, 2, 4, 4, 3, 5, 5, 1, 3, 2, 2, 5, 3, 3, 4, 5]}
+    hit = _run(scores, {"value": "score", "condition": "wine", "subject": "judge"})["B0.5"]
+    assert hit["strength"] == HINT and hit["message"]["params"]["method"] == "friedman"
+
+
+def test_01_12_assigned_pair_selects_the_paired_branch():
+    """Witte Review 15.7, стр. 280: GPA до и после — пара назначена в форме."""
+    hit = _stage("S23", "full")["B0.1"]
+    assert hit["strength"] == STRONG and TARGETS["paired"] == ["B0.paired"]
+    assert _computed(BY_ID["S23"]["columns"], BY_ID["S23"]["stages"]["full"]) == {}
+
+
+def test_01_12_skewed_differences_point_to_wilcoxon():
+    """Разности с длинным правым хвостом (логнормальные квантили): парный t ненадёжен."""
+    before = [round(20 + 2 * z, 2) for z in q(16)]
+    gain = np.exp(1.2 * q(16)[::-1])
+    cols = {"before": before, "after": [round(b + g, 2) for b, g in zip(before, gain)]}
+    hit = _computed(cols, {"before": "before", "after": "after"})["B0.6"]
+    assert hit["strength"] == STRONG and hit["suggests"] == "wilcoxon"
+    assert NODES["B0.paired.w"]["method"] == "wilcoxon" and hit["message"]["params"]["p"] < 0.05
+
+
+def test_01_12_one_wild_pair_is_a_record_to_check_not_a_reason_for_ranks():
+    """Одна пара с опечаткой (разность на порядок больше): подсказка, а не указание."""
+    before = [round(20 + 2 * z, 2) for z in q(12)]
+    after = [round(b + 1 + 0.5 * z, 2) for b, z in zip(before, q(12)[::-1])]
+    after[4] = before[4] + 15
+    hit = _computed({"before": before, "after": after},
+                    {"before": "before", "after": "after"})["B0.6"]
+    assert hit["strength"] == HINT
+    assert hit["message"]["params"]["variant"] == "outlier" and hit["message"]["params"]["row"] == 5

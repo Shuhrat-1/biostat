@@ -33,8 +33,9 @@ SPEC_IDS = (
 WITTE_IDS = ["B0.4", "R2.11"]
 # Добавлены при исправлениях (ноябрь 2026): догадка о числе испытаний m (R2.12),
 # числовые коды вариантов (B2.6, аудит 01-02), колонки без роли (B1.8, B2.7,
-# B2.8, аудит 01-05).
-EXTRA_IDS = ["R2.12", "B2.6", "B1.8", "B2.7", "B2.8"]
+# B2.8, аудит 01-05), связанные измерения и случайная группировка (B0.5, B0.6,
+# B1.9, аудит 01-12).
+EXTRA_IDS = ["R2.12", "B2.6", "B1.8", "B2.7", "B2.8", "B0.5", "B0.6", "B1.9"]
 
 
 def _table(columns: dict[str, list]):
@@ -83,9 +84,12 @@ def test_slot_families_match_frontend_table():
 # --- Реестр ---------------------------------------------------------------------
 
 def test_registry_matches_spec():
-    """56 правил спецификации + правила Witte + R2.12, без дублей; реализованы 40
-    структурных (+ Witte, + R2.12) и 15 расчётных; без реализации только A2.6
-    (проверяет сам метод)."""
+    """56 правил спецификации + правила Witte + добавленные при исправлениях, без дублей.
+
+    Реализованы 40 структурных и 15 расчётных правил спецификации, все
+    добавленные (из них расчётное одно — B0.6); без реализации только A2.6
+    (проверяет сам метод).
+    """
     from core.validation import recognizers  # noqa: F401
 
     ids = [r.id for r in rz.REGISTRY]
@@ -93,8 +97,9 @@ def test_registry_matches_spec():
     assert sorted(ids) == sorted(SPEC_IDS + added)
     assert len(ids) == len(set(ids)) == 56 + len(added)
     done = [r for r in rz.REGISTRY if r.fn is not None]
-    assert sum(r.cls == rz.STRUCTURAL for r in done) == 40 + len(added)
-    assert sum(r.cls == rz.COMPUTED for r in done) == 15
+    assert sum(r.cls == rz.STRUCTURAL for r in done) == 40 + len(added) - 1
+    assert sorted(r.id for r in done if r.cls == rz.COMPUTED and r.id in added) == ["B0.6"]
+    assert sum(r.cls == rz.COMPUTED for r in done) == 15 + 1
     assert [r.id for r in rz.REGISTRY if r.fn is None] == ["A2.6"]
     for r in rz.REGISTRY:
         assert r.strength in (rz.STRONG, rz.HINT) and r.source

@@ -331,6 +331,11 @@ def numeric_codes(ctx: Context) -> Signal | None:
 
 @rule("B0.1", "B0", "paired", HINT, "предл.")
 def before_after_names(ctx: Context) -> Signal | None:
+    first, second = ctx.role("before"), ctx.role("after")
+    if first and second:  # пара назначена в форме: связанность известна
+        return Signal("«{a}» и «{b}» назначены как два измерения одних объектов: парный"
+                      " анализ.", {"a": first, "b": second, "variant": "assigned"},
+                      strength=STRONG)
     nums = ctx.columns_of("numeric")
     before = [c for c in nums if names.is_before(c)]
     after = [c for c in nums if names.is_after(c) and c not in before]
@@ -382,6 +387,39 @@ def _measured_repeatedly(ctx: Context, obj: str, time: str) -> bool:
         return False
     times = Counter(o for o, _ in cells)
     return min(times.values()) >= 2
+
+
+@rule("B0.5", "B0", "rm_anova", STRONG, "Witte гл. 17, стр. 405; кн. стр. 100")
+def repeated_conditions(ctx: Context) -> Signal | None:
+    """Субъекты, измеренные в нескольких условиях (роли формы повторных измерений).
+
+    Каждый субъект ровно раз в каждом условии — ANOVA повторных измерений
+    (Witte, гл. 17); баллы — ранговый аналог, тест Фридмана (Witte, Fig. 21.1);
+    при пропусках и повторах полной таблицы нет — смешанная модель [кн. стр. 100].
+    """
+    subject, condition = ctx.role("subject"), ctx.role("condition")
+    v = _response_values(ctx)
+    if not (subject and condition) or v is None:
+        return None
+    cells = Counter((s, c) for s, c, x in zip(ctx.labels(subject), ctx.labels(condition), v)
+                    if s and c and not np.isnan(x))
+    n, k = len({s for s, _ in cells}), len({c for _, c in cells})
+    if n < 2 or k < 2:
+        return None
+    params = {"s": subject, "c": condition, "n": n, "k": k}
+    if len(cells) < n * k or set(cells.values()) != {1}:
+        return Signal("Не каждый объект «{s}» измерен ровно раз в каждом условии «{c}»:"
+                      " ANOVA повторных измерений неприменим — смешанная модель.",
+                      {**params, "method": "mixed_model", "variant": "incomplete"},
+                      strength=HINT)
+    if _score_like(_valid(v)):
+        return Signal("Каждый объект «{s}» измерен в каждом из {k}"
+                      " {k|условия|условий|условий} «{c}», отклик — немного целых значений"
+                      " (баллы?): тест Фридмана.",
+                      {**params, "method": "friedman", "variant": "scores"}, strength=HINT)
+    return Signal("Каждый из {n} {n|объекта|объектов|объектов} «{s}» измерен ровно раз в"
+                  " каждом из {k} {k|условия|условий|условий} «{c}»: ANOVA повторных"
+                  " измерений.", params)
 
 
 # --- B1. Структура единиц ------------------------------------------------------
@@ -619,6 +657,35 @@ def unassigned_units(ctx: Context) -> Signal | None:
     return Signal("В каждом уровне «{c}» — часть вариантов, каждый не более раза: похоже на"
                   " неполные блоки — анализ без этой колонки тогда неверен.",
                   {"c": unit.name, "branch": "B1", "variant": "incomplete"})
+
+
+def _discrete_response(ctx: Context) -> bool:
+    """Отклик — доля или счёт: форма ветки GLM, 0/1 или неотрицательные целые."""
+    return (in_glm_branch(ctx) or binary_response(ctx) is not None
+            or count_response(ctx) is not None)
+
+
+_MIN_RANDOM_LEVELS = 5  # меньше — компонента дисперсии оценивается плохо [BioStat]
+
+
+@rule("B1.9", "B1", "mixed_model", STRONG, "кн. стр. 427–428; порог BioStat")
+def random_grouping_continuous(ctx: Context) -> Signal | None:
+    """Случайная группировка при непрерывном отклике — смешанная модель.
+
+    GLMM — для долей и счётов (правило G.4); для измерений книга ведёт к
+    линейной смешанной модели [кн. стр. 427–428].
+    """
+    stratum = ctx.role("stratum_1")
+    if stratum is None or _response_values(ctx) is None or _discrete_response(ctx):
+        return None
+    k = len(_levels(ctx, stratum))
+    if k >= _MIN_RANDOM_LEVELS:
+        return Signal("«{c}» — случайная группировка ({k} {k|уровень|уровня|уровней}),"
+                      " отклик непрерывный: смешанная модель.", {"c": stratum, "k": k})
+    return Signal("«{c}» — случайная группировка, но {k|уровень|уровня|уровней} всего {k}:"
+                  " смешанная модель оценит разброс между ними ненадёжно — возможно,"
+                  " лучше фиксированный блок.",
+                  {"c": stratum, "k": k, "variant": "few"}, strength=HINT)
 
 
 # --- B2. Структура вариантов ---------------------------------------------------
@@ -949,10 +1016,10 @@ def binary_trials(ctx: Context) -> Signal | None:
 @rule("G.4", "G", "glmm_or_block", HINT, "предл.")
 def random_grouping(ctx: Context) -> Signal | None:
     stratum = ctx.role("stratum_1")
-    if stratum is None:
+    if stratum is None or not _discrete_response(ctx):  # измерения — правило B1.9
         return None
     k = len(_levels(ctx, stratum))
-    if k >= 5:
+    if k >= _MIN_RANDOM_LEVELS:
         return Signal("У «{c}» {k} {k|уровень|уровня|уровней}: подходит как случайный фактор"
                       " (GLMM).",
                       {"c": stratum, "k": k, "variant": "glmm"})

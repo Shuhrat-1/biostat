@@ -280,6 +280,61 @@ def nonnormal_residuals(ctx: Context) -> Signal | None:
     return Signal("Остатки модели отклоняются от нормальности (Шапиро–Уилк p = {p}).", params)
 
 
+_MIN_PAIRS = 6  # меньше — Шапиро–Уилк почти ничего не замечает [BioStat]
+
+
+def _differences(ctx: Context) -> tuple[np.ndarray, np.ndarray] | None:
+    """Разности «после − до» по полным парам и номера их строк."""
+    a, b = ctx.role("before"), ctx.role("after")
+    if not (a and b):
+        return None
+    d = ctx.numbers(b) - ctx.numbers(a)
+    rows = np.flatnonzero(~np.isnan(d))
+    return (d[rows], rows + 1) if rows.size >= _MIN_PAIRS and np.ptp(d[rows]) > 0 else None
+
+
+def _lone_outlier(d: np.ndarray) -> int | None:
+    """Позиция разности, которая одна и ломает нормальность, иначе None.
+
+    Кандидат — самое крайнее значение по тесту выброса с поправкой Бонферрони.
+    Выбросом он считается, только если остальные разности от нормальности не
+    отклоняются: у скошенных разностей хвост остаётся и без него (тот же
+    принцип, что для выбросов в ANOVA: признаки проверяются без кандидата).
+    """
+    r = (d - d.mean()) / (d.std(ddof=1) * np.sqrt(1 - 1 / d.size))
+    worst = outlier_candidate(r, d.size - 1)
+    if worst is None:
+        return None
+    rest = np.delete(d, worst)
+    alone = np.ptp(rest) > 0 and float(stats.shapiro(rest[:_SHAPIRO_MAX]).pvalue) >= _ALPHA
+    return worst if alone else None
+
+
+@rule("B0.6", "B0", "wilcoxon", STRONG, "кн. стр. 41, 101; порог BioStat", cls=COMPUTED)
+def nonnormal_differences(ctx: Context) -> Signal | None:
+    """Парный t-тест требует нормальности разностей, а не самих измерений.
+
+    Одна резко выделяющаяся пара ломает нормальность сама: тогда это
+    подсказка «проверьте запись», как для выбросов в ANOVA [кн. стр. 109–110].
+    """
+    pairs = _differences(ctx)
+    if pairs is None:
+        return None
+    d, rows = pairs
+    p = float(stats.shapiro(d[:_SHAPIRO_MAX]).pvalue)
+    if p >= _ALPHA or (d.size > 30 and abs(float(stats.skew(d))) <= 0.5):
+        return None
+    params = {"a": ctx.role("before"), "b": ctx.role("after"), "p": round(p, 4)}
+    worst = _lone_outlier(d)
+    if worst is not None:
+        return Signal("Разности «{b}» − «{a}» отклоняются от нормальности (Шапиро–Уилк"
+                      " p = {p}) — возможно, из-за одной пары в строке {row}: сначала"
+                      " проверьте запись.",
+                      {**params, "row": int(rows[worst]), "variant": "outlier"}, strength=HINT)
+    return Signal("Разности «{b}» − «{a}» отклоняются от нормальности (Шапиро–Уилк p = {p}):"
+                  " знаково-ранговый тест Уилкоксона вместо парного t.", params)
+
+
 def _outlier_candidates(fit: Fit) -> np.ndarray:
     """Позиции наблюдений — кандидатов в выбросы, от самого крайнего.
 
@@ -391,7 +446,8 @@ def heterogeneous_variances(ctx: Context) -> Signal | None:
             return Signal("SD двух групп различаются в {sd_ratio} {sd_ratio|раз|раза|раз},"
                           " но в меньшей группе всего {n_min}"
                           " {n_min|наблюдение|наблюдения|наблюдений}: по таким выборкам"
-                          " о дисперсиях судить нельзя.", {**p, "variant": "small_n"}, strength=HINT)
+                          " о дисперсиях судить нельзя.", {**p, "variant": "small_n"},
+                          strength=HINT)
         if case == "welch_liberal":
             return Signal("SD различаются в {sd_ratio} {sd_ratio|раз|раза|раз} при неравных n"
                           " (в {n_ratio} {n_ratio|раз|раза|раз}),"

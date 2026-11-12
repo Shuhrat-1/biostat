@@ -193,7 +193,15 @@
    "B2.7": "«{c}» полностью скрещена с «{f}» (в каждой комбинации {k} {k|строка|строки|строк}): если это второй фактор — факторный анализ.",
    "B2.8": "Каждый уровень «{c}» относится только к одному варианту «{f}», и в нём несколько строк: строки внутри «{c}» — не независимые повторности (вложенная структура).",
    "B2.8#outer": "Каждый уровень «{f}» относится только к одному уровню «{c}»: «{f}» вложен в «{c}» — вложенный анализ.",
-   "B3.1#single": "У фактора «{c}» один уровень: сравнивать группы не с чем — опишите выборку или сравните её среднее с известным значением."
+   "B3.1#single": "У фактора «{c}» один уровень: сравнивать группы не с чем — опишите выборку или сравните её среднее с известным значением.",
+   "B0.1#assigned": "«{a}» и «{b}» назначены как два измерения одних объектов: парный анализ.",
+   "B0.5": "Каждый из {n} {n|объекта|объектов|объектов} «{s}» измерен ровно раз в каждом из {k} {k|условия|условий|условий} «{c}»: ANOVA повторных измерений.",
+   "B0.5#incomplete": "Не каждый объект «{s}» измерен ровно раз в каждом условии «{c}»: ANOVA повторных измерений неприменим — смешанная модель.",
+   "B0.5#scores": "Каждый объект «{s}» измерен в каждом из {k} {k|условия|условий|условий} «{c}», отклик — немного целых значений (баллы?): тест Фридмана.",
+   "B1.9": "«{c}» — случайная группировка ({k} {k|уровень|уровня|уровней}), отклик непрерывный: смешанная модель.",
+   "B1.9#few": "«{c}» — случайная группировка, но {k|уровень|уровня|уровней} всего {k}: смешанная модель оценит разброс между ними ненадёжно — возможно, лучше фиксированный блок.",
+   "B0.6": "Разности «{b}» − «{a}» отклоняются от нормальности (Шапиро–Уилк p = {p}): знаково-ранговый тест Уилкоксона вместо парного t.",
+   "B0.6#outlier": "Разности «{b}» − «{a}» отклоняются от нормальности (Шапиро–Уилк p = {p}) — возможно, из-за одной пары в строке {row}: сначала проверьте запись."
   },
   "ctx": {
    "R0": {
@@ -424,7 +432,15 @@
    "B2.7": "«{c}» is fully crossed with «{f}» ({k} {k|row|rows} in every combination): if it is a second factor, use a factorial analysis.",
    "B2.8": "Each level of «{c}» belongs to a single treatment of «{f}» and holds several rows: rows within «{c}» are not independent replicates (nested structure).",
    "B2.8#outer": "Each level of «{f}» belongs to a single level of «{c}»: «{f}» is nested within «{c}» — use a nested analysis.",
-   "B3.1#single": "Factor «{c}» has a single level: there is nothing to compare the group with — describe the sample or compare its mean with a known value."
+   "B3.1#single": "Factor «{c}» has a single level: there is nothing to compare the group with — describe the sample or compare its mean with a known value.",
+   "B0.1#assigned": "«{a}» and «{b}» are assigned as two measurements of the same units: paired analysis.",
+   "B0.5": "Each of the {n} {n|unit|units} «{s}» is measured exactly once in each of the {k} {k|condition|conditions} «{c}»: repeated-measures ANOVA.",
+   "B0.5#incomplete": "Not every unit «{s}» is measured exactly once in every condition «{c}»: repeated-measures ANOVA does not apply — use a mixed model.",
+   "B0.5#scores": "Every unit «{s}» is measured in each of the {k} {k|condition|conditions} «{c}», and the response is a few integer values (scores?): Friedman test.",
+   "B1.9": "«{c}» is a random grouping ({k} {k|level|levels}) and the response is continuous: mixed model.",
+   "B1.9#few": "«{c}» is a random grouping, but it has only {k} {k|level|levels}: a mixed model will estimate the spread between them poorly — a fixed block may be better.",
+   "B0.6": "The differences «{b}» − «{a}» depart from normality (Shapiro–Wilk p = {p}): use the Wilcoxon signed-rank test instead of the paired t.",
+   "B0.6#outlier": "The differences «{b}» − «{a}» depart from normality (Shapiro–Wilk p = {p}) — possibly because of one pair in row {row}: check the record first."
   },
   "ctx": {
    "R0": {
@@ -655,7 +671,15 @@
    "B2.7": "«{c}» está totalmente cruzada com «{f}» ({k} {k|linha|linhas} em cada combinação): se for um segundo fator, use a análise fatorial.",
    "B2.8": "Cada nível de «{c}» pertence a um único tratamento de «{f}» e tem várias linhas: as linhas dentro de «{c}» não são repetições independentes (estrutura hierárquica).",
    "B2.8#outer": "Cada nível de «{f}» pertence a um único nível de «{c}»: «{f}» está aninhado em «{c}» — use a análise hierárquica.",
-   "B3.1#single": "O fator «{c}» tem um único nível: não há com que comparar o grupo — descreva a amostra ou compare a média com um valor conhecido."
+   "B3.1#single": "O fator «{c}» tem um único nível: não há com que comparar o grupo — descreva a amostra ou compare a média com um valor conhecido.",
+   "B0.1#assigned": "«{a}» e «{b}» estão indicadas como duas medições das mesmas unidades: análise emparelhada.",
+   "B0.5": "Cada uma das {n} {n|unidade|unidades} «{s}» é medida exatamente uma vez em cada uma das {k} {k|condição|condições} «{c}»: ANOVA de medidas repetidas.",
+   "B0.5#incomplete": "Nem todas as unidades «{s}» são medidas exatamente uma vez em cada condição «{c}»: a ANOVA de medidas repetidas não se aplica — use um modelo misto.",
+   "B0.5#scores": "Cada unidade «{s}» é medida em cada uma das {k} {k|condição|condições} «{c}» e a resposta são poucos valores inteiros (pontuações?): teste de Friedman.",
+   "B1.9": "«{c}» é um agrupamento aleatório ({k} {k|nível|níveis}) e a resposta é contínua: modelo misto.",
+   "B1.9#few": "«{c}» é um agrupamento aleatório, mas tem apenas {k} {k|nível|níveis}: o modelo misto estima mal a variação entre eles — talvez seja melhor um bloco fixo.",
+   "B0.6": "As diferenças «{b}» − «{a}» afastam-se da normalidade (Shapiro–Wilk p = {p}): teste de Wilcoxon dos postos sinalizados em vez do t emparelhado.",
+   "B0.6#outlier": "As diferenças «{b}» − «{a}» afastam-se da normalidade (Shapiro–Wilk p = {p}) — possivelmente por causa de um par na linha {row}: verifique primeiro o registo."
   },
   "ctx": {
    "R0": {
