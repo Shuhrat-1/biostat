@@ -596,7 +596,7 @@ CATALOG: list[MethodSpec] = [
     ),
     MethodSpec(
         method="mean_comparisons",
-        label="Сравнения средних с поправкой (Тьюки, Даннет, FDR)",
+        label="Сравнения средних с поправкой (Тьюки, Даннет, Холм, FDR)",
         group="Сравнение нескольких групп",
         slots={"value": _NUM, "group": _FACTOR, "block": _FACTOR},
         slot_labels={
@@ -606,7 +606,7 @@ CATALOG: list[MethodSpec] = [
         },
         params=[
             Param("procedure", "Процедура", "select", "tukey",
-                  options=["tukey", "dunnett", "bonferroni", "fdr", "lsd", "alsd"]),
+                  options=["tukey", "dunnett", "holm", "bonferroni", "fdr", "lsd", "alsd"]),
             Param("control", "Контрольный уровень (для сравнений с контролем)", "text", ""),
             Param("alternative", "Гипотеза", "select", "two-sided",
                   options=["two-sided", "greater", "less"]),

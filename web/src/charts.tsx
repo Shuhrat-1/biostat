@@ -211,19 +211,30 @@ function qqOption(qq: NonNullable<PlotBundle["qq"]>, t: T): Option {
 }
 
 function residualOption(r: NonNullable<PlotBundle["residual_vs_fitted"]>, t: T): Option {
+  const points = r.fitted.map((f, i) => [f, r.residuals[i]]);
+  const series: Record<string, unknown>[] = [{
+    type: "scatter",
+    data: points.filter((_, i) => i !== r.outlier),
+    symbolSize: 6,
+    itemStyle: { color: c.accent, opacity: 0.6 },
+    markLine: { silent: true, symbol: "none", lineStyle: { color: MUTED_LINE, type: "dashed" },
+      data: [{ yAxis: 0 }] },
+  }];
+  if (r.outlier !== undefined && points[r.outlier]) {
+    // Кандидат в выбросы: крупная красная точка с подписью — сначала проверить запись.
+    series.push({
+      type: "scatter", name: t("plot.outlier"), data: [points[r.outlier]], symbolSize: 12,
+      itemStyle: { color: RED },
+      label: { show: true, position: "right", color: RED, formatter: t("plot.outlier") },
+      tooltip: { formatter: t("plot.outlierHint") },
+    });
+  }
   return {
     grid: BASE_GRID,
     tooltip: { trigger: "item" },
     xAxis: { type: "value", scale: true, name: t("axis.fitted"), ...AXIS_STYLE },
     yAxis: { type: "value", scale: true, name: t("axis.residuals"), ...AXIS_STYLE },
-    series: [{
-      type: "scatter",
-      data: r.fitted.map((f, i) => [f, r.residuals[i]]),
-      symbolSize: 6,
-      itemStyle: { color: c.accent, opacity: 0.6 },
-      markLine: { silent: true, symbol: "none", lineStyle: { color: MUTED_LINE, type: "dashed" },
-        data: [{ yAxis: 0 }] },
-    }],
+    series,
   };
 }
 

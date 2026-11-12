@@ -863,6 +863,13 @@ export function MethodPanel({
 }
 
 /** Поле ввода параметра метода: число, дробь или выбор из вариантов. */
+/** Подпись варианта списка: перевод по ключу opt.<параметр>.<значение>, иначе само значение. */
+function optionLabel(t: (key: string) => string, param: string, value: string): string {
+  const key = `opt.${param}.${value}`;
+  const label = t(key);
+  return label === key ? value : label;
+}
+
 function ParamField({
   param,
   value,
@@ -905,7 +912,7 @@ function ParamField({
         >
           {param.options.map((opt) => (
             <option key={opt} value={opt}>
-              {opt}
+              {optionLabel(t, param.name, opt)}
             </option>
           ))}
         </select>

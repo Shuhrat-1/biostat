@@ -231,6 +231,23 @@ def test_01_01_skewed_data_are_not_called_outliers():
     assert "outlier_row" not in fired["B4.3"]["message"]["params"] and "DIAG.1" not in fired
 
 
+def test_01_01_outlier_does_not_pass_for_skew_it_created_itself():
+    """Признаки асимметрии проверяются без кандидата (решение 11.11.2026).
+
+    Синтетика tests/test_outliers.py: 4 группы по 4, SD ≈ 2; одно значение
+    завышено на 14. Оно само создаёт «SD растёт со средним» (r ≥ 0.8), и на
+    log-шкале уже не выделяется — раньше карта давала уверенный совет log.
+    Без этой строки связи нет, значит это выброс.
+    """
+    from tests.test_outliers import GROUPS
+
+    fired = _run(grouped({f"g{i}": v for i, v in enumerate(GROUPS)}),
+                 {"value": "y", "group": "group"})
+    assert fired["DIAG.1"]["message"]["params"]["rows"] == "13"
+    assert fired["B4.3"]["strength"] == HINT
+    assert fired["B4.3"]["message"]["params"]["outlier_row"] == 13
+
+
 def test_01_01_clean_data_are_untouched():
     assert not {"DIAG.1", "B4.2", "B4.5"} & set(_stage("S05", "one-way"))
 

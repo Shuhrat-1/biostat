@@ -664,7 +664,8 @@ export interface PlotBundle {
     band?: { lower: number[][]; upper: number[][] };
   };
   qq?: { theoretical_quantiles: number[]; sample_quantiles: number[] };
-  residual_vs_fitted?: { fitted: number[]; residuals: number[] };
+  /** outlier — позиция точки-кандидата в выбросы (тест с поправкой Бонферрони). */
+  residual_vs_fitted?: { fitted: number[]; residuals: number[]; outlier?: number };
   /** Средние с ДИ (или ± SE); numeric — уровни-дозы на числовой оси. */
   means_ci?: {
     items: { label: string; mean: number; lower: number; upper: number; x?: number }[];
@@ -925,6 +926,14 @@ try:
 except Exception:
     pass
 _bundle = {k: v for k, v in _bundle.items() if v is not None}
+
+# Кандидат в выбросы отмечается на графике остатков всегда (тест Бонферрони для
+# самого крайнего остатка), даже если карта сигнала о выбросе не показывает.
+try:
+    from core.stats.outliers import mark_residual_plot as _mark_outlier
+    _mark_outlier(_bundle, _method, _res.statistics)
+except Exception:
+    pass
 
 json.dumps(_bundle, ensure_ascii=False, allow_nan=False)
 `;

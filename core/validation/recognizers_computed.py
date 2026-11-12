@@ -20,6 +20,7 @@ from functools import wraps
 import numpy as np
 from scipy import stats
 
+from core.stats.outliers import outlier_candidate
 from core.stats.welch_rule import welch_advice
 from core.validation.recognize import COMPUTED, HINT, STRONG, Context, Rule, Signal, rule
 from core.validation.recognizers import (
@@ -151,13 +152,22 @@ def _groups(ctx: Context) -> list[np.ndarray]:
     return ctx.memo("groups", lambda: _split_groups(ctx))
 
 
-def _split_groups(ctx: Context) -> list[np.ndarray]:
+def _split_groups(ctx: Context, drop: int | None = None) -> list[np.ndarray]:
+    """Группы по вариантам; ``drop`` — номер строки файла, которую не учитывать."""
     resp = ctx.response
     if not (resp and ctx.factor):
         return []
     y, labels = ctx.numbers(resp), np.array(_treatment_labels(ctx), dtype=object)
-    ok = ~np.isnan(y) & (labels != "")
+    ok = ~np.isnan(y) & (labels != "") & _kept(y.size, drop)
     return [y[ok & (labels == level)] for level in sorted(set(labels[ok]))]
+
+
+def _kept(n: int, drop: int | None) -> np.ndarray:
+    """Маска строк без строки ``drop`` (номера строк файла — с единицы)."""
+    keep = np.ones(n, dtype=bool)
+    if drop is not None:
+        keep[drop - 1] = False
+    return keep
 
 
 @dataclass(frozen=True)
@@ -169,8 +179,10 @@ class Spread:
     df: float
 
 
-def _spreads(ctx: Context) -> list[Spread]:
+def _spreads(ctx: Context, drop: int | None = None) -> list[Spread]:
     """Дисперсии вариантов для проверки однородности (группы с n ≥ 2).
+
+    ``drop`` — номер строки файла, без которой считать (кандидат в выбросы).
 
     Без блоков — выборочные дисперсии групп, как в книге для CRD
     [кн. стр. 105–107]. С блоком книга формального теста не даёт (для RCBD —
@@ -180,12 +192,13 @@ def _spreads(ctx: Context) -> list[Spread]:
     if not (ctx.response and ctx.factor):
         return []
     if ctx.role("block") or _covariate(ctx) is not None:
-        return ctx.memo("spreads", lambda: _adjusted(ctx))
+        return ctx.memo(f"spreads:{drop}", lambda: _adjusted(ctx, drop))
+    groups = _groups(ctx) if drop is None else _split_groups(ctx, drop)
     return [Spread(float(g.mean()), float(g.var(ddof=1)), g.size - 1.0)
-            for g in _groups(ctx) if g.size >= 2]
+            for g in groups if g.size >= 2]
 
 
-def _adjusted(ctx: Context) -> list[Spread]:
+def _adjusted(ctx: Context, drop: int | None = None) -> list[Spread]:
     """Дисперсии вариантов по остаткам модели y ~ вариант (+ блок) (+ ковариата) [предл.].
 
     Сырой разброс варианта в блочном опыте включает различия блоков, а при
@@ -196,7 +209,7 @@ def _adjusted(ctx: Context) -> list[Spread]:
     """
     y, z = ctx.numbers(ctx.response), _covariate(ctx)
     cells = np.array(_treatment_labels(ctx), dtype=object)
-    ok = ~np.isnan(y) & (cells != "")
+    ok = ~np.isnan(y) & (cells != "") & _kept(y.size, drop)
     parts = []
     if ctx.role("block"):
         blocks = np.array(ctx.labels(ctx.role("block")), dtype=object)
@@ -267,34 +280,41 @@ def nonnormal_residuals(ctx: Context) -> Signal | None:
 
 
 def _outlier_candidates(fit: Fit) -> np.ndarray:
-    """Позиции наблюдений — кандидатов в выбросы.
+    """Позиции наблюдений — кандидатов в выбросы, от самого крайнего.
 
     Два признака: (1) правило DIAG.1 по стандартизованным остаткам; (2) тест
-    выброса по удалённому остатку с поправкой Бонферрони [предл.: Cook &
-    Weisberg 1982] — он работает и на малых опытах, где |r| не может
-    превысить √(n − p), а значит порог 3 недостижим.
+    выброса для самого крайнего наблюдения с поправкой Бонферрони
+    (:mod:`core.stats.outliers`) — он работает и на малых опытах.
     """
     r = fit.standardized()
     hits = set(np.flatnonzero(np.abs(r) > 2)) if _too_many_large(np.abs(r)) else set()
-    df = fit.df - 1
-    if df >= 1:
-        inside = r**2 < fit.df
-        t = np.where(inside, r * np.sqrt(df / np.clip(fit.df - r**2, 1e-12, None)), np.inf)
-        p = 2 * stats.t.sf(np.abs(t), df) * r.size
-        hits |= set(np.flatnonzero(p < _ALPHA))
+    worst = outlier_candidate(r, fit.df)
+    if worst is not None:
+        hits.add(worst)
     return np.array(sorted(hits, key=lambda i: -abs(r[i])), dtype=int)
 
 
-def _log_scale_clears(ctx: Context, fit: Fit) -> bool:
+def _skewed_without(ctx: Context, row: int) -> bool:
+    """Данные скошены и без строки-кандидата: асимметрия или SD растёт со средним.
+
+    Признаки считаются без кандидата, потому что один выброс сам создаёт и
+    асимметрию, и «связь» SD со средним (на трёх группах — в 70 % случаев).
+    """
+    v = ctx.numbers(ctx.response).copy()
+    v[row - 1] = np.nan
+    v = v[~np.isnan(v)]
+    right = v.size >= 8 and v.min() > 0 and float(stats.skew(v)) > 1
+    return right or _tracks_mean(_spreads(ctx, drop=row)) is not None
+
+
+def _log_scale_clears(ctx: Context, fit: Fit, hits: np.ndarray) -> bool:
     """Крайнее значение объясняется шкалой: на log-шкале кандидатов в выбросы нет.
 
-    При правой асимметрии или SD, растущей со средним, большие значения
-    ожидаемы; выбросом считается то, что выделяется и после преобразования,
-    которое книга для таких данных и предлагает [кн. стр. 113–116].
+    Если данные скошены и без кандидата, большие значения ожидаемы; выбросом
+    считается то, что выделяется и после преобразования, которое книга для
+    таких данных и предлагает [кн. стр. 113–116].
     """
-    skewed = (ctx.memo("sd_mean", lambda: _sd_tracks_mean(ctx)) is not None
-              or right_skew(ctx) is not None)
-    if not skewed or fit.y.min() <= 0:
+    if fit.y.min() <= 0 or not _skewed_without(ctx, int(fit.rows[hits[0]])):
         return False
     logged = _ols(np.log(fit.y), fit.X, fit.rows)
     return logged is not None and _outlier_candidates(logged).size == 0
@@ -307,7 +327,7 @@ def _outlier_row(ctx: Context) -> int | None:
         if fit is None or fit.df < 3:
             return None
         hits = _outlier_candidates(fit)
-        if hits.size == 0 or _log_scale_clears(ctx, fit):
+        if hits.size == 0 or _log_scale_clears(ctx, fit, hits):
             return None
         return int(fit.rows[hits[0]])
 
@@ -398,7 +418,11 @@ def _skew_explains_spread(ctx: Context) -> bool:
 
 def _sd_tracks_mean(ctx: Context) -> float | None:
     """r между log SD и log среднего групп; None — связи нет [BioStat]."""
-    spreads = _spreads(ctx)
+    return _tracks_mean(_spreads(ctx))
+
+
+def _tracks_mean(spreads: list[Spread]) -> float | None:
+    """Связь SD и среднего по готовым дисперсиям групп (≥ 3 групп, SD ×2, r ≥ 0.8)."""
     means = np.array([s.mean for s in spreads])
     if len(spreads) < 3 or means.min() <= 0:
         return None
@@ -640,16 +664,14 @@ def outliers(ctx: Context) -> Signal | None:
     fit = model_fit(ctx)
     if fit is None or fit.df < 3:
         return None
-    if not ctx.role("x") and _log_scale_clears(ctx, fit):
-        return None  # большие значения — свойство шкалы, а не ошибки записи
+    hits = _outlier_candidates(fit)
+    if hits.size == 0 or (not ctx.role("x") and _log_scale_clears(ctx, fit, hits)):
+        return None  # нет кандидатов, или большие значения — свойство шкалы
     r = np.abs(fit.standardized())
     big = fit.rows[r > 2]
     if _too_many_large(r):
         return Signal("|Стандартизованный остаток| > 2 у {k} наблюдений (строки {rows}):"
                       " проверьте записи.", {"k": int(big.size), "rows": _row_list(big)})
-    hits = _outlier_candidates(fit)
-    if hits.size == 0:
-        return None
     return Signal("Наблюдение в строке {rows} резко выделяется на фоне остальных (тест"
                   " выброса с поправкой Бонферрони): проверьте запись.",
                   {"rows": _row_list(fit.rows[hits]), "variant": "single"})

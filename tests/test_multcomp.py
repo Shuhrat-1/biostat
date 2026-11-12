@@ -119,6 +119,34 @@ def test_lupin_bonferroni_range() -> None:
     assert _different(result) == {"DTN108", "DTN31"}
 
 
+def test_lupin_holm_matches_multipletests_and_is_not_weaker_than_bonferroni() -> None:
+    """Поправка Холма [предл.: Holm 1979] на данных Example 8.7 (стр. 204).
+
+    P совпадают с ``multipletests(method="holm")``; Холм никогда не слабее
+    Бонферрони: P не больше, значимых сравнений не меньше; ДИ — шириной Бонферрони.
+    """
+    from statsmodels.stats.multitest import multipletests
+
+    holm, bonf = _run("holm"), _run("bonferroni")
+    rows_h, rows_b = holm.parameters["comparisons"], bonf.parameters["comparisons"]
+    raw = [r["p_unadjusted"] for r in rows_h]
+    assert [r["p_adjusted"] for r in rows_h] == pytest.approx(multipletests(raw, method="holm")[1])
+    assert all(h["p_adjusted"] <= b["p_adjusted"] + 1e-12 for h, b in zip(rows_h, rows_b))
+    assert _different(holm) >= _different(bonf) == {"DTN108", "DTN31"}
+    assert _range(holm) == pytest.approx(_range(bonf))
+
+
+def test_holm_finds_more_than_bonferroni_when_several_effects_are_real() -> None:
+    """Три варианта против контроля, все эффекты близки: Холм значим там, где Бонферрони нет."""
+    y = [10.0, 10.9, 9.2, 9.9, 12.3, 11.4, 11.3, 10.6, 10.53, 11.23, 11.33, 12.23,
+         11.16, 10.46, 12.16, 11.26]  # синтетика: сырые P 0.015, 0.019, 0.025
+    g = [lab for lab in ("ctrl", "a", "b", "c") for _ in range(4)]
+    holm = mean_comparisons(y, g, procedure="holm", control="ctrl")
+    bonf = mean_comparisons(y, g, procedure="bonferroni", control="ctrl")
+    sig = lambda res: [r["significant"] for r in res.parameters["comparisons"]]  # noqa: E731
+    assert sum(sig(holm)) == 3 and sum(sig(bonf)) == 1
+
+
 def test_lupin_tukey_and_alsd() -> None:
     """Книга: Example 8.7, Fig. 8.10 (стр. 204).
 

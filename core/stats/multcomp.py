@@ -4,6 +4,9 @@
 сравнений: все пары или каждый вариант против контроля. Процедуры:
 
 - ``lsd`` — t-тесты без поправки (8.8.3.1); вместе с ними — наблюдаемый FDR;
+- ``holm`` — пошаговая поправка Холма [предл.: Holm 1979]: тот же контроль
+  вероятности хотя бы одной ложной находки, что у Бонферрони, но никогда не
+  слабее его; ДИ — шириной Бонферрони (своих одновременных ДИ у Холма нет);
 - ``bonferroni`` — α/m на сравнение (8.8.1);
 - ``fdr`` — Бенджамини–Хохберг (8.8.2);
 - ``tukey`` — одновременные ДИ Тьюки, q[t]/√2 × SED (8.8.3.3);
@@ -28,7 +31,7 @@ from core.report.schema import Estimate, Severity, StatResult
 from core.stats.contrasts import means_table, one_factor_fit
 from core.stats.factorial import _design_error, _settings
 
-PROCEDURES = ("lsd", "bonferroni", "fdr", "tukey", "alsd", "dunnett")
+PROCEDURES = ("lsd", "holm", "bonferroni", "fdr", "tukey", "alsd", "dunnett")
 ALTERNATIVES = ("two-sided", "greater", "less")
 
 # Узлы квадратур для распределения Даннета: x ~ N(0, 1), s ~ χ_df/√df.
@@ -101,7 +104,7 @@ def _critical(procedure: str, alpha: float, m: int, fit: dict, alternative: str,
     """Множитель SED для полуширины ДИ (на шкале t)."""
     df, t_levels = fit["df"], len(fit["levels"])
     tails = 2 if alternative == "two-sided" else 1
-    if procedure == "bonferroni":
+    if procedure in ("bonferroni", "holm"):  # у Холма одновременные ДИ — как у Бонферрони
         return float(stats.t.ppf(1 - alpha / (tails * m), df))
     if procedure == "tukey":
         return float(stats.studentized_range.ppf(1 - alpha, t_levels, df) / np.sqrt(2))
@@ -127,6 +130,8 @@ def _adjusted_p(procedure: str, t_stat: np.ndarray, raw: np.ndarray, fit: dict,
     m, df, t_levels = len(raw), fit["df"], len(fit["levels"])
     if procedure == "bonferroni":
         return np.minimum(raw * m, 1.0)
+    if procedure == "holm":
+        return multipletests(raw, method="holm")[1]
     if procedure == "fdr":
         return multipletests(raw, method="fdr_bh")[1]
     if procedure in ("tukey", "alsd"):

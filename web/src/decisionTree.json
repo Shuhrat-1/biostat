@@ -520,7 +520,7 @@
    "parent": "B5",
    "method": "mean_comparisons",
    "preset": {
-    "procedure": "bonferroni"
+    "procedure": "holm"
    }
   },
   {
