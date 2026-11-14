@@ -377,6 +377,27 @@ const METHOD_TITLES: Record<Lang, Dict> = {
   pt: { "glm_analysis.cells": "Previsões por célula do modelo" },
 };
 
+/** Подписи ключей result.statistics; ключа нет — показывается сам ключ (df, F, W…). */
+const STATS: Record<Lang, Dict> = {
+  ru: {
+    skewness: "Асимметрия G₁ (с поправкой на n)",
+    kurtosis: "Эксцесс G₂ (избыточный, с поправкой на n)",
+  },
+  en: {
+    skewness: "Skewness G₁ (adjusted for n)",
+    kurtosis: "Kurtosis G₂ (excess, adjusted for n)",
+  },
+  pt: {
+    skewness: "Assimetria G₁ (corrigida para n)",
+    kurtosis: "Curtose G₂ (em excesso, corrigida para n)",
+  },
+};
+
+/** Подпись статистики: ключ ядра не меняется, формула называется здесь. */
+export function statLabel(key: string, lang: Lang): string {
+  return STATS[lang][key] ?? STATS.ru[key] ?? key;
+}
+
 /** Заголовок блока по ключу ядра (с учётом метода, если задан). */
 export function extraTitle(key: string, lang: Lang, method?: string): string {
   const specific = method ? METHOD_TITLES[lang][`${method}.${key}`] : undefined;

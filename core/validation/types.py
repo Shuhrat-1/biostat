@@ -87,6 +87,8 @@ class ColumnProfile:
     n_missing: int
     n_type_mismatch: int
     mismatch_examples: list[str] = field(default_factory=list)
+    # Нечисловые ячейки почти числовой колонки: {"row": строка файла, "value": текст}.
+    mismatch_cells: list[dict[str, Any]] = field(default_factory=list)
     date_formats: dict[str, int] = field(default_factory=dict)
     n_unique: int = 0
     n_duplicates: int = 0
@@ -110,6 +112,7 @@ class ColumnProfile:
             "missing_ratio": self.missing_ratio,
             "n_type_mismatch": self.n_type_mismatch,
             "mismatch_examples": self.mismatch_examples,
+            "mismatch_cells": self.mismatch_cells,
             "date_formats": self.date_formats,
             "n_unique": self.n_unique,
             "n_duplicates": self.n_duplicates,
@@ -155,8 +158,12 @@ def profile_column(
     values: list[str],
     decimal: str = ".",
     force_type: ColumnType | None = None,
+    row_numbers: list[int] | None = None,
 ) -> ColumnProfile:
     """Построить профиль колонки по её значениям.
+
+    ``row_numbers`` — номера строк файла для каждого значения (заголовок —
+    строка 1, пустые строки считаются, как в Excel); без них — 1, 2, 3…
 
     Определяет доминирующий тип, считает пропуски и значения, не
     подходящие под тип, собирает примеры проблем.
@@ -203,6 +210,9 @@ def profile_column(
         n_duplicates=n_duplicates,
         date_formats=dict(date_formats),
     )
+
+    if len(numeric_ok) < len(present):
+        profile.mismatch_cells = _non_numeric_cells(values, decimal, row_numbers)
 
     # Ручное переопределение имеет приоритет над автоопределением.
     if force_type is not None:
@@ -257,6 +267,52 @@ def profile_column(
     return profile
 
 
+def _non_numeric_cells(values: list[str], decimal: str,
+                       row_numbers: list[int] | None = None) -> list[dict[str, Any]]:
+    """Первые нечисловые ячейки колонки: номер строки файла и значение.
+
+    Номер — тот, что пользователь видит в Excel: заголовок — строка 1,
+    пустые строки считаются.
+
+    Одна ячейка «<0.1» или «3.l» превращает числовую колонку в текст; без
+    адреса её не найти (аудит 02-09). Ядро только называет — не исправляет.
+    """
+    numbers = row_numbers or range(1, len(values) + 1)
+    cells = [{"row": i, "value": v.strip()} for i, v in zip(numbers, values)
+             if not is_missing(v) and parse_number(v, decimal) is None]
+    return cells[:_MAX_EXAMPLES]
+
+
+def _cells_text(cells: list[dict[str, Any]]) -> str:
+    """«7: '<0.1'; 12: '3.l'» — строка: значение."""
+    return "; ".join(f"{c['row']}: {c['value']!r}" for c in cells)
+
+
+def _case_twins(present: list[str], limit: int = 3) -> list[str]:
+    """Метки, совпадающие без учёта регистра: «A / a». Объединять их ядро не станет."""
+    forms: dict[str, list[str]] = {}
+    for value in present:
+        label = value.strip()
+        bucket = forms.setdefault(label.casefold(), [])
+        if label not in bucket:
+            bucket.append(label)
+    return [" / ".join(f) for f in forms.values() if len(f) > 1][:limit]
+
+
+def _add_case_issue(profile: ColumnProfile, present: list[str]) -> None:
+    """Заметка о метках, различающихся только регистром (это разные группы)."""
+    twins = _case_twins(present)
+    if twins:
+        profile.issues.append(
+            msg(
+                "labels_differ_by_case",
+                f"Метки различаются только регистром: {'; '.join(twins)}. "
+                f"В расчётах это разные группы.",
+                labels="; ".join(twins),
+            )
+        )
+
+
 def _has_fractional(values: list[str], decimal: str) -> bool:
     """Есть ли среди значений дробные числа.
 
@@ -290,6 +346,8 @@ def _apply_forced_type(
     else:
         profile.detected_type = ColumnType.CATEGORICAL
         profile.confidence = 1.0
+        profile.mismatch_cells = []
+        _add_case_issue(profile, present)
 
 
 def _fill_id(profile: ColumnProfile, present: list[str]) -> None:
@@ -327,13 +385,15 @@ def _fill_numeric(
     profile.n_type_mismatch = len(bad)
     profile.mismatch_examples = bad[:_MAX_EXAMPLES]
     if bad:
+        cells = _cells_text(profile.mismatch_cells)
         profile.issues.append(
             msg(
                 "numeric_intruders",
                 f"В числовой колонке {len(bad)} нечисловых значений "
-                f"(примеры: {', '.join(repr(v) for v in bad[:3])})",
+                f"(строка: значение — {cells})",
                 n_bad=len(bad),
                 examples=", ".join(repr(v) for v in bad[:3]),
+                cells=cells,
             )
         )
 
@@ -379,14 +439,20 @@ def _fill_categorical(
     profile.confidence = 1.0 - numeric_ratio
     # Часть значений числовая — возможно, колонка задумана числовой.
     if 0.3 < numeric_ratio < _TYPE_THRESHOLD:
+        cells = _cells_text(profile.mismatch_cells)
         profile.issues.append(
             msg(
                 "mixed_types",
                 f"Смешанные типы: {numeric_ratio:.0%} значений числовые. "
-                f"Возможно, колонка должна быть числовой.",
+                f"Возможно, колонка должна быть числовой. "
+                f"Нечисловые ячейки (строка: значение): {cells}.",
                 numeric_pct=round(numeric_ratio * 100),
+                cells=cells,
             )
         )
+    else:
+        profile.mismatch_cells = []
+    _add_case_issue(profile, present)
 
 
 def _add_missing_issue(profile: ColumnProfile) -> None:
@@ -414,6 +480,7 @@ def profile_table(
     rows: list[list[str]],
     decimal: str = ".",
     type_overrides: dict[str, ColumnType] | None = None,
+    row_numbers: list[int] | None = None,
 ) -> list[ColumnProfile]:
     """Построить профили всех колонок таблицы.
 
@@ -430,6 +497,7 @@ def profile_table(
         for i in range(n_cols):
             columns[i].append(row[i] if i < len(row) else "")
     return [
-        profile_column(name, values, decimal, force_type=overrides.get(name))
+        profile_column(name, values, decimal, force_type=overrides.get(name),
+                       row_numbers=row_numbers)
         for name, values in zip(header, columns)
     ]

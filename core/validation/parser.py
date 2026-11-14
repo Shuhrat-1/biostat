@@ -311,11 +311,16 @@ def parse_file(
         warnings.append(msg("unknown_encoding_utf8",
                             "Неизвестная кодировка, использована UTF-8"))
 
-    rows = [
-        row
-        for row in csv.reader(io.StringIO(text), delimiter=dialect.delimiter)
+    # Номер записи = номер строки в Excel: пустые строки считаются, заголовок — строка 1.
+    numbered = [
+        (number, row)
+        for number, row in enumerate(
+            csv.reader(io.StringIO(text), delimiter=dialect.delimiter), start=1)
         if any(cell.strip() for cell in row)
     ]
+    rows = [row for _, row in numbered]
+    first_data = 1 if dialect.has_header else 0
+    row_numbers = [number for number, _ in numbered][first_data:]
     if not rows:
         return ParsedTable(
             dialect=dialect,
@@ -346,7 +351,8 @@ def parse_file(
 
     overrides_enum = _parse_type_overrides(type_overrides)
     profiles = profile_table(
-        header, body, decimal=dialect.decimal, type_overrides=overrides_enum
+        header, body, decimal=dialect.decimal, type_overrides=overrides_enum,
+        row_numbers=row_numbers[:len(body)],
     )
     return ParsedTable(
         dialect=dialect,

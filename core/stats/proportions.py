@@ -29,6 +29,7 @@ from statsmodels.stats.proportion import (
 from core.report.schema import Severity, StatResult
 
 _ALTERNATIVES = ("two-sided", "less", "greater")
+_MIN_EXPECTED = 5.0  # ниже — χ²- и z-приближения ненадёжны (правило Кокрена)
 _SUCCESS_HINTS = ("1", "yes", "y", "true", "да", "sim", "s", "success", "+")
 
 
@@ -173,7 +174,25 @@ def _two_fit(x: np.ndarray, n: np.ndarray, alpha: float, alternative: str) -> di
     z, p_z = proportions_ztest(x, n, alternative=alt)
     return {"p1": float(p[0]), "p2": float(p[1]), "diff": float(p[1] - p[0]),
             "ci_lower": float(lo), "ci_upper": float(hi), "z": float(-z), "p": float(p_z),
-            "chi2_equivalent": float(z**2)}
+            "chi2_equivalent": float(z**2), **_exact_and_corrected(x, n, alternative)}
+
+
+def _exact_and_corrected(x: np.ndarray, n: np.ndarray, alternative: str) -> dict[str, float]:
+    """Точный тест Фишера и χ² с поправкой Йейтса — рядом с z-тестом (аудит 02-05).
+
+    z-тест — то же, что χ² Пирсона без поправки (z² = χ²): главный P методов
+    `two_proportions` и `contingency_test` на одной таблице совпадает. Поправка
+    Йейтса определена только для двустороннего теста.
+    """
+    obs = np.array([[x[0], n[0] - x[0]], [x[1], n[1] - x[1]]])
+    # Фишер проверяет отношение шансов группы 1 к группе 2; наша разность — p₂ − p₁.
+    alt = {"two-sided": "two-sided", "greater": "less", "less": "greater"}[alternative]
+    out = {"fisher_p": float(stats.fisher_exact(obs, alternative=alt)[1])}
+    if alternative == "two-sided" and obs.sum(axis=0).min() > 0:
+        chi2_y, p_y, _, exp = stats.chi2_contingency(obs, correction=True)
+        out.update({"chi2_yates": float(chi2_y), "p_yates": float(p_y),
+                    "min_expected": float(exp.min())})
+    return out
 
 
 def two_proportions(
@@ -212,6 +231,12 @@ def two_proportions(
     result.statistics = {**fit, "x1": float(x[0]), "n1": float(n[0]), "x2": float(x[1]),
                          "n2": float(n[1])}
     result.parameters.update(_two_parameters(groups, level, x, n, fit, alpha))
+    if fit.get("min_expected", _MIN_EXPECTED) < _MIN_EXPECTED:
+        result.add_warning(
+            "prop_small_expected",
+            "Ожидаемая частота в одной из ячеек меньше 5: приближение ненадёжно, смотрите "
+            f"точный тест Фишера (P = {fit['fisher_p']:.4f}).",
+            params={"p": f"{fit['fisher_p']:.4f}"})
     return result
 
 

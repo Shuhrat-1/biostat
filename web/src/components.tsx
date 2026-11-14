@@ -14,7 +14,7 @@ import type {
 import { useLang, useT } from "./i18n";
 import { fillColumns } from "./columnFill";
 import { effectRows } from "./effectSize";
-import { columnLabel, extraTitle } from "./extraLabels";
+import { columnLabel, extraTitle, statLabel } from "./extraLabels";
 import { useCoreMessage } from "./coreMessages";
 import { needsCausalityCaveat, type Context } from "./mapState";
 import { c, s, typeBadgeStyle } from "./styles";
@@ -1622,6 +1622,7 @@ function ExtraTables({ params, method }: { params: Raw; method: string }) {
 
 export function ResultPanel({ result, context }: { result: StatResult; context: Context }) {
   const t = useT();
+  const lang = useLang();
   // Наблюдение, а не эксперимент: связь не доказывает причину [кн. стр. 3].
   const caveat = needsCausalityCaveat(result.method, context) ? t("result.observational") : null;
 
@@ -1730,7 +1731,7 @@ export function ResultPanel({ result, context }: { result: StatResult; context: 
         >
           {stats.map(([k, v]) => (
             <div key={k}>
-              <span style={{ color: c.muted }}>{k}</span>{" "}
+              <span style={{ color: c.muted }}>{statLabel(k, lang)}</span>{" "}
               <span style={s.mono}>{formatNumber(v)}</span>
             </div>
           ))}

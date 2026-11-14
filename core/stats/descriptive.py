@@ -85,15 +85,25 @@ def _column_metrics(arr: np.ndarray) -> dict[str, float]:
     return metrics
 
 
-def _shape(arr: np.ndarray) -> dict[str, float]:
-    """Асимметрия и эксцесс (избыточный, по Фишеру); у константы не определены — NaN.
+def sample_shape(arr: np.ndarray) -> tuple[float, float]:
+    """Выборочные асимметрия G₁ и избыточный эксцесс G₂ — с поправкой на n.
 
-    NaN в JSON становится null, в таблице — прочерк. Без этой ветки scipy
-    считает 0/0 с предупреждением о потере точности (аудит 02-04).
+    Те же формулы, что в Excel (SKEW, KURT), SPSS и GenStat (аудит 02-10):
+    G₁ = g₁·√(n(n−1))/(n−2), G₂ = ((n+1)·g₂ + 6)·(n−1)/((n−2)(n−3)).
+    Без поправки (g₁, g₂) оценки смещены к нулю: при n = 15 — 0.76 против 0.85.
+    Правила карты считают g₁ отдельно — их пороги заданы для него.
+    NaN: константа (0/0), G₁ при n < 3, G₂ при n < 4.
     """
-    if np.ptp(arr) == 0:
-        return {"skewness": float("nan"), "kurtosis": float("nan")}
-    return {"skewness": float(stats.skew(arr)), "kurtosis": float(stats.kurtosis(arr))}
+    if arr.size < 3 or np.ptp(arr) == 0:
+        return float("nan"), float("nan")
+    g2 = float(stats.kurtosis(arr, bias=False)) if arr.size >= 4 else float("nan")
+    return float(stats.skew(arr, bias=False)), g2
+
+
+def _shape(arr: np.ndarray) -> dict[str, float]:
+    """Метрики формы для таблицы; NaN в JSON становится null, в таблице — прочерк."""
+    g1, g2 = sample_shape(arr)
+    return {"skewness": g1, "kurtosis": g2}
 
 
 def describe_all(

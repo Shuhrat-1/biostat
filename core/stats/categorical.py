@@ -15,13 +15,16 @@
 
 from __future__ import annotations
 
+import warnings
 from itertools import product
+from typing import Any
 
 import numpy as np
 import pandas as pd
 import statsmodels.api as sm
 from scipy import stats
 from statsmodels.miscmodels.ordinal_model import OrderedModel
+from statsmodels.tools.sm_exceptions import ConvergenceWarning
 
 from core.report.schema import Estimate, Severity, StatResult
 from core.stats.ancova import Terms, _frame, _label, _to_float
@@ -95,11 +98,19 @@ def contingency_test(
     factor_a: list[str],
     factor_b: list[str],
     count: list | None = None,
-    correction: str = "auto",
+    correction: str = "no",
     alpha: float = 0.05,
     column_names: dict[str, str] | None = None,
 ) -> StatResult:
-    """χ² независимости двух классификаций, G², Фишер для 2 × 2, V Крамера (стр. 513)."""
+    """χ² независимости двух классификаций, G², Фишер для 2 × 2, V Крамера (стр. 513).
+
+    По умолчанию χ² Пирсона без поправки Йейтса — и для 2 × 2 (аудит 02-05): так
+    считают обе книги (Welham стр. 513; Witte гл. 19, Review 19.14), и z² теста
+    двух долей равен этому χ². Поправка излишне консервативна [предл.: Agresti];
+    значение с ней для 2 × 2 остаётся в ``chi2_yates`` / ``p_yates``, рядом —
+    точный тест Фишера. ``correction``: "yes" — главный P с поправкой; "auto"
+    оставлено для совместимости и равно "no".
+    """
     if correction not in _CORRECTIONS or not 0 < alpha < 1:
         raise ValueError(f"correction ∈ {_CORRECTIONS}")
     tab = _table(factor_a, factor_b, count)
@@ -119,7 +130,7 @@ def _fill_contingency(tab: pd.DataFrame, correction: str, result: StatResult) ->
     """Статистики, таблицы и предупреждения."""
     obs = tab.to_numpy(float)
     two_by_two = obs.shape == (2, 2)
-    yates = correction == "yes" or (correction == "auto" and two_by_two)
+    yates = correction == "yes" and two_by_two
     chi2, p, df, exp = stats.chi2_contingency(obs, correction=yates)
     g2, p_g2, _, _ = stats.chi2_contingency(obs, correction=False, lambda_="log-likelihood")
     chi2_raw = stats.chi2_contingency(obs, correction=False)[0]
@@ -135,7 +146,9 @@ def _fill_contingency(tab: pd.DataFrame, correction: str, result: StatResult) ->
                               "cramers_v_squared": float(chi2_raw / (n * (min(obs.shape) - 1)))})
     if two_by_two:
         odds, p_f = stats.fisher_exact(obs)
-        result.statistics.update({"fisher_p": float(p_f), "odds_ratio": float(odds)})
+        chi2_y, p_y = stats.chi2_contingency(obs, correction=True)[:2]
+        result.statistics.update({"chi2_yates": float(chi2_y), "p_yates": float(p_y),
+                                  "fisher_p": float(p_f), "odds_ratio": float(odds)})
         result.statistics.update(ratio_intervals(obs, result.parameters.get("alpha", 0.05)))
         # Ориентация OR/RR: событие — первый столбец, группа 1 против группы 2 (строки).
         result.parameters["ratio_orientation"] = {
@@ -178,19 +191,76 @@ def _ordered_fit(frame: pd.DataFrame, x: np.ndarray, link: str, k: int) -> dict:
     exog = x[:, 1:]
     if exog.shape[1] == 0:
         return _null_fit(frame, k)
-    res = OrderedModel(frame["y"].to_numpy(), exog, distr=link).fit(
-        method="bfgs", disp=False, maxiter=2000, gtol=1e-8)
+    res, converged = _settled_fit(OrderedModel(frame["y"].to_numpy(), exog, distr=link))
     p = exog.shape[1]
-    raw = np.asarray(res.params)
+    raw, cov = np.asarray(res.params), _covariance(res)
+    if cov is None:  # гессиан не обратился: оценка на границе, SE нет
+        return {"beta": raw[:p], "llf": float(res.llf), "converged": False, "failed": True,
+                "n_par": raw.size}
+    converged = converged and not _runaway(raw[:p], cov[:p, :p], exog)
     jac = np.zeros((k - 1, raw.size))  # θ1 = c1, θj = c1 + Σ exp(c_i)
     jac[:, p] = 1.0
     for j in range(1, k - 1):
         jac[j:, p + j] = np.exp(raw[p + j])
-    cov = np.asarray(res.cov_params())
     return {"beta": raw[:p], "cov_beta": cov[:p, :p], "theta": np.cumsum(
         np.r_[raw[p], np.exp(raw[p + 1:])]), "cov_theta": jac @ cov @ jac.T,
-        "llf": float(res.llf), "converged": bool(res.mle_retvals.get("converged", True)),
-        "n_par": raw.size}
+        "llf": float(res.llf), "converged": converged, "n_par": raw.size}
+
+
+# [BioStat] Признаки разделения категорий (аудит 02-12); пороги свои, не из книг.
+# Полное: log L > −1e-6·n — модель предсказывает каждую строку наверняка.
+_SEPARATION_LOGLIK = 1e-6
+# Частичное: log L далеко от нуля, но оценка уходит в бесконечность:
+# |β| > 10 при SE > 100 (в логитах на весь наблюдаемый размах столбца).
+_RUNAWAY_BETA, _RUNAWAY_SE = 10.0, 100.0
+
+
+def _covariance(res: Any) -> np.ndarray | None:
+    """Ковариация оценок; None, если гессиан не обращается (частичное разделение)."""
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        try:
+            cov = np.asarray(res.cov_params())
+        except ValueError:
+            return None
+    return cov if np.all(np.isfinite(cov)) else None
+
+
+def _runaway(beta: np.ndarray, cov: np.ndarray, exog: np.ndarray) -> bool:
+    """Коэффициент ушёл в бесконечность: огромные |β| и SE одновременно.
+
+    β и SE умножаются на размах столбца (у индикатора уровня он равен 1),
+    иначе признак зависел бы от единиц ковариаты: наклон на 1 моль/л
+    законно больше наклона на 1 мкмоль/л в миллион раз.
+    """
+    span = np.ptp(exog, axis=0)
+    se = np.sqrt(np.abs(np.diag(cov))) * span
+    return bool(np.any((np.abs(beta) * span > _RUNAWAY_BETA) & ~(se <= _RUNAWAY_SE)))
+
+
+def _settled_fit(model: OrderedModel) -> tuple[Any, bool]:
+    """Подгонка и честный признак сходимости (аудит 02-12).
+
+    Флаг BFGS «не сошлось» часто означает лишь потерю точности у самого
+    максимума и зависит от порядка строк. Поэтому при таком флаге подгонка
+    повторяется от найденной точки: если оценки и log L не сдвинулись —
+    максимум найден. Полное разделение категорий (log L ≈ 0: модель
+    предсказывает каждую строку наверняка, оценки уходят в бесконечность)
+    сходимостью не считается, что бы ни сообщил оптимизатор.
+    """
+    options = {"method": "bfgs", "disp": False, "maxiter": 2000, "gtol": 1e-8}
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", ConvergenceWarning)
+        first = model.fit(**options)
+        if first.llf > -_SEPARATION_LOGLIK * model.nobs:
+            return first, False
+        if first.mle_retvals.get("converged", True):
+            return first, True
+        again = model.fit(start_params=np.asarray(first.params), **options)
+    a, b = np.asarray(first.params), np.asarray(again.params)
+    settled = (bool(np.all(np.abs(b - a) <= 1e-5 * (1 + np.abs(a))))
+               and abs(again.llf - first.llf) <= 1e-8 * max(1.0, abs(first.llf)))
+    return again, settled or bool(again.mle_retvals.get("converged", True))
 
 
 def _null_fit(frame: pd.DataFrame, k: int) -> dict:
@@ -356,6 +426,10 @@ def _fill_ordinal(model: Ordinal, terms: list[tuple[str, ...]], names: dict[str,
     """Подгонка, тесты, коэффициенты, пороги, вероятности и проверка пропорциональности."""
     alpha = result.parameters["alpha"]
     fit, null = model.fit(terms), model.fit([])
+    if fit.get("failed"):  # раньше здесь было необработанное исключение statsmodels
+        result.add_warning("ordinal_not_converged", "Оптимизация не сошлась: возможно полное "
+                           "разделение категорий.", Severity.ERROR)
+        return
     if not fit["converged"]:
         result.add_warning("ordinal_not_converged", "Оптимизация не сошлась: возможно полное "
                            "разделение категорий.", Severity.WARNING)

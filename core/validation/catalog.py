@@ -537,7 +537,7 @@ CATALOG: list[MethodSpec] = [
     ),
     MethodSpec(
         method="nested_anova",
-        label="Вложенный ANOVA (группа / член, контроль)",
+        label="Вложенные варианты: группа / член (оба фактора фиксированы)",
         group="Сравнение нескольких групп",
         slots={"value": _NUM, "group": _FACTOR, "member": _FACTOR, "block": _FACTOR},
         slot_labels={
@@ -551,7 +551,12 @@ CATALOG: list[MethodSpec] = [
             _TRANSFORM_NONE,
             Param("offset", "Сдвиг c", "float", 0.0, min=0.0, max=1000.0),
         ],
-        description="Различия между группами и между членами внутри групп (контроль против остальных).",
+        description=(
+            "Различия между группами и между членами внутри групп (контроль против остальных), "
+            "когда члены — варианты опыта, а строки — независимые делянки (Welham, гл. 8.4). "
+            "Оба фактора фиксированы; если члены — единицы выборки (растения, листья), "
+            "используйте смешанную модель."
+        ),
         optional_slots=("block",),
     ),
     MethodSpec(
@@ -1320,7 +1325,7 @@ CATALOG: list[MethodSpec] = [
             "count": "Частота (если строки — ячейки таблицы; необязательно)",
         },
         params=[
-            Param("correction", "Поправка Йейтса", "select", "auto", options=["auto", "yes", "no"]),
+            Param("correction", "Поправка Йейтса (только 2 × 2)", "select", "no", options=["no", "yes"]),
             Param("alpha", "Уровень значимости α", "float", 0.05, min=0.001, max=0.2),
         ],
         description="Связь двух классификаций: χ² Пирсона, G², Фишер для 2 × 2, V Крамера, остатки.",

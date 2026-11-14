@@ -72,6 +72,7 @@ export interface ColumnProfile {
   missing_ratio: number;
   n_type_mismatch: number;
   mismatch_examples: string[];
+  mismatch_cells: Array<{ row: number; value: string }>;
   date_formats: Record<string, number>;
   n_unique: number;
   n_duplicates: number;

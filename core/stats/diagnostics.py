@@ -20,7 +20,9 @@ from scipy import stats
 from statsmodels.stats.stattools import durbin_watson
 
 from core.report.schema import Severity, StatResult
+from core.stats.descriptive import sample_shape
 from core.stats.guards import refuse_constant
+from core.stats.normality_rule import check_normality
 
 _ASSUMPTION_ALPHA = 0.05
 _SHAPIRO_MIN = 3
@@ -86,18 +88,17 @@ def _standardized(source: StatResult, resid: np.ndarray) -> np.ndarray:
 
 
 def _test_normality(resid: np.ndarray, result: StatResult) -> None:
-    """Тест Шапиро-Уилка на нормальность остатков."""
-    if _SHAPIRO_MIN <= resid.size <= _SHAPIRO_MAX:
-        p = float(stats.shapiro(resid).pvalue)
-        result.statistics["shapiro_p"] = p
-        if p < _ASSUMPTION_ALPHA:
-            result.add_warning(
-                "normality_violated",
-                f"Остатки не прошли тест на нормальность (p={p:.4f}). "
-                f"Рассмотри трансформацию отклика (гл. 6) или "
-                f"непараметрический метод.",
-                Severity.WARNING,
-            )
+    """Шапиро–Уилк по остаткам; вывод — по общему с картой правилу (`normality_rule`)."""
+    check = check_normality(resid, resid.size)
+    if check is None:
+        return
+    result.statistics["shapiro_p"] = check.p
+    if check.violated:
+        result.add_warning(
+            "normality_violated",
+            f"Остатки не прошли тест на нормальность (p = {check.p:.4f}). "
+            "Рассмотрите трансформацию отклика (гл. 6) или непараметрический метод.",
+            Severity.WARNING, params={"p": f"{check.p:.4f}"})
 
 
 def _test_independence(resid: np.ndarray, result: StatResult) -> None:
@@ -168,16 +169,19 @@ def normality_test(data: np.ndarray | list[float]) -> StatResult:
         return result
 
     res = stats.shapiro(arr)
+    g1, g2 = sample_shape(arr)
     result.p_value = float(res.pvalue)
     result.statistics = {
         "W": float(res.statistic),
-        "skewness": float(stats.skew(arr)),
-        "kurtosis": float(stats.kurtosis(arr)),
+        # G₁ и G₂ — с поправкой на n, как в Excel / SPSS / GenStat (аудит 02-10);
+        # подпись с формулой — на фронте (extraLabels.ts, STATS).
+        "skewness": g1,
+        "kurtosis": g2,
     }
     if res.pvalue < _ASSUMPTION_ALPHA:
         result.add_warning(
             "normality_violated",
-            f"Данные не прошли тест на нормальность (p={res.pvalue:.4f}).",
-            Severity.WARNING,
+            f"Данные не прошли тест на нормальность (p = {res.pvalue:.4f}).",
+            Severity.WARNING, params={"p": f"{res.pvalue:.4f}"},
         )
     return result

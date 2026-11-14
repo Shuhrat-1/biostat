@@ -32,9 +32,14 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     pt: `O ID não é único: {n_duplicates} valores repetidos (exemplos: {examples}). Verifique a integridade dos dados.`,
   },
   numeric_intruders: {
-    ru: `В числовой колонке {n_bad} нечисловых значений (примеры: {examples})`,
-    en: `The numeric column has {n_bad} non-numeric values (examples: {examples})`,
-    pt: `A coluna numérica tem {n_bad} valores não numéricos (exemplos: {examples})`,
+    ru: `В числовой колонке {n_bad} нечисловых значений (строка: значение — {cells})`,
+    en: `The numeric column has {n_bad} non-numeric values (row: value — {cells})`,
+    pt: `A coluna numérica tem {n_bad} valores não numéricos (linha: valor — {cells})`,
+  },
+  labels_differ_by_case: {
+    ru: `Метки различаются только регистром: {labels}. В расчётах это разные группы.`,
+    en: `Labels differ only by letter case: {labels}. They are treated as different groups.`,
+    pt: `Os rótulos diferem apenas em maiúsculas e minúsculas: {labels}. São tratados como grupos diferentes.`,
   },
   mixed_date_formats: {
     ru: `Смешаны форматы дат в одной колонке: {formats}. Типичный дефект экспорта из Excel.`,
@@ -47,9 +52,9 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     pt: `O formato de data com barras é ambíguo: 03/04/2020 é 3 de abril ou 4 de março? Verifique a ordem dia/mês.`,
   },
   mixed_types: {
-    ru: `Смешанные типы: {numeric_pct}% значений числовые. Возможно, колонка должна быть числовой.`,
-    en: `Mixed types: {numeric_pct}% of values are numeric. The column might be meant as numeric.`,
-    pt: `Tipos misturados: {numeric_pct}% dos valores são numéricos. A coluna pode ser suposta numérica.`,
+    ru: `Смешанные типы: {numeric_pct}% значений числовые. Возможно, колонка должна быть числовой. Нечисловые ячейки (строка: значение): {cells}.`,
+    en: `Mixed types: {numeric_pct}% of values are numeric. The column might be meant as numeric. Non-numeric cells (row: value): {cells}.`,
+    pt: `Tipos misturados: {numeric_pct}% dos valores são numéricos. A coluna pode ser suposta numérica. Células não numéricas (linha: valor): {cells}.`,
   },
   missing_high: {
     ru: `Более половины значений пропущено ({missing_pct}%)`,
@@ -67,9 +72,14 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     pt: `A coluna está vazia`,
   },
   normality_violated: {
-    ru: `Данные не прошли тест на нормальность. Рассмотри непараметрический аналог или трансформацию.`,
-    en: `Data failed the normality test. Consider a nonparametric method or a transformation.`,
-    pt: `Os dados não passaram no teste de normalidade. Considere um método não paramétrico ou uma transformação.`,
+    ru: `Тест Шапиро–Уилка отклонил нормальность (p = {p}). Рассмотрите трансформацию или непараметрический аналог.`,
+    en: `The Shapiro–Wilk test rejected normality (p = {p}). Consider a transformation or a nonparametric method.`,
+    pt: `O teste de Shapiro–Wilk rejeitou a normalidade (p = {p}). Considere uma transformação ou um método não paramétrico.`,
+  },
+  residuals_not_normal: {
+    ru: `Остатки отклоняются от нормальности (Шапиро–Уилк p = {p}): перестановочный тест сохраняет F и средние; при правой асимметрии — трансформация. Краскел–Уоллис — для баллов и рангов.`,
+    en: `The residuals depart from normality (Shapiro–Wilk p = {p}): the permutation test keeps F and the means; with right skew, use a transformation. Kruskal–Wallis is for scores and ranks.`,
+    pt: `Os resíduos afastam-se da normalidade (Shapiro–Wilk p = {p}): o teste de permutação mantém o F e as médias; com assimetria à direita, use uma transformação. O Kruskal–Wallis é para pontuações e postos.`,
   },
   unequal_variance: {
     ru: `SD групп различаются в {sd_ratio} раза: рассмотри вариант Уэлча (параметр «Вариант»).`,
@@ -405,6 +415,11 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     ru: `Ожидаемые частоты малы ({share} ячеек < 5): χ² ненадёжен; для 2 × 2 смотри точный тест Фишера, иначе объедини уровни.`,
     en: `Expected frequencies are small ({share} of cells < 5): χ² is unreliable; for 2 × 2 use Fisher's exact test, otherwise merge levels.`,
     pt: `As frequências esperadas são pequenas ({share} das células < 5): o χ² não é fiável; para 2 × 2 use o teste exato de Fisher, caso contrário junte níveis.`,
+  },
+  prop_small_expected: {
+    ru: `Ожидаемая частота в одной из ячеек меньше 5: приближение ненадёжно, смотрите точный тест Фишера (P = {p}).`,
+    en: `An expected frequency is below 5 in one of the cells: the approximation is unreliable, see Fisher's exact test (P = {p}).`,
+    pt: `Uma frequência esperada é inferior a 5 numa das células: a aproximação não é fiável, veja o teste exato de Fisher (P = {p}).`,
   },
   contingency_too_small: {
     ru: `Нужно не меньше 2 уровней в каждой классификации.`,

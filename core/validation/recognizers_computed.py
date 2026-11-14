@@ -20,6 +20,7 @@ from functools import wraps
 import numpy as np
 from scipy import stats
 
+from core.stats.normality_rule import check_normality, departure_matters, shapiro_p
 from core.stats.outliers import outlier_candidate
 from core.stats.welch_rule import welch_advice
 from core.validation import column_names as names
@@ -235,9 +236,9 @@ def _adjusted(ctx: Context, drop: int | None = None) -> list[Spread]:
 
 def _shapiro(ctx: Context) -> float | None:
     fit = factor_fit(ctx)
-    if fit is None or fit.resid.size < 3 or fit.df < 2:
+    if fit is None or fit.df < 2:
         return None
-    return float(stats.shapiro(fit.resid[:_SHAPIRO_MAX]).pvalue)
+    return shapiro_p(fit.resid, truncate=True)
 
 
 def _bartlett_statistic(spreads: list[Spread]) -> float:
@@ -261,12 +262,12 @@ def _bartlett(ctx: Context) -> tuple[float, float, int] | None:
 
 def _departure_matters(ctx: Context) -> bool:
     """При больших группах Шапиро отвергает и пустяки; по ЦПТ важна лишь заметная
-    асимметрия остатков (|g| > 0.5) [BioStat]."""
+    асимметрия остатков [BioStat]. Правило общее с методами — `normality_rule`."""
     sizes = [g.size for g in _groups(ctx)]
-    if not sizes or min(sizes) <= 30:
-        return True
     fit = factor_fit(ctx)
-    return fit is not None and abs(float(stats.skew(fit.resid))) > 0.5
+    if not sizes or fit is None:
+        return not sizes
+    return departure_matters(fit.resid, min(sizes))
 
 
 @rule("B4.1", "B4", "nonnormal", STRONG, "кн. стр. 101; порог BioStat", cls=COMPUTED)
@@ -321,9 +322,10 @@ def nonnormal_differences(ctx: Context) -> Signal | None:
     if pairs is None:
         return None
     d, rows = pairs
-    p = float(stats.shapiro(d[:_SHAPIRO_MAX]).pvalue)
-    if p >= _ALPHA or (d.size > 30 and abs(float(stats.skew(d))) <= 0.5):
+    check = check_normality(d, d.size, truncate=True)
+    if check is None or not check.violated:
         return None
+    p = check.p
     params = {"a": ctx.role("before"), "b": ctx.role("after"), "p": round(p, 4)}
     worst = _lone_outlier(d)
     if worst is not None:

@@ -103,16 +103,21 @@ def test_g2_equals_log_linear_independence_deviance():
 
 
 def test_two_by_two_fisher_and_yates():
-    """2 × 2: Йейтс по умолчанию, точный P Фишера = сумма гипергеометрических вероятностей."""
-    res = contingency_test(["a", "a", "b", "b"], ["x", "y", "x", "y"], count=["8", "2", "1", "5"])
+    """2 × 2: по умолчанию χ² без поправки Йейтса (аудит 02-05), значение с поправкой —
+    рядом; точный P Фишера = сумма гипергеометрических вероятностей."""
+    args = (["a", "a", "b", "b"], ["x", "y", "x", "y"])
+    res = contingency_test(*args, count=["8", "2", "1", "5"])
     p_obs = comb(10, 8) * comb(6, 1) / comb(16, 9)
     probs = [comb(10, k) * comb(6, 9 - k) / comb(16, 9) for k in range(3, 10)]
     assert res.statistics["fisher_p"] == pytest.approx(sum(p for p in probs if p <= p_obs * 1.0000001))
-    assert res.statistics["yates"]
+    assert not res.statistics["yates"]
+    assert res.statistics["chi2"] == pytest.approx(res.statistics["chi2_uncorrected"])
+    assert res.statistics["chi2_yates"] < res.statistics["chi2"]
     assert any(w.code == "contingency_small_expected" for w in res.warnings)
-    no_yates = contingency_test(["a", "a", "b", "b"], ["x", "y", "x", "y"],
-                                count=["8", "2", "1", "5"], correction="no")
-    assert no_yates.statistics["chi2"] > res.statistics["chi2"]
+    with_yates = contingency_test(*args, count=["8", "2", "1", "5"], correction="yes")
+    assert with_yates.statistics["yates"]
+    assert with_yates.statistics["chi2"] == pytest.approx(res.statistics["chi2_yates"])
+    assert with_yates.p_value == pytest.approx(res.statistics["p_yates"])
 
 
 def test_cramers_v_for_perfect_association():

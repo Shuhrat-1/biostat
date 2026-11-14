@@ -65,7 +65,7 @@ LABELS: dict[str, dict[str, str]] = {
         "Блочный ANOVA (RCBD)": "Randomized block ANOVA (RCBD)",
         "Блочный ANOVA с повторными измерениями делянки": "Block ANOVA with repeated measurements per plot",
         "Факторный ANOVA (A×B, A×B×C)": "Factorial ANOVA (A×B, A×B×C)",
-        "Вложенный ANOVA (группа / член, контроль)": "Nested ANOVA (group / member, controls)",
+        "Вложенные варианты: группа / член (оба фактора фиксированы)": "Nested treatments: group / member (both factors fixed)",
         "Контрасты вариантов": "Treatment contrasts",
         "Полиномиальный тренд по уровням": "Polynomial trend across levels",
         "Сравнения средних с поправкой (Тьюки, Даннет, Холм, FDR)": "Adjusted mean comparisons (Tukey, Dunnett, Holm, FDR)",
@@ -138,7 +138,7 @@ LABELS: dict[str, dict[str, str]] = {
         "Блочный ANOVA (RCBD)": "ANOVA em blocos casualizados (RCBD)",
         "Блочный ANOVA с повторными измерениями делянки": "ANOVA em blocos com medições repetidas por parcela",
         "Факторный ANOVA (A×B, A×B×C)": "ANOVA fatorial (A×B, A×B×C)",
-        "Вложенный ANOVA (группа / член, контроль)": "ANOVA hierárquica (grupo / membro, controlos)",
+        "Вложенные варианты: группа / член (оба фактора фиксированы)": "Tratamentos hierárquicos: grupo / membro (ambos os fatores fixos)",
         "Контрасты вариантов": "Contrastes de tratamentos",
         "Полиномиальный тренд по уровням": "Tendência polinomial entre níveis",
         "Сравнения средних с поправкой (Тьюки, Даннет, Холм, FDR)": "Comparações de médias com correção (Tukey, Dunnett, Holm, FDR)",
@@ -245,8 +245,16 @@ DESCRIPTIONS: dict[str, dict[str, str]] = {
         "Главные эффекты и взаимодействия; средние по членам, отобранным по маргинальности.": (
             "Main effects and interactions; means for the terms selected by marginality."
         ),
-        "Различия между группами и между членами внутри групп (контроль против остальных).": (
-            "Differences between groups and between members within groups (control vs the rest)."
+        (
+            "Различия между группами и между членами внутри групп (контроль против остальных), "
+            "когда члены — варианты опыта, а строки — независимые делянки (Welham, гл. 8.4). "
+            "Оба фактора фиксированы; если члены — единицы выборки (растения, листья), "
+            "используйте смешанную модель."
+        ): (
+            "Differences between groups and between members within groups (control vs the rest) "
+            "when the members are treatments and the rows are independent plots (Welham, "
+            "ch. 8.4). Both factors are fixed; if the members are sampling units (plants, "
+            "leaves), use the mixed model."
         ),
         "Заранее заданные сравнения групп вариантов (A + C vs B) с разбиением SS вариантов.": "Pre-planned comparisons of treatment sets (A + C vs B) partitioning the treatment SS.",
         "Линейный и квадратичный тренд по количественным уровням и проверка остатка.": "Linear and quadratic trend across quantitative levels, with a lack-of-fit test.",
@@ -353,8 +361,16 @@ DESCRIPTIONS: dict[str, dict[str, str]] = {
         "Главные эффекты и взаимодействия; средние по членам, отобранным по маргинальности.": (
             "Efeitos principais e interações; médias dos termos selecionados pela marginalidade."
         ),
-        "Различия между группами и между членами внутри групп (контроль против остальных).": (
-            "Diferenças entre grupos e entre membros dentro dos grupos (controlo contra os restantes)."
+        (
+            "Различия между группами и между членами внутри групп (контроль против остальных), "
+            "когда члены — варианты опыта, а строки — независимые делянки (Welham, гл. 8.4). "
+            "Оба фактора фиксированы; если члены — единицы выборки (растения, листья), "
+            "используйте смешанную модель."
+        ): (
+            "Diferenças entre grupos e entre membros dentro dos grupos (controlo contra os "
+            "restantes) quando os membros são tratamentos e as linhas são parcelas independentes "
+            "(Welham, cap. 8.4). Ambos os fatores são fixos; se os membros forem unidades de "
+            "amostragem (plantas, folhas), use o modelo misto."
         ),
         "Заранее заданные сравнения групп вариантов (A + C vs B) с разбиением SS вариантов.": "Comparações planeadas de conjuntos de tratamentos (A + C vs B), com partição da SS de tratamentos.",
         "Линейный и квадратичный тренд по количественным уровням и проверка остатка.": "Tendência linear e quadrática entre níveis quantitativos, com teste da falta de ajuste.",
@@ -516,7 +532,7 @@ LABELS_MISC: dict[str, dict[str, str]] = {
         "Классификация строк": "Row classification",
         "Классификация столбцов": "Column classification",
         "Частота (если строки — ячейки таблицы; необязательно)": "Frequency (if rows are table cells; optional)",
-        "Поправка Йейтса": "Yates correction",
+        "Поправка Йейтса (только 2 × 2)": "Yates correction (2 × 2 only)",
         "Фактор неадекватности по ковариате": "Lack-of-fit factor for the covariate",
         "Отбор членов (маргинальные тесты)": "Term selection (marginal tests)",
         "Доза для вероятностей p (LD50: 0.5; через ;)": "Dose for probabilities p (LD50: 0.5; separated by ;)",
@@ -676,7 +692,7 @@ LABELS_MISC: dict[str, dict[str, str]] = {
         "Классификация строк": "Classificação das linhas",
         "Классификация столбцов": "Classificação das colunas",
         "Частота (если строки — ячейки таблицы; необязательно)": "Frequência (se as linhas forem células da tabela; opcional)",
-        "Поправка Йейтса": "Correção de Yates",
+        "Поправка Йейтса (только 2 × 2)": "Correção de Yates (só 2 × 2)",
         "Фактор неадекватности по ковариате": "Fator de falta de ajustamento da covariável",
         "Отбор членов (маргинальные тесты)": "Seleção de termos (testes marginais)",
         "Доза для вероятностей p (LD50: 0.5; через ;)": "Dose para probabilidades p (DL50: 0.5; separadas por ;)",

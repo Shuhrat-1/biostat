@@ -17,6 +17,7 @@ from statsmodels.stats.multicomp import pairwise_tukeyhsd
 from core.report.schema import Estimate, Severity, StatResult
 from core.stats.guards import check_group_sizes, note_single_groups, refuse_constant
 from core.stats.hypothesis import _refuse_flat_groups, levene_p_value
+from core.stats.normality_rule import check_normality
 
 _ASSUMPTION_ALPHA = 0.05
 _SHAPIRO_MIN = 3
@@ -149,18 +150,23 @@ def _check_variances(groups: list[np.ndarray], result: StatResult) -> None:
 
 
 def _check_residual_normality(groups: list[np.ndarray], result: StatResult) -> None:
-    """Шапиро-Уилк по объединённым остаткам."""
-    residuals = _pooled_residuals(groups)
-    if _SHAPIRO_MIN <= residuals.size <= _SHAPIRO_MAX:
-        shapiro_p = float(stats.shapiro(residuals).pvalue)
-        result.statistics["shapiro_p_residuals"] = shapiro_p
-        if shapiro_p < _ASSUMPTION_ALPHA:
-            result.add_warning(
-                "normality_violated",
-                f"Остатки не прошли тест на нормальность (p={shapiro_p:.4f}). "
-                f"Рассмотри Краскела-Уоллиса.",
-                Severity.WARNING,
-            )
+    """Шапиро–Уилк по объединённым остаткам; вывод — по общему с картой правилу.
+
+    Совет — по книге: перестановочный тест сохраняет F и средние [кн. стр. 102],
+    при правой асимметрии — трансформация [кн. стр. 115]; ранговый тест
+    Краскела–Уоллиса — для баллов и рангов (аудит 02-06).
+    """
+    check = check_normality(_pooled_residuals(groups), min(g.size for g in groups))
+    if check is None:
+        return
+    result.statistics["shapiro_p_residuals"] = check.p
+    if check.violated:
+        result.add_warning(
+            "residuals_not_normal",
+            f"Остатки отклоняются от нормальности (Шапиро–Уилк p = {check.p:.4f}): "
+            "перестановочный тест сохраняет F и средние; при правой асимметрии — "
+            "трансформация. Краскел–Уоллис — для баллов и рангов.",
+            Severity.WARNING, params={"p": f"{check.p:.4f}"})
 
 
 def tukey_hsd(

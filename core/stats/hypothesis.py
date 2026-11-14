@@ -12,6 +12,7 @@ from scipy import special, stats
 
 from core.report.schema import Estimate, Severity, StatResult
 from core.stats.guards import refuse_constant, refuse_no_residual
+from core.stats.normality_rule import check_normality
 from core.stats.hodges_lehmann import hl_one_sample, hl_two_sample
 from core.stats.welch_rule import welch_advice
 
@@ -126,20 +127,24 @@ def _cohens_d_pooled(arr_a: np.ndarray, arr_b: np.ndarray) -> tuple[float, float
 
 
 def _check_normality(
-    arr: np.ndarray, result: StatResult, label: str
+    arr: np.ndarray, result: StatResult, label: str, min_group_size: int | None = None,
+    warn: bool = True,
 ) -> None:
-    """Проверить нормальность (Шапиро-Уилк) и записать предупреждение."""
-    if not _SHAPIRO_MIN <= arr.size <= _SHAPIRO_MAX:
+    """Шапиро–Уилк; предупреждение — по общему с картой правилу (`normality_rule`).
+
+    min_group_size — наименьшая группа, из которой собраны значения (по умолчанию
+    всё n); warn = False — только записать P в статистику.
+    """
+    check = check_normality(arr, arr.size if min_group_size is None else min_group_size)
+    if check is None:
         return
-    p = float(stats.shapiro(arr).pvalue)
-    result.statistics[f"shapiro_p_{label}"] = p
-    if p < _ASSUMPTION_ALPHA:
+    result.statistics[f"shapiro_p_{label}"] = check.p
+    if warn and check.violated:
         result.add_warning(
             "normality_violated",
-            f"{label}: тест Шапиро-Уилка отклонил нормальность "
-            f"(p={p:.4f}). Рассмотри непараметрический аналог.",
-            Severity.WARNING,
-        )
+            f"{label}: тест Шапиро–Уилка отклонил нормальность (p = {check.p:.4f}). "
+            "Рассмотрите трансформацию или непараметрический аналог.",
+            Severity.WARNING, params={"p": f"{check.p:.4f}"})
 
 
 def _refuse_flat_groups(result: StatResult, groups: list[np.ndarray]) -> bool:
@@ -288,8 +293,12 @@ def two_sample_t(
         }
     )
     _add_two_sample_effect(result, res, arr_a, arr_b, confidence)
-    _check_normality(arr_a, result, "group_a")
-    _check_normality(arr_b, result, "group_b")
+    # P по группам — в статистику; предупреждение — по остаткам модели двух групп,
+    # как сигнал карты B4.1 (аудит 02-06).
+    _check_normality(arr_a, result, "group_a", warn=False)
+    _check_normality(arr_b, result, "group_b", warn=False)
+    residuals = np.concatenate([arr_a - arr_a.mean(), arr_b - arr_b.mean()])
+    _check_normality(residuals, result, "residuals", min(arr_a.size, arr_b.size))
     return result
 
 

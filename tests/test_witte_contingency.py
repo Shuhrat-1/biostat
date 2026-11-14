@@ -2,8 +2,8 @@
 
 contingency_test — из Welham (стр. 513); Witte добавляет φ²c, χ² без поправки Йейтса,
 ДИ отношения шансов и отношение рисков новыми ключами (пакет W3). Witte поправку Йейтса
-не применяет; поведение по умолчанию (correction = auto) не меняется — сравнение с книгой
-по chi2_uncorrected. Страница PDF = печатная + 18.
+не применяет, Welham о ней не упоминает; с аудита 02-05 главный χ² для 2 × 2 — тоже без
+поправки, значение с поправкой — в chi2_yates. Страница PDF = печатная + 18.
 """
 
 from __future__ import annotations
@@ -61,13 +61,15 @@ def test_poison_oak_progress_checks_19_4_19_5():
 
 def test_titanic_review_19_14_without_yates():
     """Witte, стр. 384 (Review 19.14), ответ стр. 454–455: χ² = 88.65 (без поправки Йейтса),
-    φ²c = 88.65 / 1291 = .07, OR = 1.07 / .35 = 3.06. По умолчанию contingency_test для 2 × 2
-    применяет Йейтса (87.56) — книжное число в chi2_uncorrected. Точно OR = 3.02: книга делит
-    округлённые шансы."""
+    φ²c = 88.65 / 1291 = .07, OR = 1.07 / .35 = 3.06. Главный χ² — книжный, без поправки
+    (аудит 02-05); с поправкой Йейтса (87.56) — в chi2_yates и при correction = "yes".
+    Точно OR = 3.02: книга делит округлённые шансы."""
     st = _run(TITANIC).statistics
-    assert st["yates"] is True
-    assert st["chi2"] == pytest.approx(87.564, abs=1e-3)
+    assert st["yates"] is False
+    assert st["chi2"] == pytest.approx(88.649, abs=1e-3)
+    assert st["chi2_yates"] == pytest.approx(87.564, abs=1e-3)
     assert st["chi2_uncorrected"] == pytest.approx(88.649, abs=1e-3)
+    assert _run(TITANIC, correction="yes").statistics["chi2"] == pytest.approx(87.564, abs=1e-3)
     assert round(st["cramers_v_squared"], 2) == 0.07
     assert st["odds_ratio"] == pytest.approx(299 * 526 / (280 * 186))
     assert round(st["odds_ratio"], 2) == 3.02
