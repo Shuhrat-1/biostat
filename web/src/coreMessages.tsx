@@ -102,9 +102,19 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     pt: `É possível autocorrelação dos resíduos (Durbin-Watson longe de 2). Verifique a ordem das observações.`,
   },
   missing_dropped: {
-    ru: `Часть значений с пропусками удалена перед расчётом.`,
-    en: `Some values with missing data were dropped before the calculation.`,
-    pt: `Alguns valores com dados em falta foram removidos antes do cálculo.`,
+    ru: `Строки с пропусками не вошли в расчёт: {n} (пропуски по колонкам: {detail}).`,
+    en: `Rows with missing values were left out of the calculation: {n} (missing by column: {detail}).`,
+    pt: `Linhas com valores em falta ficaram fora do cálculo: {n} (em falta por coluna: {detail}).`,
+  },
+  no_variation: {
+    ru: `Значения не варьируют (все одинаковы или все разности равны нулю) — анализировать нечего.`,
+    en: `The values do not vary (all are equal, or all differences are zero) — there is nothing to analyse.`,
+    pt: `Os valores não variam (são todos iguais ou todas as diferenças são zero) — não há nada para analisar.`,
+  },
+  single_observation_group: {
+    ru: `В группе одно наблюдение ({groups}): её среднее не оценивает разброс, остаточная дисперсия — по остальным группам.`,
+    en: `A group has a single observation ({groups}): its mean tells nothing about spread, so the residual variance comes from the other groups.`,
+    pt: `Um grupo tem uma única observação ({groups}): a sua média nada diz sobre a dispersão, e a variância residual vem dos outros grupos.`,
   },
   n_too_small: {
     ru: `Слишком мало наблюдений для этого расчёта.`,
@@ -852,9 +862,9 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     pt: `As variâncias dos grupos são heterogéneas (teste de Levene); o teste de permutação pressupõe variâncias homogéneas.`,
   },
   no_residual_variation: {
-    ru: `Внутри групп нет вариации — стандартные ошибки равны нулю, доверительные интервалы не определены.`,
-    en: `There is no variation within groups — standard errors are zero and confidence intervals are undefined.`,
-    pt: `Não há variação dentro dos grupos — os erros padrão são nulos e os intervalos de confiança indefinidos.`,
+    ru: `Остаточной вариации нет (внутри групп значения одинаковы или модель описывает данные точно): стандартные ошибки равны нулю, F, t и доверительные интервалы не определены.`,
+    en: `There is no residual variation (values within groups are identical, or the model fits the data exactly): standard errors are zero, and F, t and confidence intervals are undefined.`,
+    pt: `Não há variação residual (os valores dentro dos grupos são iguais ou o modelo ajusta os dados exatamente): os erros-padrão são nulos e F, t e os intervalos de confiança ficam indefinidos.`,
   },
   unadjusted_comparisons: {
     ru: `Попарные p и интервалы разностей без поправки на множественность. Для всех попарных сравнений используй Tukey HSD.`,

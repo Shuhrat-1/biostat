@@ -26,6 +26,7 @@ from statsmodels.stats.anova import anova_lm
 from core.report.schema import Estimate, Severity, StatResult
 from core.stats.anova import _lsd_comparisons
 from core.stats.blocking import _fill_residuals
+from core.stats.guards import no_residual
 from core.stats.transforms import TRANSFORMS, back_transform, transform
 
 _NONE = "none"
@@ -95,9 +96,13 @@ def _design_error(result: StatResult, code: str, message: str) -> bool:
 
 
 def _no_residual(ssr: float, frame: pd.DataFrame) -> bool:
-    """Остаточная SS — ноль с точностью до округления."""
+    """Остаточная SS — ноль с точностью до округления (относительно общей SS).
+
+    Порог относительный: прежний `max(total, 1.0)` делал его абсолютным и
+    отказывал на данных малого масштаба, например в моль/л (аудит 02-01).
+    """
     total = float(((frame["y"] - frame["y"].mean()) ** 2).sum())
-    return ssr <= 1e-12 * max(total, 1.0)
+    return no_residual(ssr, total)
 
 
 def _is_balanced(frame: pd.DataFrame, keys: list[str], result: StatResult) -> bool:

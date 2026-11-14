@@ -16,6 +16,7 @@ from scipy import stats
 
 from core.report.schema import Estimate, Severity, StatResult
 from core.stats.contrasts import parse_contrasts
+from core.stats.guards import note_single_groups
 
 
 def _clean(data: np.ndarray | list[float]) -> np.ndarray:
@@ -174,6 +175,7 @@ def scheffe_test(
                         parameters={"alpha": alpha, "labels": names})
     if not _scheffe_guard(clean, result):
         return result
+    note_single_groups(result, [g.size for g in clean], names)
     fit = _scheffe_fit(clean, alpha)
     comparisons = _scheffe_pairs(names, fit, alpha)
     result.parameters["comparisons"] = comparisons

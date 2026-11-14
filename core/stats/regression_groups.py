@@ -19,6 +19,7 @@ from scipy import stats
 
 from core.report.schema import Estimate, Severity, StatResult
 from core.stats.factorial import _NONE, _natural_order, _new_result, _settings
+from core.stats.guards import refuse_constant
 from core.stats.multiple_regression import _select
 from core.stats.regression_checks import _transform_column, influence_measures
 
@@ -258,7 +259,7 @@ def _guard(frame: pd.DataFrame, levels: list[str], variables: list[str], result:
         result.add_warning("n_too_small", "Нет остаточных df для модели отдельных линий",
                            Severity.ERROR)
         return False
-    return True
+    return not refuse_constant(result, frame["y"])
 
 
 def _overlap_warning(frame: pd.DataFrame, variables: list[str], result: StatResult) -> None:

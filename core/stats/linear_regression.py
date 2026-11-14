@@ -20,6 +20,7 @@ from scipy import stats
 from core.report.schema import Estimate, Severity, StatResult
 from core.stats.blocking import _fill_residuals
 from core.stats.factorial import _apply_transform, _new_result, _settings
+from core.stats.guards import refuse_degenerate_line, refuse_no_residual
 
 _YES_NO = ("no", "yes")
 _SCALINGS = ("none", "centred", "standardized")
@@ -62,7 +63,10 @@ def _guard(frame: pd.DataFrame, dropped: int, origin: bool, result: StatResult) 
         result.add_warning("no_x_variation", "x не варьирует — наклон не определён",
                            Severity.ERROR)
         return False
-    return True
+    if origin:  # через начало координат постоянный y допустим; точная подгонка — нет
+        res_ss = _summary(frame, True)["res_ss"]
+        return not refuse_no_residual(result, res_ss, float(frame["y"] @ frame["y"]))
+    return not refuse_degenerate_line(result, frame["x"], frame["y"])
 
 
 def _summary(frame: pd.DataFrame, origin: bool) -> dict:

@@ -90,7 +90,9 @@ def test_zero_pooled_sd_gives_nan_d():
     их текст и класс зависят от версии scipy, поэтому фильтр — по классу.
     """
     res = two_sample_t([1, 1, 1], [2, 2, 2], equal_var=True)
-    assert res.statistics["cohens_d"] != res.statistics["cohens_d"]
+    # Аудит 02-04: без разброса внутри групп — отказ с кодом, а не пустые t и P.
+    assert [w.code for w in res.warnings] == ["no_residual_variation"]
+    assert "cohens_d" not in res.statistics and res.p_value is None
 
 
 def test_confidence_validated():
@@ -207,8 +209,10 @@ def test_one_sample_d_in_sd_units():
 @pytest.mark.filterwarnings("ignore::UserWarning")
 def test_one_sample_zero_sd_gives_nan_d():
     """s = 0 → d не определён: NaN (в JSON — null); предупреждения scipy ожидаемы."""
-    d = one_sample_t([107.0, 107.0, 107.0], 100).statistics["cohens_d"]
-    assert math.isnan(d)
+    res = one_sample_t([107.0, 107.0, 107.0], 100)
+    # Аудит 02-04: s = 0 — отказ с кодом (раньше P = 0 при пустом t).
+    assert [w.code for w in res.warnings] == ["no_variation"]
+    assert res.statistics == {} and res.p_value is None
 
 
 def test_one_sample_confidence_validated():

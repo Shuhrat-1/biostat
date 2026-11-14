@@ -24,6 +24,7 @@ from scipy import stats
 
 from core.report.schema import Estimate, Severity, StatResult
 from core.stats.factorial import _new_result, _settings
+from core.stats.guards import refuse_constant
 from core.stats.regression_checks import (
     _diagnostic_warnings,
     _flags,
@@ -82,6 +83,7 @@ def _prepare(method: str, y: list[float], columns: dict[str, list[float]], respo
         result.add_warning("n_too_small", "Наблюдений должно быть больше числа параметров + 1",
                            Severity.ERROR)
         ok = False
+    ok = ok and not refuse_constant(result, frame["y"])
     return frame, names, result, ok
 
 

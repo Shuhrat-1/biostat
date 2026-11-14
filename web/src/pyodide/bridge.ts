@@ -510,6 +510,11 @@ elif _kind == "paired":
 else:
     _result = _fn(_table.numeric_column(_cols["value"]), **_kwargs)
 
+if _kind not in ("summary", "planning"):
+    # Одно сообщение о строках, выпавших из-за пропусков в использованных колонках.
+    from core.validation.missing import note_dropped_rows
+    note_dropped_rows(_result, _table, _cols)
+
 builtins.__biostat_last = _result
 json.dumps(_result.to_dict(), ensure_ascii=False)
 `;
@@ -792,7 +797,10 @@ elif _method in (
 ):
     _groups = _t.groups_by(_cols["value"], _cols["group"])
     _bundle["boxplot"] = plotdata.boxplot_data(_groups)
-    _bundle["bar_means"] = plotdata.bar_means_data(_groups)
+    # transformed_means: средние и ДИ — из таблицы результата (means_ci, обратно
+    # преобразованные); арифметические средние ± SE с ней не совпадают.
+    if _method != "transformed_means":
+        _bundle["bar_means"] = plotdata.bar_means_data(_groups)
 
 elif _method in ("two_sample_t", "mann_whitney"):
     _groups = _t.groups_by(_cols["value"], _cols["group"])

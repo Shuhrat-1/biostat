@@ -23,6 +23,7 @@ from scipy import optimize, stats
 
 from core.report.schema import Estimate, Severity, StatResult
 from core.stats.factorial import _new_result, _settings
+from core.stats.guards import refuse_degenerate_line
 from core.stats.linear_regression import parse_numbers
 from core.stats.multiple_regression import goodness
 from core.stats.regression_checks import _indexed_frame, _transform_column
@@ -54,6 +55,7 @@ def _prepare(method: str, x: list[float], y: list[float], alpha: float, transfor
         result.add_warning("n_too_small", "Наблюдений должно быть больше числа параметров",
                            Severity.ERROR)
         ok = False
+    ok = ok and not refuse_degenerate_line(result, frame["x"], frame["y"])
     return frame, result, ok
 
 

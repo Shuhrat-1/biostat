@@ -41,8 +41,11 @@ def test_bspline_reproduces_polynomials():
     res = smooth_curve(x.tolist(), y.tolist(), "bspline", n_knots=2, degree=3)
     assert res.parameters["curve"]["fitted"] == pytest.approx(
         np.polyval([0.1, -0.5, 1, 1], res.parameters["curve"]["x"]), abs=1e-9)
-    line = smooth_curve(x.tolist(), (2 + 3 * x).tolist(), "bspline", n_knots=0, degree=1)
+    wobble = 0.01 * (-1.0) ** np.arange(x.size)  # точная прямая — отказ (аудит 02-04)
+    line = smooth_curve(x.tolist(), (2 + 3 * x + wobble).tolist(), "bspline", n_knots=0, degree=1)
     assert line.statistics["df_vs_line"] == 0
+    exact = smooth_curve(x.tolist(), (2 + 3 * x).tolist(), "bspline", n_knots=0, degree=1)
+    assert [w.code for w in exact.warnings] == ["no_residual_variation"]
 
 
 def test_bspline_tests_curvature_against_line():
@@ -92,11 +95,15 @@ def test_smoothing_spline_with_replicated_x():
 
 
 def test_loess_linear_and_robust():
-    """Loess воспроизводит прямую точно; робастные итерации ослабляют влияние выброса."""
+    """Loess воспроизводит прямую; робастные итерации ослабляют влияние выброса.
+
+    Прямая — с колебанием ±1e-3: на точной прямой метод отказывает (аудит 02-04).
+    """
     x = np.linspace(0, 10, 40)
-    line = smooth_curve(x.tolist(), (1 + 2 * x).tolist(), "loess", frac=0.5)
+    wobble = 1e-3 * (-1.0) ** np.arange(x.size)
+    line = smooth_curve(x.tolist(), (1 + 2 * x + wobble).tolist(), "loess", frac=0.5)
     assert line.parameters["curve"]["fitted"] == pytest.approx(
-        1 + 2 * np.array(line.parameters["curve"]["x"]))
+        1 + 2 * np.array(line.parameters["curve"]["x"]), abs=2e-3)
     y = 1 + 2 * x + np.random.default_rng(3).normal(0, 0.3, x.size)
     y[20] += 30
     plain = smooth_curve(x.tolist(), y.tolist(), "loess", frac=0.3, iterations=0, x_predict="5.2")

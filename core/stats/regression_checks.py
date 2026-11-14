@@ -18,6 +18,7 @@ from scipy import stats
 
 from core.report.schema import Estimate, Severity, StatResult
 from core.stats.factorial import _NONE, _new_result, _settings
+from core.stats.guards import refuse_degenerate_line
 from core.stats.transforms import TRANSFORMS, transform
 
 _YES_NO = ("no", "yes")
@@ -101,7 +102,8 @@ def _prepare(method: str, x: np.ndarray | list[float], y: np.ndarray | list[floa
                            Severity.INFO)
     ok = (_transform_column(frame, "y", options["transform_kind"], options["offset"], result)
           and _transform_column(frame, "x", options["x_transform"], options["x_offset"], result)
-          and _enough(frame, options, result))
+          and _enough(frame, options, result)
+          and not refuse_degenerate_line(result, frame["x"], frame["y"]))
     return frame, result, ok
 
 

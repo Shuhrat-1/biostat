@@ -136,8 +136,12 @@ def test_no_within_group_variation_is_error():
 
 
 def test_group_too_small_is_error():
-    r = treatment_means([1, 2, 3], [4])
+    """Отказ — только без остаточных df; группа из одного наблюдения считается (аудит 02-11)."""
+    r = treatment_means([1], [4])
     assert "n_too_small" in {w.code for w in r.warnings}
+    r = treatment_means([1, 2, 3], [4])
+    assert {w.code for w in r.warnings} == {"single_observation_group"}
+    assert r.statistics["df_resid"] == 2
 
 
 def test_single_group_is_error():

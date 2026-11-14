@@ -11,6 +11,7 @@ import numpy as np
 from scipy import special, stats
 
 from core.report.schema import Estimate, Severity, StatResult
+from core.stats.guards import refuse_constant, refuse_no_residual
 from core.stats.hodges_lehmann import hl_one_sample, hl_two_sample
 from core.stats.welch_rule import welch_advice
 
@@ -141,6 +142,14 @@ def _check_normality(
         )
 
 
+def _refuse_flat_groups(result: StatResult, groups: list[np.ndarray]) -> bool:
+    """Отказ: все значения равны или внутри групп нет вариации; True — остановиться."""
+    pooled = np.concatenate(groups)
+    within = float(sum(((g - g.mean()) ** 2).sum() for g in groups))
+    total = float(((pooled - pooled.mean()) ** 2).sum())
+    return refuse_constant(result, pooled) or refuse_no_residual(result, within, total)
+
+
 def one_sample_t(
     data: np.ndarray | list[float],
     popmean: float,
@@ -165,6 +174,8 @@ def one_sample_t(
     )
     if arr.size < 2:
         result.add_warning("n_too_small", "n < 2: тест невозможен", Severity.ERROR)
+        return result
+    if refuse_constant(result, arr):
         return result
 
     res = stats.ttest_1samp(arr, popmean, alternative=alternative)
@@ -253,6 +264,8 @@ def two_sample_t(
         result.add_warning(
             "n_too_small", "Каждая группа должна иметь n ≥ 2", Severity.ERROR
         )
+        return result
+    if _refuse_flat_groups(result, [arr_a, arr_b]):
         return result
 
     # Проверка равенства дисперсий (Левене) — определяет выбор варианта.
@@ -345,6 +358,8 @@ def paired_t(
     )
     if diff.size < 2:
         result.add_warning("n_too_small", "n < 2: тест невозможен", Severity.ERROR)
+        return result
+    if refuse_constant(result, diff):  # все разности равны: SD разностей = 0
         return result
 
     res = stats.ttest_rel(arr_a, arr_b, alternative=alternative)
@@ -477,6 +492,9 @@ def wilcoxon(
     )
     if arr_a.size < 1:
         result.add_warning("empty", "Нет данных после очистки", Severity.ERROR)
+        return result
+    if not np.any(arr_a - arr_b):  # scipy здесь бросает исключение на английском
+        refuse_constant(result, arr_a - arr_b)
         return result
 
     res = stats.wilcoxon(arr_a, arr_b, alternative=alternative)

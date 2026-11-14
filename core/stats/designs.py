@@ -285,9 +285,12 @@ def _split_fit(frame: pd.DataFrame, names: dict[str, str], has_block: bool,
         ("A.B", [("fa", "fb")])]
     seq = _sequential(frame, steps)
     (wp_ss, wp_df), (res_ss, res_df) = seq["WholePlot"], seq["Residual"]
-    if wp_df < 1 or res_df < 1 or _no_residual(res_ss, frame):
+    if wp_df < 1 or res_df < 1:
         _design_error(result, "n_too_small",
                       "Нет остаточных df в страте целых делянок или субделянок")
+        return None
+    if _no_residual(res_ss, frame):
+        _design_error(result, "no_residual_variation", "Остаточной вариации нет")
         return None
     sw2, s2 = wp_ss / wp_df, res_ss / res_df
     a, b = names["fa"], names["fb"]
@@ -447,8 +450,11 @@ def _bibd_fit(frame: pd.DataFrame, names: dict[str, str], design: dict,
     """Страты Block (варианты + остаток) и Block.Unit (варианты + остаток), Table 9.21."""
     seq = _sequential(frame, [("Block", [("block",)]), ("Treatment", [("G",)])])
     res_ss, res_df = seq["Residual"]
-    if res_df < 1 or _no_residual(res_ss, frame):
+    if res_df < 1:
         _design_error(result, "n_too_small", "Нет остаточных df внутри блоков")
+        return False
+    if _no_residual(res_ss, frame):
+        _design_error(result, "no_residual_variation", "Остаточной вариации нет")
         return False
     blk_ss = seq["Block"][0]
     btr_ss = _between_block_treatment_ss(frame, design)

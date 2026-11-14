@@ -15,7 +15,8 @@ from scipy import stats
 from statsmodels.stats.multicomp import pairwise_tukeyhsd
 
 from core.report.schema import Estimate, Severity, StatResult
-from core.stats.hypothesis import levene_p_value
+from core.stats.guards import check_group_sizes, note_single_groups, refuse_constant
+from core.stats.hypothesis import _refuse_flat_groups, levene_p_value
 
 _ASSUMPTION_ALPHA = 0.05
 _SHAPIRO_MIN = 3
@@ -62,10 +63,7 @@ def one_way_anova(
         n=n_total,
         parameters={"labels": labels, "group_sizes": sizes},
     )
-    if any(s < 2 for s in sizes):
-        result.add_warning(
-            "n_too_small", "Каждая группа должна иметь n ≥ 2", Severity.ERROR
-        )
+    if not check_group_sizes(result, sizes, labels) or _refuse_flat_groups(result, clean):
         return result
 
     # F-тест.
@@ -193,14 +191,16 @@ def tukey_hsd(
         raise ValueError("Число меток не совпадает с числом групп")
 
     values = np.concatenate(clean)
-    group_col = np.concatenate([[lab] * g.size for lab, g in zip(labels, clean)])
-    res = pairwise_tukeyhsd(values, group_col, alpha=alpha)
-
     result = StatResult(
         method="tukey_hsd",
         n=int(values.size),
         parameters={"alpha": alpha, "labels": labels},
     )
+    if _refuse_flat_groups(result, clean):
+        return result
+    group_col = np.concatenate([[lab] * g.size for lab, g in zip(labels, clean)])
+    res = pairwise_tukeyhsd(values, group_col, alpha=alpha)
+    note_single_groups(result, [g.size for g in clean], labels)
     ms_within, _ = _pooled_variance(clean)
     sd = float(np.sqrt(ms_within))
     comparisons = []
@@ -257,11 +257,14 @@ def kruskal_wallis(
 
     if labels is None:
         labels = [f"g{i + 1}" for i in range(k)]
-    res = stats.kruskal(*clean)
     result.n = int(sum(g.size for g in clean))
+    if refuse_constant(result, np.concatenate(clean)):  # scipy: исключение на английском
+        return result
+    res = stats.kruskal(*clean)
     result.p_value = float(res.pvalue)
     result.parameters["labels"] = labels
     result.statistics = {"H": float(res.statistic), "df": k - 1}
+    note_single_groups(result, [g.size for g in clean], labels)
     for lab, g in zip(labels, clean):
         result.estimates.append(
             Estimate(name=f"median_{lab}", value=float(np.median(g)))
@@ -352,14 +355,11 @@ def _resolve_labels(labels: list[str] | None, k: int) -> list[str]:
 
 
 def _means_guard(groups: list[np.ndarray], result: StatResult) -> bool:
-    """≥ 2 групп, n_j ≥ 2 и ненулевая остаточная дисперсия, иначе ошибка."""
+    """≥ 2 групп, остаточные df ≥ 1 и ненулевая остаточная дисперсия, иначе ошибка."""
     if len(groups) < 2:
         result.add_warning("too_few_groups", "Нужно ≥ 2 групп", Severity.ERROR)
         return False
-    if any(g.size < 2 for g in groups):
-        result.add_warning(
-            "n_too_small", "Каждая группа должна иметь n ≥ 2", Severity.ERROR
-        )
+    if not check_group_sizes(result, [g.size for g in groups], result.parameters["labels"]):
         return False
     if _pooled_variance(groups)[0] == 0:
         result.add_warning(

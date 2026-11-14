@@ -36,11 +36,11 @@ def test_describe_all_zero_mean_cv_is_null():
 
 
 def test_one_way_anova_constant_data_json_safe():
-    """Было: eta_squared = NaN при ss_total = 0."""
-    with np.errstate(all="ignore"), warnings.catch_warnings():
-        warnings.simplefilter("ignore")  # scipy по-разному предупреждает о константах
-        r = one_way_anova([5.0, 5.0, 5.0], [5.0, 5.0, 5.0])
-    assert _strict_json(r)["statistics"]["eta_squared"] is None
+    """Было: eta_squared = NaN при ss_total = 0; теперь — отказ с кодом (аудит 02-04)."""
+    r = one_way_anova([5.0, 5.0, 5.0], [5.0, 5.0, 5.0])
+    parsed = _strict_json(r)
+    assert [w["code"] for w in parsed["warnings"]] == ["no_variation"]
+    assert parsed["statistics"] == {} and parsed["p_value"] is None
 
 
 def test_levene_degenerate_for_pairs_returns_none():

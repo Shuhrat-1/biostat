@@ -15,6 +15,7 @@ from scipy import stats
 
 from core.report.schema import Severity, StatResult
 from core.stats.anova import _clean_group, _pooled_variance, _resolve_labels
+from core.stats.guards import check_group_sizes
 from core.stats.hypothesis import levene_p_value
 
 _ALPHA = 0.05
@@ -22,15 +23,24 @@ _OUTLIER_CUTOFF = 2.0  # |r| > 2 — кандидаты в выбросы (ст�
 _MAX_PERMUTATIONS = 99_999
 
 
-def _guard_groups(groups: list[np.ndarray], result: StatResult) -> bool:
-    """≥ 2 групп, n_j ≥ 2 и ненулевая дисперсия внутри групп, иначе ошибка."""
+def _guard_groups(groups: list[np.ndarray], result: StatResult,
+                  own_variances: bool = False) -> bool:
+    """≥ 2 групп, остаточные df ≥ 1 и ненулевая дисперсия внутри групп, иначе ошибка.
+
+    own_variances: методу нужна дисперсия каждой группы (Бартлетт) — n_j ≥ 2.
+    Остальным хватает остаточных df = N − t; группа из одного наблюдения
+    даёт предупреждение (аудит 02-11).
+    """
     if len(groups) < 2:
         result.add_warning("too_few_groups", "Нужно ≥ 2 групп", Severity.ERROR)
         return False
-    if any(g.size < 2 for g in groups):
+    sizes = [g.size for g in groups]
+    if own_variances and any(n < 2 for n in sizes):
         result.add_warning(
             "n_too_small", "Каждая группа должна иметь n ≥ 2", Severity.ERROR
         )
+        return False
+    if not own_variances and not check_group_sizes(result, sizes, result.parameters["labels"]):
         return False
     if _pooled_variance(groups)[0] == 0:
         result.add_warning(
@@ -56,7 +66,7 @@ def bartlett_test(
         n=int(sum(g.size for g in clean)),
         parameters={"labels": labels},
     )
-    if not _guard_groups(clean, result):
+    if not _guard_groups(clean, result, own_variances=True):
         return result
     if any(np.var(g, ddof=1) == 0 for g in clean):
         result.add_warning(
@@ -131,6 +141,8 @@ def _residual_rows(
         se = float(np.sqrt(s2 * (g.size - 1) / g.size))
         for k, y in enumerate(g):
             resid = float(y - g.mean())
+            # Единственное наблюдение группы: остаток 0 по построению, r не определён.
+            std = resid / se if se > 0 else 0.0
             rows.append(
                 {
                     "group": lab,
@@ -138,7 +150,7 @@ def _residual_rows(
                     "value": float(y),
                     "fitted": float(g.mean()),
                     "residual": resid,
-                    "std_residual": resid / se,
+                    "std_residual": std,
                 }
             )
     return rows
@@ -214,13 +226,16 @@ def anova_permutation_test(
         "df_between": len(clean) - 1,
         "df_within": _pooled_variance(clean)[1],
     }
-    result.parameters["exact"] = _n_arrangements(clean) <= n_permutations
+    result.parameters["exact"] = (min(g.size for g in clean) >= 2
+                                  and _n_arrangements(clean) <= n_permutations)
     _check_permutation_variances(clean, result)
     return result
 
 
 def _permutation_p(groups: list[np.ndarray], n_permutations: int, seed: int) -> float:
     """p перестановочного теста по F (scipy; random_state есть и в scipy 1.12)."""
+    if min(g.size for g in groups) < 2:  # scipy не принимает группу из одного наблюдения
+        return _shuffle_p(groups, n_permutations, seed)
     res = stats.permutation_test(
         groups,
         _f_statistic,
@@ -230,6 +245,26 @@ def _permutation_p(groups: list[np.ndarray], n_permutations: int, seed: int) -> 
         random_state=np.random.default_rng(seed),
     )
     return float(res.pvalue)
+
+
+def _shuffle_p(groups: list[np.ndarray], n_permutations: int, seed: int) -> float:
+    """Случайные перестановки без scipy: p = (число F* ≥ F + 1) / (B + 1).
+
+    F зависит от перестановки только через межгрупповую SS (общая SS постоянна),
+    поэтому сравниваются межгрупповые SS — сразу для всех перестановок.
+    """
+    pooled = np.concatenate(groups)
+    cuts = np.cumsum([0] + [g.size for g in groups])
+    shuffled = np.random.default_rng(seed).permuted(
+        np.tile(pooled, (n_permutations, 1)), axis=1)
+
+    def between(rows: np.ndarray) -> np.ndarray:
+        return sum((b - a) * (rows[:, a:b].mean(axis=1) - pooled.mean()) ** 2
+                   for a, b in zip(cuts, cuts[1:]))
+
+    observed = between(pooled[None, :])[0]
+    hits = int((between(shuffled) >= observed * (1 - 1e-12)).sum())
+    return (hits + 1) / (n_permutations + 1)
 
 
 def _f_statistic(*samples: np.ndarray) -> float:

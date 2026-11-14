@@ -130,17 +130,6 @@ def _numeric_levels(means: dict) -> dict:
     return {**means, "numeric": True}
 
 
-def _transformed_means(result: dict) -> dict | None:
-    """Средние на исходной шкале с асимметричным ДИ: оценки mean_i + labels."""
-    labels = result["parameters"].get("labels", [])
-    est = {e["name"]: e for e in result.get("estimates", [])}
-    rows = [{"label": lab, **{k: est[f"mean_{i}"].get(v) for k, v in
-                              (("mean", "value"), ("ci_lower", "ci_lower"),
-                               ("ci_upper", "ci_upper"))}}
-            for i, lab in enumerate(labels, 1) if f"mean_{i}" in est]
-    return means_from_rows(rows, back=False)
-
-
 def _labelled_means(result: dict) -> dict | None:
     """Средние с ДИ из оценок mean_<вариант> (блочные методы), как есть — на исходной шкале."""
     est = {e["name"]: e for e in result.get("estimates", [])}
@@ -389,7 +378,9 @@ def _comparison_plots(method: str, result: dict) -> dict[str, Any]:
         if means:
             out["means_ci"] = _numeric_levels(means) if method == "polynomial_contrasts" else means
     if method == "transformed_means":
-        if means := _transformed_means(result):
+        # Средние и асимметричные ДИ — из таблицы результата (исходная шкала), а не
+        # арифметические средние ± SE по исходным значениям (аудит 02-07).
+        if means := _labelled_means(result):
             out["means_ci"] = means
         if ratios := _ratios(params.get("ratios", [])):
             out["differences"] = ratios

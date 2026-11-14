@@ -12,6 +12,7 @@ import numpy as np
 import statsmodels.api as sm
 
 from core.report.schema import Estimate, Severity, StatResult
+from core.stats.guards import refuse_degenerate_line
 
 _MIN_N = 3  # нужно > 2 точек, иначе регрессия вырождена
 
@@ -62,6 +63,8 @@ def simple_linear_regression(
         result.add_warning(
             "no_x_variation", "x не варьирует — наклон не определён", Severity.ERROR
         )
+        return result
+    if refuse_degenerate_line(result, cx, cy):
         return result
 
     model = sm.OLS(cy, sm.add_constant(cx)).fit()

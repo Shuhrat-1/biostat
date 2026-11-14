@@ -14,13 +14,17 @@ def _est(result, name):
 
 
 def test_perfect_line():
-    """Точная прямая y = 2x + 1: наклон 2, свободный член 1, R²=1."""
+    """Точная прямая y = 2x + 1: остаточной вариации нет — отказ, а не F и t из шума
+    округления (аудит 02-04). Почти точная прямая считается: наклон 2, R² ≈ 1."""
     x = [0.0, 1.0, 2.0, 3.0, 4.0]
     y = [1.0, 3.0, 5.0, 7.0, 9.0]
     r = simple_linear_regression(x, y)
-    assert _est(r, "slope").value == pytest.approx(2.0)
-    assert _est(r, "intercept").value == pytest.approx(1.0)
-    assert r.statistics["r_squared"] == pytest.approx(1.0)
+    assert [w.code for w in r.warnings] == ["no_residual_variation"]
+    assert r.estimates == [] and r.p_value is None
+    r = simple_linear_regression(x, [1.0, 3.001, 4.999, 7.001, 9.0])
+    assert _est(r, "slope").value == pytest.approx(2.0, abs=1e-3)
+    assert _est(r, "intercept").value == pytest.approx(1.0, abs=1e-2)
+    assert r.statistics["r_squared"] == pytest.approx(1.0, abs=1e-6)
 
 
 def test_matches_scipy_linregress():
@@ -56,7 +60,7 @@ def test_ci_brackets_slope():
 def test_residuals_saved_for_diagnostics():
     """Остатки, предсказания и стандартизованные остатки сохранены."""
     x = list(range(10))
-    y = [2 * v + 1 for v in x]
+    y = [2 * v + 1 + 0.1 * (-1) ** v for v in x]
     r = simple_linear_regression(x, y)
     p = r.parameters
     assert len(p["residuals"]) == 10
@@ -118,7 +122,7 @@ def test_json_serializable():
     import json
 
     x = list(range(8))
-    y = [1.5 * v + 0.3 for v in x]
+    y = [1.5 * v + 0.3 + 0.1 * (-1) ** v for v in x]
     r = simple_linear_regression(x, y)
     parsed = json.loads(r.to_json())
     assert parsed["method"] == "simple_linear_regression"

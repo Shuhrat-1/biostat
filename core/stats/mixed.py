@@ -20,6 +20,7 @@ from scipy import stats
 from core.report.schema import Estimate, Severity, StatResult
 from core.stats.ancova import Terms, _frame, _label, _marginal
 from core.stats.factorial import _new_result, _settings
+from core.stats.guards import refuse_constant
 from core.stats.regression_checks import _transform_column
 from core.stats.reml import blups, kenward_roger_df, refit_fixed, reml_fit, wald
 
@@ -224,7 +225,7 @@ def _guard(frame: pd.DataFrame, fixed: list[str], strata: list[str], result: Sta
         result.add_warning("mixed_no_structure", "Нужен структурный фактор минимум с 2 уровнями",
                            Severity.ERROR)
         return False
-    return True
+    return not refuse_constant(result, frame["y"])
 
 
 # --- Метод каталога -------------------------------------------------------------
