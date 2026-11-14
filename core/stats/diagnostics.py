@@ -20,6 +20,7 @@ from scipy import stats
 from statsmodels.stats.stattools import durbin_watson
 
 from core.report.schema import Severity, StatResult
+from core.stats.guards import refuse_constant
 
 _ASSUMPTION_ALPHA = 0.05
 _SHAPIRO_MIN = 3
@@ -162,6 +163,8 @@ def normality_test(data: np.ndarray | list[float]) -> StatResult:
             f"Шапиро-Уилк осмыслен при {_SHAPIRO_MIN} ≤ n ≤ {_SHAPIRO_MAX}",
             Severity.ERROR,
         )
+        return result
+    if refuse_constant(result, arr):  # иначе W = 1, P = 1: «нормально», хотя проверять нечего
         return result
 
     res = stats.shapiro(arr)

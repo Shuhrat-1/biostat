@@ -1622,7 +1622,6 @@ function ExtraTables({ params, method }: { params: Raw; method: string }) {
 
 export function ResultPanel({ result, context }: { result: StatResult; context: Context }) {
   const t = useT();
-  const tm = useCoreMessage();
   // Наблюдение, а не эксперимент: связь не доказывает причину [кн. стр. 3].
   const caveat = needsCausalityCaveat(result.method, context) ? t("result.observational") : null;
 
@@ -1738,27 +1737,7 @@ export function ResultPanel({ result, context }: { result: StatResult; context: 
         </div>
       )}
 
-      {result.warnings.length > 0 && (
-        <div style={{ marginTop: "1rem", display: "grid", gap: "0.4rem" }}>
-          {result.warnings.map((w, i) => {
-            const st = SEVERITY_STYLE[w.severity] ?? SEVERITY_STYLE.warning;
-            return (
-              <div
-                key={i}
-                style={{
-                  padding: "0.55rem 0.8rem",
-                  background: st.bg,
-                  color: st.fg,
-                  borderRadius: 6,
-                  fontSize: "0.85rem",
-                }}
-              >
-                {tm(w)}
-              </div>
-            );
-          })}
-        </div>
-      )}
+      <WarningList warnings={result.warnings} />
 
       {caveat && (
         <div
@@ -1833,6 +1812,33 @@ const SUMMARY_ROWS = [
 ];
 
 /** Сводная описательная статистика: метрики слева, колонки датасета сверху. */
+/** Сообщения ядра к результату (отказы, предупреждения, заметки), по одному в строке. */
+function WarningList({ warnings }: { warnings: StatResult["warnings"] }) {
+  const tm = useCoreMessage();
+  if (warnings.length === 0) return null;
+  return (
+    <div style={{ marginTop: "1rem", display: "grid", gap: "0.4rem" }}>
+      {warnings.map((w, i) => {
+        const st = SEVERITY_STYLE[w.severity] ?? SEVERITY_STYLE.warning;
+        return (
+          <div
+            key={i}
+            style={{
+              padding: "0.55rem 0.8rem",
+              background: st.bg,
+              color: st.fg,
+              borderRadius: 6,
+              fontSize: "0.85rem",
+            }}
+          >
+            {tm(w)}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function SummaryTable({ result }: { result: StatResult }) {
   const t = useT();
   const summary = result.parameters.summary as
@@ -1978,6 +1984,8 @@ function SummaryTable({ result }: { result: StatResult }) {
           </tbody>
         </table>
       </div>
+      {/* Заметки ядра: колонки без данных, колонки без вариации. */}
+      <WarningList warnings={result.warnings} />
       <SummaryExport
         summary={summary}
         columns={columns}

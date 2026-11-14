@@ -76,6 +76,7 @@ from tests.bridge_runner import RESPONSES  # noqa: E402
 
 # Методы из находки: падали с ZeroDivisionError / ошибкой scipy или молча давали пустые ячейки.
 CONSTANT_METHODS = [
+    "normality_test",  # давал W = 1, P = 1.0 — «нормально», хотя проверять нечего
     "regression_details", "inverse_prediction", "regression_cross_validation",
     "x_transform_regression", "polynomial_regression", "trigonometric_regression",
     "nonlinear_regression", "smooth_curve", "curve_comparison", "multiple_regression",
@@ -101,6 +102,23 @@ def test_02_04_constant_response_is_refused_with_a_code(method: str) -> None:
     res = run(method, _constant(table(method, 48)))
     assert errors(res) == ["no_variation"], errors(res)
     assert res["p_value"] is None and res["estimates"] == []
+
+
+def test_02_04_describe_all_marks_a_constant_column_without_refusing() -> None:
+    """Среднее, n, минимум и максимум осмысленны; асимметрия и эксцесс — прочерк и заметка."""
+    import warnings
+
+    cols = {"flat": [5.0] * 8, "y": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 9.0]}
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")  # scipy не должен считать моменты константы
+        res = run("describe_all", cols, {}, {})
+    flat, y = res["parameters"]["summary"]["flat"], res["parameters"]["summary"]["y"]
+    assert errors(res) == []
+    assert (flat["mean"], flat["n"], flat["min"], flat["max"], flat["std"]) == (5.0, 8, 5.0, 5.0, 0)
+    assert flat["skewness"] is None and flat["kurtosis"] is None
+    assert y["skewness"] is not None and y["kurtosis"] is not None
+    (note,) = [w for w in res["warnings"] if w["code"] == "columns_no_variation"]
+    assert note["severity"] == "info" and note["params"] == {"columns": "flat"}
 
 
 EXACT = {"x": list(range(1, 31)), "y": [2 * v + 1 for v in range(1, 31)]}  # y = 2x + 1
@@ -236,3 +254,16 @@ def test_guards_leave_ordinary_data_alone(method: str) -> None:
     assert errors(res) == expected
     assert not {"no_variation", "no_residual_variation", "single_observation_group"} & set(
         codes(res))
+
+
+def test_02_04_descriptive_table_shows_core_notes() -> None:
+    """Заметка `columns_no_variation` видна: таблица описательной статистики выводит сообщения."""
+    from pathlib import Path
+
+    src = (Path(__file__).resolve().parents[1] / "web/src/components.tsx").read_text("utf-8")
+    table_src = src[src.index("function SummaryTable("):src.index("function fmtSummary(")]
+    assert "<WarningList warnings={result.warnings} />" in table_src
+    messages = (Path(__file__).resolve().parents[1] / "web/src/coreMessages.tsx").read_text("utf-8")
+    for code in ("columns_no_variation", "no_variation", "single_observation_group"):
+        block = messages[messages.index(f"  {code}: {{"):]
+        assert all(f"    {lang}: `" in block[:1200] for lang in ("ru", "en", "pt")), code

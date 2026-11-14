@@ -111,6 +111,11 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     en: `The values do not vary (all are equal, or all differences are zero) — there is nothing to analyse.`,
     pt: `Os valores não variam (são todos iguais ou todas as diferenças são zero) — não há nada para analisar.`,
   },
+  columns_no_variation: {
+    ru: `Колонка не варьирует: {columns} — асимметрия и эксцесс не определены.`,
+    en: `Column does not vary: {columns} — skewness and kurtosis are undefined.`,
+    pt: `A coluna não varia: {columns} — a assimetria e a curtose ficam indefinidas.`,
+  },
   single_observation_group: {
     ru: `В группе одно наблюдение ({groups}): её среднее не оценивает разброс, остаточная дисперсия — по остальным группам.`,
     en: `A group has a single observation ({groups}): its mean tells nothing about spread, so the residual variance comes from the other groups.`,

@@ -67,8 +67,7 @@ def _column_metrics(arr: np.ndarray) -> dict[str, float]:
                 "std": std,
                 "sem": float(stats.sem(arr)),
                 "cv_pct": float(std / mean * 100) if mean != 0 else float("nan"),
-                "skewness": float(stats.skew(arr)),
-                "kurtosis": float(stats.kurtosis(arr)),  # excess (Fisher)
+                **_shape(arr),
                 # Выбросы по правилу 1.5*IQR (Тьюки).
                 "outliers_iqr": float(
                     np.count_nonzero(
@@ -84,6 +83,17 @@ def _column_metrics(arr: np.ndarray) -> dict[str, float]:
             }
         )
     return metrics
+
+
+def _shape(arr: np.ndarray) -> dict[str, float]:
+    """Асимметрия и эксцесс (избыточный, по Фишеру); у константы не определены — NaN.
+
+    NaN в JSON становится null, в таблице — прочерк. Без этой ветки scipy
+    считает 0/0 с предупреждением о потере точности (аудит 02-04).
+    """
+    if np.ptp(arr) == 0:
+        return {"skewness": float("nan"), "kurtosis": float("nan")}
+    return {"skewness": float(stats.skew(arr)), "kurtosis": float(stats.kurtosis(arr))}
 
 
 def describe_all(
@@ -128,6 +138,12 @@ def describe_all(
             f"Колонки без данных: {', '.join(empty_columns)}",
             Severity.WARNING,
         )
+    flat = [name for name, m in summary.items() if m.get("n", 0) >= 2 and m.get("range") == 0]
+    if flat:  # среднее, n, минимум и максимум осмысленны — это заметка, не отказ
+        result.add_warning(
+            "columns_no_variation",
+            f"Колонка не варьирует: {', '.join(flat)} — асимметрия и эксцесс не определены.",
+            Severity.INFO, params={"columns": ", ".join(flat)})
     return result
 
 
@@ -173,8 +189,7 @@ def describe(data: np.ndarray | list[float]) -> StatResult:
                 "cv": float(np.std(arr, ddof=1) / np.mean(arr))
                 if np.mean(arr) != 0
                 else float("nan"),
-                "skewness": float(stats.skew(arr)),
-                "kurtosis": float(stats.kurtosis(arr)),  # excess (Fisher)
+                **_shape(arr),
             }
         )
     else:
