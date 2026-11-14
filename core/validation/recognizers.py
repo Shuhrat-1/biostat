@@ -805,10 +805,14 @@ def unassigned_factor(ctx: Context) -> Signal | None:
 def unassigned_nesting(ctx: Context) -> Signal | None:
     """Колонка без роли вложена в фактор или фактор вложен в неё.
 
-    Строки внутри вложенной единицы (растения на делянке, изоляты вида) —
-    не независимые повторности варианта [кн. стр. 46].
+    Строки внутри вложенной единицы (листья растения, растения делянки) —
+    не независимые повторности варианта [кн. стр. 46]: единица выборки —
+    случайный фактор смешанной модели, а при заданном блоке с несколькими
+    строками в ячейке — анализ с субвыборками [кн. стр. 145]. `nested_anova`
+    здесь неверен: он считает строки независимыми (аудит 02-03). Фактор,
+    вложенный в колонку (изоляты внутри видов), — вложенные варианты.
     """
-    if ctx.role("member", "factor_b") or ctx.role(*_UNIT_SLOTS):
+    if ctx.role("member", "factor_b") or ctx.role(*(s for s in _UNIT_SLOTS if s != "block")):
         return None
     for f in _free_columns(ctx):
         rows: Counter = Counter()
@@ -818,12 +822,20 @@ def unassigned_nesting(ctx: Context) -> Signal | None:
             return Signal("Каждый уровень «{c}» относится только к одному варианту «{f}», и в"
                           " нём несколько строк: строки внутри «{c}» — не независимые"
                           " повторности (вложенная структура).",
-                          {"c": f.name, "f": ctx.factor})
+                          {"c": f.name, "f": ctx.factor, "method": _subsample_method(ctx)})
         if 2 <= f.levels < f.treatments and len(f.cells) == f.treatments:
             return Signal("Каждый уровень «{f}» относится только к одному уровню «{c}»:"
                           " «{f}» вложен в «{c}» — вложенный анализ.",
                           {"c": f.name, "f": ctx.factor, "variant": "outer"})
     return None
+
+
+def _subsample_method(ctx: Context) -> str:
+    """Метод для строк внутри единицы выборки: с блоками — субвыборки, иначе смешанная модель."""
+    block = ctx.role("block")
+    if block and max(_pairs(ctx.labels(block), _treatment_labels(ctx)).values()) > 1:
+        return "rcbd_subsampling_anova"
+    return "mixed_model"
 
 
 _MAX_CODE_LEVELS = 10  # больше — скорее измерение, чем номера вариантов [BioStat]

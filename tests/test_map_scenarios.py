@@ -363,7 +363,7 @@ def test_01_05_factor_nested_in_a_free_column_is_noticed():
 def test_01_05_rows_within_a_plant_are_not_independent_replicates():
     """Welham стр. 46, 100: 8 растений по 4 даты — строки растения не повторности."""
     params = _stage("S25", "one-way")["B2.8"]["message"]["params"]
-    assert params == {"c": "plant", "f": "treatment"}
+    assert params == {"c": "plant", "f": "treatment", "method": "mixed_model"}
 
 
 def test_01_05_plain_one_way_data_get_no_structure_hints():
@@ -501,3 +501,45 @@ def test_01_12_one_wild_pair_is_a_record_to_check_not_a_reason_for_ranks():
                     {"before": "before", "after": "after"})["B0.6"]
     assert hit["strength"] == HINT
     assert hit["message"]["params"]["variant"] == "outlier" and hit["message"]["params"]["row"] == 5
+
+
+# --- 02-03. Субвыборки: не nested_anova, а смешанная модель или анализ с субвыборками -----
+
+def _leaves_on_plants(seed: int = 7) -> dict[str, list]:
+    """2 варианта × 4 растения × 5 листьев; эффекта варианта нет, растения различаются.
+
+    Сценарий находки 02-03 (`f_nested.py`): nested_anova даёт здесь F = 9.79 на
+    (1, 32) df вместо 0.42 на (1, 6) и P < 0.05 в 65 % повторов без эффекта.
+    """
+    rng = np.random.default_rng(seed)
+    plant = np.repeat(np.arange(8), 5)
+    y = 10 + rng.normal(0, 1.0, 8)[plant] + rng.normal(0, 0.5, 40)
+    return {"y": y.round(3).tolist(), "treatment": [f"t{p // 4}" for p in plant],
+            "plant": [f"p{p}" for p in plant]}
+
+
+def test_02_03_subsamples_point_to_the_mixed_model_not_nested_anova():
+    hit = _run(_leaves_on_plants(), {"value": "y", "group": "treatment"})["B2.8"]
+    assert hit["strength"] == HINT
+    assert hit["message"]["params"] == {"c": "plant", "f": "treatment", "method": "mixed_model"}
+    assert "не независимые повторности" in hit["message"]["message"]
+    assert sorted(_method_leaves("mixed_model")) == ["B0.repeated", "B1.mixed"]
+
+
+def test_02_03_subsamples_within_blocks_point_to_the_subsampling_analysis():
+    """Welham стр. 145: 4 сорта × 3 блока, по два растения с делянки, блок назначен."""
+    plots = [(v, b) for b in range(3) for v in range(4)]
+    cols = {"variety": [f"v{v}" for v, b in plots for _ in range(2)],
+            "block": [f"b{b}" for v, b in plots for _ in range(2)],
+            "plot": [f"u{i}" for i in range(12) for _ in range(2)],
+            "y": [round(5 + 0.4 * v + 0.2 * b + 0.1 * k, 2) for v, b in plots for k in range(2)]}
+    roles = {"value": "y", "group": "variety", "block": "block"}
+    params = _run(cols, roles)["B2.8"]["message"]["params"]
+    assert params == {"c": "plot", "f": "variety", "method": "rcbd_subsampling_anova"}
+    assert _method_leaves("rcbd_subsampling_anova") == ["B1.subsample"]
+
+
+def test_02_03_nested_treatments_still_point_to_nested_anova():
+    """Welham Table 8.10: изоляты внутри видов — вложенные варианты, метод прежний."""
+    hit = _stage("S22", "one-way")["B2.8"]
+    assert hit["suggests"] == "nested_anova" and "method" not in hit["message"]["params"]
