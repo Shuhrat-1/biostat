@@ -126,6 +126,11 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     en: `Column does not vary: {columns} — skewness and kurtosis are undefined.`,
     pt: `A coluna não varia: {columns} — a assimetria e a curtose ficam indefinidas.`,
   },
+  kruskal_small_groups: {
+    ru: `P получено по χ²-приближению, а группы малы (в наименьшей — {n_min}, нужно ≥ {need}): значение приблизительное.`,
+    en: `P comes from the χ² approximation, but the groups are small (the smallest has {n_min}, ≥ {need} needed): the value is approximate.`,
+    pt: `P vem da aproximação do χ², mas os grupos são pequenos (o menor tem {n_min}, são precisos ≥ {need}): o valor é aproximado.`,
+  },
   single_observation_group: {
     ru: `В группе одно наблюдение ({groups}): её среднее не оценивает разброс, остаточная дисперсия — по остальным группам.`,
     en: `A group has a single observation ({groups}): its mean tells nothing about spread, so the residual variance comes from the other groups.`,

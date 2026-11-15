@@ -1620,6 +1620,8 @@ function ExtraTables({ params, method }: { params: Raw; method: string }) {
   );
 }
 
+const P_METHODS = new Set(["exact", "normal"]);
+
 export function ResultPanel({ result, context }: { result: StatResult; context: Context }) {
   const t = useT();
   const lang = useLang();
@@ -1630,6 +1632,10 @@ export function ResultPanel({ result, context }: { result: StatResult; context: 
   if (result.method === "describe_all") {
     return <SummaryTable result={result} />;
   }
+
+  // Способ получения P у ранговых тестов: точное или нормальное (аудит 02-02)
+  const rawMethod = (result.parameters as Record<string, unknown>).p_method;
+  const pMethod = P_METHODS.has(rawMethod as string) ? (rawMethod as string) : null;
 
   const anova = anovaRows(result);
   const experimental = result.warnings.some((w) => EXPERIMENTAL_CODES.has(w.code));
@@ -1681,6 +1687,11 @@ export function ResultPanel({ result, context }: { result: StatResult; context: 
               ? t("result.significant")
               : t("result.notSignificant")}
           </span>
+          {pMethod && (
+            <div style={{ color: c.muted, fontSize: "0.8rem", marginTop: "0.2rem" }}>
+              {t(`result.pMethod.${pMethod}`)}
+            </div>
+          )}
         </div>
       )}
 

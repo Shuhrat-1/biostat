@@ -31,10 +31,13 @@ def test_tv_mann_whitney_table_20_2():
 
 def test_therapy_progress_check_20_2():
     """Witte, стр. 392 (Progress Check 20.2), ответ стр. 455: U₁ = 31, U₂ = 5, U = 5 = крит. 5 →
-    H0 отвергнута, «p = .05». Нормальное приближение scipy (совпадения 4.5): P = .045."""
+    H0 отвергнута, «p = .05». Точное перестановочное P с рангами при совпадениях (4.5):
+    34 разбиения из C(12, 6) = 924 не менее крайние → P = .0368 (аудит 02-02; нормальное
+    приближение давало .045)."""
     res = mann_whitney([1, 2, 4.5, 11, 3, 4.5], [9, 6, 12, 10, 7, 8])
     assert res.statistics["U_min"] == 5
-    assert res.p_value == pytest.approx(0.04495, abs=1e-5)
+    assert res.p_value == pytest.approx(34 / 924, abs=1e-12)
+    assert res.parameters["p_method"] == "exact"
 
 
 def test_tv_hodges_lehmann_shift():

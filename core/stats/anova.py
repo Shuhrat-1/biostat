@@ -271,12 +271,32 @@ def kruskal_wallis(
     result.parameters["labels"] = labels
     result.statistics = {"H": float(res.statistic), "df": k - 1}
     note_single_groups(result, [g.size for g in clean], labels)
+    _note_small_kruskal_groups(result, [g.size for g in clean])
     for lab, g in zip(labels, clean):
         result.estimates.append(
             Estimate(name=f"median_{lab}", value=float(np.median(g)))
         )
     result.statistics.update(kruskal_rank_sums(clean, labels))
     return result
+
+
+# [BioStat] Порог пометки — n < 5 в группе (решение по аудиту 02-02).
+# Witte, стр. 398: χ² достаточно точен, когда в каждой группе ≥ 4 наблюдений.
+_KRUSKAL_MIN_GROUP = 5
+
+
+def _note_small_kruskal_groups(result: StatResult, sizes: list[int]) -> None:
+    """Пометка: P — по χ²-приближению, а группы малы (аудит 02-02).
+
+    Точного P здесь нет: на 3 группах по 3 приближение даёт 0.027 при точном
+    0.0036 — оно консервативно, но расходится заметно.
+    """
+    if min(sizes) < _KRUSKAL_MIN_GROUP:
+        result.add_warning(
+            "kruskal_small_groups",
+            f"P получено по χ²-приближению, а группы малы (в наименьшей — {min(sizes)}, "
+            f"нужно ≥ {_KRUSKAL_MIN_GROUP}): значение приблизительное.",
+            Severity.WARNING, params={"n_min": min(sizes), "need": _KRUSKAL_MIN_GROUP})
 
 
 def kruskal_rank_sums(groups: list[np.ndarray], labels: list[str]) -> dict[str, float]:

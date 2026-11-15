@@ -14,6 +14,7 @@ from core.report.schema import Estimate, Severity, StatResult
 from core.stats.guards import refuse_constant, refuse_no_residual
 from core.stats.normality_rule import check_normality
 from core.stats.hodges_lehmann import hl_one_sample, hl_two_sample
+from core.stats.rank_exact import rank_sum_p, signed_rank_p
 from core.stats.welch_rule import welch_advice
 
 # Порог p для тестов на нарушение допущений (нормальность, равенство дисперсий).
@@ -412,6 +413,16 @@ def _add_paired_effect(
     result.estimates.append(Estimate(name="cohens_dz", value=float(d_z)))
 
 
+def _set_rank_p(result: StatResult, exact: float | None, approximate: float) -> None:
+    """P рангового теста и способ его получения (аудит 02-02).
+
+    ``exact`` — перестановочное P с рангами при совпадениях (`rank_exact`);
+    None — выборка больше предела, берётся нормальное приближение scipy.
+    """
+    result.p_value = float(approximate if exact is None else exact)
+    result.parameters["p_method"] = "normal" if exact is None else "exact"
+
+
 def mann_whitney(
     a: np.ndarray | list[float],
     b: np.ndarray | list[float],
@@ -441,7 +452,7 @@ def mann_whitney(
         return result
 
     res = stats.mannwhitneyu(arr_a, arr_b, alternative=alternative)
-    result.p_value = float(res.pvalue)
+    _set_rank_p(result, rank_sum_p(arr_a, arr_b, alternative), res.pvalue)
     result.statistics = {
         "U": float(res.statistic),
         "median_a": float(np.median(arr_a)),
@@ -507,7 +518,7 @@ def wilcoxon(
         return result
 
     res = stats.wilcoxon(arr_a, arr_b, alternative=alternative)
-    result.p_value = float(res.pvalue)
+    _set_rank_p(result, signed_rank_p(arr_a - arr_b, alternative), res.pvalue)
     result.statistics = {
         "W": float(res.statistic),
         "median_diff": float(np.median(arr_a - arr_b)),
@@ -561,7 +572,7 @@ def one_sample_wilcoxon(
                            Severity.ERROR)
         return result
     res = stats.wilcoxon(diff, alternative=alternative)
-    result.p_value = float(res.pvalue)
+    _set_rank_p(result, signed_rank_p(diff, alternative), res.pvalue)
     result.statistics = {"W": float(res.statistic), "median": float(np.median(arr)),
                          "median_diff": float(np.median(diff))}
     _add_wilcoxon_extras(result, diff, confidence)
