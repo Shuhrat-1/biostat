@@ -207,6 +207,11 @@ def _ordered_fit(frame: pd.DataFrame, x: np.ndarray, link: str, k: int) -> dict:
         "llf": float(res.llf), "converged": converged, "n_par": raw.size}
 
 
+_NOT_IDENTIFIABLE = (
+    "Параметры модели не оцениваются: вероятно, есть пустая или очень редкая категория "
+    "отклика либо полное разделение. Объедините соседние категории или уберите фактор, "
+    "который полностью разделяет их.")
+
 # [BioStat] Признаки разделения категорий (аудит 02-12); пороги свои, не из книг.
 # Полное: log L > −1e-6·n — модель предсказывает каждую строку наверняка.
 _SEPARATION_LOGLIK = 1e-6
@@ -426,9 +431,8 @@ def _fill_ordinal(model: Ordinal, terms: list[tuple[str, ...]], names: dict[str,
     """Подгонка, тесты, коэффициенты, пороги, вероятности и проверка пропорциональности."""
     alpha = result.parameters["alpha"]
     fit, null = model.fit(terms), model.fit([])
-    if fit.get("failed"):  # раньше здесь было необработанное исключение statsmodels
-        result.add_warning("ordinal_not_converged", "Оптимизация не сошлась: возможно полное "
-                           "разделение категорий.", Severity.ERROR)
+    if fit.get("failed"):  # гессиан не обращается: оптимизатор сошёлся, но SE нет
+        result.add_warning("ordinal_not_identifiable", _NOT_IDENTIFIABLE, Severity.ERROR)
         return
     if not fit["converged"]:
         result.add_warning("ordinal_not_converged", "Оптимизация не сошлась: возможно полное "

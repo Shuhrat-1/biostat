@@ -436,6 +436,11 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     en: `At least 3 ordered categories are needed; for two use a binomial GLM.`,
     pt: `São necessárias pelo menos 3 categorias ordenadas; para duas use um GLM binomial.`,
   },
+  ordinal_not_identifiable: {
+    ru: `Параметры модели не оцениваются: вероятно, есть пустая или очень редкая категория отклика либо полное разделение. Объедините соседние категории или уберите фактор, который полностью разделяет их.`,
+    en: `The model parameters cannot be estimated: there is probably an empty or very rare response category, or complete separation. Merge adjacent categories or remove the factor that separates them completely.`,
+    pt: `Os parâmetros do modelo não podem ser estimados: provavelmente há uma categoria de resposta vazia ou muito rara, ou separação completa. Junte categorias adjacentes ou retire o fator que as separa completamente.`,
+  },
   ordinal_not_converged: {
     ru: `Оптимизация не сошлась: возможно полное разделение категорий. Оценки ненадёжны.`,
     en: `The optimisation did not converge: possibly complete separation of categories. Estimates are unreliable.`,

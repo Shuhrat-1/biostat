@@ -280,23 +280,24 @@ def kruskal_wallis(
     return result
 
 
-# [BioStat] Порог пометки — n < 5 в группе (решение по аудиту 02-02).
-# Witte, стр. 398: χ² достаточно точен, когда в каждой группе ≥ 4 наблюдений.
-_KRUSKAL_MIN_GROUP = 5
+# Witte, стр. 398: критические значения H по χ² достаточно точны, когда в каждой
+# группе не меньше 4 наблюдений; при меньших нужны специальные таблицы.
+_KRUSKAL_MIN_GROUP = 4
 
 
 def _note_small_kruskal_groups(result: StatResult, sizes: list[int]) -> None:
     """Пометка: P — по χ²-приближению, а группы малы (аудит 02-02).
 
     Точного P здесь нет: на 3 группах по 3 приближение даёт 0.027 при точном
-    0.0036 — оно консервативно, но расходится заметно.
+    0.0036. Приближение консервативно (P завышено, ложной значимости нет),
+    поэтому уровень — INFO, а не WARNING.
     """
     if min(sizes) < _KRUSKAL_MIN_GROUP:
         result.add_warning(
             "kruskal_small_groups",
             f"P получено по χ²-приближению, а группы малы (в наименьшей — {min(sizes)}, "
             f"нужно ≥ {_KRUSKAL_MIN_GROUP}): значение приблизительное.",
-            Severity.WARNING, params={"n_min": min(sizes), "need": _KRUSKAL_MIN_GROUP})
+            Severity.INFO, params={"n_min": min(sizes), "need": _KRUSKAL_MIN_GROUP})
 
 
 def kruskal_rank_sums(groups: list[np.ndarray], labels: list[str]) -> dict[str, float]:

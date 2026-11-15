@@ -155,18 +155,51 @@ def test_p_method_is_labelled_in_three_languages() -> None:
 
 # --- Краскел–Уоллис: точного P нет, пометка при малых группах ---------------------------------
 
+def test_mann_whitney_four_and_four_with_ties_from_the_finding() -> None:
+    """Строка таблицы 02-02: баллы 1, 2, 2, 3 против 3, 4, 4, 5 — точное P = 4/70 = 0.057
+    (нормальное приближение давало 0.040). Удвоенные средние ранги целые: 2, 5, 5, 9, 9,
+    13, 13, 16 — свёртка считает ровно те же 70 разбиений, что и перебор."""
+    a, b = [1, 2, 2, 3], [3, 4, 4, 5]
+    doubled = rank_exact._doubled_ranks(np.array(a + b, dtype=float))
+    assert doubled.tolist() == [2, 5, 5, 9, 9, 13, 13, 16]
+    dist = rank_exact._rank_sum_distribution(doubled, 4)
+    assert np.allclose(dist * 70, np.rint(dist * 70)) and dist.sum() == pytest.approx(1)
+    res = run("mann_whitney", _two_groups(a, b), GROUPS, {})
+    assert res["p_value"] == pytest.approx(4 / 70, abs=1e-12)
+    assert round(res["p_value"], 3) == 0.057 and res["parameters"]["p_method"] == "exact"
+    assert stats.mannwhitneyu(a, b, method="asymptotic").pvalue == pytest.approx(0.040, abs=1e-3)
+
+
+def test_exact_p_at_the_size_limits_is_fast() -> None:
+    """Пределы 200 разностей и 100 наблюдений. Замер в Pyodide 0.26.4 (Node, V8): 0.02 с и
+    0.06 с, весь метод mann_whitney 50 + 50 — 0.13 с; здесь CPython — с запасом до 0.5 с."""
+    import time
+
+    rng = np.random.default_rng(1)
+    d = rng.integers(1, 6, rank_exact.MAX_SIGNED_RANK_N).astype(float)
+    a, b = rng.integers(1, 6, 50).astype(float), rng.integers(2, 7, 50).astype(float)
+    assert a.size + b.size == rank_exact.MAX_RANK_SUM_N
+    start = time.perf_counter()
+    assert signed_rank_p(d) is not None and rank_sum_p(a, b) is not None
+    assert time.perf_counter() - start < 0.5
+    assert signed_rank_p(np.append(d, 1.0)) is None and rank_sum_p(np.append(a, 1.0), b) is None
+
+
 def test_kruskal_wallis_notes_small_groups() -> None:
-    """3 группы по 3: χ²-приближение даёт 0.027 при точном 0.0036 (6 разбиений из 1680)."""
+    """3 группы по 3: χ²-приближение даёт 0.027 при точном 0.0036 (6 разбиений из 1680).
+    Порог — Witte, стр. 398: χ² достаточно точен при ≥ 4 наблюдениях в каждой группе.
+    Приближение консервативно, поэтому пометка уровня info."""
     y = [1.1, 2.3, 3.2, 4.4, 5.1, 6.6, 7.2, 8.9, 9.5]
     res = run("kruskal_wallis", {"g": [f"g{i // 3}" for i in range(9)], "y": y}, GROUPS, {})
     assert res["p_value"] == pytest.approx(0.0273, abs=1e-4)  # P не меняется
     (note,) = [w for w in res["warnings"] if w["code"] == "kruskal_small_groups"]
-    assert note["params"] == {"n_min": 3, "need": 5} and "χ²-приближению" in note["message"]
+    assert note["params"] == {"n_min": 3, "need": 4} and "χ²-приближению" in note["message"]
+    assert note["severity"] == "info"
 
 
-def test_kruskal_wallis_is_silent_when_every_group_has_five() -> None:
+def test_kruskal_wallis_is_silent_when_every_group_has_four() -> None:
     rng = np.random.default_rng(2)
-    cols = {"g": [f"g{i // 5}" for i in range(15)], "y": rng.normal(size=15).round(2).tolist()}
+    cols = {"g": [f"g{i // 4}" for i in range(12)], "y": rng.normal(size=12).round(2).tolist()}
     assert "kruskal_small_groups" not in codes(run("kruskal_wallis", cols, GROUPS, {}))
     text = (WEB / "coreMessages.tsx").read_text("utf-8")
     block = text.split("kruskal_small_groups: {")[1].split("\n  },")[0]

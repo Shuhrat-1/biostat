@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import numpy as np
 import pytest
 from scipy import stats
@@ -351,21 +353,30 @@ def test_02_12_partial_separation_warns_by_runaway_coefficient() -> None:
             "x": [float(i % 7) for i in range(60)]}
     res = run("ordinal_regression", cols, {"response": "s", "factor_a": "g", "covariate": "x"},
               {"levels": "low, mid, high"})
-    assert "ordinal_not_converged" in codes(res)
     if errors(res):  # новее statsmodels: гессиан не обратился — отказ (тест ниже)
+        assert errors(res) == ["ordinal_not_identifiable"]
         return
+    assert "ordinal_not_converged" in codes(res)
     assert res["statistics"]["loglik"] < -5  # не полное разделение: первый признак молчит
     assert any(abs(e["value"]) > 10 and e["std_error"] > 100 for e in res["estimates"])
 
 
 def test_02_12_singular_hessian_is_a_refusal_not_a_crash() -> None:
     """Тот же случай на 20 строках: гессиан не обращается, SE нет. Было необработанное
-    исключение statsmodels («need covariance of parameters»), теперь — отказ с тем же кодом."""
+    исключение statsmodels («need covariance of parameters»), теперь — отказ со своим кодом:
+    оптимизатор сошёлся, но параметры не определены."""
     cols = {"g": ["a"] * 8 + ["b"] * 12,
             "s": ["low"] * 8 + ["low"] * 4 + ["mid"] * 4 + ["high"] * 4}
     res = run("ordinal_regression", cols, {"response": "s", "factor_a": "g"},
               {"levels": "low, mid, high"})
-    assert "ordinal_not_converged" in errors(res) and res["estimates"] == []
+    assert errors(res) == ["ordinal_not_identifiable"] and res["estimates"] == []
+    assert "ordinal_not_converged" not in codes(res)
+    (note,) = [w for w in res["warnings"] if w["code"] == "ordinal_not_identifiable"]
+    assert note["message"].startswith("Параметры модели не оцениваются: вероятно, есть пустая")
+    assert "Объедините соседние категории или уберите фактор" in note["message"]
+    web = Path(__file__).resolve().parents[1] / "web/src/coreMessages.tsx"
+    block = web.read_text("utf-8").split("ordinal_not_identifiable: {")[1].split("\n  },")[0]
+    assert note["message"] in block and all(f"{lang}: `" in block for lang in ("en", "pt"))
 
 
 def test_02_12_runaway_rule_flags_huge_beta_with_huge_se() -> None:
