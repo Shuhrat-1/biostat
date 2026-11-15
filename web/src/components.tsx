@@ -14,6 +14,7 @@ import type {
 import { useLang, useT } from "./i18n";
 import { fillColumns } from "./columnFill";
 import { effectRows } from "./effectSize";
+import { csvCell } from "./escape";
 import { columnLabel, extraTitle, statLabel } from "./extraLabels";
 import { useCoreMessage } from "./coreMessages";
 import { needsCausalityCaveat, type Context } from "./mapState";
@@ -2084,12 +2085,7 @@ function SummaryExport({
   const exportCsv = () => {
     const csv = buildMatrix()
       .map((row) =>
-        row
-          .map((cell) => {
-            const s = String(cell);
-            return /[",;\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-          })
-          .join(";"),
+        row.map((cell) => csvCell(cell)).join(";"),
       )
       .join("\n");
     // BOM для корректной кириллицы в Excel.

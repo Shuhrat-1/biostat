@@ -25,6 +25,7 @@ import {
 } from "echarts/components";
 import { SVGRenderer } from "echarts/renderers";
 import { useEffect, useRef } from "react";
+import { escapeHtml as esc } from "./escape";
 import { useT } from "./i18n";
 import type { PlotBundle } from "./pyodide/bridge";
 import { c } from "./styles";
@@ -160,7 +161,7 @@ function boxplotOption(b: NonNullable<PlotBundle["boxplot"]>): Option {
 function barMeansOption(b: NonNullable<PlotBundle["bar_means"]>, t: T): Option {
   const lo = b.means.map((m, i) => m - b.errors[i]);
   const hi = b.means.map((m, i) => m + b.errors[i]);
-  const tip = (p: any) => `${b.labels[p.dataIndex]}: ${fmt(b.means[p.dataIndex])}`
+  const tip = (p: any) => `${esc(b.labels[p.dataIndex])}: ${fmt(b.means[p.dataIndex])}`
     + ` ± ${fmt(b.errors[p.dataIndex])}`;
   return {
     grid: BASE_GRID,
@@ -268,7 +269,7 @@ function meansCiOption(m: NonNullable<PlotBundle["means_ci"]>, t: T): Option {
   const pos = (i: number) => (m.numeric ? m.items[i].x! : i);
   const tip = (i: number) => {
     const it = m.items[i];
-    return `${it.label}: ${fmt(it.mean)} [${fmt(it.lower)}; ${fmt(it.upper)}]`;
+    return `${esc(it.label)}: ${fmt(it.mean)} [${fmt(it.lower)}; ${fmt(it.upper)}]`;
   };
   return {
     grid: { ...BASE_GRID, bottom: m.numeric ? 40 : 60 },
@@ -294,7 +295,7 @@ function interactionOption(g: NonNullable<PlotBundle["interaction"]>): Option {
     const s = g.series[p.seriesIndex];
     const i = p.dataIndex;
     if (s.values[i] === null) return "";
-    return `${g.factor_a}=${g.levels_a[i]}, ${g.factor_b}=${s.name}: ${fmt(s.values[i]!)}`
+    return `${esc(g.factor_a)}=${esc(g.levels_a[i])}, ${esc(g.factor_b)}=${esc(s.name)}: ${fmt(s.values[i]!)}`
       + ` [${fmt(s.lower[i]!)}; ${fmt(s.upper[i]!)}]`;
   };
   return {
@@ -327,7 +328,7 @@ function differencesOption(d: NonNullable<PlotBundle["differences"]>, t: T): Opt
   }
   const tip = (p: any) => {
     const it = d.items[p.dataIndex];
-    return `${it.label}: ${fmt(it.diff)} [${fmt(it.lower)}; ${fmt(it.upper)}]`;
+    return `${esc(it.label)}: ${fmt(it.diff)} [${fmt(it.lower)}; ${fmt(it.upper)}]`;
   };
   return {
     grid: { left: 12, right: 28, top: d.margin !== undefined ? 36 : 20, bottom: 36, containLabel: true },
@@ -423,7 +424,7 @@ function extraScatterOption(e: NonNullable<PlotBundle["extra_scatter"]>[number],
   const tip = (p: any) => {
     const [x, y] = e.points[p.dataIndex] ?? [];
     const label = e.labels?.[p.dataIndex];
-    return `${label ? `${label}<br/>` : ""}${xName} ${fmt(x)} · ${t(yKey)} ${fmt(y)}`;
+    return `${label ? `${esc(label)}<br/>` : ""}${esc(xName)} ${fmt(x)} · ${t(yKey)} ${fmt(y)}`;
   };
   return {
     grid: BASE_GRID,
@@ -459,7 +460,7 @@ function heatmapOption(h: NonNullable<PlotBundle["heatmap"]>, t: T): Option {
     grid: { left: 12, right: 24, top: 16, bottom: 64, containLabel: true },
     tooltip: { trigger: "item", formatter: (p: any) => {
       const [col, row, res, obs, exp] = p.value as number[];
-      return `${h.rows[row]} × ${h.columns[col]}: ${obs} (${t("axis.expected")} ${fmt(exp)}),`
+      return `${esc(h.rows[row])} × ${esc(h.columns[col])}: ${obs} (${t("axis.expected")} ${fmt(exp)}),`
         + ` ${t("axis.adj_residual")} ${fmt(res)}`;
     } },
     xAxis: { type: "category", data: h.columns, ...AXIS_STYLE },
@@ -483,7 +484,7 @@ function pairedOption(pd: NonNullable<PlotBundle["paired"]>): Option {
     grid: { ...BASE_GRID, left: 56, right: 56 },
     tooltip: { trigger: "item", formatter: (p: any) => {
       const [b, a] = pairs[p.seriesIndex];
-      return `${pd.labels[0]} ${fmt(b)} → ${pd.labels[1]} ${fmt(a)}`;
+      return `${esc(pd.labels[0])} ${fmt(b)} → ${esc(pd.labels[1])} ${fmt(a)}`;
     } },
     xAxis: { type: "category", data: pd.labels, boundaryGap: false, ...AXIS_STYLE },
     yAxis: { type: "value", ...AXIS_STYLE, ...bounds(pairs.flat()) },
@@ -499,7 +500,7 @@ function pairedOption(pd: NonNullable<PlotBundle["paired"]>): Option {
 function barsOption(b: NonNullable<PlotBundle["bars"]>, t: T): Option {
   return {
     grid: { left: 12, right: 40, top: 16, bottom: 36, containLabel: true },
-    tooltip: { trigger: "item", formatter: (p: any) => `${b.items[p.dataIndex].label}: ${fmt(p.value)}` },
+    tooltip: { trigger: "item", formatter: (p: any) => `${esc(b.items[p.dataIndex].label)}: ${fmt(p.value)}` },
     xAxis: { type: "value", name: t("axis.msep"), nameLocation: "middle", nameGap: 24, ...AXIS_STYLE },
     yAxis: { type: "category", data: b.items.map((it) => it.label), inverse: true, ...AXIS_STYLE },
     series: [{
@@ -520,7 +521,7 @@ function surfaceOption(sf: NonNullable<PlotBundle["surface"]>, t: T): Option {
     grid: { left: 12, right: 24, top: 16, bottom: 72, containLabel: true },
     tooltip: { trigger: "item", formatter: (p: any) => {
       const [i, j, v] = p.value as number[];
-      return `${sf.names[0]} ${fmt(sf.x1[i])}, ${sf.names[1]} ${fmt(sf.x2[j])}: ${fmt(v)}`;
+      return `${esc(sf.names[0])} ${fmt(sf.x1[i])}, ${esc(sf.names[1])} ${fmt(sf.x2[j])}: ${fmt(v)}`;
     } },
     xAxis: { type: "category", name: sf.names[0], data: sf.x1.map(label), ...AXIS_STYLE },
     yAxis: { type: "category", name: sf.names[1], data: sf.x2.map(label), ...AXIS_STYLE },
