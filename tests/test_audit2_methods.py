@@ -260,13 +260,13 @@ def test_02_12_convergence_warning_does_not_depend_on_row_order() -> None:
         [e["value"] for e in moved["estimates"]], rel=1e-4)
 
 
-def test_02_12_complete_separation_still_warns() -> None:
-    """Категории полностью разделены по x: оценки уходят в бесконечность — предупреждение."""
+def test_02_12_complete_separation_is_a_refusal() -> None:
+    """Категории полностью разделены по x: log L ≈ 0, оценки на бесконечности — отказ."""
     cols = {"x": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
             "s": ["low"] * 4 + ["mid"] * 4 + ["high"] * 4}
     res = run("ordinal_regression", cols, {"response": "s", "covariate": "x"},
               {"levels": "low, mid, high"})
-    assert "ordinal_not_converged" in codes(res)
+    assert errors(res) == ["ordinal_not_identifiable"] and res["estimates"] == []
 
 
 # --- 02-09. Качество данных: регистр меток и нечисловые ячейки ----------------------------
@@ -345,32 +345,51 @@ def test_02_09_messages_have_three_languages() -> None:
     assert text.count("{cells}") == 6
 
 
-def test_02_12_partial_separation_warns_by_runaway_coefficient() -> None:
-    """Частичное разделение: уровень «a» — только «low», у «b» все три категории.
-    log L далеко от нуля (−32.9), а оценки уходят в бесконечность: |β| > 10 при SE > 100."""
-    cols = {"g": ["a"] * 30 + ["b"] * 30,
-            "s": ["low"] * 30 + ["low"] * 10 + ["mid"] * 10 + ["high"] * 10,
-            "x": [float(i % 7) for i in range(60)]}
-    res = run("ordinal_regression", cols, {"response": "s", "factor_a": "g", "covariate": "x"},
-              {"levels": "low, mid, high"})
-    if errors(res):  # новее statsmodels: гессиан не обратился — отказ (тест ниже)
-        assert errors(res) == ["ordinal_not_identifiable"]
-        return
-    assert "ordinal_not_converged" in codes(res)
-    assert res["statistics"]["loglik"] < -5  # не полное разделение: первый признак молчит
-    assert any(abs(e["value"]) > 10 and e["std_error"] > 100 for e in res["estimates"])
+def _partial(n_a: int, n_b: int, covariate: bool = False, seed: int | None = None) -> dict:
+    """Частичное разделение: уровень «a» — только «low», у «b» все три категории поровну."""
+    third = n_b // 3
+    cols = {"g": ["a"] * n_a + ["b"] * n_b,
+            "s": ["low"] * (n_a + third) + ["mid"] * third + ["high"] * (n_b - 2 * third)}
+    roles = {"response": "s", "factor_a": "g"}
+    if covariate:
+        cols["x"] = [float(i % 7) for i in range(n_a + n_b)]
+        roles["covariate"] = "x"
+    if seed is not None:
+        order = np.random.default_rng(seed).permutation(n_a + n_b)
+        cols = {k: [v[i] for i in order] for k, v in cols.items()}
+    return run("ordinal_regression", cols, roles, {"levels": "low, mid, high"})
 
 
-def test_02_12_singular_hessian_is_a_refusal_not_a_crash() -> None:
-    """Тот же случай на 20 строках: гессиан не обращается, SE нет. Было необработанное
-    исключение statsmodels («need covariance of parameters»), теперь — отказ со своим кодом:
-    оптимизатор сошёлся, но параметры не определены."""
-    cols = {"g": ["a"] * 8 + ["b"] * 12,
-            "s": ["low"] * 8 + ["low"] * 4 + ["mid"] * 4 + ["high"] * 4}
-    res = run("ordinal_regression", cols, {"response": "s", "factor_a": "g"},
-              {"levels": "low, mid, high"})
+@pytest.mark.parametrize(("n_a", "n_b", "covariate"), [(8, 12, False), (16, 24, False),
+                                                       (30, 30, True)])
+@pytest.mark.parametrize("seed", [None, 1, 2, 3])
+def test_02_12_partial_separation_is_a_refusal_whatever_the_row_order(n_a, n_b, covariate,
+                                                                     seed) -> None:
+    """Было (патч 117): на одних и тех же данных то отказ, то таблица с β ≈ 27 и e^27 —
+    по порядку строк и по тому, обратит ли BLAS машины почти вырожденный гессиан.
+    Замер на этих 12 вариантах: CPython Linux — 4 отказа из 8 исходных, Pyodide — 3 из 8,
+    на Windows у владельца 20 строк дали таблицу. Теперь всегда отказ."""
+    res = _partial(n_a, n_b, covariate, seed)
     assert errors(res) == ["ordinal_not_identifiable"] and res["estimates"] == []
     assert "ordinal_not_converged" not in codes(res)
+
+
+def test_02_12_each_separation_sign_alone_means_separated() -> None:
+    """Три признака без данных, не завися от BLAS: log L ≈ 0; гессиан не обратился
+    (cov = None — раньше здесь падал statsmodels: «need covariance of parameters»);
+    |β| > 10 при SE > 100. Обычная подгонка — не разделение."""
+    from core.stats.categorical import _separated
+
+    x = np.array([[0.0], [1.0], [0.0], [1.0]])
+    fine = np.array([[0.25]])
+    assert _separated(-1e-9, fine, np.array([0.5]), x)
+    assert _separated(-20.0, None, np.array([0.5]), x)
+    assert _separated(-20.0, np.array([[1e10]]), np.array([27.0]), x)
+    assert not _separated(-20.0, fine, np.array([0.5]), x)
+
+
+def test_02_12_refusal_text_in_three_languages() -> None:
+    res = _partial(8, 12)
     (note,) = [w for w in res["warnings"] if w["code"] == "ordinal_not_identifiable"]
     assert note["message"].startswith("Параметры модели не оцениваются: вероятно, есть пустая")
     assert "Объедините соседние категории или уберите фактор" in note["message"]
@@ -399,4 +418,5 @@ def test_02_12_runaway_sign_does_not_depend_on_covariate_units() -> None:
     cols = table("ordinal_regression")
     numeric = [k for k, v in cols.items() if isinstance(v[0], float)]
     small = {k: ([x * 1e-6 for x in v] if k in numeric else v) for k, v in cols.items()}
-    assert numeric and "ordinal_not_converged" not in codes(run("ordinal_regression", small))
+    res = run("ordinal_regression", small)
+    assert numeric and not ({"ordinal_not_converged", "ordinal_not_identifiable"} & set(codes(res)))

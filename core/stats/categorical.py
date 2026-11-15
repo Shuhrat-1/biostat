@@ -194,17 +194,16 @@ def _ordered_fit(frame: pd.DataFrame, x: np.ndarray, link: str, k: int) -> dict:
     res, converged = _settled_fit(OrderedModel(frame["y"].to_numpy(), exog, distr=link))
     p = exog.shape[1]
     raw, cov = np.asarray(res.params), _covariance(res)
-    if cov is None:  # гессиан не обратился: оценка на границе, SE нет
-        return {"beta": raw[:p], "llf": float(res.llf), "converged": False, "failed": True,
-                "n_par": raw.size}
-    converged = converged and not _runaway(raw[:p], cov[:p, :p], exog)
+    if _separated(float(res.llf), cov, raw[:p], exog):
+        return {"beta": raw[:p], "llf": float(res.llf), "converged": converged,
+                "separated": True, "n_par": raw.size}
     jac = np.zeros((k - 1, raw.size))  # θ1 = c1, θj = c1 + Σ exp(c_i)
     jac[:, p] = 1.0
     for j in range(1, k - 1):
         jac[j:, p + j] = np.exp(raw[p + j])
     return {"beta": raw[:p], "cov_beta": cov[:p, :p], "theta": np.cumsum(
         np.r_[raw[p], np.exp(raw[p + 1:])]), "cov_theta": jac @ cov @ jac.T,
-        "llf": float(res.llf), "converged": converged, "n_par": raw.size}
+        "llf": float(res.llf), "converged": converged, "separated": False, "n_par": raw.size}
 
 
 _NOT_IDENTIFIABLE = (
@@ -231,6 +230,21 @@ def _covariance(res: Any) -> np.ndarray | None:
     return cov if np.all(np.isfinite(cov)) else None
 
 
+def _separated(llf: float, cov: np.ndarray | None, beta: np.ndarray, exog: np.ndarray) -> bool:
+    """Разделение категорий: оценки не определены (аудит 02-12, после патча 117).
+
+    Три признака одного явления — максимум правдоподобия на бесконечности:
+    log L ≈ 0 (полное разделение), гессиан не обращается, |β| и SE огромны.
+    Какой из двух последних сработает, решает случай: порядок строк и то, как
+    BLAS машины обращает почти вырожденную матрицу. Поэтому исход у всех трёх
+    один — отказ `ordinal_not_identifiable`, а не то отказ, то таблица.
+    """
+    if llf > -_SEPARATION_LOGLIK * exog.shape[0] or cov is None:
+        return True
+    p = beta.size
+    return _runaway(beta, cov[:p, :p], exog)
+
+
 def _runaway(beta: np.ndarray, cov: np.ndarray, exog: np.ndarray) -> bool:
     """Коэффициент ушёл в бесконечность: огромные |β| и SE одновременно.
 
@@ -244,21 +258,17 @@ def _runaway(beta: np.ndarray, cov: np.ndarray, exog: np.ndarray) -> bool:
 
 
 def _settled_fit(model: OrderedModel) -> tuple[Any, bool]:
-    """Подгонка и честный признак сходимости (аудит 02-12).
+    """Подгонка и честный признак сходимости оптимизатора (аудит 02-12).
 
     Флаг BFGS «не сошлось» часто означает лишь потерю точности у самого
     максимума и зависит от порядка строк. Поэтому при таком флаге подгонка
     повторяется от найденной точки: если оценки и log L не сдвинулись —
-    максимум найден. Полное разделение категорий (log L ≈ 0: модель
-    предсказывает каждую строку наверняка, оценки уходят в бесконечность)
-    сходимостью не считается, что бы ни сообщил оптимизатор.
+    максимум найден. Разделение категорий проверяется отдельно (`_separated`).
     """
     options = {"method": "bfgs", "disp": False, "maxiter": 2000, "gtol": 1e-8}
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", ConvergenceWarning)
         first = model.fit(**options)
-        if first.llf > -_SEPARATION_LOGLIK * model.nobs:
-            return first, False
         if first.mle_retvals.get("converged", True):
             return first, True
         again = model.fit(start_params=np.asarray(first.params), **options)
@@ -431,7 +441,7 @@ def _fill_ordinal(model: Ordinal, terms: list[tuple[str, ...]], names: dict[str,
     """Подгонка, тесты, коэффициенты, пороги, вероятности и проверка пропорциональности."""
     alpha = result.parameters["alpha"]
     fit, null = model.fit(terms), model.fit([])
-    if fit.get("failed"):  # гессиан не обращается: оптимизатор сошёлся, но SE нет
+    if fit.get("separated"):  # оценки на бесконечности: таблицы β ≈ 27 и e^27 не показываем
         result.add_warning("ordinal_not_identifiable", _NOT_IDENTIFIABLE, Severity.ERROR)
         return
     if not fit["converged"]:
