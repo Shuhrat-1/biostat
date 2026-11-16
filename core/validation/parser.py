@@ -158,11 +158,26 @@ class ParsedTable:
             result.append(trimmed)
         return result
 
+    def column_index(self, name: str) -> int:
+        """Номер колонки по имени (первое вхождение, как ``list.index``).
+
+        Словарь строится один раз: поиск перебором заголовка на каждый вызов
+        давал квадрат по числу колонок — 50 000 колонок разбирались 48 с
+        в Pyodide (аудит 03-05).
+        """
+        index = self.__dict__.get("_column_index")
+        if index is None or len(index) > len(self.header):
+            index = {}
+            for i, column in enumerate(self.header):
+                index.setdefault(column, i)
+            self.__dict__["_column_index"] = index
+        if name not in index:
+            raise ValueError(f"Нет колонки: {name}")
+        return index[name]
+
     def column_values(self, name: str) -> list[str]:
         """Сырые значения колонки по имени."""
-        if name not in self.header:
-            raise ValueError(f"Нет колонки: {name}")
-        index = self.header.index(name)
+        index = self.column_index(name)
         return [row[index] if index < len(row) else "" for row in self._rows]
 
     def numeric_column(self, name: str) -> list[float]:

@@ -16,6 +16,7 @@ import { fillColumns } from "./columnFill";
 import { effectRows } from "./effectSize";
 import { csvCell } from "./escape";
 import { columnLabel, extraTitle, statLabel } from "./extraLabels";
+import { MAX_SHOWN_COLUMNS } from "./limits";
 import { useCoreMessage } from "./coreMessages";
 import { needsCausalityCaveat, type Context } from "./mapState";
 import { c, s, typeBadgeStyle } from "./styles";
@@ -335,6 +336,8 @@ export function PreviewPanel({
   const [rows, setRows] = useState<string[][]>(table.preview_rows.slice(0, 10));
   const [loading, setLoading] = useState(false);
   const byName = new Map(table.profiles.map((p) => [p.name, p]));
+  // Широкий файл: рисуем первые MAX_SHOWN_COLUMNS колонок, остальные доступны в расчётах.
+  const shownHeader = table.header.slice(0, MAX_SHOWN_COLUMNS);
 
   // При смене таблицы (новый файл, смена типа) — сброс к первой странице.
   useEffect(() => {
@@ -386,6 +389,13 @@ export function PreviewPanel({
           {table.n_rows.toLocaleString()}
         </span>
       </h2>
+      {table.header.length > MAX_SHOWN_COLUMNS && (
+        <div style={{ color: c.muted, fontSize: "0.85rem", marginBottom: "0.5rem" }}>
+          {t("preview.columnsCapped")
+            .replace("{shown}", String(MAX_SHOWN_COLUMNS))
+            .replace("{total}", table.header.length.toLocaleString())}
+        </div>
+      )}
 
       <div style={{ ...s.row, marginBottom: "0.6rem" }}>
         <label style={{ fontSize: "0.82rem", color: c.muted }}>
@@ -422,7 +432,7 @@ export function PreviewPanel({
               >
                 #
               </th>
-              {table.header.map((h) => {
+              {shownHeader.map((h) => {
                 const p = byName.get(h);
                 return (
                   <th
@@ -454,7 +464,7 @@ export function PreviewPanel({
                 >
                   {i + 1}
                 </td>
-                {table.header.map((_, j) => (
+                {shownHeader.map((_, j) => (
                   <td key={j} style={{ ...s.td, ...s.mono }}>
                     {row[j] ?? ""}
                   </td>
@@ -515,11 +525,18 @@ function ColumnDetails({
     Number(p.likely_categorical || p.likely_id);
   const sorted = [...profiles].sort(
     (a, b) => hint(b) - hint(a) || b.issues.length - a.issues.length,
-  );
+  ).slice(0, MAX_SHOWN_COLUMNS);
   const TYPES: ColumnType[] = ["numeric", "categorical", "date", "id"];
 
   return (
     <div style={{ marginTop: "0.6rem", display: "grid", gap: "0.35rem" }}>
+      {profiles.length > MAX_SHOWN_COLUMNS && (
+        <div style={{ color: c.muted, fontSize: "0.85rem" }}>
+          {t("preview.detailsCapped")
+            .replace("{shown}", String(MAX_SHOWN_COLUMNS))
+            .replace("{total}", profiles.length.toLocaleString())}
+        </div>
+      )}
       {sorted.map((p) => {
         const highlight =
           p.issues.length > 0 || p.likely_categorical || p.likely_id;

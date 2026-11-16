@@ -38,6 +38,7 @@ import { c, s } from "./styles";
 import { SensoryMap } from "./SensoryMap";
 import { useMapSync } from "./useMapSync";
 import { explainError } from "./userErrors";
+import { MAX_FILE_BYTES, megabytes } from "./limits";
 
 // ECharts тяжёлый — грузим отдельным чанком при первом показе графиков.
 const Plots = lazy(() => import("./charts").then((m) => ({ default: m.Plots })));
@@ -141,6 +142,15 @@ function AppInner({
     setResult(null);
     setPlots(null);
     setTypeOverrides({});
+    // Огромный файл не читаем вовсе: разбор упал бы с MemoryError через полминуты (аудит 03-05).
+    if (file.size > MAX_FILE_BYTES) {
+      setTable(null);
+      setFileBytes(null);
+      setError(t("error.fileOverLimit")
+        .replace("{size}", megabytes(file.size))
+        .replace("{limit}", megabytes(MAX_FILE_BYTES)));
+      return;
+    }
     const bytes = new Uint8Array(await file.arrayBuffer());
     setFileBytes(bytes);
     await runParse(bytes, {});

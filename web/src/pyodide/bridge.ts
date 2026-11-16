@@ -392,6 +392,14 @@ builtins.__biostat_table = _table
 
 _payload = _table.to_dict()
 _payload["suggestions"] = suggest_methods(_table.profiles, ${JSON.stringify(lang)})
+# Каждый слот каждого метода несёт полный список подходящих колонок: на 50 000
+# колонках это 79 МБ одних и тех же имён и 58 с json.dumps в Pyodide. Уникальный
+# список отправляется один раз, слот хранит его номер (аудит 03-05).
+_lists = {}
+for _sug in _payload["suggestions"]:
+    _sug["needs"] = {_slot: _lists.setdefault(tuple(_names), len(_lists))
+                     for _slot, _names in _sug["needs"].items()}
+_payload["column_lists"] = [list(_names) for _names in _lists]
 json.dumps(_payload, ensure_ascii=False)
 `;
   try {
@@ -401,10 +409,27 @@ json.dumps(_payload, ensure_ascii=False)
       { __overrides_json: JSON.stringify(parseOverrides), __file_bytes: bytes },
       { restore: true },
     );
-    return JSON.parse(raw) as ParsedTable;
+    return unpackColumnLists(JSON.parse(raw));
   } catch (error) {
     throw pythonError(error);
   }
+}
+
+/** Номера списков колонок → сами списки (один массив на все слоты с тем же списком). */
+export function unpackColumnLists(
+  packed: Omit<ParsedTable, "suggestions"> & {
+    suggestions: Array<Omit<MethodSuggestion, "needs"> & { needs: Record<string, number> }>;
+    column_lists: string[][];
+  },
+): ParsedTable {
+  const { column_lists: lists, ...rest } = packed;
+  return {
+    ...rest,
+    suggestions: rest.suggestions.map((sug) => ({
+      ...sug,
+      needs: Object.fromEntries(Object.entries(sug.needs).map(([slot, i]) => [slot, lists[i]])),
+    })),
+  } as ParsedTable;
 }
 
 /** Запустить статистический метод на колонках разобранной таблицы. */
