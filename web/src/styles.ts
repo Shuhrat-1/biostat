@@ -3,20 +3,82 @@
 
 import type { CSSProperties } from "react";
 
+/**
+ * Цветовые токены (аудит 4, часть Б). Контраст с белым: текст ≥ 4.5:1,
+ * элементы интерфейса и графиков ≥ 3:1; проверяет tests/test_palette.py.
+ */
 export const c = {
   bg: "#fafafa",
   panel: "#ffffff",
-  border: "#e4e4e7",
-  text: "#18181b",
-  muted: "#71717a",
-  accent: "#0f766e",
+  border: "#e4e4e7", // декоративные линии: панели, таблицы, сетка (1.27:1)
+  borderInput: "#8e8e96", // рамка поля ввода и списка (3.25:1)
+  text: "#18181b", // 17.7:1
+  muted: "#63636b", // вторичный текст: 5.95:1 на белом, 5.42:1 на subtle (было #71717a)
+  subtle: "#f4f4f5", // фон плашки P, бейджей
+  accent: "#0f766e", // действие, выбранное, первая группа (5.47:1)
+  selectedBg: "#f0fdfa", // фон выбранного элемента
   ok: "#166534",
   okBg: "#f0fdf4",
   warn: "#92400e",
   warnBg: "#fffbeb",
+  warnLine: "#fde68a", // рамка карточки с замечанием (декоративная)
   bad: "#991b1b",
   badBg: "#fef2f2",
+  info: "#1e40af",
+  infoBg: "#eff6ff",
 } as const;
+
+/** Контуры узлов карты: сила рекомендации. Различимы при протан- и дейтанопии (ΔE 23 и 32). */
+export const mapEdge = {
+  strong: "#0f766e", // «указывают данные», 5.47:1 (было #16a34a)
+  hint: "#b45309", // «подсказка», 5.02:1 (было #d97706)
+  off: "#a1a1aa", // вне пути — рамка; текст таких узлов — c.muted
+} as const;
+
+/** Цвета графиков. Красный — только выброс: линии подгонки и опоры нейтральны. */
+export const chart = {
+  axis: "#52525b", // подписи и имена осей, 7.73:1
+  axisLine: "#a1a1aa",
+  grid: "#e4e4e7",
+  ref: "#64748b", // опорные линии, границы ДИ, 4.76:1 (было #94a3b8)
+  fit: "#1f2937", // линия подгонки, 14.7:1
+  outlier: "#c81e1e", // выброс — и только он, 5.74:1
+  /**
+   * Группы, порядок фиксирован: цвет — по порядку группы, один во всех графиках
+   * результата. Подобрано от фирменного бирюзового: контраст с белым ≥ 3:1,
+   * минимальная ΔE2000 между любыми двумя ≥ 16.8 при всех трёх видах дальтонизма
+   * (Okabe–Ito: 10.9–12.2). Больше 8 групп — цвета не добавляются.
+   */
+  categorical: ["#0f766e", "#aa3c08", "#2f92ff", "#ea479b", "#5c15a9", "#8f9762", "#1f2937", "#5e3b33"],
+  /** Последовательная: один оттенок, L* равномерно 98 → 30. */
+  sequential: ["#f0fdfa", "#bdeee6", "#7fd3c7", "#3fae9f", "#0f766e", "#134e4a"],
+  /** Расходящаяся вокруг 0 (ColorBrewer RdBu): концы равной светлоты. */
+  diverging: ["#2166ac", "#92c5de", "#f7f7f7", "#f4a582", "#b2182b"],
+} as const;
+
+/** Типы линий и маркеры для кривых сверх восьми групп: цвет повторяется, форма — нет. */
+const LINE_TYPES = ["solid", "dashed", "dotted"] as const;
+const SYMBOLS = ["circle", "rect", "triangle", "diamond"] as const;
+
+/** Цвет, линия и маркер кривой номер i (кривые по группам, взаимодействие). */
+export function seriesStyle(i: number): { color: string; lineType: string; symbol: string } {
+  const n = chart.categorical.length;
+  const round = Math.floor(i / n);
+  return {
+    color: chart.categorical[i % n],
+    lineType: LINE_TYPES[round % LINE_TYPES.length],
+    symbol: SYMBOLS[round % SYMBOLS.length],
+  };
+}
+
+/**
+ * Цвет группы на графике, где группы стоят по оси (боксплот, средние): по её
+ * номеру; при больше чем 8 группах — один цвет, различают подписи на оси.
+ */
+export function groupColor(i: number, nGroups: number): string {
+  if (i < 0 || nGroups > chart.categorical.length) return c.accent;
+  return chart.categorical[i];
+}
 
 export const s: Record<string, CSSProperties> = {
   page: {
@@ -46,7 +108,7 @@ export const s: Record<string, CSSProperties> = {
     background: c.panel,
     transition: "border-color 0.15s",
   },
-  dropActive: { borderColor: c.accent, background: "#f0fdfa" },
+  dropActive: { borderColor: c.accent, background: c.selectedBg },
   table: {
     width: "100%",
     borderCollapse: "collapse",
@@ -73,7 +135,7 @@ export const s: Record<string, CSSProperties> = {
   },
   select: {
     padding: "0.4rem 0.5rem",
-    border: `1px solid ${c.border}`,
+    border: `1px solid ${c.borderInput}`,
     borderRadius: 6,
     background: c.panel,
     fontSize: "0.9rem",
@@ -115,8 +177,8 @@ export function typeBadgeStyle(type: string): CSSProperties {
     date: ["#f5f3ff", "#5b21b6"],
     categorical: ["#f0fdf4", "#166534"],
     id: ["#fef3c7", "#92400e"],
-    empty: ["#f4f4f5", c.muted],
+    empty: [c.subtle, c.muted],
   };
-  const [bg, fg] = map[type] ?? ["#f4f4f5", c.muted];
+  const [bg, fg] = map[type] ?? [c.subtle, c.muted];
   return { ...s.badge, background: bg, color: fg };
 }

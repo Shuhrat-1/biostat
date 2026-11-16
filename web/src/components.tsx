@@ -545,7 +545,7 @@ function ColumnDetails({
           <div
             key={p.name}
             style={{
-              border: `1px solid ${highlight ? "#fde68a" : c.border}`,
+              border: `1px solid ${highlight ? c.warnLine : c.border}`,
               background: highlight ? c.warnBg : c.panel,
               borderRadius: 6,
               padding: "0.4rem 0.7rem",
@@ -812,7 +812,7 @@ export function MethodPanel({
               style={{
                 textAlign: "left",
                 border: `1px solid ${selected ? c.accent : c.border}`,
-                background: selected ? "#f0fdfa" : c.panel,
+                background: selected ? c.selectedBg : c.panel,
                 borderRadius: 6,
                 padding: "0.6rem 0.75rem",
                 cursor: "pointer",
@@ -1020,7 +1020,7 @@ function ParamField({
 /* ----------------------------- Результаты ----------------------------- */
 
 const SEVERITY_STYLE: Record<string, { bg: string; fg: string }> = {
-  info: { bg: "#eff6ff", fg: "#1e40af" },
+  info: { bg: c.infoBg, fg: c.info },
   warning: { bg: c.warnBg, fg: c.warn },
   error: { bg: c.badBg, fg: c.bad },
 };
@@ -1701,7 +1701,7 @@ export function ResultPanel({ result, context }: { result: StatResult; context: 
         <div
           style={{
             padding: "0.7rem 0.9rem",
-            background: "#f4f4f5",
+            background: c.subtle,
             borderRadius: 6,
             marginBottom: "0.9rem",
             fontSize: "1.05rem",

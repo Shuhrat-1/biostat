@@ -298,7 +298,7 @@ function AppInner({
                 onClick={() => setLang(l.code)}
                 style={{
                   border: `1px solid ${lang === l.code ? c.accent : c.border}`,
-                  background: lang === l.code ? "#f0fdfa" : c.panel,
+                  background: lang === l.code ? c.selectedBg : c.panel,
                   color: lang === l.code ? c.accent : c.muted,
                   borderRadius: 6,
                   padding: "0.25rem 0.55rem",

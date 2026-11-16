@@ -41,8 +41,8 @@ def test_04_05_severity_is_shown_by_icon_and_word() -> None:
 
 def test_04_06_axis_names_and_heatmap_numbers_have_contrast() -> None:
     charts = _src("charts.tsx")
-    assert "nameTextStyle: { color: c.muted }" in charts
-    assert 'Math.abs(cell[2]) > 0.55 * limit ? "#ffffff" : c.text' in charts
+    assert "nameTextStyle: { color: chart.axis }" in charts  # #52525b, 7.7:1 (патч 125)
+    assert "Math.abs(cell[2]) > 0.55 * limit ? c.panel : c.text" in charts
 
 
 def test_04_08_signal_source_wraps_under_the_text_on_narrow_screens() -> None:

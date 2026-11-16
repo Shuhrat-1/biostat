@@ -28,7 +28,7 @@ import { useEffect, useRef } from "react";
 import { escapeHtml as esc } from "./escape";
 import { useT } from "./i18n";
 import type { PlotBundle } from "./pyodide/bridge";
-import { c } from "./styles";
+import { c, chart, groupColor, seriesStyle } from "./styles";
 
 echarts.use([
   BarChart,
@@ -48,11 +48,11 @@ echarts.use([
 
 const BASE_GRID = { left: 48, right: 20, top: 40, bottom: 40 };
 const AXIS_STYLE = {
-  axisLine: { lineStyle: { color: c.border } },
-  axisLabel: { color: c.muted },
+  axisLine: { lineStyle: { color: chart.axisLine } },
+  axisLabel: { color: chart.axis },
   // Имя оси по умолчанию берёт цвет линии оси (1.27:1 на белом) — задаём явно (аудит 04-06).
-  nameTextStyle: { color: c.muted },
-  splitLine: { lineStyle: { color: "#f4f4f5" } },
+  nameTextStyle: { color: chart.axis },
+  splitLine: { lineStyle: { color: chart.grid } },
 };
 
 /** Один график ECharts. Пересоздаёт опции при смене данных. */
@@ -91,10 +91,29 @@ function Chart({
 
 type T = (key: string) => string;
 type Option = echarts.EChartsCoreOption;
-const RED = "#dc2626";
-const MUTED_LINE = "#94a3b8";
-const PALETTE = ["#0f766e", "#b45309", "#1d4ed8", "#be123c", "#4d7c0f",
-  "#7c3aed", "#0369a1", "#a16207", "#475569", "#c2410c"];
+/** Подписи осей: имя колонки из формы, иначе запасная подпись. */
+type AxisNames = NonNullable<PlotBundle["axis_names"]>;
+
+/** Цвет группы по её имени — один на весь результат (аудит 04-07). */
+type ColorOf = (label: string, index: number, count: number) => string;
+
+/**
+ * Порядок групп берётся из первого графика, где они стоят по оси (боксплот,
+ * средние); остальные графики красят ту же группу тем же цветом.
+ */
+function groupPalette(bundle: PlotBundle): { colorOf: ColorOf; order: string[] } {
+  const order = bundle.boxplot?.labels ?? bundle.bar_means?.labels
+    ?? (bundle.means_ci && !bundle.means_ci.numeric ? bundle.means_ci.items.map((it) => it.label) : undefined)
+    ?? bundle.group_curves?.curves.map((cv) => cv.name) ?? [];
+  const colorOf: ColorOf = (label, index, count) => {
+    const i = order.indexOf(label);
+    return i >= 0 ? groupColor(i, order.length) : groupColor(index, count);
+  };
+  return { colorOf, order };
+}
+
+/** Заливка фигуры группы — тот же цвет, прозрачность 18 %; контур сплошной. */
+const fill = (hex: string) => `${hex}2e`;
 
 /**
  * Планка погрешности custom-серии: value = [позиция, низ, верх].
@@ -119,7 +138,7 @@ function whisker(api: any, vertical: boolean) {
   };
 }
 
-function histogramOption(h: NonNullable<PlotBundle["histogram"]>, t: T): Option {
+function histogramOption(h: NonNullable<PlotBundle["histogram"]>, t: T, names: AxisNames = {}): Option {
   const bars = h.bin_centers.map((x, i) => [x, h.counts[i]]);
   const series: Record<string, unknown>[] = [
     { type: "bar", data: bars, barWidth: "99%", itemStyle: { color: c.accent, opacity: 0.75 },
@@ -128,28 +147,33 @@ function histogramOption(h: NonNullable<PlotBundle["histogram"]>, t: T): Option 
   if (h.normal_curve) {
     series.push({
       type: "line", data: h.normal_curve.x.map((x, i) => [x, h.normal_curve!.y[i]]),
-      smooth: true, symbol: "none", lineStyle: { color: RED, width: 2 }, name: t("axis.normal"),
+      smooth: true, symbol: "none", lineStyle: { color: chart.fit, width: 2 }, name: t("axis.normal"),
     });
   }
   return {
     grid: BASE_GRID,
     tooltip: { trigger: "axis" },
     legend: { top: 8, textStyle: { color: c.muted } },
-    xAxis: { type: "value", scale: true, ...AXIS_STYLE },
+    xAxis: { type: "value", scale: true, name: names.y ?? undefined, nameLocation: "middle",
+      nameGap: 26, ...AXIS_STYLE },
     yAxis: { type: "value", name: t("axis.frequency"), ...AXIS_STYLE },
     series,
   };
 }
 
-function boxplotOption(b: NonNullable<PlotBundle["boxplot"]>): Option {
+function boxplotOption(b: NonNullable<PlotBundle["boxplot"]>, colorOf: ColorOf, names: AxisNames = {}): Option {
+  const n = b.labels.length;
   return {
     grid: BASE_GRID,
     tooltip: { trigger: "item" },
     xAxis: { type: "category", data: b.labels, ...AXIS_STYLE },
-    yAxis: { type: "value", scale: true, ...AXIS_STYLE },
+    yAxis: { type: "value", scale: true, name: names.y ?? undefined, ...AXIS_STYLE },
     series: [
-      { type: "boxplot", data: b.boxes, itemStyle: { color: "#ccfbf1", borderColor: c.accent } },
-      { type: "scatter", data: b.outliers, symbolSize: 6, itemStyle: { color: RED } },
+      { type: "boxplot", data: b.boxes.map((box, i) => {
+        const color = colorOf(b.labels[i], i, n);
+        return { value: box, itemStyle: { color: fill(color), borderColor: color, borderWidth: 1.5 } };
+      }) },
+      { type: "scatter", data: b.outliers, symbolSize: 6, itemStyle: { color: chart.outlier } },
     ],
   };
 }
@@ -158,7 +182,7 @@ function boxplotOption(b: NonNullable<PlotBundle["boxplot"]>): Option {
  * Средние ± SE точками, а не столбцами (Witte 2.11, Fig. 14.5): столбец с
  * основанием не от нуля искажает пропорции, а от нуля — прячет различия.
  */
-function barMeansOption(b: NonNullable<PlotBundle["bar_means"]>, t: T): Option {
+function barMeansOption(b: NonNullable<PlotBundle["bar_means"]>, t: T, colorOf: ColorOf): Option {
   const lo = b.means.map((m, i) => m - b.errors[i]);
   const hi = b.means.map((m, i) => m + b.errors[i]);
   const tip = (p: any) => `${esc(b.labels[p.dataIndex])}: ${fmt(b.means[p.dataIndex])}`
@@ -171,25 +195,27 @@ function barMeansOption(b: NonNullable<PlotBundle["bar_means"]>, t: T): Option {
     series: [
       { type: "custom", data: b.means.map((_, i) => [i, lo[i], hi[i]]),
         renderItem: (_p: unknown, api: any) => whisker(api, true), z: 1 },
-      { type: "scatter", data: b.means.map((m, i) => [i, m]), symbolSize: 9,
-        itemStyle: { color: c.accent }, z: 2 },
+      { type: "scatter", symbolSize: 10, z: 2, data: b.means.map((m, i) => ({
+        value: [i, m], itemStyle: { color: colorOf(b.labels[i], i, b.labels.length) } })) },
     ],
   };
 }
 
-function scatterOption(sc: NonNullable<PlotBundle["scatter"]>): Option {
+function scatterOption(sc: NonNullable<PlotBundle["scatter"]>, names: AxisNames = {}): Option {
   return {
     grid: BASE_GRID,
     tooltip: { trigger: "item" },
-    xAxis: { type: "value", scale: true, name: "X", ...AXIS_STYLE },
-    yAxis: { type: "value", scale: true, name: "Y", ...AXIS_STYLE },
+    xAxis: { type: "value", scale: true, name: names.x ?? "x", nameLocation: "middle", nameGap: 26,
+      ...AXIS_STYLE },
+    yAxis: { type: "value", scale: true, name: names.y ?? "y", ...AXIS_STYLE },
     series: [
       { type: "scatter", data: sc.points, symbolSize: 7, itemStyle: { color: c.accent, opacity: 0.6 } },
-      { type: "line", data: sc.line, symbol: "none", lineStyle: { color: RED, width: 2 } },
+      // Линия подгонки нейтральная: красный на графиках значит только «выброс».
+      { type: "line", data: sc.line, symbol: "none", lineStyle: { color: chart.fit, width: 2 } },
       // Доверительная полоса кривой: две пунктирные границы.
       ...(sc.band ? [sc.band.lower, sc.band.upper] : []).map((data) => ({
         type: "line", data, symbol: "none", silent: true,
-        lineStyle: { color: RED, width: 1, type: "dashed", opacity: 0.7 },
+        lineStyle: { color: chart.ref, width: 1.5, type: "dashed" },
       })),
     ],
   };
@@ -208,7 +234,7 @@ function qqOption(qq: NonNullable<PlotBundle["qq"]>, t: T): Option {
     series: [
       { type: "scatter", data: points, symbolSize: 6, itemStyle: { color: c.accent, opacity: 0.6 } },
       { type: "line", data: [[lo, lo], [hi, hi]], symbol: "none",
-        lineStyle: { color: MUTED_LINE, type: "dashed" } },
+        lineStyle: { color: chart.ref, type: "dashed" } },
     ],
   };
 }
@@ -220,15 +246,15 @@ function residualOption(r: NonNullable<PlotBundle["residual_vs_fitted"]>, t: T):
     data: points.filter((_, i) => i !== r.outlier),
     symbolSize: 6,
     itemStyle: { color: c.accent, opacity: 0.6 },
-    markLine: { silent: true, symbol: "none", lineStyle: { color: MUTED_LINE, type: "dashed" },
+    markLine: { silent: true, symbol: "none", lineStyle: { color: chart.ref, type: "dashed" },
       data: [{ yAxis: 0 }] },
   }];
   if (r.outlier !== undefined && points[r.outlier]) {
     // Кандидат в выбросы: крупная красная точка с подписью — сначала проверить запись.
     series.push({
       type: "scatter", name: t("plot.outlier"), data: [points[r.outlier]], symbolSize: 12,
-      itemStyle: { color: RED },
-      label: { show: true, position: "right", color: RED, formatter: t("plot.outlier") },
+      itemStyle: { color: chart.outlier },
+      label: { show: true, position: "right", color: chart.outlier, formatter: t("plot.outlier") },
       tooltip: { formatter: t("plot.outlierHint") },
     });
   }
@@ -265,7 +291,7 @@ const fmt = (v: number) =>
   (Math.abs(v) >= 100 ? v.toFixed(1) : String(Number(v.toPrecision(4))));
 
 /** Средние с ДИ: точка и планка; у доз — числовая ось (гл. 8.4). */
-function meansCiOption(m: NonNullable<PlotBundle["means_ci"]>, t: T): Option {
+function meansCiOption(m: NonNullable<PlotBundle["means_ci"]>, t: T, colorOf: ColorOf): Option {
   const pos = (i: number) => (m.numeric ? m.items[i].x! : i);
   const tip = (i: number) => {
     const it = m.items[i];
@@ -277,14 +303,16 @@ function meansCiOption(m: NonNullable<PlotBundle["means_ci"]>, t: T): Option {
     xAxis: m.numeric
       ? { type: "value", scale: true, ...AXIS_STYLE }
       : { type: "category", data: m.items.map((it) => it.label), ...AXIS_STYLE,
-          axisLabel: { color: c.muted, rotate: m.items.length > 8 ? 35 : 0 } },
+          axisLabel: { color: chart.axis, rotate: m.items.length > 8 ? 35 : 0 } },
     yAxis: { type: "value", name: t("axis.mean"), ...AXIS_STYLE,
       ...bounds(m.items.flatMap((it) => [it.lower, it.upper])) },
     series: [
       { type: "custom", data: m.items.map((it, i) => [pos(i), it.lower, it.upper]),
         renderItem: (_p: unknown, api: any) => whisker(api, true), z: 1 },
-      { type: "scatter", data: m.items.map((it, i) => [pos(i), it.mean]), symbolSize: 9,
-        itemStyle: { color: c.accent }, z: 2 },
+      // Дозы (числовая ось) — одна кривая, цвет акцента; группы — цветом группы.
+      { type: "scatter", symbolSize: 10, z: 2, data: m.items.map((it, i) => ({
+        value: [pos(i), it.mean],
+        itemStyle: { color: m.numeric ? c.accent : colorOf(it.label, i, m.items.length) } })) },
     ],
   };
 }
@@ -300,15 +328,15 @@ function interactionOption(g: NonNullable<PlotBundle["interaction"]>): Option {
   };
   return {
     grid: { ...BASE_GRID, top: 56 },
-    color: PALETTE,
     tooltip: { trigger: "item", formatter: tip },
     legend: { top: 8, textStyle: { color: c.muted }, data: g.series.map((s) => s.name) },
     xAxis: { type: "category", name: g.factor_a, data: g.levels_a, ...AXIS_STYLE },
     yAxis: { type: "value", scale: true, ...AXIS_STYLE },
-    series: g.series.map((s) => ({
-      type: "line", name: s.name, data: s.values, connectNulls: false,
-      symbolSize: 8, lineStyle: { width: 2 },
-    })),
+    series: g.series.map((s, i) => {
+      const st = seriesStyle(i);
+      return { type: "line", name: s.name, data: s.values, connectNulls: false, symbol: st.symbol,
+        symbolSize: 8, lineStyle: { width: 2, color: st.color, type: st.lineType }, itemStyle: { color: st.color } };
+    }),
   };
 }
 
@@ -316,14 +344,14 @@ function interactionOption(g: NonNullable<PlotBundle["interaction"]>): Option {
 function differencesOption(d: NonNullable<PlotBundle["differences"]>, t: T): Option {
   const labels = d.items.map((it) => it.label);
   const lines: Record<string, unknown>[] = [
-    { xAxis: d.reference, lineStyle: { color: MUTED_LINE, type: "dashed" }, label: { show: false } },
+    { xAxis: d.reference, lineStyle: { color: chart.ref, type: "dashed" }, label: { show: false } },
   ];
   const edges = d.items.flatMap((it) => [it.lower, it.upper]).concat(d.reference);
   if (d.margin !== undefined) {
     for (const x of [d.reference - d.margin, d.reference + d.margin]) {
       edges.push(x);
-      lines.push({ xAxis: x, lineStyle: { color: RED, type: "dashed" },
-        label: { formatter: `${t("axis.margin")}${fmt(d.margin)}`, color: RED, position: "start" } });
+      lines.push({ xAxis: x, lineStyle: { color: chart.fit, type: "dotted", width: 1.5 },
+        label: { formatter: `${t("axis.margin")}${fmt(d.margin)}`, color: chart.fit, position: "start" } });
     }
   }
   const tip = (p: any) => {
@@ -359,9 +387,13 @@ function differencesOption(d: NonNullable<PlotBundle["differences"]>, t: T): Opt
 }
 
 /** Кривые по группам: точки (цветом группы, если известна) и линии. */
-function groupCurvesOption(g: NonNullable<PlotBundle["group_curves"]>, t: T): Option {
+function groupCurvesOption(g: NonNullable<PlotBundle["group_curves"]>, t: T, order: string[],
+  axes: AxisNames = {}): Option {
   const names = g.curves.map((cv) => cv.name);
-  const color = (name: string | null) => PALETTE[Math.max(0, names.indexOf(name ?? "")) % PALETTE.length];
+  // Номер группы — по общему порядку результата; сверх 8 групп цвет повторяется, меняются линия и маркер.
+  const index = (name: string) => (order.includes(name) ? order.indexOf(name) : names.indexOf(name));
+  const style = (name: string) => seriesStyle(Math.max(0, index(name)));
+  const color = (name: string | null) => style(name ?? "").color;
   const byGroup = new Map<string | null, number[][]>();
   for (const [x, y, grp] of g.points) {
     const key = grp !== null && names.includes(grp) ? grp : null;
@@ -369,11 +401,13 @@ function groupCurvesOption(g: NonNullable<PlotBundle["group_curves"]>, t: T): Op
   }
   const points = [...byGroup].map(([grp, data]) => ({
     type: "scatter", name: grp ?? t("axis.all_groups"), data, symbolSize: 7,
-    itemStyle: { color: grp === null ? MUTED_LINE : color(grp), opacity: 0.7 },
+    symbol: grp === null ? "circle" : style(grp).symbol,
+    itemStyle: { color: grp === null ? chart.ref : color(grp), opacity: 0.7 },
   }));
   const curves = g.curves.flatMap((cv) => [
     { type: "line", name: cv.name, data: cv.line, symbol: "none",
-      lineStyle: { color: color(cv.name), width: 2 }, itemStyle: { color: color(cv.name) } },
+      lineStyle: { color: color(cv.name), width: 2, type: style(cv.name).lineType },
+      itemStyle: { color: color(cv.name) } },
     ...(cv.band ? [cv.band.lower, cv.band.upper] : []).map((data) => ({
       type: "line", name: cv.name, data, symbol: "none", silent: true,
       lineStyle: { color: color(cv.name), width: 1, type: "dashed", opacity: 0.7 } })),
@@ -382,8 +416,9 @@ function groupCurvesOption(g: NonNullable<PlotBundle["group_curves"]>, t: T): Op
     grid: { ...BASE_GRID, top: 56 },
     tooltip: { trigger: "item" },
     legend: { top: 8, textStyle: { color: c.muted }, data: [...new Set([...names, ...points.map((p) => p.name)])] },
-    xAxis: { type: "value", scale: true, name: "X", ...AXIS_STYLE },
-    yAxis: { type: "value", scale: true, name: "Y", ...AXIS_STYLE },
+    xAxis: { type: "value", scale: true, name: axes.x ?? "x", nameLocation: "middle", nameGap: 26,
+      ...AXIS_STYLE },
+    yAxis: { type: "value", scale: true, name: axes.y ?? "y", ...AXIS_STYLE },
     series: [...points, ...curves],
   };
 }
@@ -409,8 +444,7 @@ function extraScatterOption(e: NonNullable<PlotBundle["extra_scatter"]>[number],
     type: e.line ? "line" : "scatter", data: e.points, symbolSize: 6,
     itemStyle: { color: c.accent, opacity: e.line ? 1 : 0.6 },
     markLine: marks.length ? { silent: true, symbol: "none",
-      lineStyle: { color: e.kind === "residual_vs_x" || e.kind === "discrepancy_vs_x" ? MUTED_LINE : RED,
-        type: "dashed" }, label: { show: false }, data: marks } : undefined,
+      lineStyle: { color: chart.ref, type: "dashed" }, label: { show: false }, data: marks } : undefined,
   }];
   if (e.diagonal || e.kind === "observed_vs_fitted") {
     // y = x по диапазону оси x (Cp = p; наблюдённое = подогнанное).
@@ -418,7 +452,7 @@ function extraScatterOption(e: NonNullable<PlotBundle["extra_scatter"]>[number],
     const lo = Math.min(...v);
     const hi = Math.max(...v);
     series.push({ type: "line", data: [[lo, lo], [hi, hi]], symbol: "none", silent: true,
-      lineStyle: { color: MUTED_LINE, type: "dashed" } });
+      lineStyle: { color: chart.ref, type: "dashed" } });
   }
   const ys = e.points.map((p) => p[1]).concat(e.ref);
   const tip = (p: any) => {
@@ -440,7 +474,7 @@ function extraScatterOption(e: NonNullable<PlotBundle["extra_scatter"]>[number],
 function stackedOption(st: NonNullable<PlotBundle["stacked"]>, t: T): Option {
   return {
     grid: { ...BASE_GRID, top: 56 },
-    color: PALETTE,
+    color: [...chart.categorical],
     tooltip: { trigger: "axis", axisPointer: { type: "shadow" },
       valueFormatter: (v: number) => `${(v * 100).toFixed(1)}%` },
     legend: { top: 8, textStyle: { color: c.muted } },
@@ -467,17 +501,17 @@ function heatmapOption(h: NonNullable<PlotBundle["heatmap"]>, t: T): Option {
     yAxis: { type: "category", data: h.rows, inverse: true, ...AXIS_STYLE },
     visualMap: { min: -limit, max: limit, calculable: false, orient: "horizontal", left: "center",
       bottom: 0, dimension: 2, text: [`+${fmt(limit)}`, `−${fmt(limit)}`],
-      inRange: { color: ["#1d4ed8", "#f8fafc", "#dc2626"] }, textStyle: { color: c.muted } },
+      inRange: { color: [...chart.diverging] }, textStyle: { color: chart.axis } },
     // Число в тёмной ячейке — белым: тёмный текст на синем давал 2.64:1 (аудит 04-06).
     series: [{ type: "heatmap",
       data: h.cells.map((cell) => ({ value: cell,
-        label: { color: Math.abs(cell[2]) > 0.55 * limit ? "#ffffff" : c.text } })),
+        label: { color: Math.abs(cell[2]) > 0.55 * limit ? c.panel : c.text } })),
       label: { show: true, formatter: (p: any) => String(p.value[3]) },
-      itemStyle: { borderColor: "#fff", borderWidth: 2 } }],
+      itemStyle: { borderColor: c.panel, borderWidth: 2 } }],
   };
 }
 
-/** До/после: линия на объект; рост — цветом акцента, падение — красным. */
+/** До/после: линия на объект; рост — бирюзовым, падение — ржавым (красный — только выброс). */
 function pairedOption(pd: NonNullable<PlotBundle["paired"]>): Option {
   const pairs = pd.pairs ?? [];
   return {
@@ -490,8 +524,8 @@ function pairedOption(pd: NonNullable<PlotBundle["paired"]>): Option {
     yAxis: { type: "value", ...AXIS_STYLE, ...bounds(pairs.flat()) },
     series: pairs.map(([b, a]) => ({
       type: "line", data: [b, a], symbolSize: 6,
-      lineStyle: { width: 1.5, opacity: 0.7, color: a >= b ? c.accent : RED },
-      itemStyle: { color: a >= b ? c.accent : RED },
+      lineStyle: { width: 1.5, opacity: 0.7, color: a >= b ? c.accent : chart.categorical[1] },
+      itemStyle: { color: a >= b ? c.accent : chart.categorical[1] },
     })),
   };
 }
@@ -506,7 +540,7 @@ function barsOption(b: NonNullable<PlotBundle["bars"]>, t: T): Option {
     series: [{
       type: "bar", barWidth: "55%",
       data: b.items.map((it) => ({ value: it.value,
-        itemStyle: { color: it.label === b.best ? c.accent : MUTED_LINE } })),
+        itemStyle: { color: it.label === b.best ? c.accent : chart.ref } })),
       label: { show: true, position: "right", color: c.muted,
         formatter: (p: any) => (b.items[p.dataIndex].label === b.best ? t("axis.best") : "") },
     }],
@@ -527,7 +561,7 @@ function surfaceOption(sf: NonNullable<PlotBundle["surface"]>, t: T): Option {
     yAxis: { type: "category", name: sf.names[1], data: sf.x2.map(label), ...AXIS_STYLE },
     visualMap: { min: Math.min(...z), max: Math.max(...z), calculable: true, orient: "horizontal",
       left: "center", bottom: 0, dimension: 2, text: [t("axis.fitted_value"), ""],
-      inRange: { color: ["#f0fdfa", "#5eead4", "#0f766e", "#134e4a"] }, textStyle: { color: c.muted } },
+      inRange: { color: [...chart.sequential] }, textStyle: { color: chart.axis } },
     series: [{ type: "heatmap", data: sf.cells }],
   };
 }
@@ -542,7 +576,7 @@ function profilesOption(pr: NonNullable<PlotBundle["profiles"]>, t: T): Option {
     yAxis: { type: "value", ...AXIS_STYLE, ...bounds(all) },
     series: [
       ...pr.lines.map((row) => ({ type: "line", data: row, symbolSize: 4, silent: true,
-        lineStyle: { width: 1, opacity: 0.45, color: MUTED_LINE }, itemStyle: { color: MUTED_LINE } })),
+        lineStyle: { width: 1, opacity: 0.45, color: chart.ref }, itemStyle: { color: chart.ref } })),
       { type: "line", name: t("axis.mean_line"), data: pr.means, symbolSize: 9,
         lineStyle: { width: 3, color: c.accent }, itemStyle: { color: c.accent } },
     ],
@@ -560,7 +594,7 @@ function observedExpectedOption(oe: NonNullable<PlotBundle["observed_expected"]>
     series: [
       { type: "bar", name: t("axis.observed_f"), data: oe.observed, itemStyle: { color: c.accent } },
       { type: "bar", name: t("axis.expected_f"), data: oe.expected,
-        itemStyle: { color: "#fff", borderColor: c.text, borderType: "dashed", borderWidth: 1.5 } },
+        itemStyle: { color: c.panel, borderColor: c.text, borderType: "dashed", borderWidth: 1.5 } },
     ],
   };
 }
@@ -571,10 +605,10 @@ function frequencyOption(fr: NonNullable<PlotBundle["frequency"]>, t: T): Option
     grid: { ...BASE_GRID, bottom: 60 },
     tooltip: { trigger: "axis", axisPointer: { type: "shadow" } },
     xAxis: { type: "category", data: fr.labels, ...AXIS_STYLE,
-      axisLabel: { color: c.muted, rotate: fr.labels.length > 10 ? 35 : 0 } },
+      axisLabel: { color: chart.axis, rotate: fr.labels.length > 10 ? 35 : 0 } },
     yAxis: { type: "value", min: 0, name: t("axis.frequency"), ...AXIS_STYLE },
     series: [{ type: "bar", data: fr.f, barCategoryGap: fr.adjacent ? "0%" : "40%",
-      itemStyle: { color: c.accent, opacity: 0.8, borderColor: fr.adjacent ? "#fff" : undefined,
+      itemStyle: { color: c.accent, opacity: 0.8, borderColor: fr.adjacent ? c.panel : undefined,
         borderWidth: fr.adjacent ? 1 : 0 } }],
   };
 }
@@ -649,12 +683,13 @@ function summaryItems(bundle: PlotBundle, t: T): Item[] {
       ? t(m.interval === "none" ? "plots.predictions_noci" : "plots.predictions")
       : t(m.interval === "se" ? "plots.means_se" : "plots.means_ci");
     items.push({ key: "means_ci", title: bundle.means_ci.term ? `${title}: ${bundle.means_ci.term}` : title,
-      option: meansCiOption(bundle.means_ci, t) });
+      option: meansCiOption(bundle.means_ci, t, groupPalette(bundle).colorOf) });
   }
   if (bundle.group_curves) {
     const models = bundle.group_curves.title === "models";
     items.push({ key: "group_curves", title: t(models ? "plots.group_curves_models" : "plots.group_curves"),
-      option: groupCurvesOption(bundle.group_curves, t), height: 340 });
+      option: groupCurvesOption(bundle.group_curves, t, groupPalette(bundle).order, bundle.axis_names),
+      height: 340 });
   }
   if (bundle.differences) {
     const d = bundle.differences;
@@ -669,10 +704,12 @@ function summaryItems(bundle: PlotBundle, t: T): Item[] {
 function diagnosticItems(bundle: PlotBundle, t: T): Item[] {
   const items: Item[] = [];
   const add = (key: string, option: Option) => items.push({ key, title: t(`plots.${key}`), option });
-  if (bundle.histogram) add("histogram", histogramOption(bundle.histogram, t));
-  if (bundle.boxplot) add("boxplot", boxplotOption(bundle.boxplot));
-  if (bundle.bar_means) add("bar_means", barMeansOption(bundle.bar_means, t));
-  if (bundle.scatter) add("scatter", scatterOption(bundle.scatter));
+  const { colorOf } = groupPalette(bundle);
+  const names = bundle.axis_names ?? {};
+  if (bundle.histogram) add("histogram", histogramOption(bundle.histogram, t, names));
+  if (bundle.boxplot) add("boxplot", boxplotOption(bundle.boxplot, colorOf, names));
+  if (bundle.bar_means) add("bar_means", barMeansOption(bundle.bar_means, t, colorOf));
+  if (bundle.scatter) add("scatter", scatterOption(bundle.scatter, names));
   if (bundle.qq) add("qq", qqOption(bundle.qq, t));
   if (bundle.residual_vs_fitted) add("residual_vs_fitted", residualOption(bundle.residual_vs_fitted, t));
   items.push(...extraItems(bundle, t, false));

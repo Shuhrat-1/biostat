@@ -16,12 +16,12 @@ import {
   owners, type Context, type Marks, type NodeState,
 } from "./mapState";
 import type { FiredSignal, MethodSuggestion, Recognition } from "./pyodide/bridge";
-import { c, s } from "./styles";
+import { c, mapEdge, s } from "./styles";
 
 const VISIBLE_COLUMNS = 3;
 const CONTEXTS: Context[] = ["experiment", "observation", "unknown"];
 const EDGE: Record<NodeState, string> = {
-  strong: "#16a34a", hint: "#d97706", conflict: "#d97706", off: c.border, none: c.border,
+  strong: mapEdge.strong, hint: mapEdge.hint, conflict: mapEdge.hint, off: mapEdge.off, none: c.border,
 };
 
 export interface MapSelection {
@@ -134,7 +134,7 @@ function MapHeader(props: {
 function chip(active: boolean): CSSProperties {
   return {
     border: `1px solid ${active ? c.accent : c.border}`,
-    background: active ? "#f0fdfa" : c.panel,
+    background: active ? c.selectedBg : c.panel,
     color: active ? c.accent : c.text,
     borderRadius: 6,
     padding: "0.2rem 0.55rem",
@@ -262,10 +262,11 @@ function NodeButton(props: {
         borderBottom: `1px solid ${props.expanded ? c.accent : c.border}`,
         borderLeft: `4px solid ${EDGE[state]}`,
         borderRadius: 6, padding: "0.35rem 0.5rem", fontSize: "0.84rem",
-        background: onFill ? "#f0fdfa" : c.panel,
-        color: onFill ? c.accent : c.text,
+        background: onFill ? c.selectedBg : c.panel,
+        // Узел вне пути — серым текстом, а не прозрачностью: при opacity 0.5 текст
+        // был 1.98:1 на белом, бледный лист — 3.36:1 (аудит 04-06).
+        color: onFill ? c.accent : dim ? c.muted : c.text,
         fontWeight: onFill ? 600 : 400,
-        opacity: dim && !onFill ? 0.5 : 1,
       }}
     >
       <span style={{ flex: "1 1 auto", minWidth: 0 }}>
@@ -396,8 +397,8 @@ function Legend() {
     <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem 0.9rem", marginTop: "0.8rem", fontSize: "0.74rem", color: c.muted }}>
       {edge(EDGE.strong, t("map.legend.strong"))}
       {edge(EDGE.hint, t("map.legend.hint"))}
-      <span style={{ opacity: 0.5 }}>{t("map.legend.off")}</span>
-      <span style={{ color: c.accent, fontWeight: 600, background: "#f0fdfa", padding: "0 0.3rem", borderRadius: 4 }}>
+      {edge(mapEdge.off, t("map.legend.off"))}
+      <span style={{ color: c.accent, fontWeight: 600, background: c.selectedBg, padding: "0 0.3rem", borderRadius: 4 }}>
         {t("map.legend.path")}
       </span>
       <span>{t("map.legend.marks")}</span>

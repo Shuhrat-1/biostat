@@ -680,6 +680,8 @@ export function requiredColumns(method: string): Array<keyof ColumnSelection> {
 
 /** Данные графиков для последнего расчёта. Форма зависит от метода. */
 export interface PlotBundle {
+  /** Колонки x и отклика, выбранные в форме, — подписи осей. */
+  axis_names?: { x?: string | null; y?: string | null };
   histogram?: {
     bin_edges: number[];
     bin_centers: number[];
@@ -959,6 +961,9 @@ try:
     _bundle.update(_summary(_method, _res.to_dict()))
 except Exception:
     pass
+# Имена колонок для подписей осей: «X» и «Y» ничего не говорили (аудит 04-07).
+_bundle["axis_names"] = {"x": _cols.get("x") or _cols.get("covariate"),
+                         "y": _cols.get("y") or _cols.get("value")}
 _bundle = {k: v for k, v in _bundle.items() if v is not None}
 
 # Кандидат в выбросы отмечается на графике остатков всегда (тест Бонферрони для
