@@ -29,6 +29,9 @@ const RU: Dict = {
   "load.note":
     "Первая загрузка занимает 20–60 секунд: браузер скачивает Python с numpy, scipy и statsmodels. Дальше всё берётся из кеша.",
   "load.error": "Ошибка загрузки рантайма",
+  "error.packages": "Не удалось загрузить пакеты Python: {names}. Файл с сервера повреждён или не скачался. Обновите страницу; если не поможет — проверьте соединение.",
+  "error.cellTooBig": "В файле есть ячейка длиннее 131 072 символов — похоже, это не таблица или в ней не закрыта кавычка. Проверьте файл и разделитель.",
+  "error.fileTooBig": "Файл слишком велик: браузеру не хватило памяти. Оставьте только нужные колонки и строки и загрузите снова.",
   "drop.hint": "Перетащи CSV сюда или нажми для выбора",
   "drop.parsing": "Разбор файла…",
   "drop.privacy": "Данные не покидают браузер — расчёты идут локально",
@@ -289,6 +292,9 @@ const EN: Dict = {
   "load.note":
     "First load takes 20–60 seconds: the browser downloads Python with numpy, scipy and statsmodels. After that it comes from cache.",
   "load.error": "Runtime loading error",
+  "error.packages": "Could not load the Python packages: {names}. The file from the server is damaged or did not download. Reload the page; if that does not help, check your connection.",
+  "error.cellTooBig": "The file has a cell longer than 131,072 characters — it is probably not a table, or a quote is left open. Check the file and the delimiter.",
+  "error.fileTooBig": "The file is too large: the browser ran out of memory. Keep only the columns and rows you need and upload again.",
   "drop.hint": "Drop a CSV here or click to choose",
   "drop.parsing": "Parsing file…",
   "drop.privacy": "Data never leaves your browser — computations are local",
@@ -549,6 +555,9 @@ const PT: Dict = {
   "load.note":
     "O primeiro carregamento demora 20–60 segundos: o navegador descarrega o Python com numpy, scipy e statsmodels. Depois vem da cache.",
   "load.error": "Erro ao carregar o runtime",
+  "error.packages": "Não foi possível carregar os pacotes Python: {names}. O ficheiro do servidor está danificado ou não foi descarregado. Recarregue a página; se não resultar, verifique a ligação.",
+  "error.cellTooBig": "O ficheiro tem uma célula com mais de 131 072 caracteres — provavelmente não é uma tabela ou há uma aspa por fechar. Verifique o ficheiro e o separador.",
+  "error.fileTooBig": "O ficheiro é demasiado grande: o navegador ficou sem memória. Mantenha apenas as colunas e linhas necessárias e carregue de novo.",
   "drop.hint": "Arraste um CSV para aqui ou clique para escolher",
   "drop.parsing": "A analisar o ficheiro…",
   "drop.privacy": "Os dados não saem do navegador — os cálculos são locais",

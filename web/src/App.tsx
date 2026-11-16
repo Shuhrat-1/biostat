@@ -37,6 +37,7 @@ import { I18nContext, LANGUAGES, useT, type Lang } from "./i18n";
 import { c, s } from "./styles";
 import { SensoryMap } from "./SensoryMap";
 import { useMapSync } from "./useMapSync";
+import { explainError } from "./userErrors";
 
 // ECharts тяжёлый — грузим отдельным чанком при первом показе графиков.
 const Plots = lazy(() => import("./charts").then((m) => ({ default: m.Plots })));
@@ -94,7 +95,7 @@ function AppInner({
       if (p.stage === "ready") setBooted(true);
     }).catch((e) => {
       if (!cancelled) {
-        setError(e instanceof Error ? e.message : String(e));
+        setError(explainError(e, t));
         setProgress({ stage: "error", message: "" });
       }
     });
@@ -112,7 +113,7 @@ function AppInner({
     try {
       setTable(await parseFile(bytes, { type_overrides: overrides, lang }));
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(explainError(e, t));
       setTable(null);
     } finally {
       setBusy(false);

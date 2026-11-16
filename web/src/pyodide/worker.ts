@@ -9,6 +9,7 @@
 
 import type { PyodideInterface } from "pyodide";
 import type { LoadStage, WorkerRequest, WorkerResponse } from "./protocol";
+import { PACKAGES_FAILED } from "../userErrors";
 
 /** Пакеты, нужные расчётному ядру. charset-normalizer — детекция кодировок. */
 const REQUIRED_PACKAGES = ["numpy", "scipy", "pandas", "statsmodels", "charset-normalizer"];
@@ -33,6 +34,25 @@ const post = (msg: WorkerResponse) => scope.postMessage(msg);
 const progress = (stage: LoadStage, message: string) =>
   post({ type: "progress", stage, message });
 
+/**
+ * Пакеты и их зависимости. Пакет, не прошедший проверку sha256 или не скачавшийся,
+ * Pyodide лишь отмечает через errorCallback и идёт дальше; здесь такой сбой
+ * останавливает загрузку, а не всплывает позже ImportError (аудит 03-06).
+ */
+async function loadPackages(py: PyodideInterface): Promise<void> {
+  const failed = new Set<string>();
+  let errors = 0;
+  await py.loadPackage(REQUIRED_PACKAGES, {
+    errorCallback: (message: string) => {
+      errors += 1;
+      // «The following error occurred while loading six:» / «Failed to load six»
+      const name = /(?:while loading|Failed to load) ([\w.-]+)/.exec(message)?.[1];
+      if (name) failed.add(name);
+    },
+  });
+  if (errors) throw new Error(`${PACKAGES_FAILED}${[...failed].join(", ") || "?"}`);
+}
+
 /** Загрузить рантайм, пакеты и ядро (core.zip с того же сайта). */
 async function load(coreUrl: string): Promise<void> {
   progress("loading-runtime", "Загрузка Python-рантайма…");
@@ -40,7 +60,7 @@ async function load(coreUrl: string): Promise<void> {
   const py: PyodideInterface = await loadPyodide({ indexURL: PYODIDE_CDN });
 
   progress("loading-packages", "Установка numpy, scipy, statsmodels…");
-  await py.loadPackage(REQUIRED_PACKAGES);
+  await loadPackages(py);
 
   progress("loading-core", "Загрузка расчётного ядра…");
   const response = await fetch(coreUrl);
