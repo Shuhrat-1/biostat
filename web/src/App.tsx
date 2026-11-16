@@ -8,7 +8,7 @@
  * пользователя.
  */
 
-import { lazy, Suspense, useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import {
   MethodPanel,
   PreviewPanel,
@@ -86,6 +86,14 @@ function AppInner({
   const [booted, setBooted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const map = useMapSync(table);
+  // После расчёта результат подводится под верх окна и получает фокус: иначе он
+  // остаётся за нижним краем, и о завершении расчёта ничто не говорит (аудит 04-03, 05-05).
+  const resultRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!result || !resultRef.current) return;
+    resultRef.current.scrollIntoView({ block: "start" });
+    resultRef.current.focus({ preventScroll: true });
+  }, [result]);
 
   useEffect(() => {
     let cancelled = false;
@@ -229,7 +237,9 @@ function AppInner({
   // Результат, графики и сброс — одинаковы для данных и для планирования.
   const resultsBlock = (
     <>
-      {result && <ResultPanel result={result} context={map.context} />}
+      <div ref={resultRef} tabIndex={-1} aria-live="polite" style={{ outline: "none", scrollMarginTop: "0.75rem" }}>
+        {result && <ResultPanel result={result} context={map.context} />}
+      </div>
       {plots && (
         <div style={s.panel}>
           <h2 style={s.h2}>{t("plots.title")}</h2>

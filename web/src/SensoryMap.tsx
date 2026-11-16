@@ -138,6 +138,7 @@ function chip(active: boolean): CSSProperties {
     color: active ? c.accent : c.text,
     borderRadius: 6,
     padding: "0.2rem 0.55rem",
+    minHeight: 24, // цель не меньше 24 × 24 px (WCAG 2.5.8, аудит 04-11)
     fontSize: "0.8rem",
     cursor: "pointer",
     fontWeight: active ? 600 : 400,
@@ -156,7 +157,8 @@ function Breadcrumbs(props: { focus: string; fill: Set<string>; onPick: (id: str
           <button
             onClick={() => props.onPick(n.id)}
             style={{
-              border: "none", background: "transparent", padding: "0.1rem 0.2rem", cursor: "pointer",
+              border: "none", background: "transparent", padding: "0.1rem 0.3rem", cursor: "pointer",
+              minHeight: 24, minWidth: 24,
               color: props.fill.has(n.id) ? c.accent : c.muted,
               fontWeight: n.id === props.focus ? 600 : 400,
             }}
@@ -363,12 +365,16 @@ function SignalList({ signals }: { signals: FiredSignal[] }) {
     <div style={{ marginTop: "0.4rem" }}>
       <div style={{ fontWeight: 600, marginBottom: "0.3rem" }}>{t("map.signals")}</div>
       {signals.map((sig) => (
-        <div key={sig.id} style={{ display: "flex", gap: "0.45rem", alignItems: "baseline", marginBottom: "0.25rem" }}>
+        <div key={sig.id} style={{ display: "flex", flexWrap: "wrap", gap: "0.1rem 0.45rem", alignItems: "baseline", marginBottom: "0.35rem" }}>
           <span
-            title={t(`map.strength.${sig.strength}`)}
+            aria-hidden="true"
             style={{ width: 8, height: 8, borderRadius: 4, flex: "0 0 8px", background: sig.strength === "strong" ? EDGE.strong : EDGE.hint }}
           />
-          <span style={{ flex: "1 1 auto" }}>{recMessage(sig, lang)}</span>
+          {/* Сила — словом, не только цветом точки; на узком экране источник уходит под текст. */}
+          <span style={{ flex: "1 1 14rem" }}>
+            <strong style={{ fontWeight: 600 }}>{t(`map.strength.${sig.strength}`)}:</strong>{" "}
+            {recMessage(sig, lang)}
+          </span>
           <span style={{ color: c.muted, fontSize: "0.75rem", whiteSpace: "nowrap" }}>
             {sig.id}{sig.source && sig.source !== "—" ? ` · ${formatSource(sig.source, lang)}` : ""}
           </span>

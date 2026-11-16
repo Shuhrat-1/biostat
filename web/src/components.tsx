@@ -190,8 +190,17 @@ export function FileDrop({
 
   return (
     <div
+      role="button"
+      tabIndex={0}
+      aria-disabled={busy}
       style={{ ...s.drop, ...(over ? s.dropActive : {}) }}
       onClick={() => !busy && input.current?.click()}
+      onKeyDown={(e) => {
+        // С клавиатуры зона — кнопка: Enter и пробел открывают выбор файла (аудит 04-01).
+        if (e.key !== "Enter" && e.key !== " ") return;
+        e.preventDefault();
+        if (!busy) input.current?.click();
+      }}
       onDragOver={(e) => {
         e.preventDefault();
         setOver(true);
@@ -1825,8 +1834,12 @@ const SUMMARY_ROWS = [
 
 /** Сводная описательная статистика: метрики слева, колонки датасета сверху. */
 /** Сообщения ядра к результату (отказы, предупреждения, заметки), по одному в строке. */
+/** Важность — значком и словом, не только цветом (WCAG 1.4.1, аудит 04-05). */
+const SEVERITY_ICON: Record<string, string> = { info: "ℹ", warning: "⚠", error: "✕" };
+
 function WarningList({ warnings }: { warnings: StatResult["warnings"] }) {
   const tm = useCoreMessage();
+  const t = useT();
   if (warnings.length === 0) return null;
   return (
     <div style={{ marginTop: "1rem", display: "grid", gap: "0.4rem" }}>
@@ -1843,6 +1856,8 @@ function WarningList({ warnings }: { warnings: StatResult["warnings"] }) {
               fontSize: "0.85rem",
             }}
           >
+            <span aria-hidden="true">{SEVERITY_ICON[w.severity] ?? SEVERITY_ICON.warning} </span>
+            <strong>{t(`severity.${w.severity in SEVERITY_ICON ? w.severity : "warning"}`)}:</strong>{" "}
             {tm(w)}
           </div>
         );

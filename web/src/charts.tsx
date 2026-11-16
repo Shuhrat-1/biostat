@@ -49,6 +49,8 @@ const BASE_GRID = { left: 48, right: 20, top: 40, bottom: 40 };
 const AXIS_STYLE = {
   axisLine: { lineStyle: { color: c.border } },
   axisLabel: { color: c.muted },
+  // Имя оси по умолчанию берёт цвет линии оси (1.27:1 на белом) — задаём явно (аудит 04-06).
+  nameTextStyle: { color: c.muted },
   splitLine: { lineStyle: { color: "#f4f4f5" } },
 };
 
@@ -465,8 +467,11 @@ function heatmapOption(h: NonNullable<PlotBundle["heatmap"]>, t: T): Option {
     visualMap: { min: -limit, max: limit, calculable: false, orient: "horizontal", left: "center",
       bottom: 0, dimension: 2, text: [`+${fmt(limit)}`, `−${fmt(limit)}`],
       inRange: { color: ["#1d4ed8", "#f8fafc", "#dc2626"] }, textStyle: { color: c.muted } },
-    series: [{ type: "heatmap", data: h.cells,
-      label: { show: true, color: c.text, formatter: (p: any) => String(p.value[3]) },
+    // Число в тёмной ячейке — белым: тёмный текст на синем давал 2.64:1 (аудит 04-06).
+    series: [{ type: "heatmap",
+      data: h.cells.map((cell) => ({ value: cell,
+        label: { color: Math.abs(cell[2]) > 0.55 * limit ? "#ffffff" : c.text } })),
+      label: { show: true, formatter: (p: any) => String(p.value[3]) },
       itemStyle: { borderColor: "#fff", borderWidth: 2 } }],
   };
 }
