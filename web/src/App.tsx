@@ -86,6 +86,14 @@ function AppInner({
   const [restarting, setRestarting] = useState(false);
   const [booted, setBooted] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Предпросмотр сворачивается после первого расчёта по файлу: дальше он стоит на пути
+  // к карте и форме (аудит 05-03). Ручной выбор пользователя держится до нового файла.
+  const [previewFolded, setPreviewFolded] = useState(false);
+  const previewTouched = useRef(false);
+  const unfoldPreview = () => {
+    setPreviewFolded(false);
+    previewTouched.current = false;
+  };
   const map = useMapSync(table);
   // После расчёта результат подводится под верх окна и получает фокус: иначе он
   // остаётся за нижним краем, и о завершении расчёта ничто не говорит (аудит 04-03, 05-05).
@@ -138,6 +146,7 @@ function AppInner({
   }, [lang]);
 
   const handleFile = async (file: File) => {
+    unfoldPreview();
     setPlanning(null);
     setResult(null);
     setPlots(null);
@@ -158,6 +167,7 @@ function AppInner({
 
   // Пример данных идёт тем же путём, что и загруженный файл.
   const handleExample = async () => {
+    unfoldPreview();
     setPlanning(null);
     setResult(null);
     setPlots(null);
@@ -189,6 +199,7 @@ function AppInner({
     setPlots(null);
     try {
       setResult(await runMethod(method, columns, kwargs));
+      if (!previewTouched.current) setPreviewFolded(true);
       // Графики строим после результата и не роняем расчёт, если они не вышли.
       try {
         setPlots(await getPlotData(method, columns));
@@ -232,6 +243,7 @@ function AppInner({
   };
 
   const reset = () => {
+    unfoldPreview();
     setPlanning(null);
     setFileBytes(null);
     setTable(null);
@@ -356,6 +368,11 @@ function AppInner({
                   onTypeChange={handleTypeChange}
                   onLoadRows={getRows}
                   busy={busy}
+                  folded={previewFolded}
+                  onToggleFold={() => {
+                    previewTouched.current = true;
+                    setPreviewFolded(!previewFolded);
+                  }}
                 />
                 <SensoryMap
                   suggestions={table.suggestions}

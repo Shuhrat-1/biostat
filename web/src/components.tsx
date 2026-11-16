@@ -323,12 +323,17 @@ export function PreviewPanel({
   onTypeChange,
   onLoadRows,
   busy,
+  folded = false,
+  onToggleFold,
 }: {
   table: ParsedTable;
   overrides: Record<string, ColumnType>;
   onTypeChange: (column: string, type: ColumnType) => void;
   onLoadRows: (start: number, count: number) => Promise<string[][]>;
   busy: boolean;
+  /** Свёрнут до заголовка (после первого расчёта, аудит 05-03). */
+  folded?: boolean;
+  onToggleFold?: () => void;
 }) {
   const t = useT();
   const [open, setOpen] = useState(false);
@@ -381,127 +386,144 @@ export function PreviewPanel({
 
   return (
     <div style={s.panel}>
-      <h2 style={s.h2}>
-        {t("preview.title")}
-        <span style={{ fontWeight: 400, color: c.muted, fontSize: "0.85rem" }}>
-          {" "}
-          · {t("preview.shown")} {rows.length} {t("preview.of")}{" "}
-          {table.n_rows.toLocaleString()}
-        </span>
-      </h2>
-      {table.header.length > MAX_SHOWN_COLUMNS && (
-        <div style={{ color: c.muted, fontSize: "0.85rem", marginBottom: "0.5rem" }}>
-          {t("preview.columnsCapped")
-            .replace("{shown}", String(MAX_SHOWN_COLUMNS))
-            .replace("{total}", table.header.length.toLocaleString())}
-        </div>
-      )}
-
-      <div style={{ ...s.row, marginBottom: "0.6rem" }}>
-        <label style={{ fontSize: "0.82rem", color: c.muted }}>
-          {t("preview.pageSize")}:{" "}
-          <select
-            value={pageSize}
-            onChange={(e) => changePageSize(Number(e.target.value))}
-            style={{ ...s.select, minWidth: 70, padding: "0.2rem 0.4rem" }}
+      <div style={{ display: "flex", alignItems: "baseline", gap: "0.75rem", flexWrap: "wrap" }}>
+        <h2 style={{ ...s.h2, ...(folded ? { marginBottom: 0 } : {}) }}>
+          {t("preview.title")}
+          <span style={{ fontWeight: 400, color: c.muted, fontSize: "0.85rem" }}>
+            {" "}
+            · {t("preview.shown")} {rows.length} {t("preview.of")}{" "}
+            {table.n_rows.toLocaleString()}
+          </span>
+        </h2>
+        {onToggleFold && (
+          <button
+            onClick={onToggleFold}
+            aria-expanded={!folded}
+            aria-controls="preview-body"
+            style={{ ...s.button, background: "transparent", color: c.accent, padding: "0.3rem 0",
+              minHeight: 24 }}
           >
-            {[10, 25, 50, 100].map((n) => (
-              <option key={n} value={n}>
-                {n}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
-
-      <div style={{ maxHeight: 420, overflow: "auto" }} onScroll={onScroll}>
-        <table style={s.table}>
-          <thead>
-            <tr>
-              {/* Индикатор номера строки */}
-              <th
-                style={{
-                  ...s.th,
-                  position: "sticky",
-                  top: 0,
-                  background: c.panel,
-                  color: c.muted,
-                  textAlign: "right",
-                  width: 1,
-                }}
-              >
-                #
-              </th>
-              {shownHeader.map((h) => {
-                const p = byName.get(h);
-                return (
-                  <th
-                    key={h}
-                    style={{ ...s.th, position: "sticky", top: 0, background: c.panel }}
-                  >
-                    <div>{h}</div>
-                    {p && (
-                      <span style={typeBadgeStyle(p.detected_type)}>
-                        {t(`type.${p.detected_type}`)}
-                      </span>
-                    )}
-                  </th>
-                );
-              })}
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row, i) => (
-              <tr key={i}>
-                <td
-                  style={{
-                    ...s.td,
-                    ...s.mono,
-                    color: c.muted,
-                    textAlign: "right",
-                    userSelect: "none",
-                  }}
-                >
-                  {i + 1}
-                </td>
-                {shownHeader.map((_, j) => (
-                  <td key={j} style={{ ...s.td, ...s.mono }}>
-                    {row[j] ?? ""}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        {loading && (
-          <div style={{ padding: "0.6rem", color: c.muted, fontSize: "0.82rem" }}>
-            {t("preview.loading")}
-          </div>
+            {folded ? t("preview.unfold") : t("preview.fold")}
+          </button>
         )}
       </div>
+      {!folded && (
+        <div id="preview-body">
+          {table.header.length > MAX_SHOWN_COLUMNS && (
+            <div style={{ color: c.muted, fontSize: "0.85rem", marginBottom: "0.5rem" }}>
+              {t("preview.columnsCapped")
+                .replace("{shown}", String(MAX_SHOWN_COLUMNS))
+                .replace("{total}", table.header.length.toLocaleString())}
+            </div>
+          )}
 
-      <div>
-        <button
-          onClick={() => setOpen(!open)}
-          style={{
-            ...s.button,
-            background: "transparent",
-            color: c.accent,
-            padding: "0.5rem 0",
-            marginTop: "0.4rem",
-          }}
-        >
-          {open ? t("preview.hideDetails") : t("preview.details")}
-        </button>
-      </div>
+          <div style={{ ...s.row, marginBottom: "0.6rem" }}>
+            <label style={{ fontSize: "0.82rem", color: c.muted }}>
+              {t("preview.pageSize")}:{" "}
+              <select
+                value={pageSize}
+                onChange={(e) => changePageSize(Number(e.target.value))}
+                style={{ ...s.select, minWidth: 70, padding: "0.2rem 0.4rem" }}
+              >
+                {[10, 25, 50, 100].map((n) => (
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
 
-      {open && (
-        <ColumnDetails
-          profiles={table.profiles}
-          overrides={overrides}
-          onTypeChange={onTypeChange}
-          busy={busy}
-        />
+          <div style={{ maxHeight: 420, overflow: "auto" }} onScroll={onScroll}>
+            <table style={s.table}>
+              <thead>
+                <tr>
+                  {/* Индикатор номера строки */}
+                  <th
+                    style={{
+                      ...s.th,
+                      position: "sticky",
+                      top: 0,
+                      background: c.panel,
+                      color: c.muted,
+                      textAlign: "right",
+                      width: 1,
+                    }}
+                  >
+                    #
+                  </th>
+                  {shownHeader.map((h) => {
+                    const p = byName.get(h);
+                    return (
+                      <th
+                        key={h}
+                        style={{ ...s.th, position: "sticky", top: 0, background: c.panel }}
+                      >
+                        <div>{h}</div>
+                        {p && (
+                          <span style={typeBadgeStyle(p.detected_type)}>
+                            {t(`type.${p.detected_type}`)}
+                          </span>
+                        )}
+                      </th>
+                    );
+                  })}
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((row, i) => (
+                  <tr key={i}>
+                    <td
+                      style={{
+                        ...s.td,
+                        ...s.mono,
+                        color: c.muted,
+                        textAlign: "right",
+                        userSelect: "none",
+                      }}
+                    >
+                      {i + 1}
+                    </td>
+                    {shownHeader.map((_, j) => (
+                      <td key={j} style={{ ...s.td, ...s.mono }}>
+                        {row[j] ?? ""}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {loading && (
+              <div style={{ padding: "0.6rem", color: c.muted, fontSize: "0.82rem" }}>
+                {t("preview.loading")}
+              </div>
+            )}
+          </div>
+
+          <div>
+            <button
+              onClick={() => setOpen(!open)}
+              style={{
+                ...s.button,
+                background: "transparent",
+                color: c.accent,
+                padding: "0.5rem 0",
+                marginTop: "0.4rem",
+              }}
+            >
+              {open ? t("preview.hideDetails") : t("preview.details")}
+            </button>
+          </div>
+
+          {open && (
+            <ColumnDetails
+              profiles={table.profiles}
+              overrides={overrides}
+              onTypeChange={onTypeChange}
+              busy={busy}
+            />
+          )}
+        </div>
       )}
     </div>
   );
@@ -689,12 +711,16 @@ export function MethodPanel({
   const [params, setParams] = useState<Record<string, unknown>>({});
   // Слоты, заполненные картой (не пользователем): под формой — просьба проверить.
   const [autoFilled, setAutoFilled] = useState<string[]>([]);
+  // Список методов свёрнут до выбранной карточки: 30 невыбранных карточек стояли
+  // между вкладками и формой (аудит 05-01, раскладка C). Раскрывает «Сменить метод».
+  const [listOpen, setListOpen] = useState(false);
 
   // При смене таблицы (новый файл, смена типа колонки) состав методов
   // меняется — возвращаемся к первой вкладке и первому методу.
   useEffect(() => {
     setActiveGroup(groups[0] ?? "");
     setMethod(suggestions[0]?.method ?? "");
+    setListOpen(false);
     setColumns({});
     const defaults: Record<string, unknown> = {};
     suggestions[0]?.params.forEach((p) => (defaults[p.name] = p.default));
@@ -725,6 +751,7 @@ export function MethodPanel({
     const spec = suggestions.find((x) => x.method === request.method);
     if (!spec) return;
     setActiveGroup(spec.group);
+    setListOpen(false);
     if (request.method === method) setParams((p) => ({ ...p, ...request.preset }));
     else selectMethod(request.method, request.preset);
     const fill = fillColumns(columns, request.roles ?? {}, spec);
@@ -740,6 +767,7 @@ export function MethodPanel({
 
   const selectGroup = (group: string) => {
     setActiveGroup(group);
+    setListOpen(false);
     // При переходе на вкладку выбираем первый метод этой группы.
     const first = byGroup.get(group)?.[0];
     if (first) selectMethod(first.method);
@@ -755,6 +783,8 @@ export function MethodPanel({
   }
 
   const groupMethods = byGroup.get(activeGroup) ?? [];
+  const others = groupMethods.filter((m) => m.method !== method).length;
+  const shownMethods = listOpen ? groupMethods : groupMethods.filter((m) => m.method === method);
 
   return (
     <div style={s.panel}>
@@ -794,21 +824,25 @@ export function MethodPanel({
         })}
       </div>
 
-      {/* Карточки методов активной категории */}
+      {/* Карточки методов активной категории: свёрнуты до выбранной */}
       <div
+        id="method-list"
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
+          gridTemplateColumns: listOpen ? "repeat(auto-fill, minmax(240px, 1fr))" : "1fr",
           gap: "0.5rem",
-          marginBottom: "1rem",
+          marginBottom: others > 0 ? "0.5rem" : "1rem",
         }}
       >
-        {groupMethods.map((m) => {
+        {shownMethods.map((m) => {
           const selected = m.method === method;
           return (
             <button
               key={m.method}
-              onClick={() => selectMethod(m.method)}
+              onClick={() => {
+                selectMethod(m.method);
+                setListOpen(false);
+              }}
               style={{
                 textAlign: "left",
                 border: `1px solid ${selected ? c.accent : c.border}`,
@@ -830,6 +864,29 @@ export function MethodPanel({
           );
         })}
       </div>
+
+      {others > 0 && (
+        <button
+          onClick={() => setListOpen(!listOpen)}
+          aria-expanded={listOpen}
+          aria-controls="method-list"
+          style={{
+            display: "block",
+            width: "100%",
+            minHeight: 40,
+            marginBottom: "1rem",
+            border: `1px solid ${c.borderInput}`,
+            borderRadius: 6,
+            background: c.panel,
+            color: c.accent,
+            fontSize: "0.88rem",
+            fontWeight: 600,
+            cursor: "pointer",
+          }}
+        >
+          {listOpen ? t("method.hideList") : t("method.change").replace("{n}", String(others))}
+        </button>
+      )}
 
       {/* Колонки и параметры выбранного метода */}
       <div style={s.row}>
