@@ -135,6 +135,7 @@ def _fill_anova(tgroups: list[np.ndarray], result: StatResult) -> None:
     keys = ("F", "df_between", "df_within", "ss_between", "ss_within", "ss_total",
             "ms_between", "ms_within")
     result.statistics = {k: anova.statistics[k] for k in keys}
+    result.parameters["anova_table"] = anova.parameters["anova_table"]
 
 
 def _add_back_estimates(

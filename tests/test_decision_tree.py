@@ -227,8 +227,8 @@ def test_causality_caveat_reaches_result_and_export():
     assert i18n.count('"result.observational":') == 3  # ru, en, pt
     panel = (WEB / "components.tsx").read_text(encoding="utf-8")
     assert "study_context: context" in panel and "causality_note: caveat" in panel
-    assert "<ResultPanel result={result} context={map.context} />" in (
-        WEB / "App.tsx").read_text(encoding="utf-8")
+    app = (WEB / "App.tsx").read_text(encoding="utf-8")
+    assert re.search(r"<ResultPanel\s+result=\{result\}\s+context=\{map\.context\}", app)
 
 
 def test_methods_exempt_from_causality_caveat_exist_and_compare_nothing():

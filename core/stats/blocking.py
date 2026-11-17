@@ -216,6 +216,27 @@ def _fill_strata(table: pd.DataFrame, frame: pd.DataFrame, k: int, result: StatR
     if k > 1:
         _fill_within_stratum(frame, ms_res, df_res, result)
     result.statistics["ss_total"] = float(((frame["y"] - frame["y"].mean()) ** 2).sum())
+    result.parameters["anova_table"] = _anova_table(result.statistics, result.p_value, k)
+
+
+def _anova_table(st: dict, p_trt: float, k: int) -> list[dict]:
+    """Таблица ANOVA по стратам из уже посчитанных сумм (аудит 04-02, Table 7.6–7.7)."""
+    rows = [
+        {"term": "Block", "stratum": "block", "df": st["df_block"], "ss": st["ss_block"],
+         "ms": st["ms_block"], "F": st["F_block"], "p": st["p_block"]},
+        {"term": "Treatment", "stratum": "unit", "df": st["df_treatment"],
+         "ss": st["ss_treatment"], "ms": st["ms_treatment"], "F": st["F"], "p": p_trt},
+        {"term": "Residual", "stratum": "unit", "df": st["df_resid"], "ss": st["ss_resid"],
+         "ms": st["ms_resid"]},
+    ]
+    if k > 1:
+        # Остаток делянок проверяется против разброса измерений внутри делянок (стр. 146).
+        if "F_unit_residual" in st:
+            rows[-1].update({"F": st["F_unit_residual"], "p": st["p_unit_residual"]})
+        rows.append({"term": "Within plots", "stratum": "sample", "df": st["df_within"],
+                     "ss": st["ss_within"], "ms": st.get("ms_within")})
+    rows.append({"term": "Total", "df": sum(r["df"] for r in rows), "ss": st["ss_total"]})
+    return rows
 
 
 def _fill_within_stratum(

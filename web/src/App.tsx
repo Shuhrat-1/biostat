@@ -260,7 +260,14 @@ function AppInner({
   const resultsBlock = (
     <>
       <div ref={resultRef} tabIndex={-1} aria-live="polite" style={{ outline: "none", scrollMarginTop: "0.75rem" }}>
-        {result && <ResultPanel result={result} context={map.context} />}
+        {result && (
+          <ResultPanel
+            result={result}
+            context={map.context}
+            methodLabel={[...(table?.suggestions ?? []), ...(planning ?? [])]
+              .find((sg) => sg.method === result.method)?.label}
+          />
+        )}
       </div>
       {plots && (
         <div style={s.panel}>

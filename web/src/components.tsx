@@ -13,6 +13,7 @@ import type {
 } from "./pyodide/bridge";
 import { useLang, useT } from "./i18n";
 import { fillColumns } from "./columnFill";
+import { alphaOf, conclusionLine, pText } from "./conclusion";
 import { effectRows } from "./effectSize";
 import { csvCell } from "./escape";
 import { columnLabel, extraTitle, statLabel } from "./extraLabels";
@@ -1116,7 +1117,8 @@ function AnovaTable({ rows }: { rows: AnovaRow[] }) {
   const body: JSX.Element[] = [];
   rows.forEach((r, i) => {
     const sub = SUB_STRATA.has(r.stratum ?? "");
-    if (showStrata && !sub && r.stratum !== prevStratum) {
+    // Строка «Total» страты не имеет: заголовок страты для неё не нужен.
+    if (showStrata && !sub && r.stratum && r.stratum !== prevStratum) {
       prevStratum = r.stratum;
       body.push(
         <tr key={`s${i}`}>
@@ -1162,8 +1164,16 @@ function formatP(p: number | undefined): string {
 }
 
 /** Ключи плоской статистики, которые уже показаны в таблице ANOVA. */
-function duplicatesAnova(key: string): boolean {
-  return /^(F|p)_/.test(key) || ["df_resid", "ms_resid", "ss_resid"].includes(key);
+/**
+ * Плашка повторяет таблицу ANOVA: ключ F/P/SS/MS/df, и его число есть в таблице
+ * (аудит 04-02). Статистики, которых в таблице нет (ss_total без строки Total,
+ * F неадекватности), остаются.
+ */
+function duplicatesAnova(key: string, value: unknown, rows: AnovaRow[]): boolean {
+  if (typeof value !== "number" || !/^(F|p|ss|ms|df)(_|$)/.test(key)) return false;
+  const same = (x: number | undefined) =>
+    x != null && Math.abs(x - value) <= 1e-9 * Math.max(1, Math.abs(value));
+  return rows.some((r) => [r.F, r.p, r.ss, r.ms, r.df].some(same));
 }
 
 /** Коды предупреждений, помечающих метод как экспериментальный. */
@@ -1706,7 +1716,12 @@ function ExtraTables({ params, method }: { params: Raw; method: string }) {
 
 const P_METHODS = new Set(["exact", "normal"]);
 
-export function ResultPanel({ result, context }: { result: StatResult; context: Context }) {
+export function ResultPanel({ result, context, methodLabel }: {
+  result: StatResult;
+  context: Context;
+  /** Название метода на языке интерфейса; нет — показывается id метода. */
+  methodLabel?: string;
+}) {
   const t = useT();
   const lang = useLang();
   // Наблюдение, а не эксперимент: связь не доказывает причину [кн. стр. 3].
@@ -1723,9 +1738,13 @@ export function ResultPanel({ result, context }: { result: StatResult; context: 
 
   const anova = anovaRows(result);
   const experimental = result.warnings.some((w) => EXPERIMENTAL_CODES.has(w.code));
+  // Размеры эффекта показаны блоком выше — в плашках их не повторяем (аудит 04-02).
+  const effectKeys = new Set(effectRows(result.statistics).map((r) => r.key));
   const stats = Object.entries(result.statistics).filter(
-    ([k]) => !(anova && duplicatesAnova(k)),
+    ([k, v]) => !(anova && duplicatesAnova(k, v, anova)) && !effectKeys.has(k),
   );
+  const alpha = alphaOf(result);
+  const conclusion = conclusionLine(result, t);
 
   return (
     <div style={s.panel}>
@@ -1733,7 +1752,7 @@ export function ResultPanel({ result, context }: { result: StatResult; context: 
         {t("result.title")}
         <span style={{ fontWeight: 400, color: c.muted, fontSize: "0.85rem" }}>
           {" "}
-          · {result.method} · n = {result.n}
+          · {methodLabel ?? result.method} · n = {result.n}
         </span>
         {experimental && (
           <span
@@ -1764,13 +1783,19 @@ export function ResultPanel({ result, context }: { result: StatResult; context: 
             fontSize: "1.05rem",
           }}
         >
-          <strong>p = {formatNumber(result.p_value)}</strong>
+          <strong>P {pText(result.p_value)}</strong>
           <span style={{ color: c.muted, fontSize: "0.85rem" }}>
-            {" "}
-            {result.p_value < 0.05
-              ? t("result.significant")
-              : t("result.notSignificant")}
+            {" · "}
+            {conclusion
+              ? `α = ${alpha}`
+              : t(result.p_value < alpha ? "result.significant" : "result.notSignificant")
+                .replace("{a}", String(alpha))}
           </span>
+          {conclusion && (
+            <div style={{ fontSize: "0.95rem", marginTop: "0.25rem", color: c.text }}>
+              {conclusion}
+            </div>
+          )}
           {pMethod && (
             <div style={{ color: c.muted, fontSize: "0.8rem", marginTop: "0.2rem" }}>
               {t(`result.pMethod.${pMethod}`)}

@@ -93,6 +93,13 @@ def one_way_anova(
         "eta_squared": ss_between / ss_total if ss_total > 0 else float("nan"),
         **_extra_effect_sizes(ss_between, ss_total, ms_within, df_between),
     }
+    # Привычная таблица дисперсионного анализа (аудит 04-02); плоские ключи выше остаются.
+    result.parameters["anova_table"] = [
+        {"term": "Between", "df": df_between, "ss": ss_between, "ms": ms_between,
+         "F": float(f_res.statistic), "p": result.p_value},
+        {"term": "Within", "df": df_within, "ss": ss_within, "ms": ms_within},
+        {"term": "Total", "df": n_total - 1, "ss": ss_total},
+    ]
     for lab, g in zip(labels, clean):
         result.estimates.append(Estimate(name=f"mean_{lab}", value=float(g.mean())))
 
