@@ -33,6 +33,8 @@ class Param:
     min: float | None = None
     max: float | None = None
     from_summary: str = ""
+    # Пример значения для текстового поля: подсказка в поле и кнопка «Подставить пример».
+    example: str = ""
 
     def to_dict(self, lang: str = "ru") -> dict[str, Any]:
         from core.validation.catalog_i18n import LABELS_MISC, tr
@@ -46,6 +48,7 @@ class Param:
             "min": self.min,
             "max": self.max,
             "from_summary": self.from_summary,
+            "example": self.example,
         }
 
 
@@ -228,6 +231,25 @@ CATALOG: list[MethodSpec] = [
         slot_labels={"value": "Числовая колонка"},
         description="Проверяет, согласуются ли данные с нормальным распределением.",
     ),
+    # «Сравнение с эталоном»: первым — самый общий метод, t-тест (аудит 05-04).
+    MethodSpec(
+        method="one_sample_t",
+        label="Одновыборочный t-тест",
+        group="Сравнение с эталоном",
+        slots={"value": _NUM},
+        slot_labels={"value": "Числовая колонка"},
+        params=[
+            Param(
+                "popmean",
+                "Эталонное среднее μ",
+                "number",
+                0.0,
+                from_summary="mean",
+            ),
+            _ALTERNATIVE,
+        ],
+        description="Сравнивает среднее выборки с заданным значением.",
+    ),
     MethodSpec(
         method="one_proportion",
         label="Одна доля: ДИ и тест H0: p = p₀",
@@ -298,24 +320,6 @@ CATALOG: list[MethodSpec] = [
             Param("alpha", "Уровень значимости α", "float", 0.05, min=0.001, max=0.2),
         ],
         description="До/после у одних объектов (да/нет): точный P по несогласным парам, χ² Мак-Немара, разность долей с ДИ.",
-    ),
-    MethodSpec(
-        method="one_sample_t",
-        label="Одновыборочный t-тест",
-        group="Сравнение с эталоном",
-        slots={"value": _NUM},
-        slot_labels={"value": "Числовая колонка"},
-        params=[
-            Param(
-                "popmean",
-                "Эталонное среднее μ",
-                "number",
-                0.0,
-                from_summary="mean",
-            ),
-            _ALTERNATIVE,
-        ],
-        description="Сравнивает среднее выборки с заданным значением.",
     ),
     MethodSpec(
         method="one_sample_wilcoxon",
@@ -1338,9 +1342,11 @@ CATALOG: list[MethodSpec] = [
         slots={},
         slot_labels={},
         params=[
+            # Примеры — Case Study 19.3 книги (Table 19.4, стр. 534–535).
             Param("components", "Компоненты дисперсии сверху вниз (Блок=…; Единица=…; …)",
-                  "text", ""),
-            Param("schemes", "Схемы: n_T n_R n_1 … через пробел, схемы через ;", "text", ""),
+                  "text", "", example="Rep=0.0050; Unit=0.0046; Branch=0.0031; Pod=0.0017"),
+            Param("schemes", "Схемы: n_T n_R n_1 … через пробел, схемы через ;", "text", "",
+                  example="60 3 2 2; 110 3 2 1"),
             Param("delta", "Разность δ для мощности", "float", 0.0, min=0.0, max=1e9),
             Param("alpha", "Уровень значимости α", "float", 0.05, min=0.001, max=0.2),
             Param("position_terms", "Позиции подуровней — фиксированные члены", "select", "yes",

@@ -32,11 +32,36 @@ export function equivalents(slot: Slot): Slot[] {
   return family ? [slot, ...family.filter((s) => s !== slot)] : [slot];
 }
 
+/**
+ * Колонка, похожая на блоки по имени (B1.1), — только если такая одна:
+ * из двух кандидатов форма не выбирает (аудит 05-10).
+ */
+export function blockCandidate(fired: FiredSignal[]): string | undefined {
+  const params = fired.find((f) => f.id === "B1.1")?.message.params;
+  const n = params?.n;
+  return typeof params?.c === "string" && (n === undefined || n === 1) ? params.c : undefined;
+}
+
 /** Роли карты + блок, распознанный по имени колонки (если роли блока нет). */
 export function knownRoles(roles: ColumnSelection, fired: FiredSignal[]): ColumnSelection {
-  const block = fired.find((f) => f.id === "B1.1")?.message.params?.c;
-  if (roles.block || typeof block !== "string") return roles;
+  const block = blockCandidate(fired);
+  if (roles.block || !block) return roles;
   return { ...roles, block };
+}
+
+/**
+ * Колонка блоков при выборе метода карточкой (аудит 05-10): лист карты её
+ * подставлял, карточка — нет. Подставляем, если слот пуст, колонка-кандидат
+ * одна, подходит слоту и не занята другим слотом.
+ */
+export function fillBlock(
+  columns: ColumnSelection,
+  spec: MethodSuggestion | undefined,
+  block: string | undefined,
+): { columns: ColumnSelection; filled: Slot[] } {
+  const fits = block && spec?.needs.block?.includes(block) && !columns.block
+    && !Object.values(columns).includes(block);
+  return fits ? { columns: { ...columns, block }, filled: ["block"] } : { columns, filled: [] };
 }
 
 /**

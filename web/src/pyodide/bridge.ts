@@ -110,6 +110,8 @@ export interface MethodParam {
   min: number | null;
   max: number | null;
   from_summary: string;
+  /** Пример значения текстового поля (подсказка и кнопка «Подставить пример»). */
+  example?: string;
 }
 
 export interface MethodSuggestion {

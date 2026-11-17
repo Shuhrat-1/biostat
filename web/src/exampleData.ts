@@ -10,6 +10,8 @@
  * автодетекцию европейского формата.
  */
 
+import type { Lang } from "./i18n";
+
 const ROWS: Array<[string, string, string, string]> = [
   // сорт, урожай, высота, площадь (площадь с повторами — не читается как ID)
   ["пшеница", "5,2", "88,4", "120"],
@@ -32,10 +34,19 @@ const ROWS: Array<[string, string, string, string]> = [
   ["овёс", "4,2", "73,2", "85"],
 ];
 
+/** Названия колонок и сортов на языке интерфейса (аудит 04-12); числа одни и те же. */
+const WORDS: Record<Lang, { header: string; crops: Record<string, string> }> = {
+  ru: { header: "сорт;урожай;высота;площадь", crops: {} },
+  en: { header: "variety;yield;height;area",
+    crops: { "пшеница": "wheat", "ячмень": "barley", "овёс": "oats" } },
+  pt: { header: "variedade;produção;altura;área",
+    crops: { "пшеница": "trigo", "ячмень": "cevada", "овёс": "aveia" } },
+};
+
 /** Пример как байты — идёт тем же путём разбора, что и загруженный файл. */
-export function exampleFileBytes(): Uint8Array {
-  const header = "сорт;урожай;высота;площадь";
-  const lines = ROWS.map((r) => r.join(";"));
+export function exampleFileBytes(lang: Lang = "ru"): Uint8Array {
+  const { header, crops } = WORDS[lang];
+  const lines = ROWS.map(([crop, ...rest]) => [crops[crop] ?? crop, ...rest].join(";"));
   const text = [header, ...lines].join("\n") + "\n";
   return new TextEncoder().encode(text);
 }

@@ -104,7 +104,7 @@ def _plots(block: str) -> dict[str, list]:
 @pytest.mark.parametrize("block", ["Block_ID", "blocks", "repetição", "Повторение"])
 def test_01_14_block_hint_on_real_headers(block: str) -> None:
     fired = _fired(_plots(block), response="yield", group="variety")
-    assert fired["B1.1"]["message"]["params"] == {"c": block}
+    assert fired["B1.1"]["message"]["params"] == {"c": block, "n": 1}  # n — число кандидатов (05-10)
 
 
 def test_01_14_before_after_hint_on_phrases() -> None:

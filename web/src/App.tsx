@@ -45,16 +45,40 @@ const Plots = lazy(() => import("./charts").then((m) => ({ default: m.Plots })))
 
 /** Корень: держит выбранный язык и раздаёт его через контекст. */
 export default function App() {
-  const [lang, setLang] = useState<Lang>("ru");
+  const [lang, setLang] = useState<Lang>(() => storedLang() ?? "ru");
   // Держим <html lang> в синхроне с UI-языком — для SEO и скринридеров.
   useEffect(() => {
     document.documentElement.lang = lang;
+    saveLang(lang);
   }, [lang]);
   return (
     <I18nContext.Provider value={lang}>
       <AppInner lang={lang} setLang={setLang} />
     </I18nContext.Provider>
   );
+}
+
+const LANG_KEY = "biostat.lang";
+
+/**
+ * Язык прошлого визита (аудит 05-06). localStorage может быть недоступен
+ * (приватный режим, запрет cookies) — тогда язык по умолчанию, без ошибки.
+ */
+function storedLang(): Lang | null {
+  try {
+    const v = window.localStorage.getItem(LANG_KEY);
+    return LANGUAGES.some((l) => l.code === v) ? (v as Lang) : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveLang(lang: Lang): void {
+  try {
+    window.localStorage.setItem(LANG_KEY, lang);
+  } catch {
+    // хранилище недоступно — язык просто не запомнится
+  }
 }
 
 function AppInner({
@@ -172,7 +196,7 @@ function AppInner({
     setResult(null);
     setPlots(null);
     setTypeOverrides({});
-    const bytes = exampleFileBytes();
+    const bytes = exampleFileBytes(lang);
     setFileBytes(bytes);
     await runParse(bytes, {});
   };
@@ -362,6 +386,8 @@ function AppInner({
                   summaryValues={{}}
                   onRun={handleRun}
                   busy={busy || restarting}
+                  running={running}
+                  onCancel={handleCancel}
                 />
                 {resultsBlock}
               </>
@@ -401,6 +427,9 @@ function AppInner({
                   summaryValues={table.summary_values}
                   onRun={handleRun}
                   busy={busy || restarting}
+                  running={running}
+                  onCancel={handleCancel}
+                  blockHint={map.blockHint}
                   request={map.request}
                   onSelection={map.onSelection}
                 />

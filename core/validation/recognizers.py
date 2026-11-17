@@ -445,7 +445,8 @@ def block_name(ctx: Context) -> Signal | None:
     seen = set(found.params.values()) if found else set()
     named = [c for c in ctx.table.header if names.is_block(c) and c not in seen]
     if named:
-        return Signal("Колонка «{c}» похожа на блоки / повторности.", {"c": named[0]})
+        # n — сколько колонок похожи на блоки: форма подставляет блок, только если одна (05-10).
+        return Signal("Колонка «{c}» похожа на блоки / повторности.", {"c": named[0], "n": len(named)})
     return None
 
 

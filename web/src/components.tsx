@@ -12,7 +12,7 @@ import type {
   StatResult,
 } from "./pyodide/bridge";
 import { useLang, useT } from "./i18n";
-import { fillColumns } from "./columnFill";
+import { fillBlock, fillColumns } from "./columnFill";
 import { alphaOf, conclusionLine, pText } from "./conclusion";
 import { effectRows } from "./effectSize";
 import { csvCell } from "./escape";
@@ -675,6 +675,9 @@ export function MethodPanel({
   summaryValues,
   onRun,
   busy,
+  running = false,
+  onCancel,
+  blockHint,
   request,
   onSelection,
 }: {
@@ -688,6 +691,11 @@ export function MethodPanel({
     kwargs: Record<string, unknown>,
   ) => void;
   busy: boolean;
+  /** Идёт расчёт: через 1 с «Рассчитать» становится «Остановить» (аудит 05-08). */
+  running?: boolean;
+  onCancel?: () => void;
+  /** Единственная колонка, похожая на блоки (B1.1), — для подстановки (05-10). */
+  blockHint?: string;
   request?: MethodRequest | null;
   /** Сообщает карте текущий метод, колонки и параметры формы. */
   onSelection?: (
@@ -713,6 +721,17 @@ export function MethodPanel({
   const [params, setParams] = useState<Record<string, unknown>>({});
   // Слоты, заполненные картой (не пользователем): под формой — просьба проверить.
   const [autoFilled, setAutoFilled] = useState<string[]>([]);
+  // Через секунду расчёта кнопка «Рассчитать» сама становится «Остановить»:
+  // путь указателя 0 вместо ~880 px до плашки (аудит 05-08). Быстрые расчёты не мигают.
+  const [canStop, setCanStop] = useState(false);
+  useEffect(() => {
+    if (!running) {
+      setCanStop(false);
+      return;
+    }
+    const id = window.setTimeout(() => setCanStop(true), 1000);
+    return () => window.clearTimeout(id);
+  }, [running]);
   // Список методов свёрнут до выбранной карточки: 30 невыбранных карточек стояли
   // между вкладками и формой (аудит 05-01, раскладка C). Раскрывает «Сменить метод».
   const [listOpen, setListOpen] = useState(false);
@@ -736,12 +755,16 @@ export function MethodPanel({
   const ready = slots.every(
     (slot) => optional.has(slot) || columns[slot as keyof ColumnSelection],
   );
+  const missing = slots
+    .filter((slot) => !optional.has(slot) && !columns[slot as keyof ColumnSelection])
+    .map((slot) => suggestion?.slot_labels[slot] ?? slot);
 
   const selectMethod = (next: string, preset: Record<string, unknown> = {}) => {
     const spec = suggestions.find((x) => x.method === next);
     setMethod(next);
-    setColumns(carryColumns(columns, spec));
-    setAutoFilled([]);
+    const block = fillBlock(carryColumns(columns, spec), spec, blockHint);
+    setColumns(block.columns);
+    setAutoFilled(block.filled);
     const defaults: Record<string, unknown> = {};
     spec?.params.forEach((p) => (defaults[p.name] = p.default));
     setParams({ ...defaults, ...preset });
@@ -926,7 +949,9 @@ export function MethodPanel({
               }}
             >
               <option value="">{t("method.choose")}</option>
-              {(suggestion?.needs[slot] ?? []).map((name) => (
+              {/* Колонку, выбранную в другом списке, здесь не предлагаем (аудит 04-10). */}
+              {(suggestion?.needs[slot] ?? []).filter((name) => name === columns[slot as keyof ColumnSelection]
+                || !Object.entries(columns).some(([other, v]) => other !== slot && v === name)).map((name) => (
                 <option key={name} value={name}>
                   {name}
                 </option>
@@ -946,14 +971,31 @@ export function MethodPanel({
           />
         ))}
 
-        <button
-          style={{ ...s.button, ...(ready && !busy ? {} : s.buttonDisabled) }}
-          disabled={!ready || busy}
-          onClick={() => onRun(method, columns, params)}
-        >
-          {busy ? t("method.running") : t("method.run")}
-        </button>
+        {canStop && onCancel ? (
+          <button
+            style={{ ...s.button, background: c.panel, color: c.accent, border: `1px solid ${c.accent}` }}
+            onClick={onCancel}
+          >
+            {t("run.cancel")}
+          </button>
+        ) : (
+          <button
+            style={{ ...s.button, ...(ready && !busy ? {} : s.buttonDisabled) }}
+            disabled={!ready || busy}
+            aria-describedby={missing.length > 0 ? `${uid}-missing` : undefined}
+            onClick={() => onRun(method, columns, params)}
+          >
+            {busy ? t("method.running") : t("method.run")}
+          </button>
+        )}
       </div>
+
+      {/* Почему кнопка неактивна (аудит 04-10). */}
+      {missing.length > 0 && !busy && (
+        <div id={`${uid}-missing`} style={{ marginTop: "0.6rem", fontSize: "0.85rem", color: c.muted }}>
+          {t("method.missing").replace("{list}", missing.join(", "))}
+        </div>
+      )}
 
       {autoFilled.length > 0 && (
         <div style={{ marginTop: "0.7rem", fontSize: "0.85rem", color: c.warn }}>
@@ -1006,10 +1048,22 @@ function ParamField({
         <input
           id={id}
           type="text"
-          style={{ ...s.select, width: "100%" }}
+          // border-box: поле с width 100 % не налезает на соседнее (аудит 04-09)
+          style={{ ...s.select, width: "100%", boxSizing: "border-box" }}
+          placeholder={param.example ? `${t("param.example")}: ${param.example}` : undefined}
           value={String(value ?? param.default ?? "")}
           onChange={(e) => onChange(e.target.value)}
         />
+        {param.example && (
+          <button
+            type="button"
+            onClick={() => onChange(param.example)}
+            style={{ border: "none", background: "transparent", color: c.accent, padding: "0.2rem 0",
+              minHeight: 24, fontSize: "0.82rem", cursor: "pointer" }}
+          >
+            {t("param.useExample")}
+          </button>
+        )}
       </div>
     );
   }

@@ -4,7 +4,7 @@
  */
 
 import { useEffect, useRef, useState } from "react";
-import { ACTIVE_ONLY, equivalents, knownRoles } from "./columnFill";
+import { ACTIVE_ONLY, blockCandidate, equivalents, knownRoles } from "./columnFill";
 import type { MethodRequest } from "./components";
 import type { TreeNode } from "./decisionTree";
 import type { Context } from "./mapState";
@@ -143,5 +143,6 @@ export function useMapSync(table: ParsedTable | null) {
   return {
     context, setContext, selection, recognition, computing, request, onSelection, onPickLeaf,
     hasRoles: Object.keys(roles).length > 0,
+    blockHint: blockCandidate(recognition?.fired ?? []),
   };
 }
