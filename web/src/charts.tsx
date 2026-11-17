@@ -29,6 +29,7 @@ import { escapeHtml as esc } from "./escape";
 import { useT } from "./i18n";
 import type { PlotBundle } from "./pyodide/bridge";
 import { c, chart, groupColor, seriesStyle } from "./styles";
+import { downloadBlob } from "./download";
 
 echarts.use([
   BarChart,
@@ -56,15 +57,54 @@ const AXIS_STYLE = {
 };
 
 /** Один график ECharts. Пересоздаёт опции при смене данных. */
+/** PNG вдвое крупнее экрана, на белом фоне (аудит 05-07). */
+const PNG_SCALE = 2;
+
+/** SVG-строка графика → PNG через canvas; всё в браузере, без сети. */
+function svgToPng(svg: string, width: number, height: number, filename: string): void {
+  const url = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml;charset=utf-8" }));
+  const img = new Image();
+  img.onload = () => {
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(width * PNG_SCALE);
+    canvas.height = Math.round(height * PNG_SCALE);
+    const ctx = canvas.getContext("2d");
+    URL.revokeObjectURL(url);
+    if (!ctx) return;
+    ctx.fillStyle = c.panel;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    canvas.toBlob((blob) => blob && downloadBlob(blob, filename), "image/png");
+  };
+  img.src = url;
+}
+
 function Chart({
   option,
   height = 300,
+  label,
+  title,
+  fileName,
 }: {
   option: echarts.EChartsCoreOption;
   height?: number;
+  /** Текстовая альтернатива для диктора (аудит 04-04). */
+  label?: string;
+  /** Заголовок для подписей кнопок выгрузки. */
+  title?: string;
+  /** Имя файла без расширения; нет — кнопок PNG/SVG нет. */
+  fileName?: string;
 }) {
+  const t = useT();
   const ref = useRef<HTMLDivElement>(null);
   const instance = useRef<echarts.ECharts | null>(null);
+  const save = (kind: "png" | "svg") => {
+    const chart = instance.current;
+    if (!chart || !fileName) return;
+    const svg = chart.renderToSVGString();
+    if (kind === "svg") downloadBlob(new Blob([svg], { type: "image/svg+xml" }), `${fileName}.svg`);
+    else svgToPng(svg, chart.getWidth(), chart.getHeight(), `${fileName}.png`);
+  };
 
   useEffect(() => {
     if (!ref.current) return;
@@ -84,7 +124,26 @@ function Chart({
     instance.current?.setOption(option, true);
   }, [option]);
 
-  return <div ref={ref} style={{ width: "100%", height }} />;
+  const btn = { border: "none", background: "transparent", color: c.accent, cursor: "pointer",
+    padding: "0.2rem 0.6rem 0.2rem 0", minHeight: 24, fontSize: "0.82rem" };
+  return (
+    <>
+      {/* Для диктора график — одна картинка с подписью: заголовок и сводка. */}
+      <div role={label ? "img" : undefined} aria-label={label}>
+        <div ref={ref} style={{ width: "100%", height }} />
+      </div>
+      {fileName && (
+        <div>
+          {(["png", "svg"] as const).map((kind) => (
+            <button key={kind} style={btn} onClick={() => save(kind)}
+              aria-label={t("plots.save").replace("{title}", title ?? "").replace("{fmt}", kind.toUpperCase())}>
+              {kind.toUpperCase()}
+            </button>
+          ))}
+        </div>
+      )}
+    </>
+  );
 }
 
 /* ------------------------- Построители опций ------------------------- */
@@ -778,10 +837,8 @@ export function Plots({ bundle }: { bundle: PlotBundle }) {
             <div style={{ fontSize: "0.9rem", fontWeight: 600, marginBottom: "0.4rem", color: c.text }}>
               {title}
             </div>
-            {/* Для диктора график — одна картинка с подписью: заголовок и сводка. */}
-            <div role="img" aria-label={summary ? `${title}. ${summary}` : title}>
-              <Chart option={option} height={height} />
-            </div>
+            <Chart option={option} height={height} title={title} fileName={`biostat_${key}`}
+              label={summary ? `${title}. ${summary}` : title} />
           </div>
         );
       })}

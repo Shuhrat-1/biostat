@@ -16,6 +16,8 @@ import { fillBlock, fillColumns } from "./columnFill";
 import { alphaOf, conclusionLine, pText } from "./conclusion";
 import { effectRows } from "./effectSize";
 import { csvCell } from "./escape";
+import { downloadBlob } from "./download";
+import { resultSections, sectionsToCsv, sheetNames } from "./resultExport";
 import { columnLabel, extraTitle, statLabel } from "./extraLabels";
 import { MAX_SHOWN_COLUMNS } from "./limits";
 import { useCoreMessage } from "./coreMessages";
@@ -1959,7 +1961,7 @@ export function ResultPanel({ result, context, methodLabel }: {
         </div>
       )}
 
-      <ExportButtons result={result} context={context} caveat={caveat} />
+      <ExportButtons result={result} context={context} caveat={caveat} methodLabel={methodLabel} />
     </div>
   );
 }
@@ -2391,39 +2393,44 @@ function ExportButtons({
   result,
   context,
   caveat,
+  methodLabel,
 }: {
   result: StatResult;
   context: Context;
   caveat: string | null;
+  methodLabel?: string;
 }) {
   const t = useT();
+  const lang = useLang();
+  const name = `biostat_${result.method}`;
   const download = () => {
     // Тип исследования и оговорка о причинности уходят в файл вместе с результатом.
     const report = { ...result, study_context: context, ...(caveat ? { causality_note: caveat } : {}) };
-    const blob = new Blob([JSON.stringify(report, null, 2)], {
-      type: "application/json",
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `biostat_${result.method}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadBlob(new Blob([JSON.stringify(report, null, 2)], { type: "application/json" }), `${name}.json`);
+  };
+  // Таблицы для статьи (аудит 05-07, 04-12): один набор на результат.
+  const sections = () => resultSections(result, t, lang, methodLabel, caveat);
+  const exportCsv = () =>
+    downloadBlob(new Blob([sectionsToCsv(sections())], { type: "text/csv;charset=utf-8" }), `${name}.csv`);
+  const exportExcel = async () => {
+    const XLSX = await import("xlsx");
+    const all = sections();
+    const wb = XLSX.utils.book_new();
+    sheetNames(all).forEach((sheet, i) =>
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(all[i].rows), sheet));
+    XLSX.writeFile(wb, `${name}.xlsx`);
   };
 
+  const btn: React.CSSProperties = {
+    ...s.button, background: "transparent", color: c.accent, padding: "0.5rem 0.8rem 0.5rem 0",
+    marginTop: "0.8rem",
+  };
   return (
-    <button
-      onClick={download}
-      style={{
-        ...s.button,
-        background: "transparent",
-        color: c.accent,
-        padding: "0.5rem 0",
-        marginTop: "0.8rem",
-      }}
-    >
-      {t("result.download")}
-    </button>
+    <div role="group" aria-label={t("export.group")} style={{ display: "flex", flexWrap: "wrap", gap: "0.6rem" }}>
+      <button onClick={exportCsv} style={btn}>CSV</button>
+      <button onClick={exportExcel} style={btn}>Excel</button>
+      <button onClick={download} style={btn}>{t("result.download")}</button>
+    </div>
   );
 }
 

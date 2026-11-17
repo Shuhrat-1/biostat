@@ -60,7 +60,8 @@ def test_every_form_field_has_a_linked_label() -> None:
 
 
 def test_charts_have_a_text_alternative_with_a_summary() -> None:
-    assert '<div role="img" aria-label={summary ? `${title}. ${summary}` : title}>' in CHARTS
+    assert "label={summary ? `${title}. ${summary}` : title}" in CHARTS
+    assert '<div role={label ? "img" : undefined} aria-label={label}>' in CHARTS
     summary = _block(CHARTS, "export function chartSummary(", "\n/** Отрисовать")
     for key in ("boxplot", "bar_means", "means_ci", "histogram", "scatter", "qq", "residual_vs_fitted",
                 "group_curves", "paired", "frequency", "differences"):
