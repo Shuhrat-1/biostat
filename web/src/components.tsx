@@ -1,7 +1,7 @@
 /** Компоненты интерфейса: загрузка, качество данных, предпросмотр,
  *  выбор метода, вывод результата. */
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import type {
   ColumnProfile,
   ColumnSelection,
@@ -697,6 +697,7 @@ export function MethodPanel({
   ) => void;
 }) {
   const t = useT();
+  const uid = useId();
   // Группируем методы по категориям, сохраняя порядок появления.
   const byGroup = new Map<string, MethodSuggestion[]>();
   for (const sug of suggestions) {
@@ -776,7 +777,7 @@ export function MethodPanel({
 
   if (suggestions.length === 0) {
     return (
-      <div style={s.panel}>
+      <div id="calc" tabIndex={-1} style={s.panel}>
         <h2 style={s.h2}>{t("method.title")}</h2>
         <div style={{ color: c.muted }}>{t("method.none")}</div>
       </div>
@@ -791,8 +792,19 @@ export function MethodPanel({
     <div style={s.panel}>
       <h2 style={s.h2}>{t("method.title")}</h2>
 
-      {/* Вкладки категорий */}
+      {/* Вкладки категорий: role="tablist", стрелки ←/→, Home/End (аудит 04-04) */}
       <div
+        role="tablist"
+        aria-label={t("method.title")}
+        onKeyDown={(e) => {
+          const i = groups.indexOf(activeGroup);
+          const next = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: groups.length - 1 }[e.key];
+          if (next === undefined) return;
+          e.preventDefault();
+          const g = groups[(next + groups.length) % groups.length];
+          selectGroup(g);
+          document.getElementById(`${uid}-tab-${groups.indexOf(g)}`)?.focus();
+        }}
         style={{
           display: "flex",
           flexWrap: "wrap",
@@ -801,11 +813,16 @@ export function MethodPanel({
           marginBottom: "0.9rem",
         }}
       >
-        {groups.map((g) => {
+        {groups.map((g, i) => {
           const active = g === activeGroup;
           return (
             <button
               key={g}
+              id={`${uid}-tab-${i}`}
+              role="tab"
+              aria-selected={active}
+              aria-controls={`${uid}-panel`}
+              tabIndex={active ? 0 : -1}
               onClick={() => selectGroup(g)}
               style={{
                 border: "none",
@@ -825,6 +842,8 @@ export function MethodPanel({
         })}
       </div>
 
+      <div role="tabpanel" id={`${uid}-panel`}
+        aria-labelledby={`${uid}-tab-${Math.max(0, groups.indexOf(activeGroup))}`}>
       {/* Карточки методов активной категории: свёрнуты до выбранной */}
       <div
         id="method-list"
@@ -840,6 +859,7 @@ export function MethodPanel({
           return (
             <button
               key={m.method}
+              aria-pressed={selected}
               onClick={() => {
                 selectMethod(m.method);
                 setListOpen(false);
@@ -889,12 +909,15 @@ export function MethodPanel({
         </button>
       )}
 
-      {/* Колонки и параметры выбранного метода */}
-      <div style={s.row}>
+      {/* Колонки и параметры выбранного метода; сюда ведёт ссылка «К расчёту» */}
+      <div id="calc" tabIndex={-1} style={{ ...s.row, outline: "none", scrollMarginTop: "0.75rem" }}>
         {slots.map((slot) => (
           <div key={slot}>
-            <label style={s.label}>{suggestion?.slot_labels[slot] ?? slot}</label>
+            <label style={s.label} htmlFor={`${uid}-slot-${slot}`}>
+              {suggestion?.slot_labels[slot] ?? slot}
+            </label>
             <select
+              id={`${uid}-slot-${slot}`}
               style={s.select}
               value={columns[slot as keyof ColumnSelection] ?? ""}
               onChange={(e) => {
@@ -944,6 +967,7 @@ export function MethodPanel({
           {t("method.twoGroups")}
         </div>
       )}
+      </div>
     </div>
   );
 }
@@ -970,14 +994,17 @@ function ParamField({
   selectedColumn?: string;
 }) {
   const t = useT();
+  // Подпись связана с полем через id: экранный диктор читает её (аудит 04-04).
+  const id = useId();
   // Источник подстановки: "" = ручной ввод, иначе имя колонки.
   const [source, setSource] = useState<string>("");
 
   if (param.kind === "text") {
     return (
       <div style={{ flex: "1 1 18rem" }}>
-        <label style={s.label}>{param.label}</label>
+        <label style={s.label} htmlFor={id}>{param.label}</label>
         <input
+          id={id}
           type="text"
           style={{ ...s.select, width: "100%" }}
           value={String(value ?? param.default ?? "")}
@@ -990,8 +1017,9 @@ function ParamField({
   if (param.kind === "select") {
     return (
       <div>
-        <label style={s.label}>{param.label}</label>
+        <label style={s.label} htmlFor={id}>{param.label}</label>
         <select
+          id={id}
           style={s.select}
           value={String(value ?? param.default)}
           onChange={(e) => onChange(e.target.value)}
@@ -1031,9 +1059,10 @@ function ParamField({
 
   return (
     <div>
-      <label style={s.label}>{param.label}</label>
+      <label style={s.label} htmlFor={id}>{param.label}</label>
       {sources.length > 0 && (
         <select
+          aria-label={`${param.label}: ${t("param.source")}`}
           style={{ ...s.select, minWidth: 200, marginBottom: "0.3rem" }}
           value={source}
           onChange={(e) => applySource(e.target.value)}
@@ -1048,6 +1077,7 @@ function ParamField({
         </select>
       )}
       <input
+        id={id}
         type="number"
         step={step}
         min={param.min ?? undefined}

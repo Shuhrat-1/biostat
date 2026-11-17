@@ -299,7 +299,8 @@ function AppInner({
   return (
     <div style={s.page}>
       <div style={s.container}>
-        <div
+        {(table || planning) && <SkipLink />}
+        <header
           style={{
             display: "flex",
             justifyContent: "space-between",
@@ -315,6 +316,8 @@ function AppInner({
               <button
                 key={l.code}
                 onClick={() => setLang(l.code)}
+                aria-pressed={lang === l.code}
+                lang={l.code}
                 style={{
                   border: `1px solid ${lang === l.code ? c.accent : c.border}`,
                   background: lang === l.code ? c.selectedBg : c.panel,
@@ -330,7 +333,9 @@ function AppInner({
               </button>
             ))}
           </div>
-        </div>
+        </header>
+
+        <main>
 
         {!ready && <LoadingBar progress={progress} />}
         <RunStatus active={running} hint={hint} restarting={restarting} onCancel={handleCancel} />
@@ -404,8 +409,42 @@ function AppInner({
             )}
           </>
         )}
+        </main>
       </div>
     </div>
+  );
+}
+
+/**
+ * Ссылка-пропуск «К расчёту» (аудит 04-04, WCAG 2.4.1): первая по Tab, видна
+ * только в фокусе, ведёт к колонкам и кнопке «Рассчитать».
+ */
+function SkipLink() {
+  const t = useT();
+  const [shown, setShown] = useState(false);
+  return (
+    <a
+      href="#calc"
+      onFocus={() => setShown(true)}
+      onBlur={() => setShown(false)}
+      onClick={(e) => {
+        const target = document.getElementById("calc");
+        if (!target) return;
+        e.preventDefault();
+        target.focus();
+        target.scrollIntoView({ block: "start" });
+      }}
+      style={shown ? {
+        position: "absolute", top: 8, left: 8, zIndex: 10, padding: "0.5rem 0.8rem",
+        background: c.panel, color: c.accent, border: `2px solid ${c.accent}`, borderRadius: 6,
+        fontWeight: 600,
+      } : {
+        position: "absolute", width: 1, height: 1, overflow: "hidden", clipPath: "inset(50%)",
+        whiteSpace: "nowrap",
+      }}
+    >
+      {t("skip.calc")}
+    </a>
   );
 }
 

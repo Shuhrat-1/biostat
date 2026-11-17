@@ -716,6 +716,53 @@ function diagnosticItems(bundle: PlotBundle, t: T): Item[] {
   return items;
 }
 
+/** Число для словесной сводки: три значащие цифры. */
+const short = (v: number) => String(Number(v.toPrecision(3)));
+
+/** «пшеница 5.3, ячмень 4.75, …» — не больше восьми групп. */
+function listed(labels: string[], values: number[]): string {
+  const items = labels.slice(0, 8).map((l, i) => `${l} ${short(values[i])}`);
+  return items.join(", ") + (labels.length > 8 ? ", …" : "");
+}
+
+/**
+ * Краткая сводка графика словами — текстовая альтернатива для экранного диктора
+ * (аудит 04-04, WCAG 1.1.1). Нет сводки — подпись из одного заголовка.
+ */
+export function chartSummary(key: string, bundle: PlotBundle, t: T): string | null {
+  const n = (k: string, v: number) => t(k).replace("{n}", String(v));
+  switch (key) {
+    case "boxplot": {
+      const b = bundle.boxplot!;
+      return `${n("plots.sum.groups", b.labels.length)}; ${t("plots.sum.medians")}: `
+        + listed(b.labels, b.boxes.map((box) => box[2]));
+    }
+    case "bar_means": {
+      const b = bundle.bar_means!;
+      return `${n("plots.sum.groups", b.labels.length)}; ${t("plots.sum.means")}: ${listed(b.labels, b.means)}`;
+    }
+    case "means_ci": {
+      const m = bundle.means_ci!;
+      return `${n("plots.sum.groups", m.items.length)}; ${t("plots.sum.means")}: `
+        + listed(m.items.map((it) => it.label), m.items.map((it) => it.mean));
+    }
+    case "histogram": {
+      const h = bundle.histogram!;
+      const total = h.counts.reduce((a, b) => a + b, 0);
+      return `${n("plots.sum.obs", total)}; ${t("plots.sum.range")
+        .replace("{a}", short(h.bin_edges[0])).replace("{b}", short(h.bin_edges[h.bin_edges.length - 1]))}`;
+    }
+    case "scatter": return n("plots.sum.points", bundle.scatter!.points.length);
+    case "qq": return n("plots.sum.points", bundle.qq!.sample_quantiles.length);
+    case "residual_vs_fitted": return n("plots.sum.points", bundle.residual_vs_fitted!.residuals.length);
+    case "group_curves": return n("plots.sum.curves", bundle.group_curves!.curves.length);
+    case "paired": return n("plots.sum.pairs", bundle.paired!.pairs?.length ?? 0);
+    case "frequency": return n("plots.sum.categories", bundle.frequency!.labels.length);
+    case "differences": return n("plots.sum.comparisons", bundle.differences!.items.length);
+    default: return null;
+  }
+}
+
 /** Отрисовать все графики из набора, каждый со своим заголовком. */
 export function Plots({ bundle }: { bundle: PlotBundle }) {
   const t = useT();
@@ -724,14 +771,20 @@ export function Plots({ bundle }: { bundle: PlotBundle }) {
 
   return (
     <div style={{ display: "grid", gap: "1.5rem", marginTop: "1rem" }}>
-      {items.map(({ key, title, option, height }) => (
-        <div key={key}>
-          <div style={{ fontSize: "0.9rem", fontWeight: 600, marginBottom: "0.4rem", color: c.text }}>
-            {title}
+      {items.map(({ key, title, option, height }) => {
+        const summary = chartSummary(key, bundle, t);
+        return (
+          <div key={key}>
+            <div style={{ fontSize: "0.9rem", fontWeight: 600, marginBottom: "0.4rem", color: c.text }}>
+              {title}
+            </div>
+            {/* Для диктора график — одна картинка с подписью: заголовок и сводка. */}
+            <div role="img" aria-label={summary ? `${title}. ${summary}` : title}>
+              <Chart option={option} height={height} />
+            </div>
           </div>
-          <Chart option={option} height={height} />
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

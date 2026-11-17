@@ -117,14 +117,15 @@ function MapHeader(props: {
     <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "0.6rem", marginBottom: "0.7rem" }}>
       <h2 style={{ ...s.h2, margin: 0, flex: "1 1 auto" }}>{t("map.title")}</h2>
       <span style={{ fontSize: "0.82rem", color: c.muted }}>{t("map.ctx.label")}</span>
-      <div style={{ display: "flex", gap: "0.25rem" }}>
+      <div role="group" aria-label={t("map.ctx.label").replace(/:\s*$/, "")} style={{ display: "flex", gap: "0.25rem" }}>
         {CONTEXTS.map((ctx) => (
-          <button key={ctx} onClick={() => props.onContext(ctx)} style={chip(props.context === ctx)}>
+          <button key={ctx} onClick={() => props.onContext(ctx)} style={chip(props.context === ctx)}
+            aria-pressed={props.context === ctx}>
             {t(`map.ctx.${ctx}`)}
           </button>
         ))}
       </div>
-      <button onClick={props.onToggle} style={{ ...chip(false), color: c.muted }}>
+      <button onClick={props.onToggle} style={{ ...chip(false), color: c.muted }} aria-expanded={props.open}>
         {props.open ? t("map.hide") : t("map.show")}
       </button>
     </div>
