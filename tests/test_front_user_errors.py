@@ -15,13 +15,13 @@ WEB = ROOT / "web" / "src"
 
 def _error_key(message: str) -> str | None:
     exe = shutil.which("node")
-    version = subprocess.run([exe, "--version"], capture_output=True, text=True).stdout if exe else ""
+    version = subprocess.run([exe, "--version"], capture_output=True, text=True, encoding="utf-8").stdout if exe else ""
     if not exe or tuple(int(x) for x in version.strip().lstrip("v").split(".")[:2]) < (22, 6):
         pytest.skip("нужен Node 22.6+ для запуска web/src/userErrors.ts")
     script = (f"import({json.dumps((WEB / 'userErrors.ts').as_uri())}).then((m) => "
               f"process.stdout.write(JSON.stringify(m.errorKey({json.dumps(message)}))))")
     out = subprocess.run([exe, "--experimental-strip-types", "--no-warnings", "-e", script],
-                         capture_output=True, text=True, check=True)
+                         capture_output=True, text=True, encoding="utf-8", check=True)
     return json.loads(out.stdout)
 
 

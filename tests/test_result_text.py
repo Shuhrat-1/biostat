@@ -13,6 +13,7 @@ import math
 import re
 import shutil
 import subprocess
+import tempfile
 from functools import lru_cache
 from pathlib import Path
 
@@ -36,11 +37,11 @@ def _results() -> dict[str, dict]:
 
 def _node(script: str) -> object:
     exe = shutil.which("node")
-    version = subprocess.run([exe, "--version"], capture_output=True, text=True).stdout if exe else ""
+    version = subprocess.run([exe, "--version"], capture_output=True, text=True, encoding="utf-8").stdout if exe else ""
     if not exe or tuple(int(x) for x in version.strip().lstrip("v").split(".")[:2]) < (22, 6):
         pytest.skip("нужен Node 22.6+ для запуска web/src/*.ts")
     out = subprocess.run([exe, "--experimental-strip-types", "--no-warnings", "-e", script],
-                         capture_output=True, text=True, check=True)
+                         capture_output=True, text=True, encoding="utf-8", check=True)
     return json.loads(out.stdout)
 
 
@@ -56,9 +57,9 @@ def _clean(value: object) -> object:
 
 
 @lru_cache(maxsize=1)
-def _front(tmp: str = "/tmp") -> dict:
+def _front() -> dict:
     """Вывод и подписи, посчитанные кодом фронта для результатов всех методов."""
-    data = Path(tmp) / "biostat_results_127.json"
+    data = Path(tempfile.gettempdir()) / "biostat_results_127.json"
     data.write_text(json.dumps(_clean(_results()), ensure_ascii=False), encoding="utf-8")
     script = f"""
 const fs = require("fs");

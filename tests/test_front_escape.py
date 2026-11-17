@@ -28,7 +28,7 @@ def _node() -> str | None:
     exe = shutil.which("node")
     if not exe:
         return None
-    version = subprocess.run([exe, "--version"], capture_output=True, text=True).stdout.strip()
+    version = subprocess.run([exe, "--version"], capture_output=True, text=True, encoding="utf-8").stdout.strip()
     major, minor = (int(x) for x in version.lstrip("v").split(".")[:2])
     return exe if (major, minor) >= (22, 6) else None
 
@@ -40,7 +40,7 @@ def _call(function: str, *args: object) -> str:
     script = (f"import({json.dumps((WEB / 'escape.ts').as_uri())}).then((m) => "
               f"process.stdout.write(JSON.stringify(m.{function}(...{json.dumps(list(args))}))))")
     out = subprocess.run([exe, "--experimental-strip-types", "--no-warnings", "-e", script],
-                         capture_output=True, text=True, check=True)
+                         capture_output=True, text=True, encoding="utf-8", check=True)
     return json.loads(out.stdout)
 
 
