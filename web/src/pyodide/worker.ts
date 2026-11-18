@@ -16,7 +16,12 @@ const REQUIRED_PACKAGES = ["numpy", "scipy", "pandas", "statsmodels", "charset-n
 
 /** Версия Pyodide — фиксируем явно для воспроизводимости результатов. */
 const PYODIDE_VERSION = "0.26.4";
-const PYODIDE_CDN = `https://cdn.jsdelivr.net/pyodide/v${PYODIDE_VERSION}/full/`;
+/**
+ * Рантайм — со своего домена (аудит 03-03): его кладёт сюда web/build-pyodide.mjs
+ * из npm-пакета. Пакеты — с jsDelivr по полным адресам из своего lock-файла,
+ * sha256 сверяется с ним же.
+ */
+const PYODIDE_BASE = `/pyodide/v${PYODIDE_VERSION}/`;
 
 interface Task {
   id: number;
@@ -56,8 +61,9 @@ async function loadPackages(py: PyodideInterface): Promise<void> {
 /** Загрузить рантайм, пакеты и ядро (core.zip с того же сайта). */
 async function load(coreUrl: string): Promise<void> {
   progress("loading-runtime", "Загрузка Python-рантайма…");
-  const { loadPyodide } = await import(/* @vite-ignore */ `${PYODIDE_CDN}pyodide.mjs`);
-  const py: PyodideInterface = await loadPyodide({ indexURL: PYODIDE_CDN });
+  const base = new URL(PYODIDE_BASE, scope.location.origin).toString();
+  const { loadPyodide } = await import(/* @vite-ignore */ `${base}pyodide.mjs`);
+  const py: PyodideInterface = await loadPyodide({ indexURL: base });
 
   progress("loading-packages", "Установка numpy, scipy, statsmodels…");
   await loadPackages(py);

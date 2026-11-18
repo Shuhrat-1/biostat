@@ -4,9 +4,10 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "npm run build:core && vite",
+    "dev": "npm run build:core && npm run build:pyodide && vite",
     "build:core": "node build-core.mjs",
-    "prebuild": "npm run build:core",
+    "build:pyodide": "node build-pyodide.mjs",
+    "prebuild": "npm run build:core && npm run build:pyodide",
     "build": "tsc -b && vite build",
     "preview": "vite preview"
   },

@@ -4,15 +4,17 @@
 # пользователя попадёт в HTML, встроенный обработчик не исполнится, а запрос
 # на чужой адрес будет заблокирован («данные не покидают браузер»).
 #   default-src 'none'        — запрещено всё, что не разрешено ниже;
-#   script-src                — свои скрипты и рантайм Pyodide с jsDelivr (путь
-#                               ограничен версией: на jsDelivr лежит любой npm-пакет);
+#   script-src                — только свои скрипты: рантайм Pyodide раздаётся с
+#                               этого же сайта (/pyodide/, аудит 03-03);
 #                               'wasm-unsafe-eval' — компиляция WebAssembly, без неё
 #                               Pyodide не запустится; обычный eval запрещён;
-#   connect-src               — core.zip и загрузка wasm и пакетов Pyodide;
+#   connect-src               — core.zip и рантайм со своего домена, пакеты Pyodide с
+#                               jsDelivr (путь ограничен версией; sha256 пакетов
+#                               сверяется со своим lock-файлом);
 #   style-src 'unsafe-inline' — React и ECharts ставят стили атрибутом style;
 #   img-src data: blob:       — значок сайта и картинки экспорта;
 #   frame-ancestors 'none'    — сайт нельзя встроить во фрейм.
-# При смене версии Pyodide путь меняется в двух местах этой строки —
+# При смене версии Pyodide путь меняется в connect-src —
 # tests/test_security_headers.py сверяет его с web/src/pyodide/worker.ts.
 #
 # Cross-Origin-Embedder-Policy не ставится: проект не использует
@@ -20,7 +22,7 @@
 # Strict-Transport-Security не задан здесь: его ставит Cloudflare (SSL/TLS →
 # Edge Certificates), и includeSubDomains — решение владельца домена.
 /*
-  Content-Security-Policy: default-src 'none'; script-src 'self' 'wasm-unsafe-eval' https://cdn.jsdelivr.net/pyodide/v0.26.4/full/; worker-src 'self'; connect-src 'self' https://cdn.jsdelivr.net/pyodide/v0.26.4/full/; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; object-src 'none'
+  Content-Security-Policy: default-src 'none'; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self'; connect-src 'self' https://cdn.jsdelivr.net/pyodide/v0.26.4/full/; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; object-src 'none'
   X-Content-Type-Options: nosniff
   Referrer-Policy: no-referrer
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
