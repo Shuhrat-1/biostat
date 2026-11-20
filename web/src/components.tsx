@@ -17,6 +17,7 @@ import { alphaOf, conclusionLine, pText } from "./conclusion";
 import { effectRows } from "./effectSize";
 import { csvCell } from "./escape";
 import { downloadBlob } from "./download";
+import { provenanceLine, provenanceRows, type Provenance } from "./provenance";
 import { resultSections, sectionsToCsv, sheetNames } from "./resultExport";
 import { columnLabel, estimateLabel, extraTitle, statLabel, termLabel } from "./extraLabels";
 import { MAX_SHOWN_COLUMNS } from "./limits";
@@ -1820,11 +1821,13 @@ function ExtraTables({ params, method }: { params: Raw; method: string }) {
 
 const P_METHODS = new Set(["exact", "normal"]);
 
-export function ResultPanel({ result, context, methodLabel }: {
+export function ResultPanel({ result, context, methodLabel, provenance = null }: {
   result: StatResult;
   context: Context;
   /** Название метода на языке интерфейса; нет — показывается id метода. */
   methodLabel?: string;
+  /** Сведения о расчёте (P4): строка под результатом, JSON и лист «Сведения». */
+  provenance?: Provenance | null;
 }) {
   const t = useT();
   const lang = useLang();
@@ -1985,7 +1988,13 @@ export function ResultPanel({ result, context, methodLabel }: {
         </div>
       )}
 
-      <ExportButtons result={result} context={context} caveat={caveat} methodLabel={methodLabel} />
+      <ExportButtons result={result} context={context} caveat={caveat} methodLabel={methodLabel}
+        provenance={provenance} />
+      {provenance && (
+        <div style={{ fontSize: "0.75rem", color: c.muted, marginTop: "0.4rem", overflowWrap: "anywhere" }}>
+          {provenanceLine(provenance, t)}
+        </div>
+      )}
     </div>
   );
 }
@@ -2418,18 +2427,21 @@ function ExportButtons({
   context,
   caveat,
   methodLabel,
+  provenance,
 }: {
   result: StatResult;
   context: Context;
   caveat: string | null;
   methodLabel?: string;
+  provenance: Provenance | null;
 }) {
   const t = useT();
   const lang = useLang();
   const name = `biostat_${result.method}`;
   const download = () => {
     // Тип исследования и оговорка о причинности уходят в файл вместе с результатом.
-    const report = { ...result, study_context: context, ...(caveat ? { causality_note: caveat } : {}) };
+    const report = { ...result, study_context: context, ...(caveat ? { causality_note: caveat } : {}),
+      ...(provenance ? { provenance } : {}) };
     downloadBlob(new Blob([JSON.stringify(report, null, 2)], { type: "application/json" }), `${name}.json`);
   };
   // Таблицы для статьи (аудит 05-07, 04-12): один набор на результат.
@@ -2440,6 +2452,8 @@ function ExportButtons({
     const XLSX = await import("xlsx");
     const all = sections();
     const wb = XLSX.utils.book_new();
+    // Лист «Сведения» — последний: чем, когда и на каком файле посчитано (P4).
+    if (provenance) all.push({ title: t("provenance.sheet"), rows: provenanceRows(provenance, t) });
     sheetNames(all).forEach((sheet, i) =>
       XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(all[i].rows), sheet));
     XLSX.writeFile(wb, `${name}.xlsx`);

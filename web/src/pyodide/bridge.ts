@@ -436,6 +436,21 @@ json.dumps(_payload, ensure_ascii=False)
   return unpackColumnLists(JSON.parse(raw)).suggestions;
 }
 
+let runtimeCache: Promise<Record<string, string>> | null = null;
+
+/** Версии Pyodide и пакетов расчёта — один раз за сессию (задание P4, provenance). */
+export function runtimeVersions(): Promise<Record<string, string>> {
+  runtimeCache ??= runJson<Record<string, string>>(`
+import json, pyodide, numpy, scipy, pandas, statsmodels
+json.dumps({"pyodide": pyodide.__version__, "numpy": numpy.__version__, "scipy": scipy.__version__,
+            "pandas": pandas.__version__, "statsmodels": statsmodels.__version__})
+`).catch((e) => {
+    runtimeCache = null;
+    throw e;
+  });
+  return runtimeCache;
+}
+
 /** Номера списков колонок → сами списки (один массив на все слоты с тем же списком). */
 export function unpackColumnLists(
   packed: Omit<ParsedTable, "suggestions"> & {

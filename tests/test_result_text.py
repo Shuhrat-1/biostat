@@ -171,4 +171,5 @@ def test_title_uses_method_name_and_effect_sizes_are_not_repeated() -> None:
     assert "{methodLabel ?? result.method}" in COMPONENTS
     assert "!effectKeys.has(k)" in COMPONENTS
     app = (WEB / "App.tsx").read_text(encoding="utf-8")
-    assert ".find((sg) => sg.method === result.method)?.label" in app
+    assert "methodLabel={methodLabel(result.method)}" in app
+    assert ".find((sg) => sg.method === method);" in app and "suggestionOf(method)?.label" in app

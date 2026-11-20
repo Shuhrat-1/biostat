@@ -19,11 +19,19 @@ import {
 } from "./components";
 import { exampleFileBytes } from "./exampleData";
 import {
+  buildProvenance,
+  isoWithOffset,
+  sha256Hex,
+  type InputFile,
+  type Provenance,
+} from "./provenance";
+import {
   getPlotData,
   getRows,
   parseFile,
   planningSuggestions,
   runMethod,
+  runtimeVersions,
   tableSuggestions,
   type ColumnSelection,
   type ColumnType,
@@ -95,6 +103,10 @@ function AppInner({
     message: "",
   });
   const [fileBytes, setFileBytes] = useState<Uint8Array | null>(null);
+  // Имя, размер и SHA-256 исходного файла — для provenance выгрузки (P4).
+  const [inputFile, setInputFile] = useState<InputFile | null>(null);
+  // Сведения о последнем расчёте: метод, колонки, параметры, время, версии.
+  const [provenance, setProvenance] = useState<Provenance | null>(null);
   const [table, setTable] = useState<ParsedTable | null>(null);
   const [typeOverrides, setTypeOverrides] = useState<Record<string, ColumnType>>(
     {},
@@ -175,6 +187,15 @@ function AppInner({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lang]);
 
+  const suggestionOf = (method: string) =>
+    [...(table?.suggestions ?? []), ...(planning ?? [])].find((sg) => sg.method === method);
+  const methodLabel = (method: string) => suggestionOf(method)?.label;
+  // Все параметры метода для provenance: заданные в форме и значения по умолчанию.
+  const effectiveParams = (method: string, kwargs: Record<string, unknown>) => ({
+    ...Object.fromEntries((suggestionOf(method)?.params ?? []).map((p) => [p.name, p.default])),
+    ...kwargs,
+  });
+
   const relabel = async () => {
     try {
       const suggestions = await tableSuggestions(lang);
@@ -202,6 +223,7 @@ function AppInner({
     }
     const bytes = new Uint8Array(await file.arrayBuffer());
     setFileBytes(bytes);
+    setInputFile({ name: file.name, size_bytes: file.size, sha256: await sha256Hex(bytes) });
     await runParse(bytes, {});
   };
 
@@ -215,6 +237,7 @@ function AppInner({
     setTypeOverrides({});
     const bytes = exampleFileBytes(lang);
     setFileBytes(bytes);
+    setInputFile({ name: `biostat_example_${lang}.csv`, size_bytes: bytes.length, sha256: await sha256Hex(bytes) });
     await runParse(bytes, {});
   };
 
@@ -240,7 +263,22 @@ function AppInner({
     setError(null);
     setPlots(null);
     try {
-      setResult(await runMethod(method, columns, kwargs));
+      const computedAt = isoWithOffset(new Date());
+      const res = await runMethod(method, columns, kwargs);
+      setProvenance(buildProvenance({
+        computed_at: computedAt,
+        input_file: planning || !inputFile || !table ? null : {
+          ...inputFile, encoding: table.dialect.encoding, delimiter: table.dialect.delimiter,
+          decimal: table.dialect.decimal, has_header: table.dialect.has_header,
+        },
+        runtime: await runtimeVersions().catch(() => ({})),
+        method: { id: method, name: methodLabel(method) ?? method },
+        parameters: effectiveParams(method, kwargs),
+        columns: { ...columns },
+        language: lang,
+        study_context: map.context,
+      }));
+      setResult(res);
       if (!previewTouched.current) setPreviewFolded(true);
       // Графики строим после результата и не роняем расчёт, если они не вышли.
       try {
@@ -307,8 +345,8 @@ function AppInner({
           <ResultPanel
             result={result}
             context={map.context}
-            methodLabel={[...(table?.suggestions ?? []), ...(planning ?? [])]
-              .find((sg) => sg.method === result.method)?.label}
+            methodLabel={methodLabel(result.method)}
+            provenance={provenance}
           />
         )}
       </div>
