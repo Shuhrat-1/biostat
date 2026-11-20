@@ -125,13 +125,14 @@ def scatter_regression_data(
 
 
 def bar_means_data(
-    groups: dict[str, list[float]], ci_level: float = 0.95
+    groups: dict[str, list[float]], ci_level: float = 0.95, pooled: bool = False
 ) -> dict[str, Any]:
     """Средние по группам со стандартной ошибкой — для графика «среднее ± SE».
 
     Рисуется точками с планками, не столбцами (Witte 2.11, Fig. 14.5).
     Дополняет боксплот: боксплот — про разброс данных, точки — про точность
-    оценки среднего.
+    оценки среднего. ``pooled`` — SE = √(MS остатка / n_j), как в таблице оценок
+    однофакторного ANOVA и treatment_means (Welham, стр. 85); иначе SE группы.
     """
     labels = []
     means = []
@@ -146,7 +147,15 @@ def bar_means_data(
         means.append(float(arr.mean()))
         errors.append(float(stats.sem(arr)) if arr.size >= 2 else 0.0)
 
-    return {"labels": labels, "means": means, "errors": errors}
+    out: dict[str, Any] = {"labels": labels, "means": means, "errors": errors}
+    clean = [np.asarray(v, dtype=float) for v in groups.values()]
+    clean = [a[~np.isnan(a)] for a in clean if np.isfinite(a).any()]
+    df = sum(a.size for a in clean) - len(clean)
+    if pooled and df > 0:
+        s2 = sum(float(((a - a.mean()) ** 2).sum()) for a in clean) / df
+        out["errors"] = [float(np.sqrt(s2 / a.size)) for a in clean]
+        out["pooled"] = True
+    return out
 
 
 def qq_data(values: list[float]) -> dict[str, Any] | None:

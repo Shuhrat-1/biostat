@@ -18,7 +18,7 @@ import numpy as np
 import pytest
 from scipy import stats
 
-from core.stats.anova import one_way_anova
+from core.stats.anova import one_way_anova, treatment_means
 from core.stats.oneway import welch_anova
 from core.stats.plotdata import bar_means_data
 from core.validation.catalog import CATALOG
@@ -58,21 +58,36 @@ def test_2_anova_rows_are_translated(lang: str, rows: tuple[str, str, str]) -> N
 
 # --- 3 -------------------------------------------------------------------------------------
 
-@pytest.mark.parametrize("method", [one_way_anova, welch_anova])
-def test_3_group_means_carry_se_and_ci_like_the_plot(method) -> None:
-    r = method(*GROUPS.values(), labels=list(GROUPS))
-    plot = bar_means_data(GROUPS)["errors"]
-    for est, values, se in zip(r.estimates, GROUPS.values(), plot):
-        arr = np.asarray(values)
-        assert est.std_error == pytest.approx(se) and est.ci_level == 0.95
-        half = stats.t.ppf(0.975, arr.size - 1) * se  # ДИ по t с n − 1 df
-        assert (est.ci_lower, est.ci_upper) == pytest.approx((arr.mean() - half, arr.mean() + half))
+def test_3_one_way_means_use_the_anova_residual_like_treatment_means() -> None:
+    """Решение 20.11: SE = √(MS_within / n_i), ДИ по t с df остатка (Welham, стр. 85)."""
+    r = one_way_anova(*GROUPS.values(), labels=list(GROUPS))
+    ref = treatment_means(*GROUPS.values(), labels=list(GROUPS))
+    ms, df = r.statistics["ms_within"], r.statistics["df_within"]
+    for est, ref_est, values in zip(r.estimates, ref.estimates, GROUPS.values()):
+        assert est.std_error == pytest.approx(np.sqrt(ms / len(values)))
+        assert (est.std_error, est.ci_lower, est.ci_upper) == pytest.approx(
+            (ref_est.std_error, ref_est.ci_lower, ref_est.ci_upper))
+        half = stats.t.ppf(0.975, df) * est.std_error
+        assert est.ci_upper - est.value == pytest.approx(half)
+    assert r.parameters["se_basis"] == "pooled"
 
 
-def test_3_single_observation_has_no_se() -> None:
-    r = one_way_anova([5.0, 5.2], [4.0], labels=["a", "b"])
-    one = next((e for e in r.estimates if e.name == "mean_b"), None)
-    assert one is None or (one.std_error is None and one.ci_lower is None)
+def test_3_means_plot_uses_the_same_se_as_the_table() -> None:
+    r = one_way_anova(*GROUPS.values(), labels=list(GROUPS))
+    plot = bar_means_data(GROUPS, pooled=True)
+    assert plot["pooled"] is True
+    assert plot["errors"] == pytest.approx([e.std_error for e in r.estimates])
+    bridge = (WEB / "pyodide" / "bridge.ts").read_text(encoding="utf-8")
+    assert '_groups, pooled=_method in ("one_way_anova", "treatment_means"))' in bridge
+    assert 'add(bundle.bar_means.pooled ? "bar_means_pooled" : "bar_means"' in (
+        WEB / "charts.tsx").read_text(encoding="utf-8")
+    assert 'result.parameters?.se_basis === "pooled"' in COMPONENTS
+
+
+def test_3_welch_keeps_the_group_se() -> None:
+    """У Уэлча дисперсии групп не считаются равными: SE — по самой группе."""
+    r = welch_anova(*GROUPS.values(), labels=list(GROUPS))
+    assert [e.std_error for e in r.estimates] == pytest.approx(bar_means_data(GROUPS)["errors"])
 
 
 def test_3_estimate_names_read_as_group_and_kind() -> None:
@@ -89,8 +104,50 @@ def test_4_language_switch_keeps_the_method() -> None:
     assert "if (sameTable && current) {" in panel and "setActiveGroup(current.group);" in panel
     app = (WEB / "App.tsx").read_text(encoding="utf-8")
     assert app.count("nextTable();") == 4 and "tableKey={tableKey}" in app
-    lang_effect = app[app.index("// При смене языка переразбираем"):]
-    assert "nextTable" not in lang_effect[:lang_effect.index("}, [lang]);")]
+    lang_effect = app[app.index("// При смене языка подписи методов"):]
+    lang_effect = lang_effect[:lang_effect.index("}, [lang]);")]
+    assert "nextTable" not in lang_effect and "runParse" not in lang_effect  # без повторного разбора
+    assert "if (table) void relabel();" in lang_effect
+    assert "setTable((cur) => (cur ? { ...cur, suggestions } : cur));" in app
+    assert "export async function tableSuggestions(lang: string)" in (
+        WEB / "pyodide" / "bridge.ts").read_text(encoding="utf-8")
+
+
+def _all_sources() -> set[str]:
+    import json
+
+    from core.validation import recognize
+    import core.validation.recognizers  # noqa: F401
+    import core.validation.recognizers_computed  # noqa: F401
+
+    found = {r.source for r in recognize.REGISTRY}
+
+    def walk(v: object) -> None:
+        if isinstance(v, dict):
+            for k, x in v.items():
+                if k == "source" and isinstance(x, str):
+                    found.add(x)
+                walk(x)
+        elif isinstance(v, list):
+            for x in v:
+                walk(x)
+
+    walk(json.loads((WEB / "decisionTree.json").read_text(encoding="utf-8")))
+    return found
+
+
+@pytest.mark.parametrize("lang", ["en", "pt"])
+def test_4_source_hints_are_in_the_interface_language(lang: str) -> None:
+    """«предл.: Witte гл. 3–4» и другие пометки источника — без русских слов."""
+    sensory = (WEB / "SensoryMap.tsx").read_text(encoding="utf-8")
+    block = sensory[sensory.index(f"  {lang}: [["):]
+    block = block[:block.index("]],") + 2]
+    pairs = re.findall(r'\["([^"]+)", "([^"]+)"\]', block)
+    for src in _all_sources():
+        out = src
+        for ru, tr in pairs:
+            out = out.replace(ru, tr)
+        assert not re.search("[а-яё]", out, re.I), (lang, src, out)
 
 
 @pytest.mark.parametrize("lang", ["en", "pt"])

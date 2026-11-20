@@ -1937,6 +1937,9 @@ export function ResultPanel({ result, context, methodLabel }: {
             ))}
           </tbody>
         </table>
+        {result.parameters?.se_basis === "pooled" && (
+          <div style={{ fontSize: "0.8rem", color: c.muted, marginTop: "0.3rem" }}>{t("result.sePooled")}</div>
+        )}
         </div>
       )}
 

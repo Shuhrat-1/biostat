@@ -417,6 +417,25 @@ json.dumps(_payload, ensure_ascii=False)
   }
 }
 
+/**
+ * Подписи методов на другом языке для уже разобранной таблицы — без повторного
+ * разбора файла (смена языка: выбор метода и результат остаются).
+ */
+export async function tableSuggestions(lang: string): Promise<MethodSuggestion[]> {
+  const raw = await runPython<string>(`
+import builtins, json
+from core.validation.parser import suggest_methods
+_payload = {"suggestions": suggest_methods(builtins.__biostat_table.profiles, ${JSON.stringify(lang)})}
+_lists = {}
+for _sug in _payload["suggestions"]:
+    _sug["needs"] = {_slot: _lists.setdefault(tuple(_names), len(_lists))
+                     for _slot, _names in _sug["needs"].items()}
+_payload["column_lists"] = [list(_names) for _names in _lists]
+json.dumps(_payload, ensure_ascii=False)
+`, {}, { restore: true });
+  return unpackColumnLists(JSON.parse(raw)).suggestions;
+}
+
 /** Номера списков колонок → сами списки (один массив на все слоты с тем же списком). */
 export function unpackColumnLists(
   packed: Omit<ParsedTable, "suggestions"> & {
@@ -691,7 +710,7 @@ export interface PlotBundle {
     normal_curve: { x: number[]; y: number[] } | null;
   };
   boxplot?: { labels: string[]; boxes: number[][]; outliers: number[][] };
-  bar_means?: { labels: string[]; means: number[]; errors: number[] };
+  bar_means?: { labels: string[]; means: number[]; errors: number[]; pooled?: boolean };
   scatter?: {
     points: number[][];
     line: number[][];
@@ -830,7 +849,9 @@ elif _method in (
     # transformed_means: средние и ДИ — из таблицы результата (means_ci, обратно
     # преобразованные); арифметические средние ± SE с ней не совпадают.
     if _method != "transformed_means":
-        _bundle["bar_means"] = plotdata.bar_means_data(_groups)
+        # SE по остатку — там, где так считает таблица оценок (решение 20.11).
+        _bundle["bar_means"] = plotdata.bar_means_data(
+            _groups, pooled=_method in ("one_way_anova", "treatment_means"))
 
 elif _method in ("two_sample_t", "mann_whitney"):
     _groups = _t.groups_by(_cols["value"], _cols["group"])

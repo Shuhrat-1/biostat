@@ -100,8 +100,15 @@ def one_way_anova(
         {"term": "Within", "df": df_within, "ss": ss_within, "ms": ms_within},
         {"term": "Total", "df": n_total - 1, "ss": ss_total},
     ]
-    for lab, g in zip(labels, clean):
-        result.estimates.append(group_mean_estimate(lab, g))
+    # SE и ДИ средних — по остатку ANOVA, как в treatment_means (Welham, стр. 85):
+    # модель предполагает одну дисперсию на все группы (решение владельца 20.11).
+    if df_within > 0 and ms_within > 0:
+        t_crit = float(stats.t.ppf(0.975, df_within))
+        _add_mean_estimates(clean, labels, ms_within, t_crit, 0.95, result)
+        result.parameters["se_basis"] = "pooled"
+    else:
+        result.estimates.extend(Estimate(name=f"mean_{lab}", value=float(g.mean()))
+                                for lab, g in zip(labels, clean))
 
     _check_anova_assumptions(clean, result)
     return result
@@ -372,6 +379,7 @@ def treatment_means(
     s2, df = _pooled_variance(clean)
     t_crit = float(stats.t.ppf(1 - alpha / 2, df))
     result.statistics = {"residual_ms": s2, "df_resid": df, "t_crit": t_crit}
+    result.parameters["se_basis"] = "pooled"
     _add_mean_estimates(clean, labels, s2, t_crit, 1 - alpha, result)
     result.parameters["comparisons"] = _lsd_comparisons(clean, labels, s2, df, t_crit)
     _add_common_lsd(clean, s2, t_crit, result)

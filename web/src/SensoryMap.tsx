@@ -44,9 +44,13 @@ interface Props {
 
 const SOURCE_WORDS: Record<"en" | "pt", [string, string][]> = {
   en: [["кн. стр.", "book p."], ["кн. гл.", "book ch."], ["предл.", "proposed"],
-    ["пороги", "thresholds"], ["порог", "threshold"], ["критерий", "criterion"]],
+    ["пороги", "thresholds"], ["порог", "threshold"], ["критерий", "criterion"],
+    ["гл.", "ch."], ["стр.", "p."], ["ранговый аналог", "rank analogue of"], ["по логике", "following"],
+    ["поправки", "corrections"], ["две группы", "two groups"], ["ДИ", "CI"]],
   pt: [["кн. стр.", "livro p."], ["кн. гл.", "livro cap."], ["предл.", "proposta"],
-    ["пороги", "limiares"], ["порог", "limiar"], ["критерий", "critério"]],
+    ["пороги", "limiares"], ["порог", "limiar"], ["критерий", "critério"],
+    ["гл.", "cap."], ["стр.", "p."], ["ранговый аналог", "análogo por ordens de"], ["по логике", "segundo"],
+    ["поправки", "correções"], ["две группы", "dois grupos"], ["ДИ", "IC"]],
 };
 
 /** «кн. стр. 58» → «book p. 58» и т. п.; источники в данных — по-русски. */

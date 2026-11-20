@@ -24,6 +24,7 @@ import {
   parseFile,
   planningSuggestions,
   runMethod,
+  tableSuggestions,
   type ColumnSelection,
   type ColumnType,
   type MethodSuggestion,
@@ -165,13 +166,23 @@ function AppInner({
     }
   };
 
-  // При смене языка переразбираем текущий файл, чтобы метки методов
-  // (они приходят из ядра) обновились на новый язык.
+  // При смене языка подписи методов (они приходят из ядра) перезапрашиваются для
+  // уже разобранной таблицы — без повторного разбора: вкладка, метод, колонки и
+  // результат остаются (задание patch-132, п. 4).
   useEffect(() => {
-    if (fileBytes) void runParse(fileBytes, typeOverrides);
+    if (table) void relabel();
     if (planning) void openPlanning();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lang]);
+
+  const relabel = async () => {
+    try {
+      const suggestions = await tableSuggestions(lang);
+      setTable((cur) => (cur ? { ...cur, suggestions } : cur));
+    } catch (e) {
+      setError(explainError(e, t));
+    }
+  };
 
   const handleFile = async (file: File) => {
     nextTable();

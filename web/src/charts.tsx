@@ -767,7 +767,9 @@ function diagnosticItems(bundle: PlotBundle, t: T): Item[] {
   const names = bundle.axis_names ?? {};
   if (bundle.histogram) add("histogram", histogramOption(bundle.histogram, t, names));
   if (bundle.boxplot) add("boxplot", boxplotOption(bundle.boxplot, colorOf, names));
-  if (bundle.bar_means) add("bar_means", barMeansOption(bundle.bar_means, t, colorOf));
+  if (bundle.bar_means) {
+    add(bundle.bar_means.pooled ? "bar_means_pooled" : "bar_means", barMeansOption(bundle.bar_means, t, colorOf));
+  }
   if (bundle.scatter) add("scatter", scatterOption(bundle.scatter, names));
   if (bundle.qq) add("qq", qqOption(bundle.qq, t));
   if (bundle.residual_vs_fitted) add("residual_vs_fitted", residualOption(bundle.residual_vs_fitted, t));
@@ -796,7 +798,8 @@ export function chartSummary(key: string, bundle: PlotBundle, t: T): string | nu
       return `${n("plots.sum.groups", b.labels.length)}; ${t("plots.sum.medians")}: `
         + listed(b.labels, b.boxes.map((box) => box[2]));
     }
-    case "bar_means": {
+    case "bar_means":
+    case "bar_means_pooled": {
       const b = bundle.bar_means!;
       return `${n("plots.sum.groups", b.labels.length)}; ${t("plots.sum.means")}: ${listed(b.labels, b.means)}`;
     }

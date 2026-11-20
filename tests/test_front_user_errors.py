@@ -55,7 +55,7 @@ def test_03_06_worker_stops_when_a_package_does_not_import() -> None:
     assert "await loadPackages(py);" in worker and "errorCallback" in worker
     assert "throw new Error(`${PACKAGES_FAILED}" in worker
     app = (WEB / "App.tsx").read_text(encoding="utf-8")
-    assert app.count("setError(explainError(e, t))") == 2
+    assert app.count("setError(explainError(e, t))") == 3  # разбор, расчёт, подписи при смене языка
 
 
 def test_03_07_08_no_stray_files_in_the_repository() -> None:
