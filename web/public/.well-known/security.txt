@@ -1,0 +1,4 @@
+Contact: mailto:security@biostat.app
+Expires: 2027-11-19T23:59:59.000Z
+Preferred-Languages: ru, en, pt
+Canonical: https://biostat.app/.well-known/security.txt
