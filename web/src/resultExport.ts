@@ -9,7 +9,7 @@
 
 import { alphaOf, conclusionLine } from "./conclusion";
 import { csvCell } from "./escape";
-import { columnLabel, extraTitle, statLabel } from "./extraLabels";
+import { columnLabel, estimateLabel, extraTitle, statLabel, termLabel } from "./extraLabels";
 import type { Lang } from "./i18n";
 import type { StatResult } from "./pyodide/bridge";
 
@@ -53,12 +53,13 @@ function summarySection(result: StatResult, t: T, lang: Lang, label: string, cav
   return { title: t("export.summary"), rows };
 }
 
-function estimatesSection(result: StatResult, t: T): Section | null {
+function estimatesSection(result: StatResult, t: T, lang: Lang): Section | null {
   if (!result.estimates.length) return null;
   const head = [t("export.estimate"), t("export.value"), t("export.ciLower"), t("export.ciUpper"), "SE"];
   return {
     title: t("export.estimates"),
-    rows: [head, ...result.estimates.map((e) => [e.name, cell(e.value), cell(e.ci_lower),
+    rows: [head, ...result.estimates.map((e) => [estimateLabel(e.name, result.parameters?.labels, lang),
+      cell(e.value), cell(e.ci_lower),
       cell(e.ci_upper), cell(e.std_error)])],
   };
 }
@@ -93,10 +94,11 @@ export function resultSections(result: StatResult, t: T, lang: Lang, methodLabel
   caveat: string | null = null): Section[] {
   const params = (result.parameters ?? {}) as Raw;
   const out: Section[] = [summarySection(result, t, lang, methodLabel ?? result.method, caveat)];
-  const est = estimatesSection(result, t);
+  const est = estimatesSection(result, t, lang);
   if (est) out.push(est);
   if (isRows(params.anova_table)) {
-    out.push({ title: t("export.anova"), rows: rowsTable(params.anova_table, lang) });
+    const rows = params.anova_table.map((r) => ({ ...r, term: termLabel(String(r.term), lang) }));
+    out.push({ title: t("export.anova"), rows: rowsTable(rows, lang) });
   }
   for (const [k, v] of Object.entries(params)) {
     if (!NOT_TABLES.has(k)) out.push(...sectionsOf(v, extraTitle(k, lang, result.method), lang));

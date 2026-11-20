@@ -34,6 +34,7 @@ GROUPS: dict[str, dict[str, str]] = {
 # Названия методов.
 LABELS: dict[str, dict[str, str]] = {
     "en": {
+        "Сводная описательная статистика": "Summary descriptive statistics",
         "Описательная статистика": "Descriptive statistics",
         "Доверительный интервал среднего": "Confidence interval of the mean",
         "Таблица частот одной колонки": "Frequency table of one column",
@@ -107,6 +108,7 @@ LABELS: dict[str, dict[str, str]] = {
         "Корреляция Спирмена (ранговая)": "Spearman correlation (rank)",
     },
     "pt": {
+        "Сводная описательная статистика": "Estatística descritiva resumida",
         "Описательная статистика": "Estatística descritiva",
         "Доверительный интервал среднего": "Intervalo de confiança da média",
         "Таблица частот одной колонки": "Tabela de frequências de uma coluna",
@@ -184,6 +186,8 @@ LABELS: dict[str, dict[str, str]] = {
 # Описания методов.
 DESCRIPTIONS: dict[str, dict[str, str]] = {
     "en": {
+        "Сравнивает центр выборки с эталоном μ₀ без допущения нормальности: R⁺, R⁻, псевдомедиана Ходжеса–Лемана с ДИ.": "Compares the centre of a sample with a reference μ₀ without assuming normality: R⁺, R⁻ and the Hodges–Lehmann pseudomedian with CI.",
+        "Все метрики по всем числовым колонкам в одной таблице.": "All metrics for all numeric columns in one table.",
         "Центр, разброс, форма, квартили.": "Center, spread, shape, quartiles.",
         "Интервальная оценка среднего по t-распределению.": (
             "Interval estimate of the mean via the t-distribution."
@@ -300,6 +304,8 @@ DESCRIPTIONS: dict[str, dict[str, str]] = {
         ),
     },
     "pt": {
+        "Сравнивает центр выборки с эталоном μ₀ без допущения нормальности: R⁺, R⁻, псевдомедиана Ходжеса–Лемана с ДИ.": "Compara o centro de uma amostra com uma referência μ₀ sem pressupor normalidade: R⁺, R⁻ e a pseudomediana de Hodges–Lehmann com IC.",
+        "Все метрики по всем числовым колонкам в одной таблице.": "Todas as métricas de todas as colunas numéricas numa só tabela.",
         "Центр, разброс, форма, квартили.": "Centro, dispersão, forma, quartis.",
         "Интервальная оценка среднего по t-распределению.": (
             "Estimativa por intervalo da média via distribuição t."
@@ -420,6 +426,7 @@ DESCRIPTIONS: dict[str, dict[str, str]] = {
 # Метки слотов и параметров.
 LABELS_MISC: dict[str, dict[str, str]] = {
     "en": {
+        "Фактор A (необязательно)": "Factor A (optional)",
         "Числовая колонка": "Numeric column",
         "Колонка групп": "Grouping column",
         "Колонка «до»": "Before column",
@@ -580,6 +587,7 @@ LABELS_MISC: dict[str, dict[str, str]] = {
         "Повторов на новый образец r": "Replicates per new sample r",
     },
     "pt": {
+        "Фактор A (необязательно)": "Fator A (opcional)",
         "Числовая колонка": "Coluna numérica",
         "Колонка групп": "Coluna de grupos",
         "Колонка «до»": "Coluna «antes»",

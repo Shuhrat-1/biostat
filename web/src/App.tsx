@@ -113,6 +113,10 @@ function AppInner({
   // Предпросмотр сворачивается после первого расчёта по файлу: дальше он стоит на пути
   // к карте и форме (аудит 05-03). Ручной выбор пользователя держится до нового файла.
   const [previewFolded, setPreviewFolded] = useState(false);
+  // Номер таблицы: растёт с новым файлом, примером, сменой типа и сбросом,
+  // но не со сменой языка — форма метода тогда сохраняет выбор.
+  const [tableKey, setTableKey] = useState(0);
+  const nextTable = () => setTableKey((k) => k + 1);
   const previewTouched = useRef(false);
   const unfoldPreview = () => {
     setPreviewFolded(false);
@@ -170,6 +174,7 @@ function AppInner({
   }, [lang]);
 
   const handleFile = async (file: File) => {
+    nextTable();
     unfoldPreview();
     setPlanning(null);
     setResult(null);
@@ -191,6 +196,7 @@ function AppInner({
 
   // Пример данных идёт тем же путём, что и загруженный файл.
   const handleExample = async () => {
+    nextTable();
     unfoldPreview();
     setPlanning(null);
     setResult(null);
@@ -205,6 +211,7 @@ function AppInner({
   const handleTypeChange = async (column: string, type: ColumnType) => {
     if (!fileBytes) return;
     const next = { ...typeOverrides, [column]: type };
+    nextTable();
     setTypeOverrides(next);
     setResult(null);
     setPlots(null);
@@ -267,6 +274,7 @@ function AppInner({
   };
 
   const reset = () => {
+    nextTable();
     unfoldPreview();
     setPlanning(null);
     setFileBytes(null);
@@ -430,6 +438,7 @@ function AppInner({
                   running={running}
                   onCancel={handleCancel}
                   blockHint={map.blockHint}
+                  tableKey={tableKey}
                   request={map.request}
                   onSelection={map.onSelection}
                 />

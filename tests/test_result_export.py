@@ -93,7 +93,7 @@ def test_tables_follow_the_screen() -> None:
     anova = [s["title"] for s in ex["one_way_anova"]["sections"]]
     assert anova[:3] == ["export.summary", "export.estimates", "export.anova"]
     rows = next(s["rows"] for s in ex["one_way_anova"]["sections"] if s["title"] == "export.anova")
-    assert rows[0][:2] == ["Член", "df"] and [r[0] for r in rows[1:]] == ["Between", "Within", "Total"]
+    assert rows[0][:2] == ["Член", "df"] and [r[0] for r in rows[1:]] == ["Между группами", "Внутри групп", "Всего"]
     assert len(ex["tukey_hsd"]["sections"]) >= 2  # парные сравнения — отдельный раздел
     summary = ex["one_way_anova"]["sections"][0]["rows"]
     assert ["export.conclusion", "conclusion.means.yes: F(3, 116) = 54.7, P < 0.001"] in summary

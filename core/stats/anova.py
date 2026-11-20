@@ -101,10 +101,27 @@ def one_way_anova(
         {"term": "Total", "df": n_total - 1, "ss": ss_total},
     ]
     for lab, g in zip(labels, clean):
-        result.estimates.append(Estimate(name=f"mean_{lab}", value=float(g.mean())))
+        result.estimates.append(group_mean_estimate(lab, g))
 
     _check_anova_assumptions(clean, result)
     return result
+
+
+def group_mean_estimate(label: str, values: np.ndarray, level: float = 0.95) -> Estimate:
+    """Среднее группы с SE = s/√n и ДИ по t с n − 1 степенями свободы.
+
+    Та же SE, что у графика «средние ± SE» (plotdata.bar_means_data): оценка
+    точности среднего самой группы, без допущения равных дисперсий. Объединённую
+    SE по MS остатка (Welham, стр. 85) даёт метод «Средние групп с SED и LSD».
+    Для одного наблюдения SE и ДИ не определены (аудит 04-02).
+    """
+    mean = float(values.mean())
+    if values.size < 2:
+        return Estimate(name=f"mean_{label}", value=mean)
+    se = float(values.std(ddof=1) / np.sqrt(values.size))
+    half = float(stats.t.ppf(0.5 + level / 2, values.size - 1)) * se
+    return Estimate(name=f"mean_{label}", value=mean, ci_lower=mean - half, ci_upper=mean + half,
+                    ci_level=level, std_error=se)
 
 
 def omega_squared(ss_between: float, ss_total: float, ms_within: float, df_between: int) -> float:

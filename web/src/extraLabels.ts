@@ -667,6 +667,58 @@ const STATS: Record<Lang, StatDict> = {
 
 const PREFIX = /^(F|p|ss|ms|df|t|mean|median|sd|rank_sum|eta_p|sigma2)_(.+)$/;
 
+/**
+ * Строки таблицы ANOVA, которые ядро называет по-английски (Between, Residual…).
+ * Имена факторов из данных (A, A.B, сорт) не переводятся.
+ */
+const TERMS: Record<Lang, Dict> = {
+  ru: {
+    Between: "Между группами", Within: "Внутри групп", Total: "Всего", Residual: "Остаток",
+    Error: "Ошибка", Subject: "Субъекты", Block: "Блоки", Treatment: "Варианты", trt: "Варианты",
+    "trt (between blocks)": "Варианты (между блоками)", "Block residual": "Остаток блоков",
+    "WholePlot residual": "Остаток главных делянок", "Within plots": "Внутри делянок",
+    Model: "Модель", Regression: "Регрессия", Remainder: "Остальное", Linear: "Линейный",
+    Quadratic: "Квадратичный", row: "Строки", col: "Столбцы",
+  },
+  en: {
+    Between: "Between groups", Within: "Within groups", Total: "Total", Residual: "Residual",
+    Error: "Error", Subject: "Subjects", Block: "Blocks", Treatment: "Treatments", trt: "Treatments",
+    "trt (between blocks)": "Treatments (between blocks)", "Block residual": "Block residual",
+    "WholePlot residual": "Whole-plot residual", "Within plots": "Within plots",
+    Model: "Model", Regression: "Regression", Remainder: "Remainder", Linear: "Linear",
+    Quadratic: "Quadratic", row: "Rows", col: "Columns",
+  },
+  pt: {
+    Between: "Entre grupos", Within: "Dentro dos grupos", Total: "Total", Residual: "Resíduo",
+    Error: "Erro", Subject: "Sujeitos", Block: "Blocos", Treatment: "Tratamentos", trt: "Tratamentos",
+    "trt (between blocks)": "Tratamentos (entre blocos)", "Block residual": "Resíduo dos blocos",
+    "WholePlot residual": "Resíduo das parcelas principais", "Within plots": "Dentro das parcelas",
+    Model: "Modelo", Regression: "Regressão", Remainder: "Restante", Linear: "Linear",
+    Quadratic: "Quadrático", row: "Linhas", col: "Colunas",
+  },
+};
+
+/** Подпись строки таблицы ANOVA (аудит 04-02). */
+export function termLabel(term: string, lang: Lang): string {
+  return TERMS[lang][term] ?? term;
+}
+
+const ESTIMATE_KIND: Record<Lang, Dict> = {
+  ru: { mean: "среднее", median: "медиана" },
+  en: { mean: "mean", median: "median" },
+  pt: { mean: "média", median: "mediana" },
+};
+
+/**
+ * Имя оценки: «mean_пшеница» → «пшеница — среднее» (аудит 04-02). Только когда
+ * после префикса стоит имя группы из результата: mean_diff — не группа.
+ */
+export function estimateLabel(name: string, groups: unknown, lang: Lang): string {
+  const m = /^(mean|median)_(.+)$/.exec(name);
+  if (!m || !Array.isArray(groups) || !groups.includes(m[2])) return name;
+  return `${m[2]} — ${ESTIMATE_KIND[lang][m[1]]}`;
+}
+
 /** Подпись статистики: ключ ядра не меняется, на экране — название (аудит 04-02). */
 export function statLabel(key: string, lang: Lang): string {
   const d = STATS[lang];

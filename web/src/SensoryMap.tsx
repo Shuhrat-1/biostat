@@ -377,7 +377,7 @@ function SignalList({ signals }: { signals: FiredSignal[] }) {
             <strong style={{ fontWeight: 600 }}>{t(`map.strength.${sig.strength}`)}:</strong>{" "}
             {recMessage(sig, lang)}
           </span>
-          <span style={{ color: c.muted, fontSize: "0.75rem", whiteSpace: "nowrap" }}>
+          <span style={{ color: c.muted, fontSize: "0.75rem", overflowWrap: "anywhere" }}>
             {sig.id}{sig.source && sig.source !== "—" ? ` · ${formatSource(sig.source, lang)}` : ""}
           </span>
         </div>

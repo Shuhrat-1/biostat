@@ -140,6 +140,8 @@ export const s: Record<string, CSSProperties> = {
     background: c.panel,
     fontSize: "0.9rem",
     minWidth: 160,
+    // длинные подписи вариантов не раздвигают страницу на телефоне
+    maxWidth: "100%",
   },
   button: {
     padding: "0.5rem 1.1rem",

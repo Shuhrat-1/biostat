@@ -11,3 +11,6 @@ dist/
 
 # Рантайм Pyodide: копирует build-pyodide.mjs из node_modules при сборке (аудит 03-03).
 web/public/pyodide/
+
+# Кеш инкрементальной сборки tsc -b: меняется при каждой сборке.
+*.tsbuildinfo

@@ -15,6 +15,7 @@ import numpy as np
 from scipy import stats
 
 from core.report.schema import Estimate, Severity, StatResult
+from core.stats.anova import group_mean_estimate
 from core.stats.contrasts import parse_contrasts
 from core.stats.guards import note_single_groups
 
@@ -95,8 +96,8 @@ def welch_anova(
     f, df1, df2 = welch_statistic(means, variances, np.array(sizes, dtype=float))
     result.p_value = float(stats.f.sf(f, df1, df2))
     result.statistics = {"F": f, "df_between": df1, "df_within": df2}
-    for lab, m, v in zip(names, means, variances):
-        result.estimates.append(Estimate(name=f"mean_{lab}", value=float(m)))
+    for lab, g, v in zip(names, clean, variances):
+        result.estimates.append(group_mean_estimate(lab, g))
         result.statistics[f"sd_{lab}"] = float(np.sqrt(v))
     return result
 

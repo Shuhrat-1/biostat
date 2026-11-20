@@ -18,7 +18,7 @@ import { effectRows } from "./effectSize";
 import { csvCell } from "./escape";
 import { downloadBlob } from "./download";
 import { resultSections, sectionsToCsv, sheetNames } from "./resultExport";
-import { columnLabel, extraTitle, statLabel } from "./extraLabels";
+import { columnLabel, estimateLabel, extraTitle, statLabel, termLabel } from "./extraLabels";
 import { MAX_SHOWN_COLUMNS } from "./limits";
 import { useCoreMessage } from "./coreMessages";
 import { needsCausalityCaveat, type Context } from "./mapState";
@@ -680,6 +680,7 @@ export function MethodPanel({
   running = false,
   onCancel,
   blockHint,
+  tableKey,
   request,
   onSelection,
 }: {
@@ -698,6 +699,11 @@ export function MethodPanel({
   onCancel?: () => void;
   /** Единственная колонка, похожая на блоки (B1.1), — для подстановки (05-10). */
   blockHint?: string;
+  /**
+   * Меняется с новой таблицей (файл, пример, тип колонки, сброс), но не со сменой
+   * языка: тогда выбор метода сохраняется, обновляются только подписи.
+   */
+  tableKey?: number;
   request?: MethodRequest | null;
   /** Сообщает карте текущий метод, колонки и параметры формы. */
   onSelection?: (
@@ -739,8 +745,18 @@ export function MethodPanel({
   const [listOpen, setListOpen] = useState(false);
 
   // При смене таблицы (новый файл, смена типа колонки) состав методов
-  // меняется — возвращаемся к первой вкладке и первому методу.
+  // меняется — возвращаемся к первой вкладке и первому методу. При смене языка
+  // таблица та же: остаёмся на своём методе, вкладка — та же под новым именем.
+  const lastTable = useRef(tableKey);
   useEffect(() => {
+    const sameTable = lastTable.current === tableKey;
+    lastTable.current = tableKey;
+    const current = suggestions.find((sg) => sg.method === method);
+    if (sameTable && current) {
+      setActiveGroup(current.group);
+      setColumns((cols) => carryColumns(cols, current));
+      return;
+    }
     setActiveGroup(groups[0] ?? "");
     setMethod(suggestions[0]?.method ?? "");
     setListOpen(false);
@@ -1072,7 +1088,8 @@ function ParamField({
 
   if (param.kind === "select") {
     return (
-      <div>
+      // maxWidth: список с длинными вариантами не шире экрана телефона
+      <div style={{ maxWidth: "100%" }}>
         <label style={s.label} htmlFor={id}>{param.label}</label>
         <select
           id={id}
@@ -1193,6 +1210,7 @@ function anovaRows(result: StatResult): AnovaRow[] | null {
 /** Таблица ANOVA с группировкой по стратам и отступом для разбиений. */
 function AnovaTable({ rows }: { rows: AnovaRow[] }) {
   const t = useT();
+  const lang = useLang();
   const main = rows.filter((r) => !SUB_STRATA.has(r.stratum ?? ""));
   const strata = new Set(main.map((r) => r.stratum).filter(Boolean));
   const showStrata = strata.size > 1;
@@ -1217,7 +1235,7 @@ function AnovaTable({ rows }: { rows: AnovaRow[] }) {
     const sig = r.p != null && r.p < 0.05;
     body.push(
       <tr key={i} style={sub ? { color: c.muted, fontSize: "0.82rem" } : undefined}>
-        <td style={sub ? { ...s.td, paddingLeft: "1.6rem" } : s.td}>{r.term}</td>
+        <td style={sub ? { ...s.td, paddingLeft: "1.6rem" } : s.td}>{termLabel(r.term, lang)}</td>
         <td style={{ ...s.td, ...s.mono }}>{r.df}</td>
         <td style={{ ...s.td, ...s.mono }}>{num(r.ss)}</td>
         <td style={{ ...s.td, ...s.mono }}>{num(r.ms)}</td>
@@ -1890,8 +1908,10 @@ export function ResultPanel({ result, context, methodLabel }: {
         </div>
       )}
 
+      {/* Своя прокрутка: на 375 px таблица оценок раздвигала страницу до 650 px. */}
       {result.estimates.length > 0 && (
-        <table style={{ ...s.table, marginBottom: "0.9rem" }}>
+        <div style={{ overflowX: "auto", marginBottom: "0.9rem" }}>
+        <table style={s.table}>
           <thead>
             <tr>
               <th style={s.th}>{t("result.estimate")}</th>
@@ -1903,7 +1923,7 @@ export function ResultPanel({ result, context, methodLabel }: {
           <tbody>
             {result.estimates.map((e) => (
               <tr key={e.name}>
-                <td style={s.td}>{e.name}</td>
+                <td style={s.td}>{estimateLabel(e.name, result.parameters?.labels, lang)}</td>
                 <td style={{ ...s.td, ...s.mono }}>{formatNumber(e.value)}</td>
                 <td style={{ ...s.td, ...s.mono }}>
                   {e.ci_lower !== null && e.ci_upper !== null
@@ -1917,6 +1937,7 @@ export function ResultPanel({ result, context, methodLabel }: {
             ))}
           </tbody>
         </table>
+        </div>
       )}
 
       {anova && <AnovaTable rows={anova} />}
