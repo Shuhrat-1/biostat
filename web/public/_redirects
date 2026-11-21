@@ -1,5 +1,5 @@
 # SPA: любой путь отдаёт index.html (кроме реальных файлов).
 # /core/*, /assets/*, /pyodide/*, robots.txt, sitemap.xml, LICENSE.txt,
-# third-party-licenses.txt, methods.json, /.well-known/security.txt и страницы
+# third-party-licenses.txt, methods.json, back.js, /.well-known/security.txt и страницы
 # /privacy/, /terms/, /methods/ (и /ru/…, /pt/…) — настоящие файлы, отдаются как есть.
 /*    /index.html   200

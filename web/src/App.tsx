@@ -8,7 +8,7 @@
  * пользователя.
  */
 
-import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState, type CSSProperties } from "react";
 import {
   MethodPanel,
   PreviewPanel,
@@ -363,17 +363,20 @@ function AppInner({
         </div>
       )}
 
-      <button
-        onClick={reset}
-        style={{
-          ...s.button,
-          background: "transparent",
-          color: c.muted,
-          padding: "0.4rem 0",
-        }}
-      >
-        {t("reset")}
-      </button>
+      {/* С файлом кнопка — в «Качестве данных», рядом с именем файла; здесь — для планирования. */}
+      {!table && (
+        <button
+          onClick={reset}
+          style={{
+            ...s.button,
+            background: "transparent",
+            color: c.muted,
+            padding: "0.4rem 0",
+          }}
+        >
+          {t("reset")}
+        </button>
+      )}
     </>
   );
 
@@ -456,7 +459,7 @@ function AppInner({
 
             {table && table.usability?.ok !== false && (
               <>
-                <QualityPanel table={table} />
+                <QualityPanel table={table} fileName={inputFile?.name ?? ""} onReset={reset} />
                 <PreviewPanel
                   table={table}
                   overrides={typeOverrides}
@@ -509,25 +512,39 @@ function pagePath(slug: string, lang: Lang): string {
 }
 
 /**
- * Подвал: «Конфиденциальность · Условия · Методы и проверка · Лицензия» —
- * ссылки добавляются по мере готовности страниц (задание P1–P6).
+ * Подвал: «Конфиденциальность · Условия · Методы и проверка · Лицензия». Ссылки
+ * открываются в новой вкладке: вкладка с файлом и расчётом остаётся как была.
  */
 function SiteFooter() {
   const t = useT();
   const lang = useLang();
+  const links: [string, string][] = [
+    [pagePath("privacy", lang), t("footer.privacy")],
+    [pagePath("terms", lang), t("footer.terms")],
+    [pagePath("methods", lang), t("footer.methods")],
+    ["/LICENSE.txt", t("footer.license")],
+  ];
   return (
     <footer style={{ borderTop: `1px solid ${c.border}`, marginTop: "2rem", padding: "0.8rem 0",
       fontSize: "0.85rem", color: c.muted }}>
-      <a href={pagePath("privacy", lang)} style={{ color: c.accent }}>{t("footer.privacy")}</a>
-      {" · "}
-      <a href={pagePath("terms", lang)} style={{ color: c.accent }}>{t("footer.terms")}</a>
-      {" · "}
-      <a href={pagePath("methods", lang)} style={{ color: c.accent }}>{t("footer.methods")}</a>
-      {" · "}
-      <a href="/LICENSE.txt" style={{ color: c.accent }}>{t("footer.license")}</a>
+      {links.map(([href, label], i) => (
+        <span key={href}>
+          {i > 0 && " · "}
+          <a href={href} target="_blank" rel="noopener" style={{ color: c.accent }}>
+            {label}
+            <span style={HIDDEN}> {t("footer.newTab")}</span>
+          </a>
+        </span>
+      ))}
     </footer>
   );
 }
+
+/** Текст только для экранного диктора. */
+const HIDDEN: CSSProperties = {
+  position: "absolute", width: 1, height: 1, overflow: "hidden", clipPath: "inset(50%)",
+  whiteSpace: "nowrap",
+};
 
 /**
  * Ссылка-пропуск «К расчёту» (аудит 04-04, WCAG 2.4.1): первая по Tab, видна

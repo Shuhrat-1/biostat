@@ -97,7 +97,8 @@ def test_sources_are_translated_like_the_map() -> None:
 @pytest.mark.parametrize("lang", static_pages.LANGS)
 def test_page_is_static_and_seo_complete(lang: str) -> None:
     html = _html(lang)
-    assert "<script" not in html and not re.search(r"\son[a-z]+=", html)
+    assert re.findall(r"<script[^>]*>.*?</script>", html, re.S) == ['<script src="/back.js" defer></script>']
+    assert not re.search(r"\son[a-z]+=", html)
     url = f"https://biostat.app{static_pages.page_path('methods', lang)}"
     assert f'<link rel="canonical" href="{url}" />' in html
     assert sorted(re.findall(r'hreflang="([a-z-]+)" href=', html)) == ["en", "pt", "ru", "x-default"]
@@ -111,4 +112,4 @@ def test_sitemap_and_footers_link_the_page() -> None:
     for lang in static_pages.LANGS:
         assert f"<loc>https://biostat.app{static_pages.page_path('methods', lang)}</loc>" in sitemap
     app = (WEB / "src" / "App.tsx").read_text(encoding="utf-8")
-    assert '<a href={pagePath("methods", lang)}' in app
+    assert '[pagePath("methods", lang), t("footer.methods")]' in app

@@ -44,7 +44,9 @@ def test_privacy_and_terms_pages_exist() -> None:
 @pytest.mark.parametrize("lang", static_pages.LANGS)
 def test_page_is_static_and_seo_complete(slug: str, lang: str) -> None:
     html = _page(slug, lang)
-    assert "<script" not in html and not re.search(r"\son[a-z]+=", html)  # CSP: без скриптов и обработчиков
+    # CSP: без встроенных скриптов и обработчиков; единственный скрипт — внешний /back.js
+    assert re.findall(r"<script[^>]*>.*?</script>", html, re.S) == ['<script src="/back.js" defer></script>']
+    assert not re.search(r"\son[a-z]+=", html)
     assert f'<html lang="{lang}">' in html and html.count("<h1>") == 1
     url = f"https://biostat.app{static_pages.page_path(slug, lang)}"
     assert f'<link rel="canonical" href="{url}" />' in html
@@ -69,9 +71,8 @@ def test_sitemap_lists_every_language_version(slug: str) -> None:
 def test_app_footer_links_to_the_page_in_the_interface_language() -> None:
     app = (WEB / "src" / "App.tsx").read_text(encoding="utf-8")
     assert 'return lang === "en" ? `/${slug}/` : `/${lang}/${slug}/`;' in app
-    for link in ('<a href={pagePath("privacy", lang)}', '<a href={pagePath("terms", lang)}',
-                 '<a href={pagePath("methods", lang)}',
-                 '<a href="/LICENSE.txt"'):
+    for link in ('[pagePath("privacy", lang), t("footer.privacy")]', '[pagePath("terms", lang), t("footer.terms")]',
+                 '[pagePath("methods", lang), t("footer.methods")]', '["/LICENSE.txt", t("footer.license")]'):
         assert link in app, link
 
 

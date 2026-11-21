@@ -79,6 +79,27 @@ export function UnusableFile({
   );
 }
 
+/** Имя загруженного файла и справа — «Загрузить другой файл»; на узком экране кнопка уходит вниз. */
+function FileRow({ name, onReset }: { name: string; onReset: () => void }) {
+  const t = useT();
+  return (
+    <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between",
+      gap: "0.5rem 1rem", marginBottom: "0.9rem", fontSize: "0.9rem" }}>
+      <span style={{ minWidth: 0, overflowWrap: "anywhere" }}>
+        <span style={{ color: c.muted }}>{t("quality.file")}: </span>
+        <strong>{name}</strong>
+      </span>
+      <button
+        onClick={onReset}
+        style={{ ...s.button, background: "transparent", color: c.accent,
+          border: `1px solid ${c.accent}`, padding: "0.35rem 0.8rem", marginLeft: "auto" }}
+      >
+        {t("reset")}
+      </button>
+    </div>
+  );
+}
+
 /* ------------------------- Стартовый экран ------------------------- */
 
 export function WelcomeScreen({
@@ -248,7 +269,11 @@ const VERDICT_STYLE: Record<string, { bg: string; fg: string }> = {
   problems: { bg: c.badBg, fg: c.bad },
 };
 
-export function QualityPanel({ table }: { table: ParsedTable }) {
+export function QualityPanel({ table, fileName, onReset }: {
+  table: ParsedTable;
+  fileName: string;
+  onReset: () => void;
+}) {
   const t = useT();
   const tm = useCoreMessage();
   const q = table.quality;
@@ -258,6 +283,7 @@ export function QualityPanel({ table }: { table: ParsedTable }) {
   return (
     <div style={s.panel}>
       <h2 style={s.h2}>{t("quality.title")}</h2>
+      <FileRow name={fileName} onReset={onReset} />
       <div
         style={{
           padding: "0.7rem 0.9rem",

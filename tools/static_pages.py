@@ -2,7 +2,8 @@
 
 Тексты — здесь, HTML собирается в web/public/: /privacy/ и /terms/ (en, x-default),
 /methods/ и methods.json — из tools/methods_page.py,
-/ru/…, /pt/…. Страницы без скриптов (CSP сайта), читаются без JavaScript, с
+/ru/…, /pt/…. Без встроенных скриптов (CSP сайта), читаются без JavaScript; один внешний
+/back.js — возврат к открытому приложению по истории (без него ссылка обычная). С
 canonical и hreflang. Ссылка внутри абзаца — [текст](/адрес). После правки текста:
 
     python tools/static_pages.py
@@ -352,8 +353,9 @@ def shell(slug: str, t: dict, lang: str, body: str) -> str:
         f'    <title>{esc(t["title"])}</title>\n'
         f'    <meta name="description" content="{esc(t["description"])}" />\n'
         f'    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />\n'
-        f'{_links(slug, lang)}    <style>{STYLE}</style>\n  </head>\n  <body>\n    <main>\n'
-        f'      <nav><a href="/">{esc(t["back"])}</a><span>{switch}</span></nav>\n'
+        f'{_links(slug, lang)}    <style>{STYLE}</style>\n'
+        f'    <script src="/back.js" defer></script>\n  </head>\n  <body>\n    <main>\n'
+        f'      <nav><a href="/" data-back>{esc(t["back"])}</a><span>{switch}</span></nav>\n'
         f'      <h1>{esc(t["h1"])}</h1>\n      <p class="muted">{esc(t["updated"])}</p>\n{body}'
         f'{_footer(lang)}    </main>\n  </body>\n</html>\n'
     )
