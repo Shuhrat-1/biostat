@@ -2,12 +2,14 @@
   "name": "biostat-web",
   "private": true,
   "version": "0.1.0",
+  "license": "Apache-2.0",
   "type": "module",
   "scripts": {
-    "dev": "npm run build:core && npm run build:pyodide && vite",
+    "dev": "npm run build:core && npm run build:pyodide && npm run build:licenses && vite",
     "build:core": "node build-core.mjs",
     "build:pyodide": "node build-pyodide.mjs",
-    "prebuild": "npm run build:core && npm run build:pyodide",
+    "build:licenses": "node build-licenses.mjs",
+    "prebuild": "npm run build:core && npm run build:pyodide && npm run build:licenses",
     "build": "tsc -b && vite build",
     "preview": "vite preview"
   },

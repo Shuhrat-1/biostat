@@ -39,3 +39,11 @@ pytest
   - [x] catalog.py — полная витрина методов (10 методов в 6 группах, параметры)
   - [x] i18n — локализация UI и каталога методов (RU/EN/PT)
 - [~] Фаза 4: MVP собран локально, готов к проверке
+
+## Лицензия
+
+Copyright 2026 Shuhrat Maksumov
+
+Код BioStat распространяется по лицензии Apache License 2.0 — см. `LICENSE` и `NOTICE`.
+Сторонние компоненты и их лицензии — `THIRD_PARTY_NOTICES.md`; полные тексты сайт
+раздаёт в `/third-party-licenses.txt`.

@@ -9,6 +9,9 @@
  * lock-файла имена пакетов заменены полными адресами jsDelivr, а sha256 оставлены:
  * Pyodide скачивает пакет с CDN и сверяет его со *своим* lock-файлом (fetch с
  * integrity). Подменённый пакет браузер отклонит.
+ *
+ * Рядом кладутся LICENSE.txt (MPL-2.0, текст из тега репозитория Pyodide: в npm-пакете
+ * файла лицензии нет) и SOURCE.txt — где взять исходники (MPL-2.0, п. 3.2).
  */
 
 import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -23,6 +26,15 @@ const RUNTIME = ["pyodide.mjs", "pyodide.asm.js", "pyodide.asm.wasm", "python_st
 const webDir = dirname(fileURLToPath(import.meta.url));
 const source = join(webDir, "node_modules", "pyodide");
 const target = join(webDir, "public", "pyodide", `v${PYODIDE_VERSION}`);
+
+/** Текст SOURCE.txt рядом с рантаймом. */
+export function sourceNotice(version = PYODIDE_VERSION) {
+  return `Pyodide ${version} - Mozilla Public License 2.0 (see LICENSE.txt in this folder).\n` +
+    `Source code: https://github.com/pyodide/pyodide/tree/${version}\n` +
+    `pyodide.mjs, pyodide.asm.js, pyodide.asm.wasm and python_stdlib.zip are unmodified copies\n` +
+    `from the npm package pyodide@${version}. pyodide-lock.json differs only in file_name:\n` +
+    `package names are replaced with absolute jsDelivr URLs, sha256 values are unchanged.\n`;
+}
 
 /** Lock-файл с полными адресами пакетов на CDN; хеши не меняются. */
 export function rewriteLock(lock, cdn = PACKAGES_CDN) {
@@ -40,6 +52,8 @@ function main() {
   for (const file of RUNTIME) copyFileSync(join(source, file), join(target, file));
   const lock = JSON.parse(readFileSync(join(source, "pyodide-lock.json"), "utf8"));
   writeFileSync(join(target, "pyodide-lock.json"), JSON.stringify(rewriteLock(lock)));
+  copyFileSync(join(webDir, "licenses", `pyodide-${PYODIDE_VERSION}.LICENSE`), join(target, "LICENSE.txt"));
+  writeFileSync(join(target, "SOURCE.txt"), sourceNotice());
   console.log(`pyodide ${PYODIDE_VERSION}: рантайм → public/pyodide/v${PYODIDE_VERSION}/`);
 }
 

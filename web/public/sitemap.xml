@@ -35,4 +35,34 @@
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
+  <url>
+    <loc>https://biostat.app/terms/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://biostat.app/terms/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://biostat.app/ru/terms/" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://biostat.app/pt/terms/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://biostat.app/terms/" />
+    <lastmod>2026-11-21</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://biostat.app/ru/terms/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://biostat.app/terms/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://biostat.app/ru/terms/" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://biostat.app/pt/terms/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://biostat.app/terms/" />
+    <lastmod>2026-11-21</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://biostat.app/pt/terms/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://biostat.app/terms/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://biostat.app/ru/terms/" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://biostat.app/pt/terms/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://biostat.app/terms/" />
+    <lastmod>2026-11-21</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
 </urlset>

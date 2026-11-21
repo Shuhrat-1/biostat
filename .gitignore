@@ -12,5 +12,9 @@ dist/
 # Рантайм Pyodide: копирует build-pyodide.mjs из node_modules при сборке (аудит 03-03).
 web/public/pyodide/
 
+# Лицензии для сайта: собирает build-licenses.mjs из LICENSE и node_modules (шаг P2).
+web/public/LICENSE.txt
+web/public/third-party-licenses.txt
+
 # Кеш инкрементальной сборки tsc -b: меняется при каждой сборке.
 *.tsbuildinfo

@@ -519,6 +519,10 @@ function SiteFooter() {
     <footer style={{ borderTop: `1px solid ${c.border}`, marginTop: "2rem", padding: "0.8rem 0",
       fontSize: "0.85rem", color: c.muted }}>
       <a href={pagePath("privacy", lang)} style={{ color: c.accent }}>{t("footer.privacy")}</a>
+      {" · "}
+      <a href={pagePath("terms", lang)} style={{ color: c.accent }}>{t("footer.terms")}</a>
+      {" · "}
+      <a href="/LICENSE.txt" style={{ color: c.accent }}>{t("footer.license")}</a>
     </footer>
   );
 }

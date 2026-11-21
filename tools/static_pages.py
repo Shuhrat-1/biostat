@@ -1,8 +1,8 @@
-"""Статичные страницы сайта (конфиденциальность; позже условия, методы) на трёх языках.
+"""Статичные страницы сайта (конфиденциальность, условия; позже методы) на трёх языках.
 
-Тексты — здесь, HTML собирается в web/public/: /privacy/ (en, x-default),
-/ru/privacy/, /pt/privacy/. Страницы без скриптов (CSP сайта), читаются без
-JavaScript, с canonical и hreflang. После правки текста:
+Тексты — здесь, HTML собирается в web/public/: /privacy/ и /terms/ (en, x-default),
+/ru/…, /pt/…. Страницы без скриптов (CSP сайта), читаются без JavaScript, с
+canonical и hreflang. Ссылка внутри абзаца — [текст](/адрес). После правки текста:
 
     python tools/static_pages.py
 
@@ -12,6 +12,7 @@ tests/test_static_pages.py сверяет закоммиченные файлы 
 from __future__ import annotations
 
 import html
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -77,7 +78,6 @@ PRIVACY: dict[str, dict] = {
             ]),
         ],
         "back": "← Вернуться в BioStat",
-        "footer": "Конфиденциальность",
     },
     "en": {
         "title": "Privacy — BioStat",
@@ -129,7 +129,6 @@ PRIVACY: dict[str, dict] = {
             ]),
         ],
         "back": "← Back to BioStat",
-        "footer": "Privacy",
     },
     "pt": {
         "title": "Privacidade — BioStat",
@@ -182,9 +181,118 @@ PRIVACY: dict[str, dict] = {
             ]),
         ],
         "back": "← Voltar ao BioStat",
-        "footer": "Privacidade",
     },
 }
+
+WELHAM = ("Welham S. J., Gezan S. A., Clark S. J., Mead A. Statistical Methods in Biology: Design and Analysis "
+          "of Experiments and Regression. CRC Press, 2015")
+WITTE = "Witte R. S., Witte J. S. Statistics"
+
+TERMS: dict[str, dict] = {
+    "ru": {
+        "title": "Условия использования — BioStat",
+        "description": "Условия BioStat: сервис «как есть», без гарантий; выводы и их применение — ответственность "
+                       "пользователя; источники методов; лицензия кода Apache-2.0.",
+        "h1": "Условия использования",
+        "updated": "Последнее изменение: 21.11.2026.",
+        "sections": [
+            ("Сервис «как есть»", [
+                "BioStat предоставляется «как есть», без гарантий — явных или подразумеваемых, — в том числе "
+                "без гарантий точности результатов, пригодности для конкретной цели и бесперебойной работы "
+                "сайта.",
+            ]),
+            ("Выводы — ваша ответственность", [
+                "Метод, проверку его допущений и толкование результата выбираете вы. Выводы из расчёта и их "
+                "применение — ваша ответственность.",
+            ]),
+            ("Источники методов", [
+                f"Методы реализованы по книгам: {WELHAM}; {WITTE}, 11-е изд. Wiley, 2017. Методы, которых в этих "
+                "книгах нет, — по их первоисточникам.",
+            ]),
+            ("Не профессиональная консультация", [
+                "Результаты BioStat не являются медицинской, юридической или иной профессиональной "
+                "консультацией.",
+            ]),
+            ("Лицензия кода", [
+                "Код BioStat распространяется по лицензии Apache License 2.0: [текст лицензии](/LICENSE.txt). "
+                "Copyright 2026 Shuhrat Maksumov.",
+                "Сайт использует сторонние компоненты — React, ECharts, SheetJS (xlsx), Pyodide, Python и пакеты "
+                "numpy, scipy, pandas, statsmodels — по их лицензиям: "
+                "[перечень и тексты лицензий](/third-party-licenses.txt).",
+            ]),
+        ],
+        "back": "← Вернуться в BioStat",
+    },
+    "en": {
+        "title": "Terms of use — BioStat",
+        "description": "BioStat terms: provided as is, without warranties; conclusions and their use are the "
+                       "user's responsibility; method sources; Apache-2.0 code license.",
+        "h1": "Terms of use",
+        "updated": "Last updated: 2026-11-21.",
+        "sections": [
+            ("Provided as is", [
+                "BioStat is provided “as is”, without warranties of any kind, express or implied, including "
+                "warranties of accurate results, fitness for a particular purpose and uninterrupted operation of "
+                "the site.",
+            ]),
+            ("Conclusions are your responsibility", [
+                "You choose the method, check its assumptions and interpret the result. Conclusions drawn from a "
+                "calculation and their use are your responsibility.",
+            ]),
+            ("Sources of the methods", [
+                f"The methods follow two books: {WELHAM}; {WITTE}, 11th ed. Wiley, 2017. Methods not covered by "
+                "these books follow their original sources.",
+            ]),
+            ("Not professional advice", [
+                "BioStat results are not medical, legal or other professional advice.",
+            ]),
+            ("Code license", [
+                "BioStat code is distributed under the Apache License 2.0: [license text](/LICENSE.txt). "
+                "Copyright 2026 Shuhrat Maksumov.",
+                "The site uses third-party components — React, ECharts, SheetJS (xlsx), Pyodide, Python and the "
+                "numpy, scipy, pandas and statsmodels packages — under their own licenses: "
+                "[list and license texts](/third-party-licenses.txt).",
+            ]),
+        ],
+        "back": "← Back to BioStat",
+    },
+    "pt": {
+        "title": "Termos de utilização — BioStat",
+        "description": "Termos do BioStat: serviço fornecido tal como está, sem garantias; as conclusões e o seu uso "
+                       "são da responsabilidade do utilizador; licença Apache-2.0.",
+        "h1": "Termos de utilização",
+        "updated": "Última alteração: 21.11.2026.",
+        "sections": [
+            ("Fornecido tal como está", [
+                "O BioStat é fornecido «tal como está», sem garantias de qualquer tipo, expressas ou implícitas, "
+                "incluindo garantias de exatidão dos resultados, adequação a um fim específico e funcionamento "
+                "ininterrupto do site.",
+            ]),
+            ("As conclusões são da sua responsabilidade", [
+                "É você quem escolhe o método, verifica os seus pressupostos e interpreta o resultado. As "
+                "conclusões tiradas de um cálculo e a sua aplicação são da sua responsabilidade.",
+            ]),
+            ("Fontes dos métodos", [
+                f"Os métodos seguem dois livros: {WELHAM}; {WITTE}, 11.ª ed. Wiley, 2017. Os métodos que não "
+                "constam destes livros seguem as suas fontes originais.",
+            ]),
+            ("Não é aconselhamento profissional", [
+                "Os resultados do BioStat não constituem aconselhamento médico, jurídico ou outro aconselhamento "
+                "profissional.",
+            ]),
+            ("Licença do código", [
+                "O código do BioStat é distribuído sob a Apache License 2.0: [texto da licença](/LICENSE.txt). "
+                "Copyright 2026 Shuhrat Maksumov.",
+                "O site usa componentes de terceiros — React, ECharts, SheetJS (xlsx), Pyodide, Python e os pacotes "
+                "numpy, scipy, pandas e statsmodels — sob as respetivas licenças: "
+                "[lista e textos das licenças](/third-party-licenses.txt).",
+            ]),
+        ],
+        "back": "← Voltar ao BioStat",
+    },
+}
+
+PAGES: dict[str, dict[str, dict]] = {"privacy": PRIVACY, "terms": TERMS}
 
 STYLE = (
     "body{margin:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:#18181b;"
@@ -195,6 +303,30 @@ STYLE = (
     "footer{border-top:1px solid #e4e4e7;margin-top:2rem;padding-top:0.8rem;font-size:0.9rem}"
     "code{overflow-wrap:anywhere}"
 )
+
+
+FOOTER = {
+    "ru": ("Конфиденциальность", "Условия", "Лицензия Apache-2.0"),
+    "en": ("Privacy", "Terms", "Apache-2.0 License"),
+    "pt": ("Privacidade", "Termos", "Licença Apache-2.0"),
+}
+LINK = re.compile(r"\[([^\]]+)\]\(([^)\s]+)\)")
+
+
+def _inline(text: str) -> str:
+    """Экранированный текст; [текст](/адрес) становится ссылкой."""
+    parts, pos = [], 0
+    for m in LINK.finditer(text):
+        parts += [html.escape(text[pos:m.start()]),
+                  f'<a href="{html.escape(m.group(2))}">{html.escape(m.group(1))}</a>']
+        pos = m.end()
+    return "".join(parts) + html.escape(text[pos:])
+
+
+def _footer(lang: str) -> str:
+    hrefs = (page_path("privacy", lang), page_path("terms", lang), "/LICENSE.txt")
+    links = " · ".join(f'<a href="{h}">{html.escape(t)}</a>' for h, t in zip(hrefs, FOOTER[lang]))
+    return f"      <footer>{links}</footer>\n"
 
 
 def _links(slug: str, lang: str) -> str:
@@ -212,7 +344,7 @@ def render(slug: str, texts: dict[str, dict], lang: str) -> str:
     switch = " · ".join(
         f'<a href="{page_path(slug, code)}" hreflang="{code}" lang="{code}"'
         f'{current if code == lang else ""}>{LANG_NAMES[code]}</a>' for code in LANGS)
-    body = "".join(f"      <h2>{esc(h)}</h2>\n" + "".join(f"      <p>{esc(p)}</p>\n" for p in ps)
+    body = "".join(f"      <h2>{esc(h)}</h2>\n" + "".join(f"      <p>{_inline(p)}</p>\n" for p in ps)
                    for h, ps in t["sections"])
     return (
         f'<!doctype html>\n<html lang="{lang}">\n  <head>\n    <meta charset="UTF-8" />\n'
@@ -223,15 +355,14 @@ def render(slug: str, texts: dict[str, dict], lang: str) -> str:
         f'{_links(slug, lang)}    <style>{STYLE}</style>\n  </head>\n  <body>\n    <main>\n'
         f'      <nav><a href="/">{esc(t["back"])}</a><span>{switch}</span></nav>\n'
         f'      <h1>{esc(t["h1"])}</h1>\n      <p class="muted">{esc(t["updated"])}</p>\n{body}'
-        f'      <footer><a href="{page_path("privacy", lang)}">{esc(PRIVACY[lang]["footer"])}</a></footer>\n'
-        f'    </main>\n  </body>\n</html>\n'
+        f'{_footer(lang)}    </main>\n  </body>\n</html>\n'
     )
 
 
 def pages() -> dict[Path, str]:
     """Путь в web/public → HTML для всех статичных страниц."""
-    return {PUBLIC / page_path("privacy", lang).strip("/") / "index.html": render("privacy", PRIVACY, lang)
-            for lang in LANGS}
+    return {PUBLIC / page_path(slug, lang).strip("/") / "index.html": render(slug, texts, lang)
+            for slug, texts in PAGES.items() for lang in LANGS}
 
 
 def main() -> None:
