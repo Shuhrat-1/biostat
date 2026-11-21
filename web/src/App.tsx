@@ -522,6 +522,8 @@ function SiteFooter() {
       {" · "}
       <a href={pagePath("terms", lang)} style={{ color: c.accent }}>{t("footer.terms")}</a>
       {" · "}
+      <a href={pagePath("methods", lang)} style={{ color: c.accent }}>{t("footer.methods")}</a>
+      {" · "}
       <a href="/LICENSE.txt" style={{ color: c.accent }}>{t("footer.license")}</a>
     </footer>
   );

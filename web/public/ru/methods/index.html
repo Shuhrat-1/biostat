@@ -1,0 +1,710 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Методы и проверка — BioStat</title>
+    <meta name="description" content="Все методы BioStat: источник в книге, какие таблицы и примеры книг сверяют тесты, независимая сверка и что эталоном не проверено." />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="canonical" href="https://biostat.app/ru/methods/" />
+    <link rel="alternate" hreflang="en" href="https://biostat.app/methods/" />
+    <link rel="alternate" hreflang="ru" href="https://biostat.app/ru/methods/" />
+    <link rel="alternate" hreflang="pt" href="https://biostat.app/pt/methods/" />
+    <link rel="alternate" hreflang="x-default" href="https://biostat.app/methods/" />
+    <style>body{margin:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:#18181b;background:#fafafa;line-height:1.6}main{max-width:44rem;margin:0 auto;padding:1.5rem 1rem 2rem}h1{font-size:1.6rem;margin:0.6rem 0 0.2rem}h2{font-size:1.1rem;margin:1.6rem 0 0.4rem}p{margin:0.4rem 0}a{color:#0f766e}.muted{color:#63636b;font-size:0.9rem}nav{display:flex;flex-wrap:wrap;gap:0.4rem 1rem;justify-content:space-between;align-items:center}footer{border-top:1px solid #e4e4e7;margin-top:2rem;padding-top:0.8rem;font-size:0.9rem}code{overflow-wrap:anywhere}h3{font-size:1rem;margin:1.4rem 0 0}ul{margin:0.3rem 0;padding-left:1.2rem}li{margin:0.15rem 0;overflow-wrap:anywhere}.tag{font-size:0.75rem;font-weight:400;color:#92400e;border:1px solid #f59e0b;border-radius:4px;padding:0 0.3rem;margin-left:0.4rem;white-space:nowrap}</style>
+  </head>
+  <body>
+    <main>
+      <nav><a href="/">← Вернуться в BioStat</a><span><a href="/methods/" hreflang="en" lang="en">English</a> · <a href="/ru/methods/" hreflang="ru" lang="ru" aria-current="page">Русский</a> · <a href="/pt/methods/" hreflang="pt" lang="pt">Português</a></span></nav>
+      <h1>Методы и проверка</h1>
+      <p class="muted">Собрано генератором из каталога, карты и тестов; последнее изменение: 21.11.2026.</p>
+      <p>В BioStat 71 методов. Для каждого ниже: источник, тесты, которые его вызывают, таблицы и примеры книг, числа которых сверяют эти тесты, и независимая сверка. Те же данные в машинном виде — <a href="/methods.json">methods.json</a>.</p>
+      <p>«кн.» — Welham S. J., Gezan S. A., Clark S. J., Mead A. Statistical Methods in Biology (CRC Press, 2015), главный источник. «предл.» — метода или его части в Welham нет; указан его первоисточник или Witte R. S., Witte J. S. Statistics (11-е изд., Wiley, 2017).</p>
+      <p>Независимая сверка — аудит 2 (12.11.2026, коммит f3b6595): числа пересчитаны другим путём (scipy, statsmodels, формулы, точный перебор). Это разовая проверка, не автоматический тест. Все 71 методов в том же аудите прогнаны на граничных случаях (пустые ячейки, константы, смена единиц, перестановка строк).</p>
+      <h2>Не проверено независимым эталоном</h2>
+      <p>30 методов из 71: в аудите 2 только граничные случаи. Ссылки на книги в тестах у части из них есть — см. карточку метода.</p>
+      <ul>
+        <li><a href="#describe_by_group">Описательная статистика по группам</a></li>
+        <li><a href="#chi2_goodness_of_fit">χ² согласия одной классификации</a></li>
+        <li><a href="#frequency_table">Таблица частот одной колонки</a></li>
+        <li><a href="#one_proportion">Одна доля: ДИ и тест H0: p = p₀</a></li>
+        <li><a href="#mcnemar_test">Мак-Немар: парные бинарные исходы</a></li>
+        <li><a href="#anova_permutation_test">Перестановочный F-тест (ANOVA)</a></li>
+        <li><a href="#anova_residuals">Остатки ANOVA и выбросы</a></li>
+        <li><a href="#transformed_means">ANOVA с трансформацией отклика</a></li>
+        <li><a href="#treatment_contrasts">Контрасты вариантов</a></li>
+        <li><a href="#equivalence_test">Тест эквивалентности (TOST)</a></li>
+        <li><a href="#regression_details">Регрессия: ANOVA, тесты, предсказания</a></li>
+        <li><a href="#inverse_prediction">Калибровка (обратное предсказание)</a></li>
+        <li><a href="#regression_diagnostics">Регрессия: выбросы, рычаги, влияние</a></li>
+        <li><a href="#regression_cross_validation">Регрессия: кросс-валидация</a></li>
+        <li><a href="#x_transform_regression">Кривая: регрессия по преобразованному x</a></li>
+        <li><a href="#polynomial_regression">Кривая: полиномиальная регрессия</a></li>
+        <li><a href="#trigonometric_regression">Кривая: периодическая (тригонометрическая) регрессия</a></li>
+        <li><a href="#nonlinear_regression">Кривая: нелинейная регрессия</a></li>
+        <li><a href="#smooth_curve">Кривая: сплайны и loess</a></li>
+        <li><a href="#curve_comparison">Кривая: сравнение моделей</a></li>
+        <li><a href="#regression_subsets">Регрессия: все подмножества переменных</a></li>
+        <li><a href="#stepwise_selection">Регрессия: пошаговый отбор</a></li>
+        <li><a href="#model_cross_validation">Регрессия: сравнение моделей кросс-валидацией</a></li>
+        <li><a href="#response_surface">Поверхность отклика (2–4 переменные)</a></li>
+        <li><a href="#regression_with_groups">Регрессия с группами (параллельные линии)</a></li>
+        <li><a href="#blocked_regression">Регрессия в блочном опыте (RCBD)</a></li>
+        <li><a href="#glmm_analysis">GLMM: доли и счёты со случайными эффектами (экспериментально)</a> — в тестах — числа glmmADMB, glmmML, lme4</li>
+        <li><a href="#curve_in_blocks">Кривая в блоках и группах: полином или преобразованный x</a></li>
+        <li><a href="#nonlinear_in_blocks">Нелинейная кривая в блоках и группах</a></li>
+        <li><a href="#sampling_scheme_power">План вложенной выборки: SE и мощность по компонентам дисперсии</a></li>
+      </ul>
+      <h2>Пометка «предл.»</h2>
+      <p>16 методов: метод или его часть — не из Welham.</p>
+      <ul>
+        <li><a href="#describe_by_group">Описательная статистика по группам</a></li>
+        <li><a href="#chi2_goodness_of_fit">χ² согласия одной классификации</a></li>
+        <li><a href="#frequency_table">Таблица частот одной колонки</a></li>
+        <li><a href="#one_sample_t">Одновыборочный t-тест</a></li>
+        <li><a href="#one_proportion">Одна доля: ДИ и тест H0: p = p₀</a></li>
+        <li><a href="#mann_whitney">Тест Манна-Уитни (непараметрический)</a></li>
+        <li><a href="#two_proportions">Две доли: разность с ДИ</a></li>
+        <li><a href="#mcnemar_test">Мак-Немар: парные бинарные исходы</a></li>
+        <li><a href="#one_sample_wilcoxon">Тест Уилкоксона одной выборки (непараметрический)</a></li>
+        <li><a href="#rm_anova">ANOVA повторных измерений</a></li>
+        <li><a href="#friedman">Критерий Фридмана (ранги, повторные измерения)</a></li>
+        <li><a href="#welch_anova">ANOVA Уэлча (неравные дисперсии)</a></li>
+        <li><a href="#scheffe_test">Метод Шеффе (пары и сложные контрасты)</a></li>
+        <li><a href="#simple_effects">Простые эффекты (A при каждом B и B при каждом A)</a></li>
+        <li><a href="#wilcoxon">Тест Уилкоксона (непараметрический)</a></li>
+        <li><a href="#spearman_correlation">Корреляция Спирмена (ранговая)</a></li>
+      </ul>
+      <h2>Пороги [BioStat]</h2>
+      <p>Пороги подсказок карты и правил методов, которых нет в книгах, — эвристики BioStat:</p>
+      <ul>
+        <li>Нормальность остатков (B4.1, B4.7): если в каждой группе больше 30 наблюдений, нарушением считается только заметная асимметрия, |g₁| &gt; 0.5; при меньших группах решает тест Шапиро–Уилка.</li>
+        <li>Нормальность разностей пар (B0.6) проверяется с 6 пар: на меньшем числе тест почти ничего не замечает.</li>
+        <li>Две группы (B4.2, two_sample_t): по умолчанию t Стьюдента; совет Уэлча — при отношении SD &gt; 2, если n уравновешены, и &gt; 1.5, если отношение n больше 1.5; при n &lt; 8 в группе — только справка.</li>
+        <li>SD растёт со средним (B4.3, сигнал к log-трансформации): r между log SD и log среднего групп ≥ 0.8 при SD, различающихся не меньше чем вдвое; уверенный сигнал — с 4 групп.</li>
+        <li>Асимметрия остатков (B4.4): |g₁| &gt; 1 (от 8 остатков) — подсказка трансформировать отклик.</li>
+        <li>Асимметрия отклика (R2.7): g₁ &gt; 1 при всех значениях &gt; 0 (от 8 наблюдений) — кандидат на log-преобразование.</li>
+        <li>Похоже на счёты (R2.2): неотрицательные целые, не только 0 и 1, минимум ≤ 10 (иначе это скорее целочисленные измерения, например граммы).</li>
+        <li>Много нулей в отклике (R2.6): подсказка с доли нулей 30 %, уверенное указание — с 50 %.</li>
+        <li>Разброс счётов (G.2): дисперсия больше среднего более чем вдвое (от 10 наблюдений) — возможна отрицательная биномиальная модель.</li>
+        <li>Сверхдисперсия в GLM (G.1): девианс значимо больше числа степеней свободы и девианс/df &gt; 1.2.</li>
+        <li>Похоже на баллы (B0.4, B4.8): целые, от 3 до 10 разных значений, размах не больше 10 — карта советует ранговые методы.</li>
+        <li>Числовые коды классов (R2.11): 3–10 подряд идущих целых от 0 или 1, в среднем не меньше 5 строк на код; больше 10 разных значений — скорее измерение, чем номера вариантов.</li>
+        <li>Возможные повторные измерения (B0.2): две числовые колонки в одной шкале (отношение средних от 0.5 до 2) и r &gt; 0.7 по 5 и более парам.</li>
+        <li>Повторные измерения по ролям: каждый объект измерен не меньше чем в двух моментах, в каждый — не больше одного раза.</li>
+        <li>Случайный фактор (B1.9): при меньше чем 5 уровнях компонента дисперсии оценивается ненадёжно — карта советует фиксированный блок.</li>
+        <li>Изогнутость прямой (A2.3): значим квадратичный член (p &lt; 0.05) при 4 и более разных x.</li>
+        <li>Разброс растёт с подогнанным значением (A2.4): ρ Спирмена &gt; 0.5 и p &lt; 0.05, от 10 точек.</li>
+        <li>Выбросы в остатках (DIAG.1): доля |r| &gt; 2 заметно больше ожидаемых 5 % или есть остаток больше порога Бонферрони (не меньше 3).</li>
+        <li>Серийная корреляция остатков (DIAG.2): Дарбин–Уотсон вне (1, 3), проверка с 15 наблюдений — на 10–12 статистика выходит за эти пределы случайно в 8–13 % случаев.</li>
+        <li>Влиятельные точки регрессии (DIAG.4): рычаг больше 2p/N и больше 0.2; влияние — расстояние Кука больше F₀.₅(p, N − p).</li>
+        <li>Точный P ранговых тестов при совпадениях — по перестановочному распределению; считается до 200 ненулевых разностей (знаково-ранговый тест) и до 100 наблюдений (Манн–Уитни).</li>
+        <li>Разделение категорий в порядковой регрессии: полное — log L &gt; −10⁻⁶·n; частичное — |β| &gt; 10 при SE &gt; 100.</li>
+        <li>Факторный ANOVA: исключённое из модели взаимодействие с P &lt; 0.10 отмечается как пограничное.</li>
+        <li>ANCOVA: неадекватность не проверяется, если разных x больше 200 (x непрерывный).</li>
+        <li>Регрессия по группам: предупреждение, если диапазоны x двух групп перекрываются меньше чем наполовину.</li>
+      </ul>
+      <h2>Описательная статистика</h2>
+      <h3 id="describe_all">Сводная описательная статистика</h3>
+      <p class="muted"><code>describe_all</code></p>
+      <ul>
+        <li>Источник: кн. стр. 13–23</li>
+        <li>Тестов, вызывающих метод: 18</li>
+        <li>Ссылок на книги в тестах нет</li>
+        <li>Независимая сверка (аудит 2): SD, квартили, SEM, CV — numpy и scipy</li>
+      </ul>
+      <h3 id="describe_by_group">Описательная статистика по группам <span class="tag">предл.</span></h3>
+      <p class="muted"><code>describe_by_group</code></p>
+      <ul>
+        <li>Источник: предл.: Witte гл. 3–4</li>
+        <li>Тестов, вызывающих метод: 8</li>
+        <li>Witte — сверяют тесты: Fig. 4.1, Fig. 4.2, Table 1.1, Table 3.1, Table 3.4, Table 4.1, Table 4.3, Table 4.6</li>
+        <li>Независимая сверка (аудит 2): нет — только граничные случаи</li>
+      </ul>
+      <h3 id="chi2_goodness_of_fit">χ² согласия одной классификации <span class="tag">предл.</span></h3>
+      <p class="muted"><code>chi2_goodness_of_fit</code></p>
+      <ul>
+        <li>Источник: предл.: Witte гл. 19.1–19.5</li>
+        <li>Тестов, вызывающих метод: 12</li>
+        <li>Witte — сверяют тесты: Progress Check 19.2, Review 19.10, Review 19.11, Review 19.16, Table 19.1, Table 19.1–19.2</li>
+        <li>Независимая сверка (аудит 2): нет — только граничные случаи</li>
+      </ul>
+      <h3 id="frequency_table">Таблица частот одной колонки <span class="tag">предл.</span></h3>
+      <p class="muted"><code>frequency_table</code></p>
+      <ul>
+        <li>Источник: предл.: Witte гл. 2–4</li>
+        <li>Тестов, вызывающих метод: 16</li>
+        <li>Witte — сверяют тесты: Progress Check 2.1, Progress Check 2.2, Progress Check 2.8, Table 1.1, Table 1.2, Table 2.2, Table 2.7, Table 2.8</li>
+        <li>Независимая сверка (аудит 2): нет — только граничные случаи</li>
+      </ul>
+      <h3 id="mean_ci">Доверительный интервал среднего</h3>
+      <p class="muted"><code>mean_ci</code></p>
+      <ul>
+        <li>Источник: кн. стр. 28–29, 32</li>
+        <li>Тестов, вызывающих метод: 4</li>
+        <li>Ссылок на книги в тестах нет</li>
+        <li>Независимая сверка (аудит 2): ДИ — scipy</li>
+      </ul>
+      <h2>Проверка допущений</h2>
+      <h3 id="normality_test">Проверка нормальности (Шапиро-Уилк)</h3>
+      <p class="muted"><code>normality_test</code></p>
+      <ul>
+        <li>Источник: кн. стр. 101</li>
+        <li>Тестов, вызывающих метод: 5</li>
+        <li>Ссылок на книги в тестах нет</li>
+        <li>Независимая сверка (аудит 2): W, P, асимметрия, эксцесс — scipy</li>
+      </ul>
+      <h2>Сравнение с эталоном</h2>
+      <h3 id="one_sample_t">Одновыборочный t-тест <span class="tag">предл.</span></h3>
+      <p class="muted"><code>one_sample_t</code></p>
+      <ul>
+        <li>Источник: предл.: Witte стр. 405, 407</li>
+        <li>Тестов, вызывающих метод: 10</li>
+        <li>Witte — сверяют тесты: Progress Check 13.2–13.4, Table 13.1</li>
+        <li>Независимая сверка (аудит 2): t, P, d — scipy</li>
+      </ul>
+      <h3 id="one_proportion">Одна доля: ДИ и тест H0: p = p₀ <span class="tag">предл.</span></h3>
+      <p class="muted"><code>one_proportion</code></p>
+      <ul>
+        <li>Источник: предл.: Wilson 1927; Witte стр. 228</li>
+        <li>Тестов, вызывающих метод: 6</li>
+        <li>Witte — сверяют тесты: Review 19.11</li>
+        <li>Независимая сверка (аудит 2): нет — только граничные случаи</li>
+      </ul>
+      <h2>Сравнение двух групп</h2>
+      <h3 id="two_sample_t">Двухвыборочный t-тест</h3>
+      <p class="muted"><code>two_sample_t</code></p>
+      <ul>
+        <li>Источник: кн. стр. 32–35</li>
+        <li>Тестов, вызывающих метод: 23</li>
+        <li>Witte — сверяют тесты: Progress Check 14.9b, Table 14.1, Table 14.4</li>
+        <li>Числа других программ в тестах: SAS</li>
+        <li>Независимая сверка (аудит 2): t, df, P, ДИ, d, g (Стьюдент и Уэлч) — scipy</li>
+      </ul>
+      <h3 id="mann_whitney">Тест Манна-Уитни (непараметрический) <span class="tag">предл.</span></h3>
+      <p class="muted"><code>mann_whitney</code></p>
+      <ul>
+        <li>Источник: кн. стр. 127; предл.: Witte стр. 387–392</li>
+        <li>Тестов, вызывающих метод: 11</li>
+        <li>Witte — сверяют тесты: Progress Check 20.2, Table 20.2</li>
+        <li>Независимая сверка (аудит 2): U, P — scipy; малые выборки — точный перебор</li>
+      </ul>
+      <h3 id="two_proportions">Две доли: разность с ДИ <span class="tag">предл.</span></h3>
+      <p class="muted"><code>two_proportions</code></p>
+      <ul>
+        <li>Источник: предл.: Newcombe 1998</li>
+        <li>Тестов, вызывающих метод: 9</li>
+        <li>Witte — сверяют тесты: Progress Check 19.6, Review 19.14</li>
+        <li>Независимая сверка (аудит 2): z, P — statsmodels; ДИ — по Ньюкомбу</li>
+      </ul>
+      <h3 id="mcnemar_test">Мак-Немар: парные бинарные исходы <span class="tag">предл.</span></h3>
+      <p class="muted"><code>mcnemar_test</code></p>
+      <ul>
+        <li>Источник: предл.: McNemar 1947</li>
+        <li>Тестов, вызывающих метод: 5</li>
+        <li>Welham — сверяют тесты: Table 10.1</li>
+        <li>Независимая сверка (аудит 2): нет — только граничные случаи</li>
+      </ul>
+      <h2>Сравнение с эталоном</h2>
+      <h3 id="one_sample_wilcoxon">Тест Уилкоксона одной выборки (непараметрический) <span class="tag">предл.</span></h3>
+      <p class="muted"><code>one_sample_wilcoxon</code></p>
+      <ul>
+        <li>Источник: предл.: Wilcoxon 1945; Hollander &amp; Wolfe 1999; предл.: Wilcoxon 1945; ранговый аналог B0.onesample по логике Witte стр. 405, 408</li>
+        <li>Тестов, вызывающих метод: 6</li>
+        <li>Ссылок на книги в тестах нет</li>
+        <li>Независимая сверка (аудит 2): P — scipy</li>
+      </ul>
+      <h2>Сравнение нескольких групп</h2>
+      <h3 id="one_way_anova">Однофакторный ANOVA</h3>
+      <p class="muted"><code>one_way_anova</code></p>
+      <ul>
+        <li>Источник: кн. стр. 74–84</li>
+        <li>Тестов, вызывающих метод: 33</li>
+        <li>Welham — сверяют тесты: Table 4.5</li>
+        <li>Witte — сверяют тесты: Fig. 16.3, Progress Check 16.5, Review 16.9, Review 16.10, Review 16.11, Review 16.13, Table 14.1, Table 16.3, Table 16.6, Table 16.9, Table 17.6</li>
+        <li>Числа других программ в тестах: Minitab</li>
+        <li>Независимая сверка (аудит 2): F, P, η², ω² — scipy и формулы</li>
+      </ul>
+      <h3 id="rm_anova">ANOVA повторных измерений <span class="tag">предл.</span></h3>
+      <p class="muted"><code>rm_anova</code></p>
+      <ul>
+        <li>Источник: предл.: Witte гл. 17; поправки — Greenhouse &amp; Geisser 1959, Huynh &amp; Feldt 1976</li>
+        <li>Тестов, вызывающих метод: 19</li>
+        <li>Witte — сверяют тесты: Progress Check 17.2, Review 17.6, Review 17.7, Table 15.2, Table 17.1, Table 17.3, Table 17.4, Table 17.5, Table 17.6, Table 17.8</li>
+        <li>Независимая сверка (аудит 2): F, P, η²ₚ — statsmodels AnovaRM; ε Гринхауса–Гейссера и Хюйнха–Фельдта — формулы</li>
+      </ul>
+      <h3 id="friedman">Критерий Фридмана (ранги, повторные измерения) <span class="tag">предл.</span></h3>
+      <p class="muted"><code>friedman</code></p>
+      <ul>
+        <li>Источник: предл.: Friedman 1937; Conover 1999; ранговый аналог B0.rm по логике Witte стр. 405, 408</li>
+        <li>Тестов, вызывающих метод: 5</li>
+        <li>Witte — сверяют тесты: Progress Check 17.2, Table 17.1</li>
+        <li>Независимая сверка (аудит 2): χ², P — scipy</li>
+      </ul>
+      <h3 id="welch_anova">ANOVA Уэлча (неравные дисперсии) <span class="tag">предл.</span></h3>
+      <p class="muted"><code>welch_anova</code></p>
+      <ul>
+        <li>Источник: кн. стр. 107; предл.: Welch 1951; Witte стр. 316</li>
+        <li>Тестов, вызывающих метод: 6</li>
+        <li>Witte — сверяют тесты: Table 14.4, Table 16.3</li>
+        <li>Числа других программ в тестах: SAS</li>
+        <li>Независимая сверка (аудит 2): F, df₂, P — statsmodels anova_oneway</li>
+      </ul>
+      <h3 id="tukey_hsd">Пост-хок Tukey HSD</h3>
+      <p class="muted"><code>tukey_hsd</code></p>
+      <ul>
+        <li>Источник: кн. стр. 200</li>
+        <li>Тестов, вызывающих метод: 11</li>
+        <li>Witte — сверяют тесты: Progress Check 16.7, Review 16.10, Table 16.8, Table 16.9</li>
+        <li>Числа других программ в тестах: Minitab</li>
+        <li>Независимая сверка (аудит 2): разности, P, ДИ (Тьюки–Крамер) — scipy tukey_hsd</li>
+      </ul>
+      <h3 id="scheffe_test">Метод Шеффе (пары и сложные контрасты) <span class="tag">предл.</span></h3>
+      <p class="muted"><code>scheffe_test</code></p>
+      <ul>
+        <li>Источник: предл.: Scheffé 1953; Witte стр. 314</li>
+        <li>Тестов, вызывающих метод: 8</li>
+        <li>Witte — сверяют тесты: Progress Check 16.7, Review 16.10, Table 14.1, Table 16.3, Table 16.9</li>
+        <li>Числа других программ в тестах: Minitab</li>
+        <li>Независимая сверка (аудит 2): F, P, ДИ — формулы</li>
+      </ul>
+      <h3 id="kruskal_wallis">Тест Краскела-Уоллиса (непараметрический)</h3>
+      <p class="muted"><code>kruskal_wallis</code></p>
+      <ul>
+        <li>Источник: кн. стр. 127</li>
+        <li>Тестов, вызывающих метод: 5</li>
+        <li>Witte — сверяют тесты: Progress Check 20.4, Table 20.4</li>
+        <li>Независимая сверка (аудит 2): H, P — scipy; малые выборки — точный перебор</li>
+      </ul>
+      <h3 id="treatment_means">Средние групп с SED и LSD</h3>
+      <p class="muted"><code>treatment_means</code></p>
+      <ul>
+        <li>Источник: кн. стр. 86–87</li>
+        <li>Тестов, вызывающих метод: 14</li>
+        <li>Welham — сверяют тесты: Example 2.1C, Example 4.1E, Example 4.1F</li>
+        <li>Независимая сверка (аудит 2): SED, LSD, ДИ средних — формулы</li>
+      </ul>
+      <h3 id="anova_permutation_test">Перестановочный F-тест (ANOVA)</h3>
+      <p class="muted"><code>anova_permutation_test</code></p>
+      <ul>
+        <li>Источник: кн. стр. 102</li>
+        <li>Тестов, вызывающих метод: 7</li>
+        <li>Ссылок на книги в тестах нет</li>
+        <li>Независимая сверка (аудит 2): нет — только граничные случаи</li>
+      </ul>
+      <h2>Проверка допущений</h2>
+      <h3 id="bartlett_test">Тест Бартлетта (равенство дисперсий)</h3>
+      <p class="muted"><code>bartlett_test</code></p>
+      <ul>
+        <li>Источник: кн. стр. 104–107</li>
+        <li>Тестов, вызывающих метод: 4</li>
+        <li>Ссылок на книги в тестах нет</li>
+        <li>Независимая сверка (аудит 2): X², P — scipy</li>
+      </ul>
+      <h3 id="anova_residuals">Остатки ANOVA и выбросы</h3>
+      <p class="muted"><code>anova_residuals</code></p>
+      <ul>
+        <li>Источник: кн. стр. 94–96, 108–110</li>
+        <li>Тестов, вызывающих метод: 6</li>
+        <li>Welham — сверяют тесты: стр. 96</li>
+        <li>Независимая сверка (аудит 2): нет — только граничные случаи</li>
+      </ul>
+      <h2>Сравнение нескольких групп</h2>
+      <h3 id="transformed_means">ANOVA с трансформацией отклика</h3>
+      <p class="muted"><code>transformed_means</code></p>
+      <ul>
+        <li>Источник: кн. стр. 113–121</li>
+        <li>Тестов, вызывающих метод: 15</li>
+        <li>Ссылок на книги в тестах нет</li>
+        <li>Независимая сверка (аудит 2): нет — только граничные случаи</li>
+      </ul>
+      <h3 id="rcbd_anova">Блочный ANOVA (RCBD)</h3>
+      <p class="muted"><code>rcbd_anova</code></p>
+      <ul>
+        <li>Источник: кн. стр. 58</li>
+        <li>Тестов, вызывающих метод: 12</li>
+        <li>Welham — сверяют тесты: Table 7.4</li>
+        <li>Независимая сверка (аудит 2): F, P, F блоков, SED — statsmodels OLS</li>
+      </ul>
+      <h3 id="rcbd_subsampling_anova">Блочный ANOVA с повторными измерениями делянки</h3>
+      <p class="muted"><code>rcbd_subsampling_anova</code></p>
+      <ul>
+        <li>Источник: кн. стр. 145</li>
+        <li>Тестов, вызывающих метод: 6</li>
+        <li>Ссылок на книги в тестах нет</li>
+        <li>Независимая сверка (аудит 2): F, P, SED — анализ средних делянок</li>
+      </ul>
+      <h3 id="factorial_anova">Факторный ANOVA (A×B, A×B×C)</h3>
+      <p class="muted"><code>factorial_anova</code></p>
+      <ul>
+        <li>Источник: кн. стр. 172</li>
+        <li>Тестов, вызывающих метод: 24</li>
+        <li>Welham — сверяют тесты: Example 8.5, Table 8.2, Table 8.2a, Table 8.4, Table 8.5, Table 8.8, Table 8.9, Table 8.21, Table 8.22</li>
+        <li>Witte — сверяют тесты: Progress Check 18.3, Review 18.10, Table 18.3, Table 18.6</li>
+        <li>Независимая сверка (аудит 2): F, P всех членов, с блоками — statsmodels</li>
+      </ul>
+      <h3 id="simple_effects">Простые эффекты (A при каждом B и B при каждом A) <span class="tag">предл.</span></h3>
+      <p class="muted"><code>simple_effects</code></p>
+      <ul>
+        <li>Источник: предл.: Witte гл. 18.9</li>
+        <li>Тестов, вызывающих метод: 9</li>
+        <li>Witte — сверяют тесты: Progress Check 18.6, Table 18.6, Table 18.7</li>
+        <li>Независимая сверка (аудит 2): F простых эффектов — формулы</li>
+      </ul>
+      <h3 id="nested_anova">Вложенные варианты: группа / член (оба фактора фиксированы)</h3>
+      <p class="muted"><code>nested_anova</code></p>
+      <ul>
+        <li>Источник: кн. стр. 173</li>
+        <li>Тестов, вызывающих метод: 9</li>
+        <li>Welham — сверяют тесты: Example 8.3, Example 8.3B, Table 8.11, Table 8.12, Table 8.14, Table 8.16</li>
+        <li>Независимая сверка (аудит 2): SS и F — statsmodels</li>
+      </ul>
+      <h3 id="treatment_contrasts">Контрасты вариантов</h3>
+      <p class="muted"><code>treatment_contrasts</code></p>
+      <ul>
+        <li>Источник: кн. стр. 182–187</li>
+        <li>Тестов, вызывающих метод: 7</li>
+        <li>Welham — сверяют тесты: Example 8.4E, Table 8.17, Table 8.19</li>
+        <li>Независимая сверка (аудит 2): нет — только граничные случаи</li>
+      </ul>
+      <h3 id="polynomial_contrasts">Полиномиальный тренд по уровням</h3>
+      <p class="muted"><code>polynomial_contrasts</code></p>
+      <ul>
+        <li>Источник: кн. стр. 190</li>
+        <li>Тестов, вызывающих метод: 6</li>
+        <li>Welham — сверяют тесты: Example 8.6, Table 8.25</li>
+        <li>Независимая сверка (аудит 2): SS линейного тренда при неравных шагах — OLS</li>
+      </ul>
+      <h3 id="mean_comparisons">Сравнения средних с поправкой (Тьюки, Даннет, Холм, FDR)</h3>
+      <p class="muted"><code>mean_comparisons</code></p>
+      <ul>
+        <li>Источник: кн. стр. 201</li>
+        <li>Тестов, вызывающих метод: 13</li>
+        <li>Welham — сверяют тесты: Example 8.7, Fig. 8.10, Table 8.28, Table 8.29</li>
+        <li>Независимая сверка (аудит 2): Тьюки (P, ДИ), Даннет (scipy dunnett), Холм, Бонферрони, FDR</li>
+      </ul>
+      <h3 id="latin_square_anova">Латинский квадрат</h3>
+      <p class="muted"><code>latin_square_anova</code></p>
+      <ul>
+        <li>Источник: кн. стр. 209</li>
+        <li>Тестов, вызывающих метод: 6</li>
+        <li>Welham — сверяют тесты: Table 9.2, Table 9.4, Table 9.5, Table 9.6</li>
+        <li>Независимая сверка (аудит 2): F, P — statsmodels</li>
+      </ul>
+      <h3 id="split_plot_anova">Расщеплённые делянки (split-plot)</h3>
+      <p class="muted"><code>split_plot_anova</code></p>
+      <ul>
+        <li>Источник: кн. стр. 220</li>
+        <li>Тестов, вызывающих метод: 8</li>
+        <li>Welham — сверяют тесты: Example 9.6, Table 9.12, Table 9.13, Table 9.14, Table 9.16</li>
+        <li>Независимая сверка (аудит 2): F в двух стратах, SED главных делянок — расчёт по стратам вручную</li>
+      </ul>
+      <h3 id="bibd_anova">Неполные блоки (BIBD)</h3>
+      <p class="muted"><code>bibd_anova</code></p>
+      <ul>
+        <li>Источник: кн. стр. 232</li>
+        <li>Тестов, вызывающих метод: 6</li>
+        <li>Welham — сверяют тесты: Example 9.9B</li>
+        <li>Независимая сверка (аудит 2): F внутри блоков, SED, эффективность, скорректированные средние — OLS</li>
+      </ul>
+      <h2>Планирование опыта</h2>
+      <h3 id="replication_power">Повторность и мощность (по пилоту)</h3>
+      <p class="muted"><code>replication_power</code></p>
+      <ul>
+        <li>Источник: кн. гл. 10</li>
+        <li>Тестов, вызывающих метод: 4</li>
+        <li>Welham — сверяют тесты: Example 10.1A, Table 4.1</li>
+        <li>Независимая сверка (аудит 2): мощность и n — нецентральное t</li>
+      </ul>
+      <h2>Сравнение нескольких групп</h2>
+      <h3 id="equivalence_test">Тест эквивалентности (TOST)</h3>
+      <p class="muted"><code>equivalence_test</code></p>
+      <ul>
+        <li>Источник: кн. стр. 253</li>
+        <li>Тестов, вызывающих метод: 7</li>
+        <li>Welham — сверяют тесты: Example 10.3, Table 10.6, Table 10.7</li>
+        <li>Независимая сверка (аудит 2): нет — только граничные случаи</li>
+      </ul>
+      <h3 id="unbalanced_anova">Неортогональный ANOVA (неравная повторность)</h3>
+      <p class="muted"><code>unbalanced_anova</code></p>
+      <ul>
+        <li>Источник: кн. стр. 258</li>
+        <li>Тестов, вызывающих метод: 13</li>
+        <li>Welham — сверяют тесты: Example 11.5, Fig. 11.6, Table 11.17, Table 11.18, Table 11.20, Table 11.23, Table 11.24</li>
+        <li>Независимая сверка (аудит 2): последовательные SS в обоих порядках, тип II — statsmodels</li>
+      </ul>
+      <h2>Парные измерения</h2>
+      <h3 id="paired_t">Парный t-тест</h3>
+      <p class="muted"><code>paired_t</code></p>
+      <ul>
+        <li>Источник: кн. стр. 41</li>
+        <li>Тестов, вызывающих метод: 12</li>
+        <li>Witte — сверяют тесты: Progress Check 15.2, Review 15.7, Table 15.2</li>
+        <li>Независимая сверка (аудит 2): t, P, ДИ, d_z — scipy</li>
+      </ul>
+      <h3 id="wilcoxon">Тест Уилкоксона (непараметрический) <span class="tag">предл.</span></h3>
+      <p class="muted"><code>wilcoxon</code></p>
+      <ul>
+        <li>Источник: кн. стр. 127; предл.: Witte стр. 392–396</li>
+        <li>Тестов, вызывающих метод: 11</li>
+        <li>Witte — сверяют тесты: Progress Check 20.3, Table 20.3</li>
+        <li>Независимая сверка (аудит 2): W, P — scipy; малые выборки — точный перебор</li>
+      </ul>
+      <h2>Связь переменных</h2>
+      <h3 id="simple_linear_regression">Простая линейная регрессия</h3>
+      <p class="muted"><code>simple_linear_regression</code></p>
+      <ul>
+        <li>Источник: кн. стр. 287–299</li>
+        <li>Тестов, вызывающих метод: 27</li>
+        <li>Welham — сверяют тесты: стр. 95–96</li>
+        <li>Witte — сверяют тесты: Table 7.1, Table 7.3</li>
+        <li>Независимая сверка (аудит 2): коэффициенты, ДИ, P — statsmodels</li>
+      </ul>
+      <h3 id="regression_details">Регрессия: ANOVA, тесты, предсказания</h3>
+      <p class="muted"><code>regression_details</code></p>
+      <ul>
+        <li>Источник: кн. гл. 12</li>
+        <li>Тестов, вызывающих метод: 15</li>
+        <li>Welham — сверяют тесты: Example 12.1D, Example 12.1E, Example 12.1F, Example 12.2A, Example 12.2B, Example 12.3, Example 13.1, Table 12.3, Table 12.4, Table 12.7, Table 12.10, Table 13.1–13.2</li>
+        <li>Witte — сверяют тесты: стр. 132, стр. 134, стр. 301–305</li>
+        <li>Независимая сверка (аудит 2): нет — только граничные случаи</li>
+      </ul>
+      <h3 id="inverse_prediction">Калибровка (обратное предсказание)</h3>
+      <p class="muted"><code>inverse_prediction</code></p>
+      <ul>
+        <li>Источник: кн. стр. 320</li>
+        <li>Тестов, вызывающих метод: 3</li>
+        <li>Welham — сверяют тесты: стр. 321</li>
+        <li>Независимая сверка (аудит 2): нет — только граничные случаи</li>
+      </ul>
+      <h3 id="regression_diagnostics">Регрессия: выбросы, рычаги, влияние</h3>
+      <p class="muted"><code>regression_diagnostics</code></p>
+      <ul>
+        <li>Источник: кн. стр. 325–335</li>
+        <li>Тестов, вызывающих метод: 9</li>
+        <li>Welham — сверяют тесты: Example 13.2A, Example 13.2B, Example 13.2C, Table 13.2</li>
+        <li>Независимая сверка (аудит 2): нет — только граничные случаи</li>
+      </ul>
+      <h3 id="regression_cross_validation">Регрессия: кросс-валидация</h3>
+      <p class="muted"><code>regression_cross_validation</code></p>
+      <ul>
+        <li>Источник: кн. стр. 338–342</li>
+        <li>Тестов, вызывающих метод: 4</li>
+        <li>Welham — сверяют тесты: Example 13.2D</li>
+        <li>Независимая сверка (аудит 2): нет — только граничные случаи</li>
+      </ul>
+      <h3 id="x_transform_regression">Кривая: регрессия по преобразованному x</h3>
+      <p class="muted"><code>x_transform_regression</code></p>
+      <ul>
+        <li>Источник: кн. стр. 451–456</li>
+        <li>Тестов, вызывающих метод: 6</li>
+        <li>Welham — сверяют тесты: Example 17.1A, Table 17.2, Table 17.12</li>
+        <li>Независимая сверка (аудит 2): нет — только граничные случаи</li>
+      </ul>
+      <h3 id="polynomial_regression">Кривая: полиномиальная регрессия</h3>
+      <p class="muted"><code>polynomial_regression</code></p>
+      <ul>
+        <li>Источник: кн. стр. 456–460</li>
+        <li>Тестов, вызывающих метод: 8</li>
+        <li>Welham — сверяют тесты: Example 17.1B, Table 17.3, Table 17.4, Table 17.12</li>
+        <li>Независимая сверка (аудит 2): нет — только граничные случаи</li>
+      </ul>
+      <h3 id="trigonometric_regression">Кривая: периодическая (тригонометрическая) регрессия</h3>
+      <p class="muted"><code>trigonometric_regression</code></p>
+      <ul>
+        <li>Источник: кн. стр. 460</li>
+        <li>Тестов, вызывающих метод: 5</li>
+        <li>Welham — сверяют тесты: Example 17.2, Table 17.5, Table 17.6</li>
+        <li>Независимая сверка (аудит 2): нет — только граничные случаи</li>
+      </ul>
+      <h3 id="nonlinear_regression">Кривая: нелинейная регрессия</h3>
+      <p class="muted"><code>nonlinear_regression</code></p>
+      <ul>
+        <li>Источник: кн. стр. 472–476</li>
+        <li>Тестов, вызывающих метод: 8</li>
+        <li>Welham — сверяют тесты: Example 17.1C, Table 17.12</li>
+        <li>Независимая сверка (аудит 2): нет — только граничные случаи</li>
+      </ul>
+      <h3 id="smooth_curve">Кривая: сплайны и loess</h3>
+      <p class="muted"><code>smooth_curve</code></p>
+      <ul>
+        <li>Источник: кн. стр. 460</li>
+        <li>Тестов, вызывающих метод: 7</li>
+        <li>Welham — сверяют тесты: Table 17.1</li>
+        <li>Независимая сверка (аудит 2): нет — только граничные случаи</li>
+      </ul>
+      <h3 id="curve_comparison">Кривая: сравнение моделей</h3>
+      <p class="muted"><code>curve_comparison</code></p>
+      <ul>
+        <li>Источник: кн. стр. 475–476</li>
+        <li>Тестов, вызывающих метод: 4</li>
+        <li>Welham — сверяют тесты: Table 17.12</li>
+        <li>Независимая сверка (аудит 2): нет — только граничные случаи</li>
+      </ul>
+      <h3 id="multiple_regression">Множественная регрессия</h3>
+      <p class="muted"><code>multiple_regression</code></p>
+      <ul>
+        <li>Источник: кн. гл. 14</li>
+        <li>Тестов, вызывающих метод: 10</li>
+        <li>Welham — сверяют тесты: Example 14.1J, Table 14.1, Table 14.3, Table 14.5, Table 14.7, Table 14.9–14.10</li>
+        <li>Независимая сверка (аудит 2): коэффициенты, ДИ, VIF, R²adj — statsmodels</li>
+      </ul>
+      <h3 id="regression_subsets">Регрессия: все подмножества переменных</h3>
+      <p class="muted"><code>regression_subsets</code></p>
+      <ul>
+        <li>Источник: кн. стр. 366</li>
+        <li>Тестов, вызывающих метод: 4</li>
+        <li>Welham — сверяют тесты: Table 14.12, Table 14.16</li>
+        <li>Независимая сверка (аудит 2): нет — только граничные случаи</li>
+      </ul>
+      <h3 id="stepwise_selection">Регрессия: пошаговый отбор</h3>
+      <p class="muted"><code>stepwise_selection</code></p>
+      <ul>
+        <li>Источник: кн. стр. 370</li>
+        <li>Тестов, вызывающих метод: 4</li>
+        <li>Welham — сверяют тесты: Example 14.2, Table 14.14</li>
+        <li>Независимая сверка (аудит 2): нет — только граничные случаи</li>
+      </ul>
+      <h3 id="model_cross_validation">Регрессия: сравнение моделей кросс-валидацией</h3>
+      <p class="muted"><code>model_cross_validation</code></p>
+      <ul>
+        <li>Источник: кн. стр. 376</li>
+        <li>Тестов, вызывающих метод: 2</li>
+        <li>Welham — сверяют тесты: стр. 377</li>
+        <li>Независимая сверка (аудит 2): нет — только граничные случаи</li>
+      </ul>
+      <h3 id="response_surface">Поверхность отклика (2–4 переменные)</h3>
+      <p class="muted"><code>response_surface</code></p>
+      <ul>
+        <li>Источник: кн. стр. 463</li>
+        <li>Тестов, вызывающих метод: 13</li>
+        <li>Welham — сверяют тесты: Example 17.3A, Example 17.3B, Table 17.8, Table 17.9, Table 17.10, Table 17.11</li>
+        <li>Независимая сверка (аудит 2): нет — только граничные случаи</li>
+      </ul>
+      <h3 id="regression_with_groups">Регрессия с группами (параллельные линии)</h3>
+      <p class="muted"><code>regression_with_groups</code></p>
+      <ul>
+        <li>Источник: кн. стр. 382</li>
+        <li>Тестов, вызывающих метод: 15</li>
+        <li>Welham — сверяют тесты: Example 15.1F, Example 15.1H, Example 15.1J, Example 15.2, Table 15.2, Table 15.5, Table 15.6, Table 15.8a, Table 15.10</li>
+        <li>Независимая сверка (аудит 2): нет — только граничные случаи</li>
+      </ul>
+      <h3 id="blocked_regression">Регрессия в блочном опыте (RCBD)</h3>
+      <p class="muted"><code>blocked_regression</code></p>
+      <ul>
+        <li>Источник: кн. стр. 405–409</li>
+        <li>Тестов, вызывающих метод: 7</li>
+        <li>Welham — сверяют тесты: Table 15.12, Table 15.13, Table 15.14</li>
+        <li>Независимая сверка (аудит 2): нет — только граничные случаи</li>
+      </ul>
+      <h2>Сравнение нескольких групп</h2>
+      <h3 id="ancova">Ковариационный анализ (ANCOVA)</h3>
+      <p class="muted"><code>ancova</code></p>
+      <ul>
+        <li>Источник: кн. стр. 409</li>
+        <li>Тестов, вызывающих метод: 10</li>
+        <li>Welham — сверяют тесты: Example 15.4A, Example 15.4B, Table 15.16, Table 15.17, Table 15.18</li>
+        <li>Независимая сверка (аудит 2): скорректированные средние, SE, SED — statsmodels</li>
+      </ul>
+      <h3 id="glm_analysis">GLM: доли (биномиальная) и счёты (Пуассон)</h3>
+      <p class="muted"><code>glm_analysis</code></p>
+      <ul>
+        <li>Источник: кн. стр. 502</li>
+        <li>Тестов, вызывающих метод: 26</li>
+        <li>Welham — сверяют тесты: Example 18.1B, Example 18.2B, Example 18.2E, Example 18.3B, Example 18.3C, Example 18.4, Table 18.6, Table 18.7a, Table 18.8, Table 18.9, Table 18.11, Table 18.13</li>
+        <li>Числа других программ в тестах: GenStat</li>
+        <li>Независимая сверка (аудит 2): девианс, коэффициенты, ДИ (биномиальная и Пуассона) — statsmodels GLM</li>
+      </ul>
+      <h3 id="count_regression">Счёты: отрицательная биномиальная и с нулевым раздуванием</h3>
+      <p class="muted"><code>count_regression</code></p>
+      <ul>
+        <li>Источник: кн. стр. 512</li>
+        <li>Тестов, вызывающих метод: 6</li>
+        <li>Welham — сверяют тесты: Table 18.10</li>
+        <li>Независимая сверка (аудит 2): коэффициент, α, log L — statsmodels NegativeBinomial</li>
+      </ul>
+      <h3 id="glmm_analysis">GLMM: доли и счёты со случайными эффектами (экспериментально)</h3>
+      <p class="muted"><code>glmm_analysis</code></p>
+      <ul>
+        <li>Источник: кн. стр. 512–513</li>
+        <li>Тестов, вызывающих метод: 11</li>
+        <li>Ссылок на книги в тестах нет</li>
+        <li>Числа других программ в тестах: glmmADMB, glmmML, lme4</li>
+        <li>Независимая сверка (аудит 2): нет — только граничные случаи</li>
+      </ul>
+      <h3 id="ordinal_regression">Порядковая регрессия (пропорциональные шансы)</h3>
+      <p class="muted"><code>ordinal_regression</code></p>
+      <ul>
+        <li>Источник: кн. стр. 513</li>
+        <li>Тестов, вызывающих метод: 10</li>
+        <li>Ссылок на книги в тестах нет</li>
+        <li>Независимая сверка (аудит 2): коэффициенты, log L — statsmodels OrderedModel</li>
+      </ul>
+      <h3 id="curve_in_blocks">Кривая в блоках и группах: полином или преобразованный x</h3>
+      <p class="muted"><code>curve_in_blocks</code></p>
+      <ul>
+        <li>Источник: кн. стр. 405–409, 476</li>
+        <li>Тестов, вызывающих метод: 6</li>
+        <li>Welham — сверяют тесты: Table 15.13</li>
+        <li>Независимая сверка (аудит 2): нет — только граничные случаи</li>
+      </ul>
+      <h3 id="nonlinear_in_blocks">Нелинейная кривая в блоках и группах</h3>
+      <p class="muted"><code>nonlinear_in_blocks</code></p>
+      <ul>
+        <li>Источник: кн. стр. 476</li>
+        <li>Тестов, вызывающих метод: 5</li>
+        <li>Welham — сверяют тесты: Example 17.1C</li>
+        <li>Независимая сверка (аудит 2): нет — только граничные случаи</li>
+      </ul>
+      <h3 id="mixed_model">Смешанная модель (REML)</h3>
+      <p class="muted"><code>mixed_model</code></p>
+      <ul>
+        <li>Источник: кн. стр. 100; кн. стр. 427</li>
+        <li>Тестов, вызывающих метод: 17</li>
+        <li>Welham — сверяют тесты: Example 16.1C, Example 16.1F, Example 16.1H, Example 16.1I, Example 16.2, Table 9.12, Table 9.14, Table 16.1, Table 16.2, Table 16.3, Table 16.5, Table 16.6, Table 16.8, Table 16.9</li>
+        <li>Числа других программ в тестах: GenStat</li>
+        <li>Независимая сверка (аудит 2): компоненты дисперсии, эффекты — statsmodels MixedLM; SE — GLS вручную</li>
+      </ul>
+      <h2>Связь переменных</h2>
+      <h3 id="contingency_test">Таблица сопряжённости: χ² и точный тест Фишера</h3>
+      <p class="muted"><code>contingency_test</code></p>
+      <ul>
+        <li>Источник: кн. стр. 513</li>
+        <li>Тестов, вызывающих метод: 18</li>
+        <li>Welham — сверяют тесты: стр. 455, стр. 513</li>
+        <li>Witte — сверяют тесты: Progress Check 19.4, Progress Check 19.6, Progress Check 19.8c, Review 19.13, Review 19.14, Review 19.17–19.18, Table 19.5, Table 19.7, Table 19.8</li>
+        <li>Числа других программ в тестах: SAS</li>
+        <li>Независимая сверка (аудит 2): χ² с поправкой и без, точный тест Фишера — scipy</li>
+      </ul>
+      <h2>Планирование опыта</h2>
+      <h3 id="sampling_scheme_power">План вложенной выборки: SE и мощность по компонентам дисперсии</h3>
+      <p class="muted"><code>sampling_scheme_power</code></p>
+      <ul>
+        <li>Источник: кн. стр. 534–535</li>
+        <li>Тестов, вызывающих метод: 5</li>
+        <li>Welham — сверяют тесты: Table 19.4a, Table 19.4b</li>
+        <li>Независимая сверка (аудит 2): нет — только граничные случаи</li>
+      </ul>
+      <h2>Связь переменных</h2>
+      <h3 id="spearman_correlation">Корреляция Спирмена (ранговая) <span class="tag">предл.</span></h3>
+      <p class="muted"><code>spearman_correlation</code></p>
+      <ul>
+        <li>Источник: предл.: Witte стр. 119; ДИ — Fieller, Hartley &amp; Pearson 1957</li>
+        <li>Тестов, вызывающих метод: 4</li>
+        <li>Witte — сверяют тесты: Table 6.1</li>
+        <li>Независимая сверка (аудит 2): ρ, P — scipy</li>
+      </ul>
+      <h3 id="pearson_correlation">Корреляция Пирсона</h3>
+      <p class="muted"><code>pearson_correlation</code></p>
+      <ul>
+        <li>Источник: кн. стр. 36–38</li>
+        <li>Тестов, вызывающих метод: 19</li>
+        <li>Welham — сверяют тесты: Example 2.3B</li>
+        <li>Witte — сверяют тесты: Fig. 6.6, Progress Check 6.5, Table 6.1, Table 6.3, Table 6.4</li>
+        <li>Числа других программ в тестах: SPSS</li>
+        <li>Независимая сверка (аудит 2): r, P, ДИ Фишера — scipy</li>
+      </ul>
+      <footer><a href="/ru/privacy/">Конфиденциальность</a> · <a href="/ru/terms/">Условия</a> · <a href="/ru/methods/">Методы и проверка</a> · <a href="/LICENSE.txt">Лицензия Apache-2.0</a></footer>
+    </main>
+  </body>
+</html>

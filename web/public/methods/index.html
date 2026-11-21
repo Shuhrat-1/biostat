@@ -1,0 +1,710 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Methods and validation — BioStat</title>
+    <meta name="description" content="All BioStat methods: book source, which book tables and examples the tests check, independent cross-check and what has no reference check." />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="canonical" href="https://biostat.app/methods/" />
+    <link rel="alternate" hreflang="en" href="https://biostat.app/methods/" />
+    <link rel="alternate" hreflang="ru" href="https://biostat.app/ru/methods/" />
+    <link rel="alternate" hreflang="pt" href="https://biostat.app/pt/methods/" />
+    <link rel="alternate" hreflang="x-default" href="https://biostat.app/methods/" />
+    <style>body{margin:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:#18181b;background:#fafafa;line-height:1.6}main{max-width:44rem;margin:0 auto;padding:1.5rem 1rem 2rem}h1{font-size:1.6rem;margin:0.6rem 0 0.2rem}h2{font-size:1.1rem;margin:1.6rem 0 0.4rem}p{margin:0.4rem 0}a{color:#0f766e}.muted{color:#63636b;font-size:0.9rem}nav{display:flex;flex-wrap:wrap;gap:0.4rem 1rem;justify-content:space-between;align-items:center}footer{border-top:1px solid #e4e4e7;margin-top:2rem;padding-top:0.8rem;font-size:0.9rem}code{overflow-wrap:anywhere}h3{font-size:1rem;margin:1.4rem 0 0}ul{margin:0.3rem 0;padding-left:1.2rem}li{margin:0.15rem 0;overflow-wrap:anywhere}.tag{font-size:0.75rem;font-weight:400;color:#92400e;border:1px solid #f59e0b;border-radius:4px;padding:0 0.3rem;margin-left:0.4rem;white-space:nowrap}</style>
+  </head>
+  <body>
+    <main>
+      <nav><a href="/">← Back to BioStat</a><span><a href="/methods/" hreflang="en" lang="en" aria-current="page">English</a> · <a href="/ru/methods/" hreflang="ru" lang="ru">Русский</a> · <a href="/pt/methods/" hreflang="pt" lang="pt">Português</a></span></nav>
+      <h1>Methods and validation</h1>
+      <p class="muted">Built by a generator from the catalogue, the map and the tests; last updated: 2026-11-21.</p>
+      <p>BioStat has 71 methods. For each one below: its source, the tests that call it, the book tables and examples whose numbers those tests check, and the independent cross-check. The same data in machine-readable form: <a href="/methods.json">methods.json</a>.</p>
+      <p>“book” — Welham S. J., Gezan S. A., Clark S. J., Mead A. Statistical Methods in Biology (CRC Press, 2015), the main source. “proposed” — the method or part of it is not in Welham; its original source or Witte R. S., Witte J. S. Statistics (11th ed., Wiley, 2017) is given.</p>
+      <p>Independent cross-check — audit 2 (2026-11-12, commit f3b6595): the numbers were recomputed another way (scipy, statsmodels, formulas, exact enumeration). It was a one-off check, not an automated test. In the same audit all 71 methods were run on edge cases (empty cells, constants, change of units, shuffled rows).</p>
+      <h2>Not checked against an independent reference</h2>
+      <p>30 of 71 methods: edge cases only in audit 2. Some of them do have book references in their tests — see the method entry.</p>
+      <ul>
+        <li><a href="#describe_by_group">Descriptive statistics by group</a></li>
+        <li><a href="#chi2_goodness_of_fit">χ² goodness of fit of one classification</a></li>
+        <li><a href="#frequency_table">Frequency table of one column</a></li>
+        <li><a href="#one_proportion">One proportion: CI and test of H0: p = p₀</a></li>
+        <li><a href="#mcnemar_test">McNemar: paired binary outcomes</a></li>
+        <li><a href="#anova_permutation_test">Permutation F-test (ANOVA)</a></li>
+        <li><a href="#anova_residuals">ANOVA residuals and outliers</a></li>
+        <li><a href="#transformed_means">ANOVA on a transformed response</a></li>
+        <li><a href="#treatment_contrasts">Treatment contrasts</a></li>
+        <li><a href="#equivalence_test">Equivalence test (TOST)</a></li>
+        <li><a href="#regression_details">Regression: ANOVA, tests, predictions</a></li>
+        <li><a href="#inverse_prediction">Calibration (inverse prediction)</a></li>
+        <li><a href="#regression_diagnostics">Regression: outliers, leverage, influence</a></li>
+        <li><a href="#regression_cross_validation">Regression: cross-validation</a></li>
+        <li><a href="#x_transform_regression">Curve: regression on a transformed x</a></li>
+        <li><a href="#polynomial_regression">Curve: polynomial regression</a></li>
+        <li><a href="#trigonometric_regression">Curve: periodic (trigonometric) regression</a></li>
+        <li><a href="#nonlinear_regression">Curve: nonlinear regression</a></li>
+        <li><a href="#smooth_curve">Curve: splines and loess</a></li>
+        <li><a href="#curve_comparison">Curve: model comparison</a></li>
+        <li><a href="#regression_subsets">Regression: all subsets</a></li>
+        <li><a href="#stepwise_selection">Regression: stepwise selection</a></li>
+        <li><a href="#model_cross_validation">Regression: model comparison by cross-validation</a></li>
+        <li><a href="#response_surface">Response surface (2–4 variates)</a></li>
+        <li><a href="#regression_with_groups">Regression with groups (parallel lines)</a></li>
+        <li><a href="#blocked_regression">Regression in a blocked experiment (RCBD)</a></li>
+        <li><a href="#glmm_analysis">GLMM: proportions and counts with random effects (experimental)</a> — the tests use numbers from glmmADMB, glmmML, lme4</li>
+        <li><a href="#curve_in_blocks">Curve in blocks and groups: polynomial or transformed x</a></li>
+        <li><a href="#nonlinear_in_blocks">Nonlinear curve in blocks and groups</a></li>
+        <li><a href="#sampling_scheme_power">Nested sampling plan: SE and power from variance components</a></li>
+      </ul>
+      <h2>The “proposed” mark</h2>
+      <p>16 methods: the method or part of it does not come from Welham.</p>
+      <ul>
+        <li><a href="#describe_by_group">Descriptive statistics by group</a></li>
+        <li><a href="#chi2_goodness_of_fit">χ² goodness of fit of one classification</a></li>
+        <li><a href="#frequency_table">Frequency table of one column</a></li>
+        <li><a href="#one_sample_t">One-sample t-test</a></li>
+        <li><a href="#one_proportion">One proportion: CI and test of H0: p = p₀</a></li>
+        <li><a href="#mann_whitney">Mann-Whitney test (nonparametric)</a></li>
+        <li><a href="#two_proportions">Two proportions: difference with CI</a></li>
+        <li><a href="#mcnemar_test">McNemar: paired binary outcomes</a></li>
+        <li><a href="#one_sample_wilcoxon">One-sample Wilcoxon test (nonparametric)</a></li>
+        <li><a href="#rm_anova">Repeated-measures ANOVA</a></li>
+        <li><a href="#friedman">Friedman test (ranks, repeated measures)</a></li>
+        <li><a href="#welch_anova">Welch&#x27;s ANOVA (unequal variances)</a></li>
+        <li><a href="#scheffe_test">Scheffé method (pairs and complex contrasts)</a></li>
+        <li><a href="#simple_effects">Simple effects (A at each B and B at each A)</a></li>
+        <li><a href="#wilcoxon">Wilcoxon test (nonparametric)</a></li>
+        <li><a href="#spearman_correlation">Spearman correlation (rank)</a></li>
+      </ul>
+      <h2>[BioStat] thresholds</h2>
+      <p>Thresholds of map hints and method rules that are not in the books are BioStat heuristics:</p>
+      <ul>
+        <li>Normality of residuals (B4.1, B4.7): with more than 30 observations in every group, only marked skewness, |g₁| &gt; 0.5, counts as a violation; with smaller groups the Shapiro–Wilk test decides.</li>
+        <li>Normality of paired differences (B0.6) is checked from 6 pairs on: with fewer the test detects almost nothing.</li>
+        <li>Two groups (B4.2, two_sample_t): Student&#x27;s t by default; Welch is advised when the SD ratio is &gt; 2 with balanced n, or &gt; 1.5 when the n ratio exceeds 1.5; with n &lt; 8 in a group it is a note only.</li>
+        <li>SD grows with the mean (B4.3, a cue for a log transformation): r between log SD and log mean of the groups ≥ 0.8 with SDs differing at least twofold; a confident signal from 4 groups on.</li>
+        <li>Skewed residuals (B4.4): |g₁| &gt; 1 (from 8 residuals) — a hint to transform the response.</li>
+        <li>Skewed response (R2.7): g₁ &gt; 1 with all values &gt; 0 (from 8 observations) — a candidate for a log transformation.</li>
+        <li>Looks like counts (R2.2): non-negative integers, not only 0 and 1, minimum ≤ 10 (otherwise more likely integer measurements such as grams).</li>
+        <li>Many zeros in the response (R2.6): a hint from a 30 % share of zeros, a firm pointer from 50 %.</li>
+        <li>Spread of counts (G.2): variance more than twice the mean (from 10 observations) — a negative binomial model may fit.</li>
+        <li>Overdispersion in a GLM (G.1): the deviance is significantly larger than its degrees of freedom and deviance/df &gt; 1.2.</li>
+        <li>Looks like scores (B0.4, B4.8): integers, 3 to 10 distinct values, range at most 10 — the map suggests rank methods.</li>
+        <li>Numeric class codes (R2.11): 3–10 consecutive integers from 0 or 1, on average at least 5 rows per code; more than 10 distinct values are more likely a measurement than treatment numbers.</li>
+        <li>Possible repeated measures (B0.2): two numeric columns on one scale (ratio of means 0.5 to 2) and r &gt; 0.7 over 5 or more pairs.</li>
+        <li>Repeated measures from roles: every subject is measured at two or more times, at most once at each time.</li>
+        <li>Random factor (B1.9): with fewer than 5 levels the variance component is estimated poorly — the map suggests a fixed block.</li>
+        <li>Curvature of a straight line (A2.3): the quadratic term is significant (p &lt; 0.05) with 4 or more distinct x.</li>
+        <li>Spread grows with the fitted value (A2.4): Spearman ρ &gt; 0.5 and p &lt; 0.05, from 10 points.</li>
+        <li>Outlying residuals (DIAG.1): the share of |r| &gt; 2 is clearly above the expected 5 %, or a residual exceeds the Bonferroni limit (at least 3).</li>
+        <li>Serial correlation of residuals (DIAG.2): Durbin–Watson outside (1, 3), checked from 15 observations on — with 10–12 the statistic leaves these limits by chance in 8–13 % of cases.</li>
+        <li>Influential points in regression (DIAG.4): leverage above 2p/N and above 0.2; influence — Cook&#x27;s distance above F₀.₅(p, N − p).</li>
+        <li>Exact P of rank tests with ties comes from the permutation distribution; it is computed up to 200 non-zero differences (signed-rank test) and up to 100 observations (Mann–Whitney).</li>
+        <li>Separation of categories in ordinal regression: complete — log L &gt; −10⁻⁶·n; partial — |β| &gt; 10 with SE &gt; 100.</li>
+        <li>Factorial ANOVA: an interaction left out of the model with P &lt; 0.10 is flagged as borderline.</li>
+        <li>ANCOVA: lack of fit is not tested when there are more than 200 distinct x (x is continuous).</li>
+        <li>Regression with groups: a warning when the x ranges of two groups overlap by less than half.</li>
+      </ul>
+      <h2>Descriptive statistics</h2>
+      <h3 id="describe_all">Summary descriptive statistics</h3>
+      <p class="muted"><code>describe_all</code></p>
+      <ul>
+        <li>Source: book p. 13–23</li>
+        <li>Tests that call the method: 18</li>
+        <li>No book references in the tests</li>
+        <li>Independent cross-check (audit 2): SD, quartiles, SEM, CV — numpy and scipy</li>
+      </ul>
+      <h3 id="describe_by_group">Descriptive statistics by group <span class="tag">proposed</span></h3>
+      <p class="muted"><code>describe_by_group</code></p>
+      <ul>
+        <li>Source: proposed: Witte ch. 3–4</li>
+        <li>Tests that call the method: 8</li>
+        <li>Witte — checked by tests: Fig. 4.1, Fig. 4.2, Table 1.1, Table 3.1, Table 3.4, Table 4.1, Table 4.3, Table 4.6</li>
+        <li>Independent cross-check (audit 2): none — edge cases only</li>
+      </ul>
+      <h3 id="chi2_goodness_of_fit">χ² goodness of fit of one classification <span class="tag">proposed</span></h3>
+      <p class="muted"><code>chi2_goodness_of_fit</code></p>
+      <ul>
+        <li>Source: proposed: Witte ch. 19.1–19.5</li>
+        <li>Tests that call the method: 12</li>
+        <li>Witte — checked by tests: Progress Check 19.2, Review 19.10, Review 19.11, Review 19.16, Table 19.1, Table 19.1–19.2</li>
+        <li>Independent cross-check (audit 2): none — edge cases only</li>
+      </ul>
+      <h3 id="frequency_table">Frequency table of one column <span class="tag">proposed</span></h3>
+      <p class="muted"><code>frequency_table</code></p>
+      <ul>
+        <li>Source: proposed: Witte ch. 2–4</li>
+        <li>Tests that call the method: 16</li>
+        <li>Witte — checked by tests: Progress Check 2.1, Progress Check 2.2, Progress Check 2.8, Table 1.1, Table 1.2, Table 2.2, Table 2.7, Table 2.8</li>
+        <li>Independent cross-check (audit 2): none — edge cases only</li>
+      </ul>
+      <h3 id="mean_ci">Confidence interval of the mean</h3>
+      <p class="muted"><code>mean_ci</code></p>
+      <ul>
+        <li>Source: book p. 28–29, 32</li>
+        <li>Tests that call the method: 4</li>
+        <li>No book references in the tests</li>
+        <li>Independent cross-check (audit 2): CI — scipy</li>
+      </ul>
+      <h2>Assumption checks</h2>
+      <h3 id="normality_test">Normality test (Shapiro-Wilk)</h3>
+      <p class="muted"><code>normality_test</code></p>
+      <ul>
+        <li>Source: book p. 101</li>
+        <li>Tests that call the method: 5</li>
+        <li>No book references in the tests</li>
+        <li>Independent cross-check (audit 2): W, P, skewness, kurtosis — scipy</li>
+      </ul>
+      <h2>Comparison to a reference</h2>
+      <h3 id="one_sample_t">One-sample t-test <span class="tag">proposed</span></h3>
+      <p class="muted"><code>one_sample_t</code></p>
+      <ul>
+        <li>Source: proposed: Witte p. 405, 407</li>
+        <li>Tests that call the method: 10</li>
+        <li>Witte — checked by tests: Progress Check 13.2–13.4, Table 13.1</li>
+        <li>Independent cross-check (audit 2): t, P, d — scipy</li>
+      </ul>
+      <h3 id="one_proportion">One proportion: CI and test of H0: p = p₀ <span class="tag">proposed</span></h3>
+      <p class="muted"><code>one_proportion</code></p>
+      <ul>
+        <li>Source: proposed: Wilson 1927; Witte p. 228</li>
+        <li>Tests that call the method: 6</li>
+        <li>Witte — checked by tests: Review 19.11</li>
+        <li>Independent cross-check (audit 2): none — edge cases only</li>
+      </ul>
+      <h2>Two-group comparison</h2>
+      <h3 id="two_sample_t">Two-sample t-test</h3>
+      <p class="muted"><code>two_sample_t</code></p>
+      <ul>
+        <li>Source: book p. 32–35</li>
+        <li>Tests that call the method: 23</li>
+        <li>Witte — checked by tests: Progress Check 14.9b, Table 14.1, Table 14.4</li>
+        <li>Numbers from other software in the tests: SAS</li>
+        <li>Independent cross-check (audit 2): t, df, P, CI, d, g (Student and Welch) — scipy</li>
+      </ul>
+      <h3 id="mann_whitney">Mann-Whitney test (nonparametric) <span class="tag">proposed</span></h3>
+      <p class="muted"><code>mann_whitney</code></p>
+      <ul>
+        <li>Source: book p. 127; proposed: Witte p. 387–392</li>
+        <li>Tests that call the method: 11</li>
+        <li>Witte — checked by tests: Progress Check 20.2, Table 20.2</li>
+        <li>Independent cross-check (audit 2): U, P — scipy; small samples — exact enumeration</li>
+      </ul>
+      <h3 id="two_proportions">Two proportions: difference with CI <span class="tag">proposed</span></h3>
+      <p class="muted"><code>two_proportions</code></p>
+      <ul>
+        <li>Source: proposed: Newcombe 1998</li>
+        <li>Tests that call the method: 9</li>
+        <li>Witte — checked by tests: Progress Check 19.6, Review 19.14</li>
+        <li>Independent cross-check (audit 2): z, P — statsmodels; CI — Newcombe</li>
+      </ul>
+      <h3 id="mcnemar_test">McNemar: paired binary outcomes <span class="tag">proposed</span></h3>
+      <p class="muted"><code>mcnemar_test</code></p>
+      <ul>
+        <li>Source: proposed: McNemar 1947</li>
+        <li>Tests that call the method: 5</li>
+        <li>Welham — checked by tests: Table 10.1</li>
+        <li>Independent cross-check (audit 2): none — edge cases only</li>
+      </ul>
+      <h2>Comparison to a reference</h2>
+      <h3 id="one_sample_wilcoxon">One-sample Wilcoxon test (nonparametric) <span class="tag">proposed</span></h3>
+      <p class="muted"><code>one_sample_wilcoxon</code></p>
+      <ul>
+        <li>Source: proposed: Wilcoxon 1945; Hollander &amp; Wolfe 1999; proposed: Wilcoxon 1945; rank analogue of B0.onesample following Witte p. 405, 408</li>
+        <li>Tests that call the method: 6</li>
+        <li>No book references in the tests</li>
+        <li>Independent cross-check (audit 2): P — scipy</li>
+      </ul>
+      <h2>Multi-group comparison</h2>
+      <h3 id="one_way_anova">One-way ANOVA</h3>
+      <p class="muted"><code>one_way_anova</code></p>
+      <ul>
+        <li>Source: book p. 74–84</li>
+        <li>Tests that call the method: 33</li>
+        <li>Welham — checked by tests: Table 4.5</li>
+        <li>Witte — checked by tests: Fig. 16.3, Progress Check 16.5, Review 16.9, Review 16.10, Review 16.11, Review 16.13, Table 14.1, Table 16.3, Table 16.6, Table 16.9, Table 17.6</li>
+        <li>Numbers from other software in the tests: Minitab</li>
+        <li>Independent cross-check (audit 2): F, P, η², ω² — scipy and formulas</li>
+      </ul>
+      <h3 id="rm_anova">Repeated-measures ANOVA <span class="tag">proposed</span></h3>
+      <p class="muted"><code>rm_anova</code></p>
+      <ul>
+        <li>Source: proposed: Witte ch. 17; corrections — Greenhouse &amp; Geisser 1959, Huynh &amp; Feldt 1976</li>
+        <li>Tests that call the method: 19</li>
+        <li>Witte — checked by tests: Progress Check 17.2, Review 17.6, Review 17.7, Table 15.2, Table 17.1, Table 17.3, Table 17.4, Table 17.5, Table 17.6, Table 17.8</li>
+        <li>Independent cross-check (audit 2): F, P, η²ₚ — statsmodels AnovaRM; Greenhouse–Geisser and Huynh–Feldt ε — formulas</li>
+      </ul>
+      <h3 id="friedman">Friedman test (ranks, repeated measures) <span class="tag">proposed</span></h3>
+      <p class="muted"><code>friedman</code></p>
+      <ul>
+        <li>Source: proposed: Friedman 1937; Conover 1999; rank analogue of B0.rm following Witte p. 405, 408</li>
+        <li>Tests that call the method: 5</li>
+        <li>Witte — checked by tests: Progress Check 17.2, Table 17.1</li>
+        <li>Independent cross-check (audit 2): χ², P — scipy</li>
+      </ul>
+      <h3 id="welch_anova">Welch&#x27;s ANOVA (unequal variances) <span class="tag">proposed</span></h3>
+      <p class="muted"><code>welch_anova</code></p>
+      <ul>
+        <li>Source: book p. 107; proposed: Welch 1951; Witte p. 316</li>
+        <li>Tests that call the method: 6</li>
+        <li>Witte — checked by tests: Table 14.4, Table 16.3</li>
+        <li>Numbers from other software in the tests: SAS</li>
+        <li>Independent cross-check (audit 2): F, df₂, P — statsmodels anova_oneway</li>
+      </ul>
+      <h3 id="tukey_hsd">Post-hoc Tukey HSD</h3>
+      <p class="muted"><code>tukey_hsd</code></p>
+      <ul>
+        <li>Source: book p. 200</li>
+        <li>Tests that call the method: 11</li>
+        <li>Witte — checked by tests: Progress Check 16.7, Review 16.10, Table 16.8, Table 16.9</li>
+        <li>Numbers from other software in the tests: Minitab</li>
+        <li>Independent cross-check (audit 2): differences, P, CI (Tukey–Kramer) — scipy tukey_hsd</li>
+      </ul>
+      <h3 id="scheffe_test">Scheffé method (pairs and complex contrasts) <span class="tag">proposed</span></h3>
+      <p class="muted"><code>scheffe_test</code></p>
+      <ul>
+        <li>Source: proposed: Scheffé 1953; Witte p. 314</li>
+        <li>Tests that call the method: 8</li>
+        <li>Witte — checked by tests: Progress Check 16.7, Review 16.10, Table 14.1, Table 16.3, Table 16.9</li>
+        <li>Numbers from other software in the tests: Minitab</li>
+        <li>Independent cross-check (audit 2): F, P, CI — formulas</li>
+      </ul>
+      <h3 id="kruskal_wallis">Kruskal-Wallis test (nonparametric)</h3>
+      <p class="muted"><code>kruskal_wallis</code></p>
+      <ul>
+        <li>Source: book p. 127</li>
+        <li>Tests that call the method: 5</li>
+        <li>Witte — checked by tests: Progress Check 20.4, Table 20.4</li>
+        <li>Independent cross-check (audit 2): H, P — scipy; small samples — exact enumeration</li>
+      </ul>
+      <h3 id="treatment_means">Group means with SED and LSD</h3>
+      <p class="muted"><code>treatment_means</code></p>
+      <ul>
+        <li>Source: book p. 86–87</li>
+        <li>Tests that call the method: 14</li>
+        <li>Welham — checked by tests: Example 2.1C, Example 4.1E, Example 4.1F</li>
+        <li>Independent cross-check (audit 2): SED, LSD, CIs of means — formulas</li>
+      </ul>
+      <h3 id="anova_permutation_test">Permutation F-test (ANOVA)</h3>
+      <p class="muted"><code>anova_permutation_test</code></p>
+      <ul>
+        <li>Source: book p. 102</li>
+        <li>Tests that call the method: 7</li>
+        <li>No book references in the tests</li>
+        <li>Independent cross-check (audit 2): none — edge cases only</li>
+      </ul>
+      <h2>Assumption checks</h2>
+      <h3 id="bartlett_test">Bartlett&#x27;s test (equal variances)</h3>
+      <p class="muted"><code>bartlett_test</code></p>
+      <ul>
+        <li>Source: book p. 104–107</li>
+        <li>Tests that call the method: 4</li>
+        <li>No book references in the tests</li>
+        <li>Independent cross-check (audit 2): X², P — scipy</li>
+      </ul>
+      <h3 id="anova_residuals">ANOVA residuals and outliers</h3>
+      <p class="muted"><code>anova_residuals</code></p>
+      <ul>
+        <li>Source: book p. 94–96, 108–110</li>
+        <li>Tests that call the method: 6</li>
+        <li>Welham — checked by tests: p. 96</li>
+        <li>Independent cross-check (audit 2): none — edge cases only</li>
+      </ul>
+      <h2>Multi-group comparison</h2>
+      <h3 id="transformed_means">ANOVA on a transformed response</h3>
+      <p class="muted"><code>transformed_means</code></p>
+      <ul>
+        <li>Source: book p. 113–121</li>
+        <li>Tests that call the method: 15</li>
+        <li>No book references in the tests</li>
+        <li>Independent cross-check (audit 2): none — edge cases only</li>
+      </ul>
+      <h3 id="rcbd_anova">Randomized block ANOVA (RCBD)</h3>
+      <p class="muted"><code>rcbd_anova</code></p>
+      <ul>
+        <li>Source: book p. 58</li>
+        <li>Tests that call the method: 12</li>
+        <li>Welham — checked by tests: Table 7.4</li>
+        <li>Independent cross-check (audit 2): F, P, block F, SED — statsmodels OLS</li>
+      </ul>
+      <h3 id="rcbd_subsampling_anova">Block ANOVA with repeated measurements per plot</h3>
+      <p class="muted"><code>rcbd_subsampling_anova</code></p>
+      <ul>
+        <li>Source: book p. 145</li>
+        <li>Tests that call the method: 6</li>
+        <li>No book references in the tests</li>
+        <li>Independent cross-check (audit 2): F, P, SED — analysis of plot means</li>
+      </ul>
+      <h3 id="factorial_anova">Factorial ANOVA (A×B, A×B×C)</h3>
+      <p class="muted"><code>factorial_anova</code></p>
+      <ul>
+        <li>Source: book p. 172</li>
+        <li>Tests that call the method: 24</li>
+        <li>Welham — checked by tests: Example 8.5, Table 8.2, Table 8.2a, Table 8.4, Table 8.5, Table 8.8, Table 8.9, Table 8.21, Table 8.22</li>
+        <li>Witte — checked by tests: Progress Check 18.3, Review 18.10, Table 18.3, Table 18.6</li>
+        <li>Independent cross-check (audit 2): F, P of all terms, with blocks — statsmodels</li>
+      </ul>
+      <h3 id="simple_effects">Simple effects (A at each B and B at each A) <span class="tag">proposed</span></h3>
+      <p class="muted"><code>simple_effects</code></p>
+      <ul>
+        <li>Source: proposed: Witte ch. 18.9</li>
+        <li>Tests that call the method: 9</li>
+        <li>Witte — checked by tests: Progress Check 18.6, Table 18.6, Table 18.7</li>
+        <li>Independent cross-check (audit 2): F of simple effects — formulas</li>
+      </ul>
+      <h3 id="nested_anova">Nested treatments: group / member (both factors fixed)</h3>
+      <p class="muted"><code>nested_anova</code></p>
+      <ul>
+        <li>Source: book p. 173</li>
+        <li>Tests that call the method: 9</li>
+        <li>Welham — checked by tests: Example 8.3, Example 8.3B, Table 8.11, Table 8.12, Table 8.14, Table 8.16</li>
+        <li>Independent cross-check (audit 2): SS and F — statsmodels</li>
+      </ul>
+      <h3 id="treatment_contrasts">Treatment contrasts</h3>
+      <p class="muted"><code>treatment_contrasts</code></p>
+      <ul>
+        <li>Source: book p. 182–187</li>
+        <li>Tests that call the method: 7</li>
+        <li>Welham — checked by tests: Example 8.4E, Table 8.17, Table 8.19</li>
+        <li>Independent cross-check (audit 2): none — edge cases only</li>
+      </ul>
+      <h3 id="polynomial_contrasts">Polynomial trend across levels</h3>
+      <p class="muted"><code>polynomial_contrasts</code></p>
+      <ul>
+        <li>Source: book p. 190</li>
+        <li>Tests that call the method: 6</li>
+        <li>Welham — checked by tests: Example 8.6, Table 8.25</li>
+        <li>Independent cross-check (audit 2): linear-trend SS with unequal spacing — OLS</li>
+      </ul>
+      <h3 id="mean_comparisons">Adjusted mean comparisons (Tukey, Dunnett, Holm, FDR)</h3>
+      <p class="muted"><code>mean_comparisons</code></p>
+      <ul>
+        <li>Source: book p. 201</li>
+        <li>Tests that call the method: 13</li>
+        <li>Welham — checked by tests: Example 8.7, Fig. 8.10, Table 8.28, Table 8.29</li>
+        <li>Independent cross-check (audit 2): Tukey (P, CI), Dunnett (scipy dunnett), Holm, Bonferroni, FDR</li>
+      </ul>
+      <h3 id="latin_square_anova">Latin square</h3>
+      <p class="muted"><code>latin_square_anova</code></p>
+      <ul>
+        <li>Source: book p. 209</li>
+        <li>Tests that call the method: 6</li>
+        <li>Welham — checked by tests: Table 9.2, Table 9.4, Table 9.5, Table 9.6</li>
+        <li>Independent cross-check (audit 2): F, P — statsmodels</li>
+      </ul>
+      <h3 id="split_plot_anova">Split-plot design</h3>
+      <p class="muted"><code>split_plot_anova</code></p>
+      <ul>
+        <li>Source: book p. 220</li>
+        <li>Tests that call the method: 8</li>
+        <li>Welham — checked by tests: Example 9.6, Table 9.12, Table 9.13, Table 9.14, Table 9.16</li>
+        <li>Independent cross-check (audit 2): F in both strata, main-plot SED — stratum-by-stratum calculation by hand</li>
+      </ul>
+      <h3 id="bibd_anova">Incomplete blocks (BIBD)</h3>
+      <p class="muted"><code>bibd_anova</code></p>
+      <ul>
+        <li>Source: book p. 232</li>
+        <li>Tests that call the method: 6</li>
+        <li>Welham — checked by tests: Example 9.9B</li>
+        <li>Independent cross-check (audit 2): within-block F, SED, efficiency, adjusted means — OLS</li>
+      </ul>
+      <h2>Experiment planning</h2>
+      <h3 id="replication_power">Replication and power (from a pilot)</h3>
+      <p class="muted"><code>replication_power</code></p>
+      <ul>
+        <li>Source: book ch. 10</li>
+        <li>Tests that call the method: 4</li>
+        <li>Welham — checked by tests: Example 10.1A, Table 4.1</li>
+        <li>Independent cross-check (audit 2): power and n — noncentral t</li>
+      </ul>
+      <h2>Multi-group comparison</h2>
+      <h3 id="equivalence_test">Equivalence test (TOST)</h3>
+      <p class="muted"><code>equivalence_test</code></p>
+      <ul>
+        <li>Source: book p. 253</li>
+        <li>Tests that call the method: 7</li>
+        <li>Welham — checked by tests: Example 10.3, Table 10.6, Table 10.7</li>
+        <li>Independent cross-check (audit 2): none — edge cases only</li>
+      </ul>
+      <h3 id="unbalanced_anova">Non-orthogonal ANOVA (unequal replication)</h3>
+      <p class="muted"><code>unbalanced_anova</code></p>
+      <ul>
+        <li>Source: book p. 258</li>
+        <li>Tests that call the method: 13</li>
+        <li>Welham — checked by tests: Example 11.5, Fig. 11.6, Table 11.17, Table 11.18, Table 11.20, Table 11.23, Table 11.24</li>
+        <li>Independent cross-check (audit 2): sequential SS in both orders, type II — statsmodels</li>
+      </ul>
+      <h2>Paired measurements</h2>
+      <h3 id="paired_t">Paired t-test</h3>
+      <p class="muted"><code>paired_t</code></p>
+      <ul>
+        <li>Source: book p. 41</li>
+        <li>Tests that call the method: 12</li>
+        <li>Witte — checked by tests: Progress Check 15.2, Review 15.7, Table 15.2</li>
+        <li>Independent cross-check (audit 2): t, P, CI, d_z — scipy</li>
+      </ul>
+      <h3 id="wilcoxon">Wilcoxon test (nonparametric) <span class="tag">proposed</span></h3>
+      <p class="muted"><code>wilcoxon</code></p>
+      <ul>
+        <li>Source: book p. 127; proposed: Witte p. 392–396</li>
+        <li>Tests that call the method: 11</li>
+        <li>Witte — checked by tests: Progress Check 20.3, Table 20.3</li>
+        <li>Independent cross-check (audit 2): W, P — scipy; small samples — exact enumeration</li>
+      </ul>
+      <h2>Relationship between variables</h2>
+      <h3 id="simple_linear_regression">Simple linear regression</h3>
+      <p class="muted"><code>simple_linear_regression</code></p>
+      <ul>
+        <li>Source: book p. 287–299</li>
+        <li>Tests that call the method: 27</li>
+        <li>Welham — checked by tests: p. 95–96</li>
+        <li>Witte — checked by tests: Table 7.1, Table 7.3</li>
+        <li>Independent cross-check (audit 2): coefficients, CIs, P — statsmodels</li>
+      </ul>
+      <h3 id="regression_details">Regression: ANOVA, tests, predictions</h3>
+      <p class="muted"><code>regression_details</code></p>
+      <ul>
+        <li>Source: book ch. 12</li>
+        <li>Tests that call the method: 15</li>
+        <li>Welham — checked by tests: Example 12.1D, Example 12.1E, Example 12.1F, Example 12.2A, Example 12.2B, Example 12.3, Example 13.1, Table 12.3, Table 12.4, Table 12.7, Table 12.10, Table 13.1–13.2</li>
+        <li>Witte — checked by tests: p. 132, p. 134, p. 301–305</li>
+        <li>Independent cross-check (audit 2): none — edge cases only</li>
+      </ul>
+      <h3 id="inverse_prediction">Calibration (inverse prediction)</h3>
+      <p class="muted"><code>inverse_prediction</code></p>
+      <ul>
+        <li>Source: book p. 320</li>
+        <li>Tests that call the method: 3</li>
+        <li>Welham — checked by tests: p. 321</li>
+        <li>Independent cross-check (audit 2): none — edge cases only</li>
+      </ul>
+      <h3 id="regression_diagnostics">Regression: outliers, leverage, influence</h3>
+      <p class="muted"><code>regression_diagnostics</code></p>
+      <ul>
+        <li>Source: book p. 325–335</li>
+        <li>Tests that call the method: 9</li>
+        <li>Welham — checked by tests: Example 13.2A, Example 13.2B, Example 13.2C, Table 13.2</li>
+        <li>Independent cross-check (audit 2): none — edge cases only</li>
+      </ul>
+      <h3 id="regression_cross_validation">Regression: cross-validation</h3>
+      <p class="muted"><code>regression_cross_validation</code></p>
+      <ul>
+        <li>Source: book p. 338–342</li>
+        <li>Tests that call the method: 4</li>
+        <li>Welham — checked by tests: Example 13.2D</li>
+        <li>Independent cross-check (audit 2): none — edge cases only</li>
+      </ul>
+      <h3 id="x_transform_regression">Curve: regression on a transformed x</h3>
+      <p class="muted"><code>x_transform_regression</code></p>
+      <ul>
+        <li>Source: book p. 451–456</li>
+        <li>Tests that call the method: 6</li>
+        <li>Welham — checked by tests: Example 17.1A, Table 17.2, Table 17.12</li>
+        <li>Independent cross-check (audit 2): none — edge cases only</li>
+      </ul>
+      <h3 id="polynomial_regression">Curve: polynomial regression</h3>
+      <p class="muted"><code>polynomial_regression</code></p>
+      <ul>
+        <li>Source: book p. 456–460</li>
+        <li>Tests that call the method: 8</li>
+        <li>Welham — checked by tests: Example 17.1B, Table 17.3, Table 17.4, Table 17.12</li>
+        <li>Independent cross-check (audit 2): none — edge cases only</li>
+      </ul>
+      <h3 id="trigonometric_regression">Curve: periodic (trigonometric) regression</h3>
+      <p class="muted"><code>trigonometric_regression</code></p>
+      <ul>
+        <li>Source: book p. 460</li>
+        <li>Tests that call the method: 5</li>
+        <li>Welham — checked by tests: Example 17.2, Table 17.5, Table 17.6</li>
+        <li>Independent cross-check (audit 2): none — edge cases only</li>
+      </ul>
+      <h3 id="nonlinear_regression">Curve: nonlinear regression</h3>
+      <p class="muted"><code>nonlinear_regression</code></p>
+      <ul>
+        <li>Source: book p. 472–476</li>
+        <li>Tests that call the method: 8</li>
+        <li>Welham — checked by tests: Example 17.1C, Table 17.12</li>
+        <li>Independent cross-check (audit 2): none — edge cases only</li>
+      </ul>
+      <h3 id="smooth_curve">Curve: splines and loess</h3>
+      <p class="muted"><code>smooth_curve</code></p>
+      <ul>
+        <li>Source: book p. 460</li>
+        <li>Tests that call the method: 7</li>
+        <li>Welham — checked by tests: Table 17.1</li>
+        <li>Independent cross-check (audit 2): none — edge cases only</li>
+      </ul>
+      <h3 id="curve_comparison">Curve: model comparison</h3>
+      <p class="muted"><code>curve_comparison</code></p>
+      <ul>
+        <li>Source: book p. 475–476</li>
+        <li>Tests that call the method: 4</li>
+        <li>Welham — checked by tests: Table 17.12</li>
+        <li>Independent cross-check (audit 2): none — edge cases only</li>
+      </ul>
+      <h3 id="multiple_regression">Multiple regression</h3>
+      <p class="muted"><code>multiple_regression</code></p>
+      <ul>
+        <li>Source: book ch. 14</li>
+        <li>Tests that call the method: 10</li>
+        <li>Welham — checked by tests: Example 14.1J, Table 14.1, Table 14.3, Table 14.5, Table 14.7, Table 14.9–14.10</li>
+        <li>Independent cross-check (audit 2): coefficients, CIs, VIF, adjusted R² — statsmodels</li>
+      </ul>
+      <h3 id="regression_subsets">Regression: all subsets</h3>
+      <p class="muted"><code>regression_subsets</code></p>
+      <ul>
+        <li>Source: book p. 366</li>
+        <li>Tests that call the method: 4</li>
+        <li>Welham — checked by tests: Table 14.12, Table 14.16</li>
+        <li>Independent cross-check (audit 2): none — edge cases only</li>
+      </ul>
+      <h3 id="stepwise_selection">Regression: stepwise selection</h3>
+      <p class="muted"><code>stepwise_selection</code></p>
+      <ul>
+        <li>Source: book p. 370</li>
+        <li>Tests that call the method: 4</li>
+        <li>Welham — checked by tests: Example 14.2, Table 14.14</li>
+        <li>Independent cross-check (audit 2): none — edge cases only</li>
+      </ul>
+      <h3 id="model_cross_validation">Regression: model comparison by cross-validation</h3>
+      <p class="muted"><code>model_cross_validation</code></p>
+      <ul>
+        <li>Source: book p. 376</li>
+        <li>Tests that call the method: 2</li>
+        <li>Welham — checked by tests: p. 377</li>
+        <li>Independent cross-check (audit 2): none — edge cases only</li>
+      </ul>
+      <h3 id="response_surface">Response surface (2–4 variates)</h3>
+      <p class="muted"><code>response_surface</code></p>
+      <ul>
+        <li>Source: book p. 463</li>
+        <li>Tests that call the method: 13</li>
+        <li>Welham — checked by tests: Example 17.3A, Example 17.3B, Table 17.8, Table 17.9, Table 17.10, Table 17.11</li>
+        <li>Independent cross-check (audit 2): none — edge cases only</li>
+      </ul>
+      <h3 id="regression_with_groups">Regression with groups (parallel lines)</h3>
+      <p class="muted"><code>regression_with_groups</code></p>
+      <ul>
+        <li>Source: book p. 382</li>
+        <li>Tests that call the method: 15</li>
+        <li>Welham — checked by tests: Example 15.1F, Example 15.1H, Example 15.1J, Example 15.2, Table 15.2, Table 15.5, Table 15.6, Table 15.8a, Table 15.10</li>
+        <li>Independent cross-check (audit 2): none — edge cases only</li>
+      </ul>
+      <h3 id="blocked_regression">Regression in a blocked experiment (RCBD)</h3>
+      <p class="muted"><code>blocked_regression</code></p>
+      <ul>
+        <li>Source: book p. 405–409</li>
+        <li>Tests that call the method: 7</li>
+        <li>Welham — checked by tests: Table 15.12, Table 15.13, Table 15.14</li>
+        <li>Independent cross-check (audit 2): none — edge cases only</li>
+      </ul>
+      <h2>Multi-group comparison</h2>
+      <h3 id="ancova">Analysis of covariance (ANCOVA)</h3>
+      <p class="muted"><code>ancova</code></p>
+      <ul>
+        <li>Source: book p. 409</li>
+        <li>Tests that call the method: 10</li>
+        <li>Welham — checked by tests: Example 15.4A, Example 15.4B, Table 15.16, Table 15.17, Table 15.18</li>
+        <li>Independent cross-check (audit 2): adjusted means, SE, SED — statsmodels</li>
+      </ul>
+      <h3 id="glm_analysis">GLM: proportions (binomial) and counts (Poisson)</h3>
+      <p class="muted"><code>glm_analysis</code></p>
+      <ul>
+        <li>Source: book p. 502</li>
+        <li>Tests that call the method: 26</li>
+        <li>Welham — checked by tests: Example 18.1B, Example 18.2B, Example 18.2E, Example 18.3B, Example 18.3C, Example 18.4, Table 18.6, Table 18.7a, Table 18.8, Table 18.9, Table 18.11, Table 18.13</li>
+        <li>Numbers from other software in the tests: GenStat</li>
+        <li>Independent cross-check (audit 2): deviance, coefficients, CIs (binomial and Poisson) — statsmodels GLM</li>
+      </ul>
+      <h3 id="count_regression">Counts: negative binomial and zero-inflated</h3>
+      <p class="muted"><code>count_regression</code></p>
+      <ul>
+        <li>Source: book p. 512</li>
+        <li>Tests that call the method: 6</li>
+        <li>Welham — checked by tests: Table 18.10</li>
+        <li>Independent cross-check (audit 2): coefficient, α, log L — statsmodels NegativeBinomial</li>
+      </ul>
+      <h3 id="glmm_analysis">GLMM: proportions and counts with random effects (experimental)</h3>
+      <p class="muted"><code>glmm_analysis</code></p>
+      <ul>
+        <li>Source: book p. 512–513</li>
+        <li>Tests that call the method: 11</li>
+        <li>No book references in the tests</li>
+        <li>Numbers from other software in the tests: glmmADMB, glmmML, lme4</li>
+        <li>Independent cross-check (audit 2): none — edge cases only</li>
+      </ul>
+      <h3 id="ordinal_regression">Ordinal regression (proportional odds)</h3>
+      <p class="muted"><code>ordinal_regression</code></p>
+      <ul>
+        <li>Source: book p. 513</li>
+        <li>Tests that call the method: 10</li>
+        <li>No book references in the tests</li>
+        <li>Independent cross-check (audit 2): coefficients, log L — statsmodels OrderedModel</li>
+      </ul>
+      <h3 id="curve_in_blocks">Curve in blocks and groups: polynomial or transformed x</h3>
+      <p class="muted"><code>curve_in_blocks</code></p>
+      <ul>
+        <li>Source: book p. 405–409, 476</li>
+        <li>Tests that call the method: 6</li>
+        <li>Welham — checked by tests: Table 15.13</li>
+        <li>Independent cross-check (audit 2): none — edge cases only</li>
+      </ul>
+      <h3 id="nonlinear_in_blocks">Nonlinear curve in blocks and groups</h3>
+      <p class="muted"><code>nonlinear_in_blocks</code></p>
+      <ul>
+        <li>Source: book p. 476</li>
+        <li>Tests that call the method: 5</li>
+        <li>Welham — checked by tests: Example 17.1C</li>
+        <li>Independent cross-check (audit 2): none — edge cases only</li>
+      </ul>
+      <h3 id="mixed_model">Mixed model (REML)</h3>
+      <p class="muted"><code>mixed_model</code></p>
+      <ul>
+        <li>Source: book p. 100; book p. 427</li>
+        <li>Tests that call the method: 17</li>
+        <li>Welham — checked by tests: Example 16.1C, Example 16.1F, Example 16.1H, Example 16.1I, Example 16.2, Table 9.12, Table 9.14, Table 16.1, Table 16.2, Table 16.3, Table 16.5, Table 16.6, Table 16.8, Table 16.9</li>
+        <li>Numbers from other software in the tests: GenStat</li>
+        <li>Independent cross-check (audit 2): variance components, effects — statsmodels MixedLM; SE — GLS by hand</li>
+      </ul>
+      <h2>Relationship between variables</h2>
+      <h3 id="contingency_test">Contingency table: χ² and Fisher&#x27;s exact test</h3>
+      <p class="muted"><code>contingency_test</code></p>
+      <ul>
+        <li>Source: book p. 513</li>
+        <li>Tests that call the method: 18</li>
+        <li>Welham — checked by tests: p. 455, p. 513</li>
+        <li>Witte — checked by tests: Progress Check 19.4, Progress Check 19.6, Progress Check 19.8c, Review 19.13, Review 19.14, Review 19.17–19.18, Table 19.5, Table 19.7, Table 19.8</li>
+        <li>Numbers from other software in the tests: SAS</li>
+        <li>Independent cross-check (audit 2): χ² with and without correction, Fisher&#x27;s exact test — scipy</li>
+      </ul>
+      <h2>Experiment planning</h2>
+      <h3 id="sampling_scheme_power">Nested sampling plan: SE and power from variance components</h3>
+      <p class="muted"><code>sampling_scheme_power</code></p>
+      <ul>
+        <li>Source: book p. 534–535</li>
+        <li>Tests that call the method: 5</li>
+        <li>Welham — checked by tests: Table 19.4a, Table 19.4b</li>
+        <li>Independent cross-check (audit 2): none — edge cases only</li>
+      </ul>
+      <h2>Relationship between variables</h2>
+      <h3 id="spearman_correlation">Spearman correlation (rank) <span class="tag">proposed</span></h3>
+      <p class="muted"><code>spearman_correlation</code></p>
+      <ul>
+        <li>Source: proposed: Witte p. 119; ДИ — Fieller, Hartley &amp; Pearson 1957</li>
+        <li>Tests that call the method: 4</li>
+        <li>Witte — checked by tests: Table 6.1</li>
+        <li>Independent cross-check (audit 2): ρ, P — scipy</li>
+      </ul>
+      <h3 id="pearson_correlation">Pearson correlation</h3>
+      <p class="muted"><code>pearson_correlation</code></p>
+      <ul>
+        <li>Source: book p. 36–38</li>
+        <li>Tests that call the method: 19</li>
+        <li>Welham — checked by tests: Example 2.3B</li>
+        <li>Witte — checked by tests: Fig. 6.6, Progress Check 6.5, Table 6.1, Table 6.3, Table 6.4</li>
+        <li>Numbers from other software in the tests: SPSS</li>
+        <li>Independent cross-check (audit 2): r, P, Fisher CI — scipy</li>
+      </ul>
+      <footer><a href="/privacy/">Privacy</a> · <a href="/terms/">Terms</a> · <a href="/methods/">Methods and validation</a> · <a href="/LICENSE.txt">Apache-2.0 License</a></footer>
+    </main>
+  </body>
+</html>

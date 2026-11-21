@@ -1,6 +1,7 @@
-"""Статичные страницы сайта (конфиденциальность, условия; позже методы) на трёх языках.
+"""Статичные страницы сайта (конфиденциальность, условия, методы) на трёх языках.
 
 Тексты — здесь, HTML собирается в web/public/: /privacy/ и /terms/ (en, x-default),
+/methods/ и methods.json — из tools/methods_page.py,
 /ru/…, /pt/…. Страницы без скриптов (CSP сайта), читаются без JavaScript, с
 canonical и hreflang. Ссылка внутри абзаца — [текст](/адрес). После правки текста:
 
@@ -301,14 +302,16 @@ STYLE = (
     "p{margin:0.4rem 0}a{color:#0f766e}.muted{color:#63636b;font-size:0.9rem}"
     "nav{display:flex;flex-wrap:wrap;gap:0.4rem 1rem;justify-content:space-between;align-items:center}"
     "footer{border-top:1px solid #e4e4e7;margin-top:2rem;padding-top:0.8rem;font-size:0.9rem}"
-    "code{overflow-wrap:anywhere}"
+    "code{overflow-wrap:anywhere}h3{font-size:1rem;margin:1.4rem 0 0}ul{margin:0.3rem 0;padding-left:1.2rem}"
+    "li{margin:0.15rem 0;overflow-wrap:anywhere}.tag{font-size:0.75rem;font-weight:400;color:#92400e;"
+    "border:1px solid #f59e0b;border-radius:4px;padding:0 0.3rem;margin-left:0.4rem;white-space:nowrap}"
 )
 
 
 FOOTER = {
-    "ru": ("Конфиденциальность", "Условия", "Лицензия Apache-2.0"),
-    "en": ("Privacy", "Terms", "Apache-2.0 License"),
-    "pt": ("Privacidade", "Termos", "Licença Apache-2.0"),
+    "ru": ("Конфиденциальность", "Условия", "Методы и проверка", "Лицензия Apache-2.0"),
+    "en": ("Privacy", "Terms", "Methods and validation", "Apache-2.0 License"),
+    "pt": ("Privacidade", "Termos", "Métodos e verificação", "Licença Apache-2.0"),
 }
 LINK = re.compile(r"\[([^\]]+)\]\(([^)\s]+)\)")
 
@@ -324,7 +327,7 @@ def _inline(text: str) -> str:
 
 
 def _footer(lang: str) -> str:
-    hrefs = (page_path("privacy", lang), page_path("terms", lang), "/LICENSE.txt")
+    hrefs = (page_path("privacy", lang), page_path("terms", lang), page_path("methods", lang), "/LICENSE.txt")
     links = " · ".join(f'<a href="{h}">{html.escape(t)}</a>' for h, t in zip(hrefs, FOOTER[lang]))
     return f"      <footer>{links}</footer>\n"
 
@@ -336,16 +339,13 @@ def _links(slug: str, lang: str) -> str:
             f'    <link rel="alternate" hreflang="x-default" href="{SITE}{page_path(slug, "en")}" />\n')
 
 
-def render(slug: str, texts: dict[str, dict], lang: str) -> str:
-    """HTML одной языковой версии страницы."""
-    t = texts[lang]
+def shell(slug: str, t: dict, lang: str, body: str) -> str:
+    """Каркас страницы: head, навигация, заголовок, тело, подвал."""
     esc = html.escape
     current = ' aria-current="page"'
     switch = " · ".join(
         f'<a href="{page_path(slug, code)}" hreflang="{code}" lang="{code}"'
         f'{current if code == lang else ""}>{LANG_NAMES[code]}</a>' for code in LANGS)
-    body = "".join(f"      <h2>{esc(h)}</h2>\n" + "".join(f"      <p>{_inline(p)}</p>\n" for p in ps)
-                   for h, ps in t["sections"])
     return (
         f'<!doctype html>\n<html lang="{lang}">\n  <head>\n    <meta charset="UTF-8" />\n'
         f'    <meta name="viewport" content="width=device-width, initial-scale=1.0" />\n'
@@ -359,10 +359,21 @@ def render(slug: str, texts: dict[str, dict], lang: str) -> str:
     )
 
 
+def render(slug: str, texts: dict[str, dict], lang: str) -> str:
+    """HTML одной языковой версии текстовой страницы (разделы из абзацев)."""
+    t = texts[lang]
+    body = "".join(f"      <h2>{html.escape(h)}</h2>\n" + "".join(f"      <p>{_inline(p)}</p>\n" for p in ps)
+                   for h, ps in t["sections"])
+    return shell(slug, t, lang, body)
+
+
 def pages() -> dict[Path, str]:
-    """Путь в web/public → HTML для всех статичных страниц."""
-    return {PUBLIC / page_path(slug, lang).strip("/") / "index.html": render(slug, texts, lang)
-            for slug, texts in PAGES.items() for lang in LANGS}
+    """Путь в web/public → содержимое всех статичных страниц (и methods.json)."""
+    import methods_page  # здесь: methods_page сам импортирует этот модуль
+
+    out = {PUBLIC / page_path(slug, lang).strip("/") / "index.html": render(slug, texts, lang)
+           for slug, texts in PAGES.items() for lang in LANGS}
+    return out | methods_page.pages()
 
 
 def main() -> None:

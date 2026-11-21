@@ -1,0 +1,213 @@
+{
+ "audit": "2",
+ "date": "2026-11-12",
+ "commit": "f3b6595",
+ "note": "Аудит 2: числа пересчитаны независимым путём (claude/audit-02-report.md); данные — разовые, на коммите f3b6595.",
+ "methods": {
+  "describe_all": {
+   "ru": "SD, квартили, SEM, CV — numpy и scipy",
+   "en": "SD, quartiles, SEM, CV — numpy and scipy",
+   "pt": "DP, quartis, EPM, CV — numpy e scipy"
+  },
+  "mean_ci": {
+   "ru": "ДИ — scipy",
+   "en": "CI — scipy",
+   "pt": "IC — scipy"
+  },
+  "normality_test": {
+   "ru": "W, P, асимметрия, эксцесс — scipy",
+   "en": "W, P, skewness, kurtosis — scipy",
+   "pt": "W, P, assimetria, curtose — scipy"
+  },
+  "two_proportions": {
+   "ru": "z, P — statsmodels; ДИ — по Ньюкомбу",
+   "en": "z, P — statsmodels; CI — Newcombe",
+   "pt": "z, P — statsmodels; IC — Newcombe"
+  },
+  "one_sample_t": {
+   "ru": "t, P, d — scipy",
+   "en": "t, P, d — scipy",
+   "pt": "t, P, d — scipy"
+  },
+  "one_sample_wilcoxon": {
+   "ru": "P — scipy",
+   "en": "P — scipy",
+   "pt": "P — scipy"
+  },
+  "two_sample_t": {
+   "ru": "t, df, P, ДИ, d, g (Стьюдент и Уэлч) — scipy",
+   "en": "t, df, P, CI, d, g (Student and Welch) — scipy",
+   "pt": "t, gl, P, IC, d, g (Student e Welch) — scipy"
+  },
+  "mann_whitney": {
+   "ru": "U, P — scipy; малые выборки — точный перебор",
+   "en": "U, P — scipy; small samples — exact enumeration",
+   "pt": "U, P — scipy; amostras pequenas — enumeração exata"
+  },
+  "one_way_anova": {
+   "ru": "F, P, η², ω² — scipy и формулы",
+   "en": "F, P, η², ω² — scipy and formulas",
+   "pt": "F, P, η², ω² — scipy e fórmulas"
+  },
+  "rm_anova": {
+   "ru": "F, P, η²ₚ — statsmodels AnovaRM; ε Гринхауса–Гейссера и Хюйнха–Фельдта — формулы",
+   "en": "F, P, η²ₚ — statsmodels AnovaRM; Greenhouse–Geisser and Huynh–Feldt ε — formulas",
+   "pt": "F, P, η²ₚ — statsmodels AnovaRM; ε de Greenhouse–Geisser e Huynh–Feldt — fórmulas"
+  },
+  "friedman": {
+   "ru": "χ², P — scipy",
+   "en": "χ², P — scipy",
+   "pt": "χ², P — scipy"
+  },
+  "welch_anova": {
+   "ru": "F, df₂, P — statsmodels anova_oneway",
+   "en": "F, df₂, P — statsmodels anova_oneway",
+   "pt": "F, gl₂, P — statsmodels anova_oneway"
+  },
+  "tukey_hsd": {
+   "ru": "разности, P, ДИ (Тьюки–Крамер) — scipy tukey_hsd",
+   "en": "differences, P, CI (Tukey–Kramer) — scipy tukey_hsd",
+   "pt": "diferenças, P, IC (Tukey–Kramer) — scipy tukey_hsd"
+  },
+  "scheffe_test": {
+   "ru": "F, P, ДИ — формулы",
+   "en": "F, P, CI — formulas",
+   "pt": "F, P, IC — fórmulas"
+  },
+  "kruskal_wallis": {
+   "ru": "H, P — scipy; малые выборки — точный перебор",
+   "en": "H, P — scipy; small samples — exact enumeration",
+   "pt": "H, P — scipy; amostras pequenas — enumeração exata"
+  },
+  "treatment_means": {
+   "ru": "SED, LSD, ДИ средних — формулы",
+   "en": "SED, LSD, CIs of means — formulas",
+   "pt": "SED, LSD, IC das médias — fórmulas"
+  },
+  "bartlett_test": {
+   "ru": "X², P — scipy",
+   "en": "X², P — scipy",
+   "pt": "X², P — scipy"
+  },
+  "rcbd_anova": {
+   "ru": "F, P, F блоков, SED — statsmodels OLS",
+   "en": "F, P, block F, SED — statsmodels OLS",
+   "pt": "F, P, F dos blocos, SED — statsmodels OLS"
+  },
+  "rcbd_subsampling_anova": {
+   "ru": "F, P, SED — анализ средних делянок",
+   "en": "F, P, SED — analysis of plot means",
+   "pt": "F, P, SED — análise das médias das parcelas"
+  },
+  "factorial_anova": {
+   "ru": "F, P всех членов, с блоками — statsmodels",
+   "en": "F, P of all terms, with blocks — statsmodels",
+   "pt": "F, P de todos os termos, com blocos — statsmodels"
+  },
+  "simple_effects": {
+   "ru": "F простых эффектов — формулы",
+   "en": "F of simple effects — formulas",
+   "pt": "F dos efeitos simples — fórmulas"
+  },
+  "nested_anova": {
+   "ru": "SS и F — statsmodels",
+   "en": "SS and F — statsmodels",
+   "pt": "SQ e F — statsmodels"
+  },
+  "polynomial_contrasts": {
+   "ru": "SS линейного тренда при неравных шагах — OLS",
+   "en": "linear-trend SS with unequal spacing — OLS",
+   "pt": "SQ da tendência linear com espaçamento desigual — OLS"
+  },
+  "mean_comparisons": {
+   "ru": "Тьюки (P, ДИ), Даннет (scipy dunnett), Холм, Бонферрони, FDR",
+   "en": "Tukey (P, CI), Dunnett (scipy dunnett), Holm, Bonferroni, FDR",
+   "pt": "Tukey (P, IC), Dunnett (scipy dunnett), Holm, Bonferroni, FDR"
+  },
+  "latin_square_anova": {
+   "ru": "F, P — statsmodels",
+   "en": "F, P — statsmodels",
+   "pt": "F, P — statsmodels"
+  },
+  "split_plot_anova": {
+   "ru": "F в двух стратах, SED главных делянок — расчёт по стратам вручную",
+   "en": "F in both strata, main-plot SED — stratum-by-stratum calculation by hand",
+   "pt": "F nos dois estratos, SED das parcelas principais — cálculo manual por estrato"
+  },
+  "bibd_anova": {
+   "ru": "F внутри блоков, SED, эффективность, скорректированные средние — OLS",
+   "en": "within-block F, SED, efficiency, adjusted means — OLS",
+   "pt": "F intrablocos, SED, eficiência, médias ajustadas — OLS"
+  },
+  "replication_power": {
+   "ru": "мощность и n — нецентральное t",
+   "en": "power and n — noncentral t",
+   "pt": "potência e n — t não central"
+  },
+  "unbalanced_anova": {
+   "ru": "последовательные SS в обоих порядках, тип II — statsmodels",
+   "en": "sequential SS in both orders, type II — statsmodels",
+   "pt": "SQ sequenciais nas duas ordens, tipo II — statsmodels"
+  },
+  "paired_t": {
+   "ru": "t, P, ДИ, d_z — scipy",
+   "en": "t, P, CI, d_z — scipy",
+   "pt": "t, P, IC, d_z — scipy"
+  },
+  "wilcoxon": {
+   "ru": "W, P — scipy; малые выборки — точный перебор",
+   "en": "W, P — scipy; small samples — exact enumeration",
+   "pt": "W, P — scipy; amostras pequenas — enumeração exata"
+  },
+  "simple_linear_regression": {
+   "ru": "коэффициенты, ДИ, P — statsmodels",
+   "en": "coefficients, CIs, P — statsmodels",
+   "pt": "coeficientes, IC, P — statsmodels"
+  },
+  "multiple_regression": {
+   "ru": "коэффициенты, ДИ, VIF, R²adj — statsmodels",
+   "en": "coefficients, CIs, VIF, adjusted R² — statsmodels",
+   "pt": "coeficientes, IC, VIF, R² ajustado — statsmodels"
+  },
+  "ancova": {
+   "ru": "скорректированные средние, SE, SED — statsmodels",
+   "en": "adjusted means, SE, SED — statsmodels",
+   "pt": "médias ajustadas, EP, SED — statsmodels"
+  },
+  "glm_analysis": {
+   "ru": "девианс, коэффициенты, ДИ (биномиальная и Пуассона) — statsmodels GLM",
+   "en": "deviance, coefficients, CIs (binomial and Poisson) — statsmodels GLM",
+   "pt": "deviance, coeficientes, IC (binomial e Poisson) — statsmodels GLM"
+  },
+  "count_regression": {
+   "ru": "коэффициент, α, log L — statsmodels NegativeBinomial",
+   "en": "coefficient, α, log L — statsmodels NegativeBinomial",
+   "pt": "coeficiente, α, log L — statsmodels NegativeBinomial"
+  },
+  "ordinal_regression": {
+   "ru": "коэффициенты, log L — statsmodels OrderedModel",
+   "en": "coefficients, log L — statsmodels OrderedModel",
+   "pt": "coeficientes, log L — statsmodels OrderedModel"
+  },
+  "mixed_model": {
+   "ru": "компоненты дисперсии, эффекты — statsmodels MixedLM; SE — GLS вручную",
+   "en": "variance components, effects — statsmodels MixedLM; SE — GLS by hand",
+   "pt": "componentes de variância, efeitos — statsmodels MixedLM; EP — GLS manual"
+  },
+  "contingency_test": {
+   "ru": "χ² с поправкой и без, точный тест Фишера — scipy",
+   "en": "χ² with and without correction, Fisher's exact test — scipy",
+   "pt": "χ² com e sem correção, teste exato de Fisher — scipy"
+  },
+  "pearson_correlation": {
+   "ru": "r, P, ДИ Фишера — scipy",
+   "en": "r, P, Fisher CI — scipy",
+   "pt": "r, P, IC de Fisher — scipy"
+  },
+  "spearman_correlation": {
+   "ru": "ρ, P — scipy",
+   "en": "ρ, P — scipy",
+   "pt": "ρ, P — scipy"
+  }
+ }
+}

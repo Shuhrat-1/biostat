@@ -1,0 +1,3058 @@
+{
+ "methods_count": 71,
+ "audit": {
+  "audit": "2",
+  "date": "2026-11-12",
+  "commit": "f3b6595"
+ },
+ "methods": [
+  {
+   "id": "describe_all",
+   "group": {
+    "en": "Descriptive statistics",
+    "ru": "Описательная статистика",
+    "pt": "Estatística descritiva"
+   },
+   "name": {
+    "en": "Summary descriptive statistics",
+    "ru": "Сводная описательная статистика",
+    "pt": "Estatística descritiva resumida"
+   },
+   "sources": [
+    "кн. стр. 13–23"
+   ],
+   "proposed": false,
+   "tests": 18,
+   "test_files": [
+    "test_audit2_guards.py",
+    "test_audit2_methods.py",
+    "test_describe_all.py",
+    "test_fixes.py",
+    "test_group_summary.py"
+   ],
+   "book_refs": {
+    "welham": [],
+    "witte": []
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": {
+    "ru": "SD, квартили, SEM, CV — numpy и scipy",
+    "en": "SD, quartiles, SEM, CV — numpy and scipy",
+    "pt": "DP, quartis, EPM, CV — numpy e scipy"
+   }
+  },
+  {
+   "id": "describe_by_group",
+   "group": {
+    "en": "Descriptive statistics",
+    "ru": "Описательная статистика",
+    "pt": "Estatística descritiva"
+   },
+   "name": {
+    "en": "Descriptive statistics by group",
+    "ru": "Описательная статистика по группам",
+    "pt": "Estatística descritiva por grupo"
+   },
+   "sources": [
+    "предл.: Witte гл. 3–4"
+   ],
+   "proposed": true,
+   "tests": 8,
+   "test_files": [
+    "test_group_summary.py"
+   ],
+   "book_refs": {
+    "welham": [],
+    "witte": [
+     "Fig. 4.1",
+     "Fig. 4.2",
+     "Table 1.1",
+     "Table 3.1",
+     "Table 3.4",
+     "Table 4.1",
+     "Table 4.3",
+     "Table 4.6",
+     "стр. 48–53",
+     "стр. 61–62",
+     "стр. 61–63",
+     "стр. 64",
+     "стр. 72",
+     "стр. 77"
+    ]
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": null
+  },
+  {
+   "id": "chi2_goodness_of_fit",
+   "group": {
+    "en": "Descriptive statistics",
+    "ru": "Описательная статистика",
+    "pt": "Estatística descritiva"
+   },
+   "name": {
+    "en": "χ² goodness of fit of one classification",
+    "ru": "χ² согласия одной классификации",
+    "pt": "χ² de ajustamento de uma classificação"
+   },
+   "sources": [
+    "предл.: Witte гл. 19.1–19.5"
+   ],
+   "proposed": true,
+   "tests": 12,
+   "test_files": [
+    "test_goodness_of_fit.py",
+    "test_plotsummary.py",
+    "test_proportions.py"
+   ],
+   "book_refs": {
+    "welham": [],
+    "witte": [
+     "Progress Check 19.2",
+     "Review 19.10",
+     "Review 19.11",
+     "Review 19.16",
+     "Table 19.1",
+     "Table 19.1–19.2",
+     "стр. 228",
+     "стр. 368–369",
+     "стр. 371",
+     "стр. 383",
+     "стр. 385",
+     "стр. 452",
+     "стр. 453–454"
+    ]
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": null
+  },
+  {
+   "id": "frequency_table",
+   "group": {
+    "en": "Descriptive statistics",
+    "ru": "Описательная статистика",
+    "pt": "Estatística descritiva"
+   },
+   "name": {
+    "en": "Frequency table of one column",
+    "ru": "Таблица частот одной колонки",
+    "pt": "Tabela de frequências de uma coluna"
+   },
+   "sources": [
+    "предл.: Witte гл. 2–4"
+   ],
+   "proposed": true,
+   "tests": 16,
+   "test_files": [
+    "test_frequency.py",
+    "test_plotsummary.py"
+   ],
+   "book_refs": {
+    "welham": [],
+    "witte": [
+     "Progress Check 2.1",
+     "Progress Check 2.2",
+     "Progress Check 2.8",
+     "Table 1.1",
+     "Table 1.2",
+     "Table 2.2",
+     "Table 2.7",
+     "Table 2.8",
+     "стр. 23",
+     "стр. 24",
+     "стр. 24–26",
+     "стр. 25",
+     "стр. 26",
+     "стр. 27",
+     "стр. 31",
+     "стр. 32",
+     "стр. 34",
+     "стр. 48",
+     "стр. 53",
+     "стр. 55",
+     "стр. 420",
+     "стр. 420–421",
+     "стр. 422"
+    ]
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": null
+  },
+  {
+   "id": "mean_ci",
+   "group": {
+    "en": "Descriptive statistics",
+    "ru": "Описательная статистика",
+    "pt": "Estatística descritiva"
+   },
+   "name": {
+    "en": "Confidence interval of the mean",
+    "ru": "Доверительный интервал среднего",
+    "pt": "Intervalo de confiança da média"
+   },
+   "sources": [
+    "кн. стр. 28–29, 32"
+   ],
+   "proposed": false,
+   "tests": 4,
+   "test_files": [
+    "test_descriptive.py"
+   ],
+   "book_refs": {
+    "welham": [],
+    "witte": []
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": {
+    "ru": "ДИ — scipy",
+    "en": "CI — scipy",
+    "pt": "IC — scipy"
+   }
+  },
+  {
+   "id": "normality_test",
+   "group": {
+    "en": "Assumption checks",
+    "ru": "Проверка допущений",
+    "pt": "Verificação de pressupostos"
+   },
+   "name": {
+    "en": "Normality test (Shapiro-Wilk)",
+    "ru": "Проверка нормальности (Шапиро-Уилк)",
+    "pt": "Teste de normalidade (Shapiro-Wilk)"
+   },
+   "sources": [
+    "кн. стр. 101"
+   ],
+   "proposed": false,
+   "tests": 5,
+   "test_files": [
+    "test_audit2_methods.py",
+    "test_diagnostics.py"
+   ],
+   "book_refs": {
+    "welham": [],
+    "witte": []
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": {
+    "ru": "W, P, асимметрия, эксцесс — scipy",
+    "en": "W, P, skewness, kurtosis — scipy",
+    "pt": "W, P, assimetria, curtose — scipy"
+   }
+  },
+  {
+   "id": "one_sample_t",
+   "group": {
+    "en": "Comparison to a reference",
+    "ru": "Сравнение с эталоном",
+    "pt": "Comparação com referência"
+   },
+   "name": {
+    "en": "One-sample t-test",
+    "ru": "Одновыборочный t-тест",
+    "pt": "Teste t para uma amostra"
+   },
+   "sources": [
+    "предл.: Witte стр. 405, 407"
+   ],
+   "proposed": true,
+   "tests": 10,
+   "test_files": [
+    "test_hypothesis.py",
+    "test_witte_ttests.py"
+   ],
+   "book_refs": {
+    "welham": [],
+    "witte": [
+     "Progress Check 13.2–13.4",
+     "Table 13.1",
+     "стр. 213",
+     "стр. 238–240",
+     "стр. 239",
+     "стр. 242",
+     "стр. 436"
+    ]
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": {
+    "ru": "t, P, d — scipy",
+    "en": "t, P, d — scipy",
+    "pt": "t, P, d — scipy"
+   }
+  },
+  {
+   "id": "one_proportion",
+   "group": {
+    "en": "Comparison to a reference",
+    "ru": "Сравнение с эталоном",
+    "pt": "Comparação com referência"
+   },
+   "name": {
+    "en": "One proportion: CI and test of H0: p = p₀",
+    "ru": "Одна доля: ДИ и тест H0: p = p₀",
+    "pt": "Uma proporção: IC e teste de H0: p = p₀"
+   },
+   "sources": [
+    "предл.: Wilson 1927; Witte стр. 228"
+   ],
+   "proposed": true,
+   "tests": 6,
+   "test_files": [
+    "test_plotsummary.py",
+    "test_proportions.py"
+   ],
+   "book_refs": {
+    "welham": [],
+    "witte": [
+     "Review 19.11",
+     "стр. 228",
+     "стр. 383"
+    ]
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": null
+  },
+  {
+   "id": "two_sample_t",
+   "group": {
+    "en": "Two-group comparison",
+    "ru": "Сравнение двух групп",
+    "pt": "Comparação de dois grupos"
+   },
+   "name": {
+    "en": "Two-sample t-test",
+    "ru": "Двухвыборочный t-тест",
+    "pt": "Teste t para duas amostras"
+   },
+   "sources": [
+    "кн. стр. 32–35"
+   ],
+   "proposed": false,
+   "tests": 23,
+   "test_files": [
+    "test_audit2_guards.py",
+    "test_fixes.py",
+    "test_hypothesis.py",
+    "test_map_scenarios.py",
+    "test_welch_rule.py",
+    "test_witte_anova.py",
+    "test_witte_ttests.py"
+   ],
+   "book_refs": {
+    "welham": [],
+    "witte": [
+     "Progress Check 14.9b",
+     "Table 14.1",
+     "Table 14.4",
+     "стр. 252–254",
+     "стр. 260",
+     "стр. 264",
+     "стр. 265",
+     "стр. 267",
+     "стр. 308",
+     "стр. 438"
+    ]
+   },
+   "external_reference_in_tests": [
+    "SAS"
+   ],
+   "audit_reference": {
+    "ru": "t, df, P, ДИ, d, g (Стьюдент и Уэлч) — scipy",
+    "en": "t, df, P, CI, d, g (Student and Welch) — scipy",
+    "pt": "t, gl, P, IC, d, g (Student e Welch) — scipy"
+   }
+  },
+  {
+   "id": "mann_whitney",
+   "group": {
+    "en": "Two-group comparison",
+    "ru": "Сравнение двух групп",
+    "pt": "Comparação de dois grupos"
+   },
+   "name": {
+    "en": "Mann-Whitney test (nonparametric)",
+    "ru": "Тест Манна-Уитни (непараметрический)",
+    "pt": "Teste de Mann-Whitney (não paramétrico)"
+   },
+   "sources": [
+    "кн. стр. 127; предл.: Witte стр. 387–392"
+   ],
+   "proposed": true,
+   "tests": 11,
+   "test_files": [
+    "test_audit2_rank_exact.py",
+    "test_hypothesis.py",
+    "test_witte_ranks.py"
+   ],
+   "book_refs": {
+    "welham": [],
+    "witte": [
+     "Progress Check 20.2",
+     "Table 20.2",
+     "стр. 389",
+     "стр. 391",
+     "стр. 392",
+     "стр. 455"
+    ]
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": {
+    "ru": "U, P — scipy; малые выборки — точный перебор",
+    "en": "U, P — scipy; small samples — exact enumeration",
+    "pt": "U, P — scipy; amostras pequenas — enumeração exata"
+   }
+  },
+  {
+   "id": "two_proportions",
+   "group": {
+    "en": "Two-group comparison",
+    "ru": "Сравнение двух групп",
+    "pt": "Comparação de dois grupos"
+   },
+   "name": {
+    "en": "Two proportions: difference with CI",
+    "ru": "Две доли: разность с ДИ",
+    "pt": "Duas proporções: diferença com IC"
+   },
+   "sources": [
+    "предл.: Newcombe 1998"
+   ],
+   "proposed": true,
+   "tests": 9,
+   "test_files": [
+    "test_audit2_methods.py",
+    "test_plotsummary.py",
+    "test_proportions.py"
+   ],
+   "book_refs": {
+    "welham": [],
+    "witte": [
+     "Progress Check 19.6",
+     "Review 19.14",
+     "стр. 379",
+     "стр. 384",
+     "стр. 454"
+    ]
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": {
+    "ru": "z, P — statsmodels; ДИ — по Ньюкомбу",
+    "en": "z, P — statsmodels; CI — Newcombe",
+    "pt": "z, P — statsmodels; IC — Newcombe"
+   }
+  },
+  {
+   "id": "mcnemar_test",
+   "group": {
+    "en": "Two-group comparison",
+    "ru": "Сравнение двух групп",
+    "pt": "Comparação de dois grupos"
+   },
+   "name": {
+    "en": "McNemar: paired binary outcomes",
+    "ru": "Мак-Немар: парные бинарные исходы",
+    "pt": "McNemar: resultados binários emparelhados"
+   },
+   "sources": [
+    "предл.: McNemar 1947"
+   ],
+   "proposed": true,
+   "tests": 5,
+   "test_files": [
+    "test_plotsummary.py",
+    "test_proportions.py"
+   ],
+   "book_refs": {
+    "welham": [
+     "Table 10.1"
+    ],
+    "witte": []
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": null
+  },
+  {
+   "id": "one_sample_wilcoxon",
+   "group": {
+    "en": "Comparison to a reference",
+    "ru": "Сравнение с эталоном",
+    "pt": "Comparação com referência"
+   },
+   "name": {
+    "en": "One-sample Wilcoxon test (nonparametric)",
+    "ru": "Тест Уилкоксона одной выборки (непараметрический)",
+    "pt": "Teste de Wilcoxon para uma amostra (não paramétrico)"
+   },
+   "sources": [
+    "предл.: Wilcoxon 1945; Hollander & Wolfe 1999",
+    "предл.: Wilcoxon 1945; ранговый аналог B0.onesample по логике Witte стр. 405, 408"
+   ],
+   "proposed": true,
+   "tests": 6,
+   "test_files": [
+    "test_audit2_rank_exact.py",
+    "test_one_sample_wilcoxon.py",
+    "test_plotsummary.py"
+   ],
+   "book_refs": {
+    "welham": [],
+    "witte": []
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": {
+    "ru": "P — scipy",
+    "en": "P — scipy",
+    "pt": "P — scipy"
+   }
+  },
+  {
+   "id": "one_way_anova",
+   "group": {
+    "en": "Multi-group comparison",
+    "ru": "Сравнение нескольких групп",
+    "pt": "Comparação de vários grupos"
+   },
+   "name": {
+    "en": "One-way ANOVA",
+    "ru": "Однофакторный ANOVA",
+    "pt": "ANOVA de um fator"
+   },
+   "sources": [
+    "кн. стр. 74–84"
+   ],
+   "proposed": false,
+   "tests": 33,
+   "test_files": [
+    "test_anova.py",
+    "test_audit2_guards.py",
+    "test_audit2_methods.py",
+    "test_fixes.py",
+    "test_fixes_20_11.py",
+    "test_palette.py",
+    "test_rm_anova.py",
+    "test_scheffe.py",
+    "test_simple_effects.py",
+    "test_treatment_means.py",
+    "test_welch_anova.py",
+    "test_witte_anova.py"
+   ],
+   "book_refs": {
+    "welham": [
+     "Table 4.5",
+     "стр. 83",
+     "стр. 85",
+     "стр. 102"
+    ],
+    "witte": [
+     "Fig. 16.3",
+     "Progress Check 16.5",
+     "Review 16.9",
+     "Review 16.10",
+     "Review 16.11",
+     "Review 16.13",
+     "Table 14.1",
+     "Table 16.3",
+     "Table 16.6",
+     "Table 16.9",
+     "Table 17.6",
+     "стр. 297–298",
+     "стр. 302",
+     "стр. 307",
+     "стр. 307–308",
+     "стр. 308",
+     "стр. 310",
+     "стр. 311",
+     "стр. 317",
+     "стр. 319",
+     "стр. 320",
+     "стр. 321",
+     "стр. 332",
+     "стр. 356",
+     "стр. 444",
+     "стр. 445"
+    ]
+   },
+   "external_reference_in_tests": [
+    "Minitab"
+   ],
+   "audit_reference": {
+    "ru": "F, P, η², ω² — scipy и формулы",
+    "en": "F, P, η², ω² — scipy and formulas",
+    "pt": "F, P, η², ω² — scipy e fórmulas"
+   }
+  },
+  {
+   "id": "rm_anova",
+   "group": {
+    "en": "Multi-group comparison",
+    "ru": "Сравнение нескольких групп",
+    "pt": "Comparação de vários grupos"
+   },
+   "name": {
+    "en": "Repeated-measures ANOVA",
+    "ru": "ANOVA повторных измерений",
+    "pt": "ANOVA de medidas repetidas"
+   },
+   "sources": [
+    "предл.: Witte гл. 17; поправки — Greenhouse & Geisser 1959, Huynh & Feldt 1976"
+   ],
+   "proposed": true,
+   "tests": 19,
+   "test_files": [
+    "test_plotsummary.py",
+    "test_rm_anova.py"
+   ],
+   "book_refs": {
+    "welham": [],
+    "witte": [
+     "Progress Check 17.2",
+     "Review 17.6",
+     "Review 17.7",
+     "Table 15.2",
+     "Table 17.1",
+     "Table 17.3",
+     "Table 17.4",
+     "Table 17.5",
+     "Table 17.6",
+     "Table 17.8",
+     "стр. 328",
+     "стр. 329",
+     "стр. 331",
+     "стр. 332",
+     "стр. 333",
+     "стр. 334",
+     "стр. 335",
+     "стр. 337",
+     "стр. 338",
+     "стр. 446",
+     "стр. 447"
+    ]
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": {
+    "ru": "F, P, η²ₚ — statsmodels AnovaRM; ε Гринхауса–Гейссера и Хюйнха–Фельдта — формулы",
+    "en": "F, P, η²ₚ — statsmodels AnovaRM; Greenhouse–Geisser and Huynh–Feldt ε — formulas",
+    "pt": "F, P, η²ₚ — statsmodels AnovaRM; ε de Greenhouse–Geisser e Huynh–Feldt — fórmulas"
+   }
+  },
+  {
+   "id": "friedman",
+   "group": {
+    "en": "Multi-group comparison",
+    "ru": "Сравнение нескольких групп",
+    "pt": "Comparação de vários grupos"
+   },
+   "name": {
+    "en": "Friedman test (ranks, repeated measures)",
+    "ru": "Критерий Фридмана (ранги, повторные измерения)",
+    "pt": "Teste de Friedman (postos, medidas repetidas)"
+   },
+   "sources": [
+    "предл.: Friedman 1937; Conover 1999; ранговый аналог B0.rm по логике Witte стр. 405, 408"
+   ],
+   "proposed": true,
+   "tests": 5,
+   "test_files": [
+    "test_friedman.py",
+    "test_plotsummary.py"
+   ],
+   "book_refs": {
+    "welham": [],
+    "witte": [
+     "Progress Check 17.2",
+     "Table 17.1",
+     "стр. 323",
+     "стр. 332"
+    ]
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": {
+    "ru": "χ², P — scipy",
+    "en": "χ², P — scipy",
+    "pt": "χ², P — scipy"
+   }
+  },
+  {
+   "id": "welch_anova",
+   "group": {
+    "en": "Multi-group comparison",
+    "ru": "Сравнение нескольких групп",
+    "pt": "Comparação de vários grupos"
+   },
+   "name": {
+    "en": "Welch's ANOVA (unequal variances)",
+    "ru": "ANOVA Уэлча (неравные дисперсии)",
+    "pt": "ANOVA de Welch (variâncias desiguais)"
+   },
+   "sources": [
+    "кн. стр. 107; предл.: Welch 1951; Witte стр. 316"
+   ],
+   "proposed": true,
+   "tests": 6,
+   "test_files": [
+    "test_fixes_20_11.py",
+    "test_plotsummary.py",
+    "test_welch_anova.py"
+   ],
+   "book_refs": {
+    "welham": [],
+    "witte": [
+     "Table 14.4",
+     "Table 16.3",
+     "стр. 267",
+     "стр. 302",
+     "стр. 307–308"
+    ]
+   },
+   "external_reference_in_tests": [
+    "SAS"
+   ],
+   "audit_reference": {
+    "ru": "F, df₂, P — statsmodels anova_oneway",
+    "en": "F, df₂, P — statsmodels anova_oneway",
+    "pt": "F, gl₂, P — statsmodels anova_oneway"
+   }
+  },
+  {
+   "id": "tukey_hsd",
+   "group": {
+    "en": "Multi-group comparison",
+    "ru": "Сравнение нескольких групп",
+    "pt": "Comparação de vários grupos"
+   },
+   "name": {
+    "en": "Post-hoc Tukey HSD",
+    "ru": "Пост-хок Tukey HSD",
+    "pt": "Pós-hoc Tukey HSD"
+   },
+   "sources": [
+    "кн. стр. 200"
+   ],
+   "proposed": false,
+   "tests": 11,
+   "test_files": [
+    "test_anova.py",
+    "test_plotsummary.py",
+    "test_scheffe.py",
+    "test_simple_effects.py",
+    "test_witte_anova.py"
+   ],
+   "book_refs": {
+    "welham": [],
+    "witte": [
+     "Progress Check 16.7",
+     "Review 16.10",
+     "Table 16.8",
+     "Table 16.9",
+     "стр. 313",
+     "стр. 313–314",
+     "стр. 314",
+     "стр. 317",
+     "стр. 319",
+     "стр. 444",
+     "стр. 445"
+    ]
+   },
+   "external_reference_in_tests": [
+    "Minitab"
+   ],
+   "audit_reference": {
+    "ru": "разности, P, ДИ (Тьюки–Крамер) — scipy tukey_hsd",
+    "en": "differences, P, CI (Tukey–Kramer) — scipy tukey_hsd",
+    "pt": "diferenças, P, IC (Tukey–Kramer) — scipy tukey_hsd"
+   }
+  },
+  {
+   "id": "scheffe_test",
+   "group": {
+    "en": "Multi-group comparison",
+    "ru": "Сравнение нескольких групп",
+    "pt": "Comparação de vários grupos"
+   },
+   "name": {
+    "en": "Scheffé method (pairs and complex contrasts)",
+    "ru": "Метод Шеффе (пары и сложные контрасты)",
+    "pt": "Método de Scheffé (pares e contrastes complexos)"
+   },
+   "sources": [
+    "предл.: Scheffé 1953; Witte стр. 314"
+   ],
+   "proposed": true,
+   "tests": 8,
+   "test_files": [
+    "test_plotsummary.py",
+    "test_scheffe.py"
+   ],
+   "book_refs": {
+    "welham": [],
+    "witte": [
+     "Progress Check 16.7",
+     "Review 16.10",
+     "Table 14.1",
+     "Table 16.3",
+     "Table 16.9",
+     "стр. 302",
+     "стр. 314",
+     "стр. 317",
+     "стр. 319"
+    ]
+   },
+   "external_reference_in_tests": [
+    "Minitab"
+   ],
+   "audit_reference": {
+    "ru": "F, P, ДИ — формулы",
+    "en": "F, P, CI — formulas",
+    "pt": "F, P, IC — fórmulas"
+   }
+  },
+  {
+   "id": "kruskal_wallis",
+   "group": {
+    "en": "Multi-group comparison",
+    "ru": "Сравнение нескольких групп",
+    "pt": "Comparação de vários grupos"
+   },
+   "name": {
+    "en": "Kruskal-Wallis test (nonparametric)",
+    "ru": "Тест Краскела-Уоллиса (непараметрический)",
+    "pt": "Teste de Kruskal-Wallis (não paramétrico)"
+   },
+   "sources": [
+    "кн. стр. 127"
+   ],
+   "proposed": false,
+   "tests": 5,
+   "test_files": [
+    "test_anova.py",
+    "test_audit2_rank_exact.py",
+    "test_witte_ranks.py"
+   ],
+   "book_refs": {
+    "welham": [],
+    "witte": [
+     "Progress Check 20.4",
+     "Table 20.4",
+     "стр. 397",
+     "стр. 398",
+     "стр. 399",
+     "стр. 456"
+    ]
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": {
+    "ru": "H, P — scipy; малые выборки — точный перебор",
+    "en": "H, P — scipy; small samples — exact enumeration",
+    "pt": "H, P — scipy; amostras pequenas — enumeração exata"
+   }
+  },
+  {
+   "id": "treatment_means",
+   "group": {
+    "en": "Multi-group comparison",
+    "ru": "Сравнение нескольких групп",
+    "pt": "Comparação de vários grupos"
+   },
+   "name": {
+    "en": "Group means with SED and LSD",
+    "ru": "Средние групп с SED и LSD",
+    "pt": "Médias dos grupos com SED e LSD"
+   },
+   "sources": [
+    "кн. стр. 86–87"
+   ],
+   "proposed": false,
+   "tests": 14,
+   "test_files": [
+    "test_fixes_20_11.py",
+    "test_treatment_means.py"
+   ],
+   "book_refs": {
+    "welham": [
+     "Example 2.1C",
+     "Example 4.1E",
+     "Example 4.1F",
+     "стр. 85",
+     "стр. 86",
+     "стр. 87",
+     "стр. 198"
+    ],
+    "witte": []
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": {
+    "ru": "SED, LSD, ДИ средних — формулы",
+    "en": "SED, LSD, CIs of means — formulas",
+    "pt": "SED, LSD, IC das médias — fórmulas"
+   }
+  },
+  {
+   "id": "anova_permutation_test",
+   "group": {
+    "en": "Multi-group comparison",
+    "ru": "Сравнение нескольких групп",
+    "pt": "Comparação de vários grupos"
+   },
+   "name": {
+    "en": "Permutation F-test (ANOVA)",
+    "ru": "Перестановочный F-тест (ANOVA)",
+    "pt": "Teste F de permutação (ANOVA)"
+   },
+   "sources": [
+    "кн. стр. 102"
+   ],
+   "proposed": false,
+   "tests": 7,
+   "test_files": [
+    "test_anova_checks.py"
+   ],
+   "book_refs": {
+    "welham": [],
+    "witte": []
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": null
+  },
+  {
+   "id": "bartlett_test",
+   "group": {
+    "en": "Assumption checks",
+    "ru": "Проверка допущений",
+    "pt": "Verificação de pressupostos"
+   },
+   "name": {
+    "en": "Bartlett's test (equal variances)",
+    "ru": "Тест Бартлетта (равенство дисперсий)",
+    "pt": "Teste de Bartlett (igualdade de variâncias)"
+   },
+   "sources": [
+    "кн. стр. 104–107"
+   ],
+   "proposed": false,
+   "tests": 4,
+   "test_files": [
+    "test_anova_checks.py"
+   ],
+   "book_refs": {
+    "welham": [],
+    "witte": []
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": {
+    "ru": "X², P — scipy",
+    "en": "X², P — scipy",
+    "pt": "X², P — scipy"
+   }
+  },
+  {
+   "id": "anova_residuals",
+   "group": {
+    "en": "Assumption checks",
+    "ru": "Проверка допущений",
+    "pt": "Verificação de pressupostos"
+   },
+   "name": {
+    "en": "ANOVA residuals and outliers",
+    "ru": "Остатки ANOVA и выбросы",
+    "pt": "Resíduos da ANOVA e valores atípicos"
+   },
+   "sources": [
+    "кн. стр. 94–96, 108–110"
+   ],
+   "proposed": false,
+   "tests": 6,
+   "test_files": [
+    "test_anova_checks.py"
+   ],
+   "book_refs": {
+    "welham": [
+     "стр. 96"
+    ],
+    "witte": []
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": null
+  },
+  {
+   "id": "transformed_means",
+   "group": {
+    "en": "Multi-group comparison",
+    "ru": "Сравнение нескольких групп",
+    "pt": "Comparação de vários grupos"
+   },
+   "name": {
+    "en": "ANOVA on a transformed response",
+    "ru": "ANOVA с трансформацией отклика",
+    "pt": "ANOVA com resposta transformada"
+   },
+   "sources": [
+    "кн. стр. 113–121"
+   ],
+   "proposed": false,
+   "tests": 15,
+   "test_files": [
+    "test_audit2_guards.py",
+    "test_plotsummary.py",
+    "test_transforms.py"
+   ],
+   "book_refs": {
+    "welham": [],
+    "witte": []
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": null
+  },
+  {
+   "id": "rcbd_anova",
+   "group": {
+    "en": "Multi-group comparison",
+    "ru": "Сравнение нескольких групп",
+    "pt": "Comparação de vários grupos"
+   },
+   "name": {
+    "en": "Randomized block ANOVA (RCBD)",
+    "ru": "Блочный ANOVA (RCBD)",
+    "pt": "ANOVA em blocos casualizados (RCBD)"
+   },
+   "sources": [
+    "кн. стр. 58"
+   ],
+   "proposed": false,
+   "tests": 12,
+   "test_files": [
+    "test_audit2_guards.py",
+    "test_blocking.py"
+   ],
+   "book_refs": {
+    "welham": [
+     "Table 7.4",
+     "стр. 137"
+    ],
+    "witte": []
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": {
+    "ru": "F, P, F блоков, SED — statsmodels OLS",
+    "en": "F, P, block F, SED — statsmodels OLS",
+    "pt": "F, P, F dos blocos, SED — statsmodels OLS"
+   }
+  },
+  {
+   "id": "rcbd_subsampling_anova",
+   "group": {
+    "en": "Multi-group comparison",
+    "ru": "Сравнение нескольких групп",
+    "pt": "Comparação de vários grupos"
+   },
+   "name": {
+    "en": "Block ANOVA with repeated measurements per plot",
+    "ru": "Блочный ANOVA с повторными измерениями делянки",
+    "pt": "ANOVA em blocos com medições repetidas por parcela"
+   },
+   "sources": [
+    "кн. стр. 145"
+   ],
+   "proposed": false,
+   "tests": 6,
+   "test_files": [
+    "test_blocking.py"
+   ],
+   "book_refs": {
+    "welham": [],
+    "witte": []
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": {
+    "ru": "F, P, SED — анализ средних делянок",
+    "en": "F, P, SED — analysis of plot means",
+    "pt": "F, P, SED — análise das médias das parcelas"
+   }
+  },
+  {
+   "id": "factorial_anova",
+   "group": {
+    "en": "Multi-group comparison",
+    "ru": "Сравнение нескольких групп",
+    "pt": "Comparação de vários grupos"
+   },
+   "name": {
+    "en": "Factorial ANOVA (A×B, A×B×C)",
+    "ru": "Факторный ANOVA (A×B, A×B×C)",
+    "pt": "ANOVA fatorial (A×B, A×B×C)"
+   },
+   "sources": [
+    "кн. стр. 172"
+   ],
+   "proposed": false,
+   "tests": 24,
+   "test_files": [
+    "test_contrasts.py",
+    "test_factorial.py",
+    "test_plotsummary.py",
+    "test_witte_factorial.py"
+   ],
+   "book_refs": {
+    "welham": [
+     "Example 8.5",
+     "Table 8.2",
+     "Table 8.2a",
+     "Table 8.4",
+     "Table 8.5",
+     "Table 8.8",
+     "Table 8.9",
+     "Table 8.21",
+     "Table 8.22",
+     "стр. 157",
+     "стр. 159–160",
+     "стр. 160",
+     "стр. 162",
+     "стр. 169",
+     "стр. 170",
+     "стр. 189"
+    ],
+    "witte": [
+     "Progress Check 18.3",
+     "Review 18.10",
+     "Table 18.3",
+     "Table 18.6",
+     "стр. 350",
+     "стр. 352",
+     "стр. 353",
+     "стр. 353–354",
+     "стр. 363",
+     "стр. 448–449",
+     "стр. 451"
+    ]
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": {
+    "ru": "F, P всех членов, с блоками — statsmodels",
+    "en": "F, P of all terms, with blocks — statsmodels",
+    "pt": "F, P de todos os termos, com blocos — statsmodels"
+   }
+  },
+  {
+   "id": "simple_effects",
+   "group": {
+    "en": "Multi-group comparison",
+    "ru": "Сравнение нескольких групп",
+    "pt": "Comparação de vários grupos"
+   },
+   "name": {
+    "en": "Simple effects (A at each B and B at each A)",
+    "ru": "Простые эффекты (A при каждом B и B при каждом A)",
+    "pt": "Efeitos simples (A em cada B e B em cada A)"
+   },
+   "sources": [
+    "предл.: Witte гл. 18.9"
+   ],
+   "proposed": true,
+   "tests": 9,
+   "test_files": [
+    "test_plotsummary.py",
+    "test_simple_effects.py"
+   ],
+   "book_refs": {
+    "welham": [],
+    "witte": [
+     "Progress Check 18.6",
+     "Table 18.6",
+     "Table 18.7",
+     "стр. 356",
+     "стр. 356–357",
+     "стр. 357",
+     "стр. 358",
+     "стр. 359–360",
+     "стр. 449",
+     "стр. 450"
+    ]
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": {
+    "ru": "F простых эффектов — формулы",
+    "en": "F of simple effects — formulas",
+    "pt": "F dos efeitos simples — fórmulas"
+   }
+  },
+  {
+   "id": "nested_anova",
+   "group": {
+    "en": "Multi-group comparison",
+    "ru": "Сравнение нескольких групп",
+    "pt": "Comparação de vários grupos"
+   },
+   "name": {
+    "en": "Nested treatments: group / member (both factors fixed)",
+    "ru": "Вложенные варианты: группа / член (оба фактора фиксированы)",
+    "pt": "Tratamentos hierárquicos: grupo / membro (ambos os fatores fixos)"
+   },
+   "sources": [
+    "кн. стр. 173"
+   ],
+   "proposed": false,
+   "tests": 9,
+   "test_files": [
+    "test_audit2_methods.py",
+    "test_factorial.py"
+   ],
+   "book_refs": {
+    "welham": [
+     "Example 8.3",
+     "Example 8.3B",
+     "Table 8.11",
+     "Table 8.12",
+     "Table 8.14",
+     "Table 8.16",
+     "стр. 176",
+     "стр. 178",
+     "стр. 182"
+    ],
+    "witte": []
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": {
+    "ru": "SS и F — statsmodels",
+    "en": "SS and F — statsmodels",
+    "pt": "SQ e F — statsmodels"
+   }
+  },
+  {
+   "id": "treatment_contrasts",
+   "group": {
+    "en": "Multi-group comparison",
+    "ru": "Сравнение нескольких групп",
+    "pt": "Comparação de vários grupos"
+   },
+   "name": {
+    "en": "Treatment contrasts",
+    "ru": "Контрасты вариантов",
+    "pt": "Contrastes de tratamentos"
+   },
+   "sources": [
+    "кн. стр. 182–187"
+   ],
+   "proposed": false,
+   "tests": 7,
+   "test_files": [
+    "test_contrasts.py"
+   ],
+   "book_refs": {
+    "welham": [
+     "Example 8.4E",
+     "Table 8.17",
+     "Table 8.19",
+     "стр. 185",
+     "стр. 186",
+     "стр. 187"
+    ],
+    "witte": []
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": null
+  },
+  {
+   "id": "polynomial_contrasts",
+   "group": {
+    "en": "Multi-group comparison",
+    "ru": "Сравнение нескольких групп",
+    "pt": "Comparação de vários grupos"
+   },
+   "name": {
+    "en": "Polynomial trend across levels",
+    "ru": "Полиномиальный тренд по уровням",
+    "pt": "Tendência polinomial entre níveis"
+   },
+   "sources": [
+    "кн. стр. 190"
+   ],
+   "proposed": false,
+   "tests": 6,
+   "test_files": [
+    "test_contrasts.py",
+    "test_plotsummary.py"
+   ],
+   "book_refs": {
+    "welham": [
+     "Example 8.6",
+     "Table 8.25",
+     "стр. 193",
+     "стр. 194",
+     "стр. 195"
+    ],
+    "witte": []
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": {
+    "ru": "SS линейного тренда при неравных шагах — OLS",
+    "en": "linear-trend SS with unequal spacing — OLS",
+    "pt": "SQ da tendência linear com espaçamento desigual — OLS"
+   }
+  },
+  {
+   "id": "mean_comparisons",
+   "group": {
+    "en": "Multi-group comparison",
+    "ru": "Сравнение нескольких групп",
+    "pt": "Comparação de vários grupos"
+   },
+   "name": {
+    "en": "Adjusted mean comparisons (Tukey, Dunnett, Holm, FDR)",
+    "ru": "Сравнения средних с поправкой (Тьюки, Даннет, Холм, FDR)",
+    "pt": "Comparações de médias com correção (Tukey, Dunnett, Holm, FDR)"
+   },
+   "sources": [
+    "кн. стр. 201"
+   ],
+   "proposed": false,
+   "tests": 13,
+   "test_files": [
+    "test_multcomp.py"
+   ],
+   "book_refs": {
+    "welham": [
+     "Example 8.7",
+     "Fig. 8.10",
+     "Table 8.28",
+     "Table 8.29",
+     "стр. 203",
+     "стр. 204",
+     "стр. 205"
+    ],
+    "witte": []
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": {
+    "ru": "Тьюки (P, ДИ), Даннет (scipy dunnett), Холм, Бонферрони, FDR",
+    "en": "Tukey (P, CI), Dunnett (scipy dunnett), Holm, Bonferroni, FDR",
+    "pt": "Tukey (P, IC), Dunnett (scipy dunnett), Holm, Bonferroni, FDR"
+   }
+  },
+  {
+   "id": "latin_square_anova",
+   "group": {
+    "en": "Multi-group comparison",
+    "ru": "Сравнение нескольких групп",
+    "pt": "Comparação de vários grupos"
+   },
+   "name": {
+    "en": "Latin square",
+    "ru": "Латинский квадрат",
+    "pt": "Quadrado latino"
+   },
+   "sources": [
+    "кн. стр. 209"
+   ],
+   "proposed": false,
+   "tests": 6,
+   "test_files": [
+    "test_designs.py"
+   ],
+   "book_refs": {
+    "welham": [
+     "Table 9.2",
+     "Table 9.4",
+     "Table 9.5",
+     "Table 9.6",
+     "стр. 213",
+     "стр. 215",
+     "стр. 217"
+    ],
+    "witte": []
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": {
+    "ru": "F, P — statsmodels",
+    "en": "F, P — statsmodels",
+    "pt": "F, P — statsmodels"
+   }
+  },
+  {
+   "id": "split_plot_anova",
+   "group": {
+    "en": "Multi-group comparison",
+    "ru": "Сравнение нескольких групп",
+    "pt": "Comparação de vários grupos"
+   },
+   "name": {
+    "en": "Split-plot design",
+    "ru": "Расщеплённые делянки (split-plot)",
+    "pt": "Parcelas subdivididas (split-plot)"
+   },
+   "sources": [
+    "кн. стр. 220"
+   ],
+   "proposed": false,
+   "tests": 8,
+   "test_files": [
+    "test_designs.py"
+   ],
+   "book_refs": {
+    "welham": [
+     "Example 9.6",
+     "Table 9.12",
+     "Table 9.13",
+     "Table 9.14",
+     "Table 9.16",
+     "стр. 225",
+     "стр. 227",
+     "стр. 229–230"
+    ],
+    "witte": []
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": {
+    "ru": "F в двух стратах, SED главных делянок — расчёт по стратам вручную",
+    "en": "F in both strata, main-plot SED — stratum-by-stratum calculation by hand",
+    "pt": "F nos dois estratos, SED das parcelas principais — cálculo manual por estrato"
+   }
+  },
+  {
+   "id": "bibd_anova",
+   "group": {
+    "en": "Multi-group comparison",
+    "ru": "Сравнение нескольких групп",
+    "pt": "Comparação de vários grupos"
+   },
+   "name": {
+    "en": "Incomplete blocks (BIBD)",
+    "ru": "Неполные блоки (BIBD)",
+    "pt": "Blocos incompletos (BIBD)"
+   },
+   "sources": [
+    "кн. стр. 232"
+   ],
+   "proposed": false,
+   "tests": 6,
+   "test_files": [
+    "test_designs.py"
+   ],
+   "book_refs": {
+    "welham": [
+     "Example 9.9B",
+     "стр. 237"
+    ],
+    "witte": []
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": {
+    "ru": "F внутри блоков, SED, эффективность, скорректированные средние — OLS",
+    "en": "within-block F, SED, efficiency, adjusted means — OLS",
+    "pt": "F intrablocos, SED, eficiência, médias ajustadas — OLS"
+   }
+  },
+  {
+   "id": "replication_power",
+   "group": {
+    "en": "Experiment planning",
+    "ru": "Планирование опыта",
+    "pt": "Planeamento do ensaio"
+   },
+   "name": {
+    "en": "Replication and power (from a pilot)",
+    "ru": "Повторность и мощность (по пилоту)",
+    "pt": "Repetição e potência (a partir de um piloto)"
+   },
+   "sources": [
+    "кн. гл. 10"
+   ],
+   "proposed": false,
+   "tests": 4,
+   "test_files": [
+    "test_plotsummary.py",
+    "test_power.py"
+   ],
+   "book_refs": {
+    "welham": [
+     "Example 10.1A",
+     "Table 4.1",
+     "стр. 72",
+     "стр. 242"
+    ],
+    "witte": []
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": {
+    "ru": "мощность и n — нецентральное t",
+    "en": "power and n — noncentral t",
+    "pt": "potência e n — t não central"
+   }
+  },
+  {
+   "id": "equivalence_test",
+   "group": {
+    "en": "Multi-group comparison",
+    "ru": "Сравнение нескольких групп",
+    "pt": "Comparação de vários grupos"
+   },
+   "name": {
+    "en": "Equivalence test (TOST)",
+    "ru": "Тест эквивалентности (TOST)",
+    "pt": "Teste de equivalência (TOST)"
+   },
+   "sources": [
+    "кн. стр. 253"
+   ],
+   "proposed": false,
+   "tests": 7,
+   "test_files": [
+    "test_plotsummary.py",
+    "test_power.py"
+   ],
+   "book_refs": {
+    "welham": [
+     "Example 10.3",
+     "Table 10.6",
+     "Table 10.7",
+     "стр. 254–256",
+     "стр. 255",
+     "стр. 256"
+    ],
+    "witte": []
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": null
+  },
+  {
+   "id": "unbalanced_anova",
+   "group": {
+    "en": "Multi-group comparison",
+    "ru": "Сравнение нескольких групп",
+    "pt": "Comparação de vários grupos"
+   },
+   "name": {
+    "en": "Non-orthogonal ANOVA (unequal replication)",
+    "ru": "Неортогональный ANOVA (неравная повторность)",
+    "pt": "ANOVA não ortogonal (repetição desigual)"
+   },
+   "sources": [
+    "кн. стр. 258"
+   ],
+   "proposed": false,
+   "tests": 13,
+   "test_files": [
+    "test_unbalanced.py"
+   ],
+   "book_refs": {
+    "welham": [
+     "Example 11.5",
+     "Fig. 11.6",
+     "Table 11.17",
+     "Table 11.18",
+     "Table 11.20",
+     "Table 11.23",
+     "Table 11.24",
+     "стр. 276",
+     "стр. 279",
+     "стр. 283",
+     "стр. 284"
+    ],
+    "witte": []
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": {
+    "ru": "последовательные SS в обоих порядках, тип II — statsmodels",
+    "en": "sequential SS in both orders, type II — statsmodels",
+    "pt": "SQ sequenciais nas duas ordens, tipo II — statsmodels"
+   }
+  },
+  {
+   "id": "paired_t",
+   "group": {
+    "en": "Paired measurements",
+    "ru": "Парные измерения",
+    "pt": "Medições emparelhadas"
+   },
+   "name": {
+    "en": "Paired t-test",
+    "ru": "Парный t-тест",
+    "pt": "Teste t emparelhado"
+   },
+   "sources": [
+    "кн. стр. 41"
+   ],
+   "proposed": false,
+   "tests": 12,
+   "test_files": [
+    "test_audit2_guards.py",
+    "test_hypothesis.py",
+    "test_plotsummary.py",
+    "test_rm_anova.py",
+    "test_witte_ttests.py"
+   ],
+   "book_refs": {
+    "welham": [],
+    "witte": [
+     "Progress Check 15.2",
+     "Review 15.7",
+     "Table 15.2",
+     "стр. 260",
+     "стр. 278–280",
+     "стр. 281",
+     "стр. 282",
+     "стр. 283",
+     "стр. 288–289",
+     "стр. 440–441",
+     "стр. 442"
+    ]
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": {
+    "ru": "t, P, ДИ, d_z — scipy",
+    "en": "t, P, CI, d_z — scipy",
+    "pt": "t, P, IC, d_z — scipy"
+   }
+  },
+  {
+   "id": "wilcoxon",
+   "group": {
+    "en": "Paired measurements",
+    "ru": "Парные измерения",
+    "pt": "Medições emparelhadas"
+   },
+   "name": {
+    "en": "Wilcoxon test (nonparametric)",
+    "ru": "Тест Уилкоксона (непараметрический)",
+    "pt": "Teste de Wilcoxon (não paramétrico)"
+   },
+   "sources": [
+    "кн. стр. 127; предл.: Witte стр. 392–396"
+   ],
+   "proposed": true,
+   "tests": 11,
+   "test_files": [
+    "test_audit2_rank_exact.py",
+    "test_friedman.py",
+    "test_hodges_lehmann.py",
+    "test_hypothesis.py",
+    "test_one_sample_wilcoxon.py",
+    "test_witte_ranks.py"
+   ],
+   "book_refs": {
+    "welham": [],
+    "witte": [
+     "Progress Check 20.3",
+     "Table 20.3",
+     "стр. 393",
+     "стр. 395",
+     "стр. 395–396",
+     "стр. 455–456"
+    ]
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": {
+    "ru": "W, P — scipy; малые выборки — точный перебор",
+    "en": "W, P — scipy; small samples — exact enumeration",
+    "pt": "W, P — scipy; amostras pequenas — enumeração exata"
+   }
+  },
+  {
+   "id": "simple_linear_regression",
+   "group": {
+    "en": "Relationship between variables",
+    "ru": "Связь переменных",
+    "pt": "Relação entre variáveis"
+   },
+   "name": {
+    "en": "Simple linear regression",
+    "ru": "Простая линейная регрессия",
+    "pt": "Regressão linear simples"
+   },
+   "sources": [
+    "кн. стр. 287–299"
+   ],
+   "proposed": false,
+   "tests": 27,
+   "test_files": [
+    "test_aligned_columns.py",
+    "test_audit2_guards.py",
+    "test_diagnostics.py",
+    "test_fixes.py",
+    "test_palette.py",
+    "test_plotsummary.py",
+    "test_regression.py",
+    "test_witte_correlation_regression.py"
+   ],
+   "book_refs": {
+    "welham": [
+     "стр. 95–96"
+    ],
+    "witte": [
+     "Table 7.1",
+     "Table 7.3",
+     "стр. 131",
+     "стр. 134",
+     "стр. 137",
+     "стр. 139"
+    ]
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": {
+    "ru": "коэффициенты, ДИ, P — statsmodels",
+    "en": "coefficients, CIs, P — statsmodels",
+    "pt": "coeficientes, IC, P — statsmodels"
+   }
+  },
+  {
+   "id": "regression_details",
+   "group": {
+    "en": "Relationship between variables",
+    "ru": "Связь переменных",
+    "pt": "Relação entre variáveis"
+   },
+   "name": {
+    "en": "Regression: ANOVA, tests, predictions",
+    "ru": "Регрессия: ANOVA, тесты, предсказания",
+    "pt": "Regressão: ANOVA, testes, previsões"
+   },
+   "sources": [
+    "кн. гл. 12"
+   ],
+   "proposed": false,
+   "tests": 15,
+   "test_files": [
+    "test_linear_regression.py",
+    "test_regression_checks.py",
+    "test_witte_correlation_regression.py"
+   ],
+   "book_refs": {
+    "welham": [
+     "Example 12.1D",
+     "Example 12.1E",
+     "Example 12.1F",
+     "Example 12.2A",
+     "Example 12.2B",
+     "Example 12.3",
+     "Example 13.1",
+     "Table 12.3",
+     "Table 12.4",
+     "Table 12.7",
+     "Table 12.10",
+     "Table 13.1–13.2",
+     "стр. 299",
+     "стр. 301",
+     "стр. 303",
+     "стр. 303–304",
+     "стр. 306",
+     "стр. 309",
+     "стр. 312",
+     "стр. 313–314",
+     "стр. 317–318",
+     "стр. 318",
+     "стр. 326–327"
+    ],
+    "witte": [
+     "стр. 132",
+     "стр. 134",
+     "стр. 301–305"
+    ]
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": null
+  },
+  {
+   "id": "inverse_prediction",
+   "group": {
+    "en": "Relationship between variables",
+    "ru": "Связь переменных",
+    "pt": "Relação entre variáveis"
+   },
+   "name": {
+    "en": "Calibration (inverse prediction)",
+    "ru": "Калибровка (обратное предсказание)",
+    "pt": "Calibração (previsão inversa)"
+   },
+   "sources": [
+    "кн. стр. 320"
+   ],
+   "proposed": false,
+   "tests": 3,
+   "test_files": [
+    "test_linear_regression.py"
+   ],
+   "book_refs": {
+    "welham": [
+     "стр. 321"
+    ],
+    "witte": []
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": null
+  },
+  {
+   "id": "regression_diagnostics",
+   "group": {
+    "en": "Relationship between variables",
+    "ru": "Связь переменных",
+    "pt": "Relação entre variáveis"
+   },
+   "name": {
+    "en": "Regression: outliers, leverage, influence",
+    "ru": "Регрессия: выбросы, рычаги, влияние",
+    "pt": "Regressão: outliers, alavancagem, influência"
+   },
+   "sources": [
+    "кн. стр. 325–335"
+   ],
+   "proposed": false,
+   "tests": 9,
+   "test_files": [
+    "test_aligned_columns.py",
+    "test_plotsummary.py",
+    "test_regression_checks.py"
+   ],
+   "book_refs": {
+    "welham": [
+     "Example 13.2A",
+     "Example 13.2B",
+     "Example 13.2C",
+     "Table 13.2",
+     "стр. 327",
+     "стр. 331",
+     "стр. 334",
+     "стр. 337–338"
+    ],
+    "witte": []
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": null
+  },
+  {
+   "id": "regression_cross_validation",
+   "group": {
+    "en": "Relationship between variables",
+    "ru": "Связь переменных",
+    "pt": "Relação entre variáveis"
+   },
+   "name": {
+    "en": "Regression: cross-validation",
+    "ru": "Регрессия: кросс-валидация",
+    "pt": "Regressão: validação cruzada"
+   },
+   "sources": [
+    "кн. стр. 338–342"
+   ],
+   "proposed": false,
+   "tests": 4,
+   "test_files": [
+    "test_regression_checks.py"
+   ],
+   "book_refs": {
+    "welham": [
+     "Example 13.2D",
+     "стр. 339",
+     "стр. 341"
+    ],
+    "witte": []
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": null
+  },
+  {
+   "id": "x_transform_regression",
+   "group": {
+    "en": "Relationship between variables",
+    "ru": "Связь переменных",
+    "pt": "Relação entre variáveis"
+   },
+   "name": {
+    "en": "Curve: regression on a transformed x",
+    "ru": "Кривая: регрессия по преобразованному x",
+    "pt": "Curva: regressão em x transformado"
+   },
+   "sources": [
+    "кн. стр. 451–456"
+   ],
+   "proposed": false,
+   "tests": 6,
+   "test_files": [
+    "test_curves.py"
+   ],
+   "book_refs": {
+    "welham": [
+     "Example 17.1A",
+     "Table 17.2",
+     "Table 17.12",
+     "стр. 454",
+     "стр. 454–455",
+     "стр. 455",
+     "стр. 476"
+    ],
+    "witte": []
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": null
+  },
+  {
+   "id": "polynomial_regression",
+   "group": {
+    "en": "Relationship between variables",
+    "ru": "Связь переменных",
+    "pt": "Relação entre variáveis"
+   },
+   "name": {
+    "en": "Curve: polynomial regression",
+    "ru": "Кривая: полиномиальная регрессия",
+    "pt": "Curva: regressão polinomial"
+   },
+   "sources": [
+    "кн. стр. 456–460"
+   ],
+   "proposed": false,
+   "tests": 8,
+   "test_files": [
+    "test_curves.py"
+   ],
+   "book_refs": {
+    "welham": [
+     "Example 17.1B",
+     "Table 17.3",
+     "Table 17.4",
+     "Table 17.12",
+     "стр. 457",
+     "стр. 457–458",
+     "стр. 458",
+     "стр. 476"
+    ],
+    "witte": []
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": null
+  },
+  {
+   "id": "trigonometric_regression",
+   "group": {
+    "en": "Relationship between variables",
+    "ru": "Связь переменных",
+    "pt": "Relação entre variáveis"
+   },
+   "name": {
+    "en": "Curve: periodic (trigonometric) regression",
+    "ru": "Кривая: периодическая (тригонометрическая) регрессия",
+    "pt": "Curva: regressão periódica (trigonométrica)"
+   },
+   "sources": [
+    "кн. стр. 460"
+   ],
+   "proposed": false,
+   "tests": 5,
+   "test_files": [
+    "test_curves.py",
+    "test_surface_period.py"
+   ],
+   "book_refs": {
+    "welham": [
+     "Example 17.2",
+     "Table 17.5",
+     "Table 17.6",
+     "стр. 461",
+     "стр. 462"
+    ],
+    "witte": []
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": null
+  },
+  {
+   "id": "nonlinear_regression",
+   "group": {
+    "en": "Relationship between variables",
+    "ru": "Связь переменных",
+    "pt": "Relação entre variáveis"
+   },
+   "name": {
+    "en": "Curve: nonlinear regression",
+    "ru": "Кривая: нелинейная регрессия",
+    "pt": "Curva: regressão não linear"
+   },
+   "sources": [
+    "кн. стр. 472–476"
+   ],
+   "proposed": false,
+   "tests": 8,
+   "test_files": [
+    "test_nonlinear.py"
+   ],
+   "book_refs": {
+    "welham": [
+     "Example 17.1C",
+     "Table 17.12",
+     "стр. 474–475",
+     "стр. 475",
+     "стр. 476"
+    ],
+    "witte": []
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": null
+  },
+  {
+   "id": "smooth_curve",
+   "group": {
+    "en": "Relationship between variables",
+    "ru": "Связь переменных",
+    "pt": "Relação entre variáveis"
+   },
+   "name": {
+    "en": "Curve: splines and loess",
+    "ru": "Кривая: сплайны и loess",
+    "pt": "Curva: splines e loess"
+   },
+   "sources": [
+    "кн. стр. 460"
+   ],
+   "proposed": false,
+   "tests": 7,
+   "test_files": [
+    "test_smoothing.py"
+   ],
+   "book_refs": {
+    "welham": [
+     "Table 17.1"
+    ],
+    "witte": []
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": null
+  },
+  {
+   "id": "curve_comparison",
+   "group": {
+    "en": "Relationship between variables",
+    "ru": "Связь переменных",
+    "pt": "Relação entre variáveis"
+   },
+   "name": {
+    "en": "Curve: model comparison",
+    "ru": "Кривая: сравнение моделей",
+    "pt": "Curva: comparação de modelos"
+   },
+   "sources": [
+    "кн. стр. 475–476"
+   ],
+   "proposed": false,
+   "tests": 4,
+   "test_files": [
+    "test_nonlinear.py",
+    "test_plotsummary.py"
+   ],
+   "book_refs": {
+    "welham": [
+     "Table 17.12",
+     "стр. 476"
+    ],
+    "witte": []
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": null
+  },
+  {
+   "id": "multiple_regression",
+   "group": {
+    "en": "Relationship between variables",
+    "ru": "Связь переменных",
+    "pt": "Relação entre variáveis"
+   },
+   "name": {
+    "en": "Multiple regression",
+    "ru": "Множественная регрессия",
+    "pt": "Regressão múltipla"
+   },
+   "sources": [
+    "кн. гл. 14"
+   ],
+   "proposed": false,
+   "tests": 10,
+   "test_files": [
+    "test_audit2_guards.py",
+    "test_multiple_regression.py"
+   ],
+   "book_refs": {
+    "welham": [
+     "Example 14.1J",
+     "Table 14.1",
+     "Table 14.3",
+     "Table 14.5",
+     "Table 14.7",
+     "Table 14.9–14.10",
+     "стр. 347",
+     "стр. 353",
+     "стр. 356",
+     "стр. 357",
+     "стр. 359",
+     "стр. 360",
+     "стр. 361",
+     "стр. 363",
+     "стр. 368"
+    ],
+    "witte": []
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": {
+    "ru": "коэффициенты, ДИ, VIF, R²adj — statsmodels",
+    "en": "coefficients, CIs, VIF, adjusted R² — statsmodels",
+    "pt": "coeficientes, IC, VIF, R² ajustado — statsmodels"
+   }
+  },
+  {
+   "id": "regression_subsets",
+   "group": {
+    "en": "Relationship between variables",
+    "ru": "Связь переменных",
+    "pt": "Relação entre variáveis"
+   },
+   "name": {
+    "en": "Regression: all subsets",
+    "ru": "Регрессия: все подмножества переменных",
+    "pt": "Regressão: todos os subconjuntos"
+   },
+   "sources": [
+    "кн. стр. 366"
+   ],
+   "proposed": false,
+   "tests": 4,
+   "test_files": [
+    "test_multiple_regression.py",
+    "test_plotsummary.py"
+   ],
+   "book_refs": {
+    "welham": [
+     "Table 14.12",
+     "Table 14.16",
+     "стр. 367",
+     "стр. 375"
+    ],
+    "witte": []
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": null
+  },
+  {
+   "id": "stepwise_selection",
+   "group": {
+    "en": "Relationship between variables",
+    "ru": "Связь переменных",
+    "pt": "Relação entre variáveis"
+   },
+   "name": {
+    "en": "Regression: stepwise selection",
+    "ru": "Регрессия: пошаговый отбор",
+    "pt": "Regressão: seleção passo a passo"
+   },
+   "sources": [
+    "кн. стр. 370"
+   ],
+   "proposed": false,
+   "tests": 4,
+   "test_files": [
+    "test_multiple_regression.py"
+   ],
+   "book_refs": {
+    "welham": [
+     "Example 14.2",
+     "Table 14.14",
+     "стр. 372",
+     "стр. 373"
+    ],
+    "witte": []
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": null
+  },
+  {
+   "id": "model_cross_validation",
+   "group": {
+    "en": "Relationship between variables",
+    "ru": "Связь переменных",
+    "pt": "Relação entre variáveis"
+   },
+   "name": {
+    "en": "Regression: model comparison by cross-validation",
+    "ru": "Регрессия: сравнение моделей кросс-валидацией",
+    "pt": "Regressão: comparação de modelos por validação cruzada"
+   },
+   "sources": [
+    "кн. стр. 376"
+   ],
+   "proposed": false,
+   "tests": 2,
+   "test_files": [
+    "test_multiple_regression.py",
+    "test_plotsummary.py"
+   ],
+   "book_refs": {
+    "welham": [
+     "стр. 377"
+    ],
+    "witte": []
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": null
+  },
+  {
+   "id": "response_surface",
+   "group": {
+    "en": "Relationship between variables",
+    "ru": "Связь переменных",
+    "pt": "Relação entre variáveis"
+   },
+   "name": {
+    "en": "Response surface (2–4 variates)",
+    "ru": "Поверхность отклика (2–4 переменные)",
+    "pt": "Superfície de resposta (2–4 variáveis)"
+   },
+   "sources": [
+    "кн. стр. 463"
+   ],
+   "proposed": false,
+   "tests": 13,
+   "test_files": [
+    "test_plotsummary.py",
+    "test_response_surface.py",
+    "test_surface_period.py"
+   ],
+   "book_refs": {
+    "welham": [
+     "Example 17.3A",
+     "Example 17.3B",
+     "Table 17.8",
+     "Table 17.9",
+     "Table 17.10",
+     "Table 17.11",
+     "стр. 465",
+     "стр. 466",
+     "стр. 468",
+     "стр. 469",
+     "стр. 469–470",
+     "стр. 470"
+    ],
+    "witte": []
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": null
+  },
+  {
+   "id": "regression_with_groups",
+   "group": {
+    "en": "Relationship between variables",
+    "ru": "Связь переменных",
+    "pt": "Relação entre variáveis"
+   },
+   "name": {
+    "en": "Regression with groups (parallel lines)",
+    "ru": "Регрессия с группами (параллельные линии)",
+    "pt": "Regressão com grupos (retas paralelas)"
+   },
+   "sources": [
+    "кн. стр. 382"
+   ],
+   "proposed": false,
+   "tests": 15,
+   "test_files": [
+    "test_plotsummary.py",
+    "test_regression_groups.py"
+   ],
+   "book_refs": {
+    "welham": [
+     "Example 15.1F",
+     "Example 15.1H",
+     "Example 15.1J",
+     "Example 15.2",
+     "Table 15.2",
+     "Table 15.5",
+     "Table 15.6",
+     "Table 15.8a",
+     "Table 15.10",
+     "стр. 385–391",
+     "стр. 386",
+     "стр. 389",
+     "стр. 393",
+     "стр. 395",
+     "стр. 396",
+     "стр. 397",
+     "стр. 403",
+     "стр. 403–404",
+     "стр. 405"
+    ],
+    "witte": []
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": null
+  },
+  {
+   "id": "blocked_regression",
+   "group": {
+    "en": "Relationship between variables",
+    "ru": "Связь переменных",
+    "pt": "Relação entre variáveis"
+   },
+   "name": {
+    "en": "Regression in a blocked experiment (RCBD)",
+    "ru": "Регрессия в блочном опыте (RCBD)",
+    "pt": "Regressão num ensaio em blocos (RCBD)"
+   },
+   "sources": [
+    "кн. стр. 405–409"
+   ],
+   "proposed": false,
+   "tests": 7,
+   "test_files": [
+    "test_ancova.py",
+    "test_curve_designs.py"
+   ],
+   "book_refs": {
+    "welham": [
+     "Table 15.12",
+     "Table 15.13",
+     "Table 15.14",
+     "стр. 407",
+     "стр. 408",
+     "стр. 409"
+    ],
+    "witte": []
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": null
+  },
+  {
+   "id": "ancova",
+   "group": {
+    "en": "Multi-group comparison",
+    "ru": "Сравнение нескольких групп",
+    "pt": "Comparação de vários grupos"
+   },
+   "name": {
+    "en": "Analysis of covariance (ANCOVA)",
+    "ru": "Ковариационный анализ (ANCOVA)",
+    "pt": "Análise de covariância (ANCOVA)"
+   },
+   "sources": [
+    "кн. стр. 409"
+   ],
+   "proposed": false,
+   "tests": 10,
+   "test_files": [
+    "test_ancova.py",
+    "test_plotsummary.py"
+   ],
+   "book_refs": {
+    "welham": [
+     "Example 15.4A",
+     "Example 15.4B",
+     "Table 15.16",
+     "Table 15.17",
+     "Table 15.18",
+     "стр. 412",
+     "стр. 413",
+     "стр. 414",
+     "стр. 415",
+     "стр. 416"
+    ],
+    "witte": []
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": {
+    "ru": "скорректированные средние, SE, SED — statsmodels",
+    "en": "adjusted means, SE, SED — statsmodels",
+    "pt": "médias ajustadas, EP, SED — statsmodels"
+   }
+  },
+  {
+   "id": "glm_analysis",
+   "group": {
+    "en": "Multi-group comparison",
+    "ru": "Сравнение нескольких групп",
+    "pt": "Comparação de vários grupos"
+   },
+   "name": {
+    "en": "GLM: proportions (binomial) and counts (Poisson)",
+    "ru": "GLM: доли (биномиальная) и счёты (Пуассон)",
+    "pt": "GLM: proporções (binomial) e contagens (Poisson)"
+   },
+   "sources": [
+    "кн. стр. 502"
+   ],
+   "proposed": false,
+   "tests": 26,
+   "test_files": [
+    "test_counts_categorical.py",
+    "test_glm.py",
+    "test_glm_selection.py",
+    "test_glmm.py",
+    "test_plotsummary.py"
+   ],
+   "book_refs": {
+    "welham": [
+     "Example 18.1B",
+     "Example 18.2B",
+     "Example 18.2E",
+     "Example 18.3B",
+     "Example 18.3C",
+     "Example 18.4",
+     "Table 18.6",
+     "Table 18.7a",
+     "Table 18.8",
+     "Table 18.9",
+     "Table 18.11",
+     "Table 18.13",
+     "стр. 485",
+     "стр. 492",
+     "стр. 494",
+     "стр. 497",
+     "стр. 499",
+     "стр. 500",
+     "стр. 506",
+     "стр. 507",
+     "стр. 507–509",
+     "стр. 510",
+     "стр. 511",
+     "стр. 512",
+     "стр. 513"
+    ],
+    "witte": []
+   },
+   "external_reference_in_tests": [
+    "GenStat"
+   ],
+   "audit_reference": {
+    "ru": "девианс, коэффициенты, ДИ (биномиальная и Пуассона) — statsmodels GLM",
+    "en": "deviance, coefficients, CIs (binomial and Poisson) — statsmodels GLM",
+    "pt": "deviance, coeficientes, IC (binomial e Poisson) — statsmodels GLM"
+   }
+  },
+  {
+   "id": "count_regression",
+   "group": {
+    "en": "Multi-group comparison",
+    "ru": "Сравнение нескольких групп",
+    "pt": "Comparação de vários grupos"
+   },
+   "name": {
+    "en": "Counts: negative binomial and zero-inflated",
+    "ru": "Счёты: отрицательная биномиальная и с нулевым раздуванием",
+    "pt": "Contagens: binomial negativa e com inflação de zeros"
+   },
+   "sources": [
+    "кн. стр. 512"
+   ],
+   "proposed": false,
+   "tests": 6,
+   "test_files": [
+    "test_counts_categorical.py",
+    "test_plotsummary.py"
+   ],
+   "book_refs": {
+    "welham": [
+     "Table 18.10",
+     "стр. 504"
+    ],
+    "witte": []
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": {
+    "ru": "коэффициент, α, log L — statsmodels NegativeBinomial",
+    "en": "coefficient, α, log L — statsmodels NegativeBinomial",
+    "pt": "coeficiente, α, log L — statsmodels NegativeBinomial"
+   }
+  },
+  {
+   "id": "glmm_analysis",
+   "group": {
+    "en": "Multi-group comparison",
+    "ru": "Сравнение нескольких групп",
+    "pt": "Comparação de vários grupos"
+   },
+   "name": {
+    "en": "GLMM: proportions and counts with random effects (experimental)",
+    "ru": "GLMM: доли и счёты со случайными эффектами (экспериментально)",
+    "pt": "GLMM: proporções e contagens com efeitos aleatórios (experimental)"
+   },
+   "sources": [
+    "кн. стр. 512–513"
+   ],
+   "proposed": false,
+   "tests": 11,
+   "test_files": [
+    "test_glmm.py"
+   ],
+   "book_refs": {
+    "welham": [],
+    "witte": []
+   },
+   "external_reference_in_tests": [
+    "glmmADMB",
+    "glmmML",
+    "lme4"
+   ],
+   "audit_reference": null
+  },
+  {
+   "id": "ordinal_regression",
+   "group": {
+    "en": "Multi-group comparison",
+    "ru": "Сравнение нескольких групп",
+    "pt": "Comparação de vários grupos"
+   },
+   "name": {
+    "en": "Ordinal regression (proportional odds)",
+    "ru": "Порядковая регрессия (пропорциональные шансы)",
+    "pt": "Regressão ordinal (chances proporcionais)"
+   },
+   "sources": [
+    "кн. стр. 513"
+   ],
+   "proposed": false,
+   "tests": 10,
+   "test_files": [
+    "test_audit2_methods.py",
+    "test_counts_categorical.py",
+    "test_plotsummary.py"
+   ],
+   "book_refs": {
+    "welham": [],
+    "witte": []
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": {
+    "ru": "коэффициенты, log L — statsmodels OrderedModel",
+    "en": "coefficients, log L — statsmodels OrderedModel",
+    "pt": "coeficientes, log L — statsmodels OrderedModel"
+   }
+  },
+  {
+   "id": "curve_in_blocks",
+   "group": {
+    "en": "Multi-group comparison",
+    "ru": "Сравнение нескольких групп",
+    "pt": "Comparação de vários grupos"
+   },
+   "name": {
+    "en": "Curve in blocks and groups: polynomial or transformed x",
+    "ru": "Кривая в блоках и группах: полином или преобразованный x",
+    "pt": "Curva em blocos e grupos: polinómio ou x transformado"
+   },
+   "sources": [
+    "кн. стр. 405–409, 476"
+   ],
+   "proposed": false,
+   "tests": 6,
+   "test_files": [
+    "test_curve_designs.py",
+    "test_plotsummary.py"
+   ],
+   "book_refs": {
+    "welham": [
+     "Table 15.13",
+     "стр. 408"
+    ],
+    "witte": []
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": null
+  },
+  {
+   "id": "nonlinear_in_blocks",
+   "group": {
+    "en": "Multi-group comparison",
+    "ru": "Сравнение нескольких групп",
+    "pt": "Comparação de vários grupos"
+   },
+   "name": {
+    "en": "Nonlinear curve in blocks and groups",
+    "ru": "Нелинейная кривая в блоках и группах",
+    "pt": "Curva não linear em blocos e grupos"
+   },
+   "sources": [
+    "кн. стр. 476"
+   ],
+   "proposed": false,
+   "tests": 5,
+   "test_files": [
+    "test_curve_designs.py",
+    "test_plotsummary.py"
+   ],
+   "book_refs": {
+    "welham": [
+     "Example 17.1C",
+     "стр. 474–475"
+    ],
+    "witte": []
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": null
+  },
+  {
+   "id": "mixed_model",
+   "group": {
+    "en": "Multi-group comparison",
+    "ru": "Сравнение нескольких групп",
+    "pt": "Comparação de vários grupos"
+   },
+   "name": {
+    "en": "Mixed model (REML)",
+    "ru": "Смешанная модель (REML)",
+    "pt": "Modelo misto (REML)"
+   },
+   "sources": [
+    "кн. стр. 100",
+    "кн. стр. 427"
+   ],
+   "proposed": false,
+   "tests": 17,
+   "test_files": [
+    "test_mixed.py"
+   ],
+   "book_refs": {
+    "welham": [
+     "Example 16.1C",
+     "Example 16.1F",
+     "Example 16.1H",
+     "Example 16.1I",
+     "Example 16.2",
+     "Table 9.12",
+     "Table 9.14",
+     "Table 16.1",
+     "Table 16.2",
+     "Table 16.3",
+     "Table 16.5",
+     "Table 16.6",
+     "Table 16.8",
+     "Table 16.9",
+     "стр. 225",
+     "стр. 430",
+     "стр. 431",
+     "стр. 432–433",
+     "стр. 433",
+     "стр. 433–435",
+     "стр. 435",
+     "стр. 437",
+     "стр. 440",
+     "стр. 441",
+     "стр. 442",
+     "стр. 443",
+     "стр. 444"
+    ],
+    "witte": []
+   },
+   "external_reference_in_tests": [
+    "GenStat"
+   ],
+   "audit_reference": {
+    "ru": "компоненты дисперсии, эффекты — statsmodels MixedLM; SE — GLS вручную",
+    "en": "variance components, effects — statsmodels MixedLM; SE — GLS by hand",
+    "pt": "componentes de variância, efeitos — statsmodels MixedLM; EP — GLS manual"
+   }
+  },
+  {
+   "id": "contingency_test",
+   "group": {
+    "en": "Relationship between variables",
+    "ru": "Связь переменных",
+    "pt": "Relação entre variáveis"
+   },
+   "name": {
+    "en": "Contingency table: χ² and Fisher's exact test",
+    "ru": "Таблица сопряжённости: χ² и точный тест Фишера",
+    "pt": "Tabela de contingência: χ² e teste exato de Fisher"
+   },
+   "sources": [
+    "кн. стр. 513"
+   ],
+   "proposed": false,
+   "tests": 18,
+   "test_files": [
+    "test_audit2_methods.py",
+    "test_counts_categorical.py",
+    "test_plotsummary.py",
+    "test_proportions.py",
+    "test_witte_contingency.py"
+   ],
+   "book_refs": {
+    "welham": [
+     "стр. 455",
+     "стр. 513"
+    ],
+    "witte": [
+     "Progress Check 19.4",
+     "Progress Check 19.6",
+     "Progress Check 19.8c",
+     "Review 19.13",
+     "Review 19.14",
+     "Review 19.17–19.18",
+     "Table 19.5",
+     "Table 19.7",
+     "Table 19.8",
+     "стр. 375",
+     "стр. 376",
+     "стр. 378",
+     "стр. 379",
+     "стр. 381",
+     "стр. 383–384",
+     "стр. 384",
+     "стр. 385",
+     "стр. 452–453",
+     "стр. 453",
+     "стр. 454",
+     "стр. 454–455"
+    ]
+   },
+   "external_reference_in_tests": [
+    "SAS"
+   ],
+   "audit_reference": {
+    "ru": "χ² с поправкой и без, точный тест Фишера — scipy",
+    "en": "χ² with and without correction, Fisher's exact test — scipy",
+    "pt": "χ² com e sem correção, teste exato de Fisher — scipy"
+   }
+  },
+  {
+   "id": "sampling_scheme_power",
+   "group": {
+    "en": "Experiment planning",
+    "ru": "Планирование опыта",
+    "pt": "Planeamento do ensaio"
+   },
+   "name": {
+    "en": "Nested sampling plan: SE and power from variance components",
+    "ru": "План вложенной выборки: SE и мощность по компонентам дисперсии",
+    "pt": "Plano de amostragem hierárquica: EP e potência a partir de componentes de variância"
+   },
+   "sources": [
+    "кн. стр. 534–535"
+   ],
+   "proposed": false,
+   "tests": 5,
+   "test_files": [
+    "test_sampling.py",
+    "test_small_ui.py"
+   ],
+   "book_refs": {
+    "welham": [
+     "Table 19.4a",
+     "Table 19.4b",
+     "стр. 534–535"
+    ],
+    "witte": []
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": null
+  },
+  {
+   "id": "spearman_correlation",
+   "group": {
+    "en": "Relationship between variables",
+    "ru": "Связь переменных",
+    "pt": "Relação entre variáveis"
+   },
+   "name": {
+    "en": "Spearman correlation (rank)",
+    "ru": "Корреляция Спирмена (ранговая)",
+    "pt": "Correlação de Spearman (postos)"
+   },
+   "sources": [
+    "предл.: Witte стр. 119; ДИ — Fieller, Hartley & Pearson 1957"
+   ],
+   "proposed": true,
+   "tests": 4,
+   "test_files": [
+    "test_plotsummary.py",
+    "test_spearman.py"
+   ],
+   "book_refs": {
+    "welham": [],
+    "witte": [
+     "Table 6.1",
+     "стр. 108",
+     "стр. 119"
+    ]
+   },
+   "external_reference_in_tests": [],
+   "audit_reference": {
+    "ru": "ρ, P — scipy",
+    "en": "ρ, P — scipy",
+    "pt": "ρ, P — scipy"
+   }
+  },
+  {
+   "id": "pearson_correlation",
+   "group": {
+    "en": "Relationship between variables",
+    "ru": "Связь переменных",
+    "pt": "Relação entre variáveis"
+   },
+   "name": {
+    "en": "Pearson correlation",
+    "ru": "Корреляция Пирсона",
+    "pt": "Correlação de Pearson"
+   },
+   "sources": [
+    "кн. стр. 36–38"
+   ],
+   "proposed": false,
+   "tests": 19,
+   "test_files": [
+    "test_aligned_columns.py",
+    "test_correlation.py",
+    "test_spearman.py",
+    "test_witte_correlation_regression.py"
+   ],
+   "book_refs": {
+    "welham": [
+     "Example 2.3B",
+     "стр. 36–37",
+     "стр. 37",
+     "стр. 38",
+     "стр. 38–39"
+    ],
+    "witte": [
+     "Fig. 6.6",
+     "Progress Check 6.5",
+     "Table 6.1",
+     "Table 6.3",
+     "Table 6.4",
+     "стр. 108",
+     "стр. 117",
+     "стр. 118",
+     "стр. 119",
+     "стр. 121",
+     "стр. 428"
+    ]
+   },
+   "external_reference_in_tests": [
+    "SPSS"
+   ],
+   "audit_reference": {
+    "ru": "r, P, ДИ Фишера — scipy",
+    "en": "r, P, Fisher CI — scipy",
+    "pt": "r, P, IC de Fisher — scipy"
+   }
+  }
+ ],
+ "biostat_thresholds": [
+  {
+   "anchors": [
+    "(|g₁| > 0.5) [BioStat]",
+    "LARGE_GROUP = 30",
+    "MIN_SKEW = 0.5",
+    "асимметрия остатков [BioStat]",
+    "@rule(\"B4.1\"",
+    "@rule(\"B4.7\""
+   ],
+   "ru": "Нормальность остатков (B4.1, B4.7): если в каждой группе больше 30 наблюдений, нарушением считается только заметная асимметрия, |g₁| > 0.5; при меньших группах решает тест Шапиро–Уилка.",
+   "en": "Normality of residuals (B4.1, B4.7): with more than 30 observations in every group, only marked skewness, |g₁| > 0.5, counts as a violation; with smaller groups the Shapiro–Wilk test decides.",
+   "pt": "Normalidade dos resíduos (B4.1, B4.7): com mais de 30 observações em cada grupo, só uma assimetria marcada, |g₁| > 0,5, conta como violação; com grupos menores decide o teste de Shapiro–Wilk."
+  },
+  {
+   "anchors": [
+    "_MIN_PAIRS = 6",
+    "@rule(\"B0.6\""
+   ],
+   "ru": "Нормальность разностей пар (B0.6) проверяется с 6 пар: на меньшем числе тест почти ничего не замечает.",
+   "en": "Normality of paired differences (B0.6) is checked from 6 pairs on: with fewer the test detects almost nothing.",
+   "pt": "A normalidade das diferenças emparelhadas (B0.6) é verificada a partir de 6 pares: com menos o teste quase nada deteta."
+  },
+  {
+   "anchors": [
+    "Пороги — BioStat [предл.",
+    "Порог 8 — BioStat",
+    "две группы — порог BioStat",
+    "решение BioStat 8.11.2026"
+   ],
+   "ru": "Две группы (B4.2, two_sample_t): по умолчанию t Стьюдента; совет Уэлча — при отношении SD > 2, если n уравновешены, и > 1.5, если отношение n больше 1.5; при n < 8 в группе — только справка.",
+   "en": "Two groups (B4.2, two_sample_t): Student's t by default; Welch is advised when the SD ratio is > 2 with balanced n, or > 1.5 when the n ratio exceeds 1.5; with n < 8 in a group it is a note only.",
+   "pt": "Dois grupos (B4.2, two_sample_t): t de Student por omissão; Welch é aconselhado quando a razão dos DP é > 2 com n equilibrados, ou > 1,5 quando a razão dos n excede 1,5; com n < 8 num grupo é só uma nota."
+  },
+  {
+   "anchors": [
+    "None — связи нет [BioStat]",
+    "_MIN_GROUPS_FOR_TREND = 4",
+    "@rule(\"B4.3\""
+   ],
+   "ru": "SD растёт со средним (B4.3, сигнал к log-трансформации): r между log SD и log среднего групп ≥ 0.8 при SD, различающихся не меньше чем вдвое; уверенный сигнал — с 4 групп.",
+   "en": "SD grows with the mean (B4.3, a cue for a log transformation): r between log SD and log mean of the groups ≥ 0.8 with SDs differing at least twofold; a confident signal from 4 groups on.",
+   "pt": "O DP cresce com a média (B4.3, indício para transformação log): r entre log DP e log média dos grupos ≥ 0,8 com DP que diferem pelo menos para o dobro; sinal seguro a partir de 4 grupos."
+  },
+  {
+   "anchors": [
+    "@rule(\"B4.4\""
+   ],
+   "ru": "Асимметрия остатков (B4.4): |g₁| > 1 (от 8 остатков) — подсказка трансформировать отклик.",
+   "en": "Skewed residuals (B4.4): |g₁| > 1 (from 8 residuals) — a hint to transform the response.",
+   "pt": "Resíduos assimétricos (B4.4): |g₁| > 1 (a partir de 8 resíduos) — sugestão de transformar a resposta."
+  },
+  {
+   "anchors": [
+    "@rule(\"R2.7\""
+   ],
+   "ru": "Асимметрия отклика (R2.7): g₁ > 1 при всех значениях > 0 (от 8 наблюдений) — кандидат на log-преобразование.",
+   "en": "Skewed response (R2.7): g₁ > 1 with all values > 0 (from 8 observations) — a candidate for a log transformation.",
+   "pt": "Resposta assimétrica (R2.7): g₁ > 1 com todos os valores > 0 (a partir de 8 observações) — candidata a transformação log."
+  },
+  {
+   "anchors": [
+    "Условие «минимум ≤ 10» [BioStat]",
+    "@rule(\"R2.2\""
+   ],
+   "ru": "Похоже на счёты (R2.2): неотрицательные целые, не только 0 и 1, минимум ≤ 10 (иначе это скорее целочисленные измерения, например граммы).",
+   "en": "Looks like counts (R2.2): non-negative integers, not only 0 and 1, minimum ≤ 10 (otherwise more likely integer measurements such as grams).",
+   "pt": "Parece de contagens (R2.2): inteiros não negativos, não só 0 e 1, mínimo ≤ 10 (caso contrário, mais provavelmente medições inteiras, como gramas)."
+  },
+  {
+   "anchors": [
+    "_ZERO_SHARE = 0.3",
+    "_ZERO_SHARE_STRONG = 0.5",
+    "@rule(\"R2.6\""
+   ],
+   "ru": "Много нулей в отклике (R2.6): подсказка с доли нулей 30 %, уверенное указание — с 50 %.",
+   "en": "Many zeros in the response (R2.6): a hint from a 30 % share of zeros, a firm pointer from 50 %.",
+   "pt": "Muitos zeros na resposta (R2.6): sugestão a partir de 30 % de zeros, indicação firme a partir de 50 %."
+  },
+  {
+   "anchors": [
+    "@rule(\"G.2\""
+   ],
+   "ru": "Разброс счётов (G.2): дисперсия больше среднего более чем вдвое (от 10 наблюдений) — возможна отрицательная биномиальная модель.",
+   "en": "Spread of counts (G.2): variance more than twice the mean (from 10 observations) — a negative binomial model may fit.",
+   "pt": "Dispersão de contagens (G.2): variância mais do dobro da média (a partir de 10 observações) — pode servir um modelo binomial negativo."
+  },
+  {
+   "anchors": [
+    "нужна заметная сверхдисперсия [BioStat]",
+    "@rule(\"G.1\""
+   ],
+   "ru": "Сверхдисперсия в GLM (G.1): девианс значимо больше числа степеней свободы и девианс/df > 1.2.",
+   "en": "Overdispersion in a GLM (G.1): the deviance is significantly larger than its degrees of freedom and deviance/df > 1.2.",
+   "pt": "Sobredispersão num GLM (G.1): a deviance é significativamente maior do que os graus de liberdade e deviance/gl > 1,2."
+  },
+  {
+   "anchors": [
+    "похоже на баллы [BioStat]",
+    "@rule(\"B0.4\"",
+    "@rule(\"B4.8\""
+   ],
+   "ru": "Похоже на баллы (B0.4, B4.8): целые, от 3 до 10 разных значений, размах не больше 10 — карта советует ранговые методы.",
+   "en": "Looks like scores (B0.4, B4.8): integers, 3 to 10 distinct values, range at most 10 — the map suggests rank methods.",
+   "pt": "Parece de pontuações (B0.4, B4.8): inteiros, 3 a 10 valores distintos, amplitude até 10 — o mapa sugere métodos de postos."
+  },
+  {
+   "anchors": [
+    "_MAX_CODE_LEVELS = 10",
+    "@rule(\"R2.11\"",
+    "количество это или класс. Порог BioStat"
+   ],
+   "ru": "Числовые коды классов (R2.11): 3–10 подряд идущих целых от 0 или 1, в среднем не меньше 5 строк на код; больше 10 разных значений — скорее измерение, чем номера вариантов.",
+   "en": "Numeric class codes (R2.11): 3–10 consecutive integers from 0 or 1, on average at least 5 rows per code; more than 10 distinct values are more likely a measurement than treatment numbers.",
+   "pt": "Códigos numéricos de classes (R2.11): 3–10 inteiros consecutivos a partir de 0 ou 1, em média pelo menos 5 linhas por código; mais de 10 valores distintos são mais provavelmente uma medição."
+  },
+  {
+   "anchors": [
+    "@rule(\"B0.2\""
+   ],
+   "ru": "Возможные повторные измерения (B0.2): две числовые колонки в одной шкале (отношение средних от 0.5 до 2) и r > 0.7 по 5 и более парам.",
+   "en": "Possible repeated measures (B0.2): two numeric columns on one scale (ratio of means 0.5 to 2) and r > 0.7 over 5 or more pairs.",
+   "pt": "Possíveis medições repetidas (B0.2): duas colunas numéricas na mesma escala (razão das médias de 0,5 a 2) e r > 0,7 em 5 ou mais pares."
+  },
+  {
+   "anchors": [
+    "не более раза [BioStat]"
+   ],
+   "ru": "Повторные измерения по ролям: каждый объект измерен не меньше чем в двух моментах, в каждый — не больше одного раза.",
+   "en": "Repeated measures from roles: every subject is measured at two or more times, at most once at each time.",
+   "pt": "Medições repetidas pelos papéis: cada objeto é medido em dois ou mais momentos, no máximo uma vez em cada."
+  },
+  {
+   "anchors": [
+    "_MIN_RANDOM_LEVELS = 5",
+    "@rule(\"B1.9\""
+   ],
+   "ru": "Случайный фактор (B1.9): при меньше чем 5 уровнях компонента дисперсии оценивается ненадёжно — карта советует фиксированный блок.",
+   "en": "Random factor (B1.9): with fewer than 5 levels the variance component is estimated poorly — the map suggests a fixed block.",
+   "pt": "Fator aleatório (B1.9): com menos de 5 níveis a componente de variância é mal estimada — o mapa sugere um bloco fixo."
+  },
+  {
+   "anchors": [
+    "[BioStat: критерий дуги]",
+    "@rule(\"A2.3\""
+   ],
+   "ru": "Изогнутость прямой (A2.3): значим квадратичный член (p < 0.05) при 4 и более разных x.",
+   "en": "Curvature of a straight line (A2.3): the quadratic term is significant (p < 0.05) with 4 or more distinct x.",
+   "pt": "Curvatura da reta (A2.3): o termo quadrático é significativo (p < 0,05) com 4 ou mais x distintos."
+  },
+  {
+   "anchors": [
+    "@rule(\"A2.4\""
+   ],
+   "ru": "Разброс растёт с подогнанным значением (A2.4): ρ Спирмена > 0.5 и p < 0.05, от 10 точек.",
+   "en": "Spread grows with the fitted value (A2.4): Spearman ρ > 0.5 and p < 0.05, from 10 points.",
+   "pt": "A dispersão cresce com o valor ajustado (A2.4): ρ de Spearman > 0,5 e p < 0,05, a partir de 10 pontos."
+  },
+  {
+   "anchors": [
+    "Бонферрони (не меньше 3) [BioStat]",
+    "@rule(\"DIAG.1\""
+   ],
+   "ru": "Выбросы в остатках (DIAG.1): доля |r| > 2 заметно больше ожидаемых 5 % или есть остаток больше порога Бонферрони (не меньше 3).",
+   "en": "Outlying residuals (DIAG.1): the share of |r| > 2 is clearly above the expected 5 %, or a residual exceeds the Bonferroni limit (at least 3).",
+   "pt": "Resíduos atípicos (DIAG.1): a proporção de |r| > 2 está claramente acima dos 5 % esperados, ou um resíduo excede o limite de Bonferroni (pelo menos 3)."
+  },
+  {
+   "anchors": [
+    "с 15 — в пределах 5 % [BioStat]",
+    "@rule(\"DIAG.2\""
+   ],
+   "ru": "Серийная корреляция остатков (DIAG.2): Дарбин–Уотсон вне (1, 3), проверка с 15 наблюдений — на 10–12 статистика выходит за эти пределы случайно в 8–13 % случаев.",
+   "en": "Serial correlation of residuals (DIAG.2): Durbin–Watson outside (1, 3), checked from 15 observations on — with 10–12 the statistic leaves these limits by chance in 8–13 % of cases.",
+   "pt": "Correlação serial dos resíduos (DIAG.2): Durbin–Watson fora de (1, 3), verificada a partir de 15 observações — com 10–12 a estatística sai destes limites por acaso em 8–13 % dos casos."
+  },
+  {
+   "anchors": [
+    "(Кук, 1977) [BioStat]",
+    "@rule(\"DIAG.4\""
+   ],
+   "ru": "Влиятельные точки регрессии (DIAG.4): рычаг больше 2p/N и больше 0.2; влияние — расстояние Кука больше F₀.₅(p, N − p).",
+   "en": "Influential points in regression (DIAG.4): leverage above 2p/N and above 0.2; influence — Cook's distance above F₀.₅(p, N − p).",
+   "pt": "Pontos influentes na regressão (DIAG.4): alavanca acima de 2p/N e acima de 0,2; influência — distância de Cook acima de F₀.₅(p, N − p)."
+  },
+  {
+   "anchors": [
+    "[BioStat] Источник: перестановочное",
+    "[BioStat] Предел точного расчёта"
+   ],
+   "ru": "Точный P ранговых тестов при совпадениях — по перестановочному распределению; считается до 200 ненулевых разностей (знаково-ранговый тест) и до 100 наблюдений (Манн–Уитни).",
+   "en": "Exact P of rank tests with ties comes from the permutation distribution; it is computed up to 200 non-zero differences (signed-rank test) and up to 100 observations (Mann–Whitney).",
+   "pt": "O P exato dos testes de postos com empates vem da distribuição de permutação; é calculado até 200 diferenças não nulas (teste de postos sinalizados) e até 100 observações (Mann–Whitney)."
+  },
+  {
+   "anchors": [
+    "[BioStat] Признаки разделения категорий"
+   ],
+   "ru": "Разделение категорий в порядковой регрессии: полное — log L > −10⁻⁶·n; частичное — |β| > 10 при SE > 100.",
+   "en": "Separation of categories in ordinal regression: complete — log L > −10⁻⁶·n; partial — |β| > 10 with SE > 100.",
+   "pt": "Separação de categorias na regressão ordinal: completa — log L > −10⁻⁶·n; parcial — |β| > 10 com EP > 100."
+  },
+  {
+   "anchors": [
+    "(эвристика BioStat"
+   ],
+   "ru": "Факторный ANOVA: исключённое из модели взаимодействие с P < 0.10 отмечается как пограничное.",
+   "en": "Factorial ANOVA: an interaction left out of the model with P < 0.10 is flagged as borderline.",
+   "pt": "ANOVA fatorial: uma interação excluída do modelo com P < 0,10 é assinalada como limítrofe."
+  },
+  {
+   "anchors": [
+    "[порог BioStat] больше уровней"
+   ],
+   "ru": "ANCOVA: неадекватность не проверяется, если разных x больше 200 (x непрерывный).",
+   "en": "ANCOVA: lack of fit is not tested when there are more than 200 distinct x (x is continuous).",
+   "pt": "ANCOVA: a falta de ajuste não é testada quando há mais de 200 x distintos (x é contínuo)."
+  },
+  {
+   "anchors": [
+    "эвристика BioStat: доля перекрытия"
+   ],
+   "ru": "Регрессия по группам: предупреждение, если диапазоны x двух групп перекрываются меньше чем наполовину.",
+   "en": "Regression with groups: a warning when the x ranges of two groups overlap by less than half.",
+   "pt": "Regressão com grupos: aviso quando as amplitudes de x de dois grupos se sobrepõem menos de metade."
+  }
+ ]
+}

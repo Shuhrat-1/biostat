@@ -70,6 +70,7 @@ def test_app_footer_links_to_the_page_in_the_interface_language() -> None:
     app = (WEB / "src" / "App.tsx").read_text(encoding="utf-8")
     assert 'return lang === "en" ? `/${slug}/` : `/${lang}/${slug}/`;' in app
     for link in ('<a href={pagePath("privacy", lang)}', '<a href={pagePath("terms", lang)}',
+                 '<a href={pagePath("methods", lang)}',
                  '<a href="/LICENSE.txt"'):
         assert link in app, link
 
@@ -79,7 +80,8 @@ def test_app_footer_links_to_the_page_in_the_interface_language() -> None:
 def test_static_footer_links_privacy_terms_and_license(slug: str, lang: str) -> None:
     footer = re.search(r"<footer>(.*)</footer>", _page(slug, lang)).group(1)
     assert re.findall(r'href="([^"]+)"', footer) == [static_pages.page_path("privacy", lang),
-                                                     static_pages.page_path("terms", lang), "/LICENSE.txt"]
+                                                     static_pages.page_path("terms", lang),
+                                                     static_pages.page_path("methods", lang), "/LICENSE.txt"]
 
 
 @pytest.mark.parametrize("lang", static_pages.LANGS)

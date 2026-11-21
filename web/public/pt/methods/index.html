@@ -1,0 +1,710 @@
+<!doctype html>
+<html lang="pt">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Métodos e verificação — BioStat</title>
+    <meta name="description" content="Todos os métodos do BioStat: fonte no livro, que tabelas e exemplos os testes verificam, verificação independente e o que não tem referência." />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="canonical" href="https://biostat.app/pt/methods/" />
+    <link rel="alternate" hreflang="en" href="https://biostat.app/methods/" />
+    <link rel="alternate" hreflang="ru" href="https://biostat.app/ru/methods/" />
+    <link rel="alternate" hreflang="pt" href="https://biostat.app/pt/methods/" />
+    <link rel="alternate" hreflang="x-default" href="https://biostat.app/methods/" />
+    <style>body{margin:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:#18181b;background:#fafafa;line-height:1.6}main{max-width:44rem;margin:0 auto;padding:1.5rem 1rem 2rem}h1{font-size:1.6rem;margin:0.6rem 0 0.2rem}h2{font-size:1.1rem;margin:1.6rem 0 0.4rem}p{margin:0.4rem 0}a{color:#0f766e}.muted{color:#63636b;font-size:0.9rem}nav{display:flex;flex-wrap:wrap;gap:0.4rem 1rem;justify-content:space-between;align-items:center}footer{border-top:1px solid #e4e4e7;margin-top:2rem;padding-top:0.8rem;font-size:0.9rem}code{overflow-wrap:anywhere}h3{font-size:1rem;margin:1.4rem 0 0}ul{margin:0.3rem 0;padding-left:1.2rem}li{margin:0.15rem 0;overflow-wrap:anywhere}.tag{font-size:0.75rem;font-weight:400;color:#92400e;border:1px solid #f59e0b;border-radius:4px;padding:0 0.3rem;margin-left:0.4rem;white-space:nowrap}</style>
+  </head>
+  <body>
+    <main>
+      <nav><a href="/">← Voltar ao BioStat</a><span><a href="/methods/" hreflang="en" lang="en">English</a> · <a href="/ru/methods/" hreflang="ru" lang="ru">Русский</a> · <a href="/pt/methods/" hreflang="pt" lang="pt" aria-current="page">Português</a></span></nav>
+      <h1>Métodos e verificação</h1>
+      <p class="muted">Gerado a partir do catálogo, do mapa e dos testes; última alteração: 21.11.2026.</p>
+      <p>O BioStat tem 71 métodos. Para cada um, abaixo: a fonte, os testes que o chamam, as tabelas e exemplos dos livros cujos números esses testes verificam e a verificação independente. Os mesmos dados em formato legível por máquina: <a href="/methods.json">methods.json</a>.</p>
+      <p>«livro» — Welham S. J., Gezan S. A., Clark S. J., Mead A. Statistical Methods in Biology (CRC Press, 2015), a fonte principal. «proposta» — o método ou parte dele não está no Welham; é indicada a fonte original ou Witte R. S., Witte J. S. Statistics (11.ª ed., Wiley, 2017).</p>
+      <p>Verificação independente — auditoria 2 (12.11.2026, commit f3b6595): os números foram recalculados por outra via (scipy, statsmodels, fórmulas, enumeração exata). Foi uma verificação pontual, não um teste automático. Na mesma auditoria, todos os 71 métodos foram corridos em casos-limite (células vazias, constantes, mudança de unidades, linhas baralhadas).</p>
+      <h2>Sem verificação por referência independente</h2>
+      <p>30 de 71 métodos: só casos-limite na auditoria 2. Alguns têm referências aos livros nos testes — ver a ficha do método.</p>
+      <ul>
+        <li><a href="#describe_by_group">Estatística descritiva por grupo</a></li>
+        <li><a href="#chi2_goodness_of_fit">χ² de ajustamento de uma classificação</a></li>
+        <li><a href="#frequency_table">Tabela de frequências de uma coluna</a></li>
+        <li><a href="#one_proportion">Uma proporção: IC e teste de H0: p = p₀</a></li>
+        <li><a href="#mcnemar_test">McNemar: resultados binários emparelhados</a></li>
+        <li><a href="#anova_permutation_test">Teste F de permutação (ANOVA)</a></li>
+        <li><a href="#anova_residuals">Resíduos da ANOVA e valores atípicos</a></li>
+        <li><a href="#transformed_means">ANOVA com resposta transformada</a></li>
+        <li><a href="#treatment_contrasts">Contrastes de tratamentos</a></li>
+        <li><a href="#equivalence_test">Teste de equivalência (TOST)</a></li>
+        <li><a href="#regression_details">Regressão: ANOVA, testes, previsões</a></li>
+        <li><a href="#inverse_prediction">Calibração (previsão inversa)</a></li>
+        <li><a href="#regression_diagnostics">Regressão: outliers, alavancagem, influência</a></li>
+        <li><a href="#regression_cross_validation">Regressão: validação cruzada</a></li>
+        <li><a href="#x_transform_regression">Curva: regressão em x transformado</a></li>
+        <li><a href="#polynomial_regression">Curva: regressão polinomial</a></li>
+        <li><a href="#trigonometric_regression">Curva: regressão periódica (trigonométrica)</a></li>
+        <li><a href="#nonlinear_regression">Curva: regressão não linear</a></li>
+        <li><a href="#smooth_curve">Curva: splines e loess</a></li>
+        <li><a href="#curve_comparison">Curva: comparação de modelos</a></li>
+        <li><a href="#regression_subsets">Regressão: todos os subconjuntos</a></li>
+        <li><a href="#stepwise_selection">Regressão: seleção passo a passo</a></li>
+        <li><a href="#model_cross_validation">Regressão: comparação de modelos por validação cruzada</a></li>
+        <li><a href="#response_surface">Superfície de resposta (2–4 variáveis)</a></li>
+        <li><a href="#regression_with_groups">Regressão com grupos (retas paralelas)</a></li>
+        <li><a href="#blocked_regression">Regressão num ensaio em blocos (RCBD)</a></li>
+        <li><a href="#glmm_analysis">GLMM: proporções e contagens com efeitos aleatórios (experimental)</a> — os testes usam números de glmmADMB, glmmML, lme4</li>
+        <li><a href="#curve_in_blocks">Curva em blocos e grupos: polinómio ou x transformado</a></li>
+        <li><a href="#nonlinear_in_blocks">Curva não linear em blocos e grupos</a></li>
+        <li><a href="#sampling_scheme_power">Plano de amostragem hierárquica: EP e potência a partir de componentes de variância</a></li>
+      </ul>
+      <h2>A marca «proposta»</h2>
+      <p>16 métodos: o método ou parte dele não vem do Welham.</p>
+      <ul>
+        <li><a href="#describe_by_group">Estatística descritiva por grupo</a></li>
+        <li><a href="#chi2_goodness_of_fit">χ² de ajustamento de uma classificação</a></li>
+        <li><a href="#frequency_table">Tabela de frequências de uma coluna</a></li>
+        <li><a href="#one_sample_t">Teste t para uma amostra</a></li>
+        <li><a href="#one_proportion">Uma proporção: IC e teste de H0: p = p₀</a></li>
+        <li><a href="#mann_whitney">Teste de Mann-Whitney (não paramétrico)</a></li>
+        <li><a href="#two_proportions">Duas proporções: diferença com IC</a></li>
+        <li><a href="#mcnemar_test">McNemar: resultados binários emparelhados</a></li>
+        <li><a href="#one_sample_wilcoxon">Teste de Wilcoxon para uma amostra (não paramétrico)</a></li>
+        <li><a href="#rm_anova">ANOVA de medidas repetidas</a></li>
+        <li><a href="#friedman">Teste de Friedman (postos, medidas repetidas)</a></li>
+        <li><a href="#welch_anova">ANOVA de Welch (variâncias desiguais)</a></li>
+        <li><a href="#scheffe_test">Método de Scheffé (pares e contrastes complexos)</a></li>
+        <li><a href="#simple_effects">Efeitos simples (A em cada B e B em cada A)</a></li>
+        <li><a href="#wilcoxon">Teste de Wilcoxon (não paramétrico)</a></li>
+        <li><a href="#spearman_correlation">Correlação de Spearman (postos)</a></li>
+      </ul>
+      <h2>Limiares [BioStat]</h2>
+      <p>Os limiares das sugestões do mapa e das regras dos métodos que não estão nos livros são heurísticas do BioStat:</p>
+      <ul>
+        <li>Normalidade dos resíduos (B4.1, B4.7): com mais de 30 observações em cada grupo, só uma assimetria marcada, |g₁| &gt; 0,5, conta como violação; com grupos menores decide o teste de Shapiro–Wilk.</li>
+        <li>A normalidade das diferenças emparelhadas (B0.6) é verificada a partir de 6 pares: com menos o teste quase nada deteta.</li>
+        <li>Dois grupos (B4.2, two_sample_t): t de Student por omissão; Welch é aconselhado quando a razão dos DP é &gt; 2 com n equilibrados, ou &gt; 1,5 quando a razão dos n excede 1,5; com n &lt; 8 num grupo é só uma nota.</li>
+        <li>O DP cresce com a média (B4.3, indício para transformação log): r entre log DP e log média dos grupos ≥ 0,8 com DP que diferem pelo menos para o dobro; sinal seguro a partir de 4 grupos.</li>
+        <li>Resíduos assimétricos (B4.4): |g₁| &gt; 1 (a partir de 8 resíduos) — sugestão de transformar a resposta.</li>
+        <li>Resposta assimétrica (R2.7): g₁ &gt; 1 com todos os valores &gt; 0 (a partir de 8 observações) — candidata a transformação log.</li>
+        <li>Parece de contagens (R2.2): inteiros não negativos, não só 0 e 1, mínimo ≤ 10 (caso contrário, mais provavelmente medições inteiras, como gramas).</li>
+        <li>Muitos zeros na resposta (R2.6): sugestão a partir de 30 % de zeros, indicação firme a partir de 50 %.</li>
+        <li>Dispersão de contagens (G.2): variância mais do dobro da média (a partir de 10 observações) — pode servir um modelo binomial negativo.</li>
+        <li>Sobredispersão num GLM (G.1): a deviance é significativamente maior do que os graus de liberdade e deviance/gl &gt; 1,2.</li>
+        <li>Parece de pontuações (B0.4, B4.8): inteiros, 3 a 10 valores distintos, amplitude até 10 — o mapa sugere métodos de postos.</li>
+        <li>Códigos numéricos de classes (R2.11): 3–10 inteiros consecutivos a partir de 0 ou 1, em média pelo menos 5 linhas por código; mais de 10 valores distintos são mais provavelmente uma medição.</li>
+        <li>Possíveis medições repetidas (B0.2): duas colunas numéricas na mesma escala (razão das médias de 0,5 a 2) e r &gt; 0,7 em 5 ou mais pares.</li>
+        <li>Medições repetidas pelos papéis: cada objeto é medido em dois ou mais momentos, no máximo uma vez em cada.</li>
+        <li>Fator aleatório (B1.9): com menos de 5 níveis a componente de variância é mal estimada — o mapa sugere um bloco fixo.</li>
+        <li>Curvatura da reta (A2.3): o termo quadrático é significativo (p &lt; 0,05) com 4 ou mais x distintos.</li>
+        <li>A dispersão cresce com o valor ajustado (A2.4): ρ de Spearman &gt; 0,5 e p &lt; 0,05, a partir de 10 pontos.</li>
+        <li>Resíduos atípicos (DIAG.1): a proporção de |r| &gt; 2 está claramente acima dos 5 % esperados, ou um resíduo excede o limite de Bonferroni (pelo menos 3).</li>
+        <li>Correlação serial dos resíduos (DIAG.2): Durbin–Watson fora de (1, 3), verificada a partir de 15 observações — com 10–12 a estatística sai destes limites por acaso em 8–13 % dos casos.</li>
+        <li>Pontos influentes na regressão (DIAG.4): alavanca acima de 2p/N e acima de 0,2; influência — distância de Cook acima de F₀.₅(p, N − p).</li>
+        <li>O P exato dos testes de postos com empates vem da distribuição de permutação; é calculado até 200 diferenças não nulas (teste de postos sinalizados) e até 100 observações (Mann–Whitney).</li>
+        <li>Separação de categorias na regressão ordinal: completa — log L &gt; −10⁻⁶·n; parcial — |β| &gt; 10 com EP &gt; 100.</li>
+        <li>ANOVA fatorial: uma interação excluída do modelo com P &lt; 0,10 é assinalada como limítrofe.</li>
+        <li>ANCOVA: a falta de ajuste não é testada quando há mais de 200 x distintos (x é contínuo).</li>
+        <li>Regressão com grupos: aviso quando as amplitudes de x de dois grupos se sobrepõem menos de metade.</li>
+      </ul>
+      <h2>Estatística descritiva</h2>
+      <h3 id="describe_all">Estatística descritiva resumida</h3>
+      <p class="muted"><code>describe_all</code></p>
+      <ul>
+        <li>Fonte: livro p. 13–23</li>
+        <li>Testes que chamam o método: 18</li>
+        <li>Sem referências aos livros nos testes</li>
+        <li>Verificação independente (auditoria 2): DP, quartis, EPM, CV — numpy e scipy</li>
+      </ul>
+      <h3 id="describe_by_group">Estatística descritiva por grupo <span class="tag">proposta</span></h3>
+      <p class="muted"><code>describe_by_group</code></p>
+      <ul>
+        <li>Fonte: proposta: Witte cap. 3–4</li>
+        <li>Testes que chamam o método: 8</li>
+        <li>Witte — verificado nos testes: Fig. 4.1, Fig. 4.2, Table 1.1, Table 3.1, Table 3.4, Table 4.1, Table 4.3, Table 4.6</li>
+        <li>Verificação independente (auditoria 2): nenhuma — só casos-limite</li>
+      </ul>
+      <h3 id="chi2_goodness_of_fit">χ² de ajustamento de uma classificação <span class="tag">proposta</span></h3>
+      <p class="muted"><code>chi2_goodness_of_fit</code></p>
+      <ul>
+        <li>Fonte: proposta: Witte cap. 19.1–19.5</li>
+        <li>Testes que chamam o método: 12</li>
+        <li>Witte — verificado nos testes: Progress Check 19.2, Review 19.10, Review 19.11, Review 19.16, Table 19.1, Table 19.1–19.2</li>
+        <li>Verificação independente (auditoria 2): nenhuma — só casos-limite</li>
+      </ul>
+      <h3 id="frequency_table">Tabela de frequências de uma coluna <span class="tag">proposta</span></h3>
+      <p class="muted"><code>frequency_table</code></p>
+      <ul>
+        <li>Fonte: proposta: Witte cap. 2–4</li>
+        <li>Testes que chamam o método: 16</li>
+        <li>Witte — verificado nos testes: Progress Check 2.1, Progress Check 2.2, Progress Check 2.8, Table 1.1, Table 1.2, Table 2.2, Table 2.7, Table 2.8</li>
+        <li>Verificação independente (auditoria 2): nenhuma — só casos-limite</li>
+      </ul>
+      <h3 id="mean_ci">Intervalo de confiança da média</h3>
+      <p class="muted"><code>mean_ci</code></p>
+      <ul>
+        <li>Fonte: livro p. 28–29, 32</li>
+        <li>Testes que chamam o método: 4</li>
+        <li>Sem referências aos livros nos testes</li>
+        <li>Verificação independente (auditoria 2): IC — scipy</li>
+      </ul>
+      <h2>Verificação de pressupostos</h2>
+      <h3 id="normality_test">Teste de normalidade (Shapiro-Wilk)</h3>
+      <p class="muted"><code>normality_test</code></p>
+      <ul>
+        <li>Fonte: livro p. 101</li>
+        <li>Testes que chamam o método: 5</li>
+        <li>Sem referências aos livros nos testes</li>
+        <li>Verificação independente (auditoria 2): W, P, assimetria, curtose — scipy</li>
+      </ul>
+      <h2>Comparação com referência</h2>
+      <h3 id="one_sample_t">Teste t para uma amostra <span class="tag">proposta</span></h3>
+      <p class="muted"><code>one_sample_t</code></p>
+      <ul>
+        <li>Fonte: proposta: Witte p. 405, 407</li>
+        <li>Testes que chamam o método: 10</li>
+        <li>Witte — verificado nos testes: Progress Check 13.2–13.4, Table 13.1</li>
+        <li>Verificação independente (auditoria 2): t, P, d — scipy</li>
+      </ul>
+      <h3 id="one_proportion">Uma proporção: IC e teste de H0: p = p₀ <span class="tag">proposta</span></h3>
+      <p class="muted"><code>one_proportion</code></p>
+      <ul>
+        <li>Fonte: proposta: Wilson 1927; Witte p. 228</li>
+        <li>Testes que chamam o método: 6</li>
+        <li>Witte — verificado nos testes: Review 19.11</li>
+        <li>Verificação independente (auditoria 2): nenhuma — só casos-limite</li>
+      </ul>
+      <h2>Comparação de dois grupos</h2>
+      <h3 id="two_sample_t">Teste t para duas amostras</h3>
+      <p class="muted"><code>two_sample_t</code></p>
+      <ul>
+        <li>Fonte: livro p. 32–35</li>
+        <li>Testes que chamam o método: 23</li>
+        <li>Witte — verificado nos testes: Progress Check 14.9b, Table 14.1, Table 14.4</li>
+        <li>Números de outros programas nos testes: SAS</li>
+        <li>Verificação independente (auditoria 2): t, gl, P, IC, d, g (Student e Welch) — scipy</li>
+      </ul>
+      <h3 id="mann_whitney">Teste de Mann-Whitney (não paramétrico) <span class="tag">proposta</span></h3>
+      <p class="muted"><code>mann_whitney</code></p>
+      <ul>
+        <li>Fonte: livro p. 127; proposta: Witte p. 387–392</li>
+        <li>Testes que chamam o método: 11</li>
+        <li>Witte — verificado nos testes: Progress Check 20.2, Table 20.2</li>
+        <li>Verificação independente (auditoria 2): U, P — scipy; amostras pequenas — enumeração exata</li>
+      </ul>
+      <h3 id="two_proportions">Duas proporções: diferença com IC <span class="tag">proposta</span></h3>
+      <p class="muted"><code>two_proportions</code></p>
+      <ul>
+        <li>Fonte: proposta: Newcombe 1998</li>
+        <li>Testes que chamam o método: 9</li>
+        <li>Witte — verificado nos testes: Progress Check 19.6, Review 19.14</li>
+        <li>Verificação independente (auditoria 2): z, P — statsmodels; IC — Newcombe</li>
+      </ul>
+      <h3 id="mcnemar_test">McNemar: resultados binários emparelhados <span class="tag">proposta</span></h3>
+      <p class="muted"><code>mcnemar_test</code></p>
+      <ul>
+        <li>Fonte: proposta: McNemar 1947</li>
+        <li>Testes que chamam o método: 5</li>
+        <li>Welham — verificado nos testes: Table 10.1</li>
+        <li>Verificação independente (auditoria 2): nenhuma — só casos-limite</li>
+      </ul>
+      <h2>Comparação com referência</h2>
+      <h3 id="one_sample_wilcoxon">Teste de Wilcoxon para uma amostra (não paramétrico) <span class="tag">proposta</span></h3>
+      <p class="muted"><code>one_sample_wilcoxon</code></p>
+      <ul>
+        <li>Fonte: proposta: Wilcoxon 1945; Hollander &amp; Wolfe 1999; proposta: Wilcoxon 1945; análogo por ordens de B0.onesample segundo Witte p. 405, 408</li>
+        <li>Testes que chamam o método: 6</li>
+        <li>Sem referências aos livros nos testes</li>
+        <li>Verificação independente (auditoria 2): P — scipy</li>
+      </ul>
+      <h2>Comparação de vários grupos</h2>
+      <h3 id="one_way_anova">ANOVA de um fator</h3>
+      <p class="muted"><code>one_way_anova</code></p>
+      <ul>
+        <li>Fonte: livro p. 74–84</li>
+        <li>Testes que chamam o método: 33</li>
+        <li>Welham — verificado nos testes: Table 4.5</li>
+        <li>Witte — verificado nos testes: Fig. 16.3, Progress Check 16.5, Review 16.9, Review 16.10, Review 16.11, Review 16.13, Table 14.1, Table 16.3, Table 16.6, Table 16.9, Table 17.6</li>
+        <li>Números de outros programas nos testes: Minitab</li>
+        <li>Verificação independente (auditoria 2): F, P, η², ω² — scipy e fórmulas</li>
+      </ul>
+      <h3 id="rm_anova">ANOVA de medidas repetidas <span class="tag">proposta</span></h3>
+      <p class="muted"><code>rm_anova</code></p>
+      <ul>
+        <li>Fonte: proposta: Witte cap. 17; correções — Greenhouse &amp; Geisser 1959, Huynh &amp; Feldt 1976</li>
+        <li>Testes que chamam o método: 19</li>
+        <li>Witte — verificado nos testes: Progress Check 17.2, Review 17.6, Review 17.7, Table 15.2, Table 17.1, Table 17.3, Table 17.4, Table 17.5, Table 17.6, Table 17.8</li>
+        <li>Verificação independente (auditoria 2): F, P, η²ₚ — statsmodels AnovaRM; ε de Greenhouse–Geisser e Huynh–Feldt — fórmulas</li>
+      </ul>
+      <h3 id="friedman">Teste de Friedman (postos, medidas repetidas) <span class="tag">proposta</span></h3>
+      <p class="muted"><code>friedman</code></p>
+      <ul>
+        <li>Fonte: proposta: Friedman 1937; Conover 1999; análogo por ordens de B0.rm segundo Witte p. 405, 408</li>
+        <li>Testes que chamam o método: 5</li>
+        <li>Witte — verificado nos testes: Progress Check 17.2, Table 17.1</li>
+        <li>Verificação independente (auditoria 2): χ², P — scipy</li>
+      </ul>
+      <h3 id="welch_anova">ANOVA de Welch (variâncias desiguais) <span class="tag">proposta</span></h3>
+      <p class="muted"><code>welch_anova</code></p>
+      <ul>
+        <li>Fonte: livro p. 107; proposta: Welch 1951; Witte p. 316</li>
+        <li>Testes que chamam o método: 6</li>
+        <li>Witte — verificado nos testes: Table 14.4, Table 16.3</li>
+        <li>Números de outros programas nos testes: SAS</li>
+        <li>Verificação independente (auditoria 2): F, gl₂, P — statsmodels anova_oneway</li>
+      </ul>
+      <h3 id="tukey_hsd">Pós-hoc Tukey HSD</h3>
+      <p class="muted"><code>tukey_hsd</code></p>
+      <ul>
+        <li>Fonte: livro p. 200</li>
+        <li>Testes que chamam o método: 11</li>
+        <li>Witte — verificado nos testes: Progress Check 16.7, Review 16.10, Table 16.8, Table 16.9</li>
+        <li>Números de outros programas nos testes: Minitab</li>
+        <li>Verificação independente (auditoria 2): diferenças, P, IC (Tukey–Kramer) — scipy tukey_hsd</li>
+      </ul>
+      <h3 id="scheffe_test">Método de Scheffé (pares e contrastes complexos) <span class="tag">proposta</span></h3>
+      <p class="muted"><code>scheffe_test</code></p>
+      <ul>
+        <li>Fonte: proposta: Scheffé 1953; Witte p. 314</li>
+        <li>Testes que chamam o método: 8</li>
+        <li>Witte — verificado nos testes: Progress Check 16.7, Review 16.10, Table 14.1, Table 16.3, Table 16.9</li>
+        <li>Números de outros programas nos testes: Minitab</li>
+        <li>Verificação independente (auditoria 2): F, P, IC — fórmulas</li>
+      </ul>
+      <h3 id="kruskal_wallis">Teste de Kruskal-Wallis (não paramétrico)</h3>
+      <p class="muted"><code>kruskal_wallis</code></p>
+      <ul>
+        <li>Fonte: livro p. 127</li>
+        <li>Testes que chamam o método: 5</li>
+        <li>Witte — verificado nos testes: Progress Check 20.4, Table 20.4</li>
+        <li>Verificação independente (auditoria 2): H, P — scipy; amostras pequenas — enumeração exata</li>
+      </ul>
+      <h3 id="treatment_means">Médias dos grupos com SED e LSD</h3>
+      <p class="muted"><code>treatment_means</code></p>
+      <ul>
+        <li>Fonte: livro p. 86–87</li>
+        <li>Testes que chamam o método: 14</li>
+        <li>Welham — verificado nos testes: Example 2.1C, Example 4.1E, Example 4.1F</li>
+        <li>Verificação independente (auditoria 2): SED, LSD, IC das médias — fórmulas</li>
+      </ul>
+      <h3 id="anova_permutation_test">Teste F de permutação (ANOVA)</h3>
+      <p class="muted"><code>anova_permutation_test</code></p>
+      <ul>
+        <li>Fonte: livro p. 102</li>
+        <li>Testes que chamam o método: 7</li>
+        <li>Sem referências aos livros nos testes</li>
+        <li>Verificação independente (auditoria 2): nenhuma — só casos-limite</li>
+      </ul>
+      <h2>Verificação de pressupostos</h2>
+      <h3 id="bartlett_test">Teste de Bartlett (igualdade de variâncias)</h3>
+      <p class="muted"><code>bartlett_test</code></p>
+      <ul>
+        <li>Fonte: livro p. 104–107</li>
+        <li>Testes que chamam o método: 4</li>
+        <li>Sem referências aos livros nos testes</li>
+        <li>Verificação independente (auditoria 2): X², P — scipy</li>
+      </ul>
+      <h3 id="anova_residuals">Resíduos da ANOVA e valores atípicos</h3>
+      <p class="muted"><code>anova_residuals</code></p>
+      <ul>
+        <li>Fonte: livro p. 94–96, 108–110</li>
+        <li>Testes que chamam o método: 6</li>
+        <li>Welham — verificado nos testes: p. 96</li>
+        <li>Verificação independente (auditoria 2): nenhuma — só casos-limite</li>
+      </ul>
+      <h2>Comparação de vários grupos</h2>
+      <h3 id="transformed_means">ANOVA com resposta transformada</h3>
+      <p class="muted"><code>transformed_means</code></p>
+      <ul>
+        <li>Fonte: livro p. 113–121</li>
+        <li>Testes que chamam o método: 15</li>
+        <li>Sem referências aos livros nos testes</li>
+        <li>Verificação independente (auditoria 2): nenhuma — só casos-limite</li>
+      </ul>
+      <h3 id="rcbd_anova">ANOVA em blocos casualizados (RCBD)</h3>
+      <p class="muted"><code>rcbd_anova</code></p>
+      <ul>
+        <li>Fonte: livro p. 58</li>
+        <li>Testes que chamam o método: 12</li>
+        <li>Welham — verificado nos testes: Table 7.4</li>
+        <li>Verificação independente (auditoria 2): F, P, F dos blocos, SED — statsmodels OLS</li>
+      </ul>
+      <h3 id="rcbd_subsampling_anova">ANOVA em blocos com medições repetidas por parcela</h3>
+      <p class="muted"><code>rcbd_subsampling_anova</code></p>
+      <ul>
+        <li>Fonte: livro p. 145</li>
+        <li>Testes que chamam o método: 6</li>
+        <li>Sem referências aos livros nos testes</li>
+        <li>Verificação independente (auditoria 2): F, P, SED — análise das médias das parcelas</li>
+      </ul>
+      <h3 id="factorial_anova">ANOVA fatorial (A×B, A×B×C)</h3>
+      <p class="muted"><code>factorial_anova</code></p>
+      <ul>
+        <li>Fonte: livro p. 172</li>
+        <li>Testes que chamam o método: 24</li>
+        <li>Welham — verificado nos testes: Example 8.5, Table 8.2, Table 8.2a, Table 8.4, Table 8.5, Table 8.8, Table 8.9, Table 8.21, Table 8.22</li>
+        <li>Witte — verificado nos testes: Progress Check 18.3, Review 18.10, Table 18.3, Table 18.6</li>
+        <li>Verificação independente (auditoria 2): F, P de todos os termos, com blocos — statsmodels</li>
+      </ul>
+      <h3 id="simple_effects">Efeitos simples (A em cada B e B em cada A) <span class="tag">proposta</span></h3>
+      <p class="muted"><code>simple_effects</code></p>
+      <ul>
+        <li>Fonte: proposta: Witte cap. 18.9</li>
+        <li>Testes que chamam o método: 9</li>
+        <li>Witte — verificado nos testes: Progress Check 18.6, Table 18.6, Table 18.7</li>
+        <li>Verificação independente (auditoria 2): F dos efeitos simples — fórmulas</li>
+      </ul>
+      <h3 id="nested_anova">Tratamentos hierárquicos: grupo / membro (ambos os fatores fixos)</h3>
+      <p class="muted"><code>nested_anova</code></p>
+      <ul>
+        <li>Fonte: livro p. 173</li>
+        <li>Testes que chamam o método: 9</li>
+        <li>Welham — verificado nos testes: Example 8.3, Example 8.3B, Table 8.11, Table 8.12, Table 8.14, Table 8.16</li>
+        <li>Verificação independente (auditoria 2): SQ e F — statsmodels</li>
+      </ul>
+      <h3 id="treatment_contrasts">Contrastes de tratamentos</h3>
+      <p class="muted"><code>treatment_contrasts</code></p>
+      <ul>
+        <li>Fonte: livro p. 182–187</li>
+        <li>Testes que chamam o método: 7</li>
+        <li>Welham — verificado nos testes: Example 8.4E, Table 8.17, Table 8.19</li>
+        <li>Verificação independente (auditoria 2): nenhuma — só casos-limite</li>
+      </ul>
+      <h3 id="polynomial_contrasts">Tendência polinomial entre níveis</h3>
+      <p class="muted"><code>polynomial_contrasts</code></p>
+      <ul>
+        <li>Fonte: livro p. 190</li>
+        <li>Testes que chamam o método: 6</li>
+        <li>Welham — verificado nos testes: Example 8.6, Table 8.25</li>
+        <li>Verificação independente (auditoria 2): SQ da tendência linear com espaçamento desigual — OLS</li>
+      </ul>
+      <h3 id="mean_comparisons">Comparações de médias com correção (Tukey, Dunnett, Holm, FDR)</h3>
+      <p class="muted"><code>mean_comparisons</code></p>
+      <ul>
+        <li>Fonte: livro p. 201</li>
+        <li>Testes que chamam o método: 13</li>
+        <li>Welham — verificado nos testes: Example 8.7, Fig. 8.10, Table 8.28, Table 8.29</li>
+        <li>Verificação independente (auditoria 2): Tukey (P, IC), Dunnett (scipy dunnett), Holm, Bonferroni, FDR</li>
+      </ul>
+      <h3 id="latin_square_anova">Quadrado latino</h3>
+      <p class="muted"><code>latin_square_anova</code></p>
+      <ul>
+        <li>Fonte: livro p. 209</li>
+        <li>Testes que chamam o método: 6</li>
+        <li>Welham — verificado nos testes: Table 9.2, Table 9.4, Table 9.5, Table 9.6</li>
+        <li>Verificação independente (auditoria 2): F, P — statsmodels</li>
+      </ul>
+      <h3 id="split_plot_anova">Parcelas subdivididas (split-plot)</h3>
+      <p class="muted"><code>split_plot_anova</code></p>
+      <ul>
+        <li>Fonte: livro p. 220</li>
+        <li>Testes que chamam o método: 8</li>
+        <li>Welham — verificado nos testes: Example 9.6, Table 9.12, Table 9.13, Table 9.14, Table 9.16</li>
+        <li>Verificação independente (auditoria 2): F nos dois estratos, SED das parcelas principais — cálculo manual por estrato</li>
+      </ul>
+      <h3 id="bibd_anova">Blocos incompletos (BIBD)</h3>
+      <p class="muted"><code>bibd_anova</code></p>
+      <ul>
+        <li>Fonte: livro p. 232</li>
+        <li>Testes que chamam o método: 6</li>
+        <li>Welham — verificado nos testes: Example 9.9B</li>
+        <li>Verificação independente (auditoria 2): F intrablocos, SED, eficiência, médias ajustadas — OLS</li>
+      </ul>
+      <h2>Planeamento do ensaio</h2>
+      <h3 id="replication_power">Repetição e potência (a partir de um piloto)</h3>
+      <p class="muted"><code>replication_power</code></p>
+      <ul>
+        <li>Fonte: livro cap. 10</li>
+        <li>Testes que chamam o método: 4</li>
+        <li>Welham — verificado nos testes: Example 10.1A, Table 4.1</li>
+        <li>Verificação independente (auditoria 2): potência e n — t não central</li>
+      </ul>
+      <h2>Comparação de vários grupos</h2>
+      <h3 id="equivalence_test">Teste de equivalência (TOST)</h3>
+      <p class="muted"><code>equivalence_test</code></p>
+      <ul>
+        <li>Fonte: livro p. 253</li>
+        <li>Testes que chamam o método: 7</li>
+        <li>Welham — verificado nos testes: Example 10.3, Table 10.6, Table 10.7</li>
+        <li>Verificação independente (auditoria 2): nenhuma — só casos-limite</li>
+      </ul>
+      <h3 id="unbalanced_anova">ANOVA não ortogonal (repetição desigual)</h3>
+      <p class="muted"><code>unbalanced_anova</code></p>
+      <ul>
+        <li>Fonte: livro p. 258</li>
+        <li>Testes que chamam o método: 13</li>
+        <li>Welham — verificado nos testes: Example 11.5, Fig. 11.6, Table 11.17, Table 11.18, Table 11.20, Table 11.23, Table 11.24</li>
+        <li>Verificação independente (auditoria 2): SQ sequenciais nas duas ordens, tipo II — statsmodels</li>
+      </ul>
+      <h2>Medições emparelhadas</h2>
+      <h3 id="paired_t">Teste t emparelhado</h3>
+      <p class="muted"><code>paired_t</code></p>
+      <ul>
+        <li>Fonte: livro p. 41</li>
+        <li>Testes que chamam o método: 12</li>
+        <li>Witte — verificado nos testes: Progress Check 15.2, Review 15.7, Table 15.2</li>
+        <li>Verificação independente (auditoria 2): t, P, IC, d_z — scipy</li>
+      </ul>
+      <h3 id="wilcoxon">Teste de Wilcoxon (não paramétrico) <span class="tag">proposta</span></h3>
+      <p class="muted"><code>wilcoxon</code></p>
+      <ul>
+        <li>Fonte: livro p. 127; proposta: Witte p. 392–396</li>
+        <li>Testes que chamam o método: 11</li>
+        <li>Witte — verificado nos testes: Progress Check 20.3, Table 20.3</li>
+        <li>Verificação independente (auditoria 2): W, P — scipy; amostras pequenas — enumeração exata</li>
+      </ul>
+      <h2>Relação entre variáveis</h2>
+      <h3 id="simple_linear_regression">Regressão linear simples</h3>
+      <p class="muted"><code>simple_linear_regression</code></p>
+      <ul>
+        <li>Fonte: livro p. 287–299</li>
+        <li>Testes que chamam o método: 27</li>
+        <li>Welham — verificado nos testes: p. 95–96</li>
+        <li>Witte — verificado nos testes: Table 7.1, Table 7.3</li>
+        <li>Verificação independente (auditoria 2): coeficientes, IC, P — statsmodels</li>
+      </ul>
+      <h3 id="regression_details">Regressão: ANOVA, testes, previsões</h3>
+      <p class="muted"><code>regression_details</code></p>
+      <ul>
+        <li>Fonte: livro cap. 12</li>
+        <li>Testes que chamam o método: 15</li>
+        <li>Welham — verificado nos testes: Example 12.1D, Example 12.1E, Example 12.1F, Example 12.2A, Example 12.2B, Example 12.3, Example 13.1, Table 12.3, Table 12.4, Table 12.7, Table 12.10, Table 13.1–13.2</li>
+        <li>Witte — verificado nos testes: p. 132, p. 134, p. 301–305</li>
+        <li>Verificação independente (auditoria 2): nenhuma — só casos-limite</li>
+      </ul>
+      <h3 id="inverse_prediction">Calibração (previsão inversa)</h3>
+      <p class="muted"><code>inverse_prediction</code></p>
+      <ul>
+        <li>Fonte: livro p. 320</li>
+        <li>Testes que chamam o método: 3</li>
+        <li>Welham — verificado nos testes: p. 321</li>
+        <li>Verificação independente (auditoria 2): nenhuma — só casos-limite</li>
+      </ul>
+      <h3 id="regression_diagnostics">Regressão: outliers, alavancagem, influência</h3>
+      <p class="muted"><code>regression_diagnostics</code></p>
+      <ul>
+        <li>Fonte: livro p. 325–335</li>
+        <li>Testes que chamam o método: 9</li>
+        <li>Welham — verificado nos testes: Example 13.2A, Example 13.2B, Example 13.2C, Table 13.2</li>
+        <li>Verificação independente (auditoria 2): nenhuma — só casos-limite</li>
+      </ul>
+      <h3 id="regression_cross_validation">Regressão: validação cruzada</h3>
+      <p class="muted"><code>regression_cross_validation</code></p>
+      <ul>
+        <li>Fonte: livro p. 338–342</li>
+        <li>Testes que chamam o método: 4</li>
+        <li>Welham — verificado nos testes: Example 13.2D</li>
+        <li>Verificação independente (auditoria 2): nenhuma — só casos-limite</li>
+      </ul>
+      <h3 id="x_transform_regression">Curva: regressão em x transformado</h3>
+      <p class="muted"><code>x_transform_regression</code></p>
+      <ul>
+        <li>Fonte: livro p. 451–456</li>
+        <li>Testes que chamam o método: 6</li>
+        <li>Welham — verificado nos testes: Example 17.1A, Table 17.2, Table 17.12</li>
+        <li>Verificação independente (auditoria 2): nenhuma — só casos-limite</li>
+      </ul>
+      <h3 id="polynomial_regression">Curva: regressão polinomial</h3>
+      <p class="muted"><code>polynomial_regression</code></p>
+      <ul>
+        <li>Fonte: livro p. 456–460</li>
+        <li>Testes que chamam o método: 8</li>
+        <li>Welham — verificado nos testes: Example 17.1B, Table 17.3, Table 17.4, Table 17.12</li>
+        <li>Verificação independente (auditoria 2): nenhuma — só casos-limite</li>
+      </ul>
+      <h3 id="trigonometric_regression">Curva: regressão periódica (trigonométrica)</h3>
+      <p class="muted"><code>trigonometric_regression</code></p>
+      <ul>
+        <li>Fonte: livro p. 460</li>
+        <li>Testes que chamam o método: 5</li>
+        <li>Welham — verificado nos testes: Example 17.2, Table 17.5, Table 17.6</li>
+        <li>Verificação independente (auditoria 2): nenhuma — só casos-limite</li>
+      </ul>
+      <h3 id="nonlinear_regression">Curva: regressão não linear</h3>
+      <p class="muted"><code>nonlinear_regression</code></p>
+      <ul>
+        <li>Fonte: livro p. 472–476</li>
+        <li>Testes que chamam o método: 8</li>
+        <li>Welham — verificado nos testes: Example 17.1C, Table 17.12</li>
+        <li>Verificação independente (auditoria 2): nenhuma — só casos-limite</li>
+      </ul>
+      <h3 id="smooth_curve">Curva: splines e loess</h3>
+      <p class="muted"><code>smooth_curve</code></p>
+      <ul>
+        <li>Fonte: livro p. 460</li>
+        <li>Testes que chamam o método: 7</li>
+        <li>Welham — verificado nos testes: Table 17.1</li>
+        <li>Verificação independente (auditoria 2): nenhuma — só casos-limite</li>
+      </ul>
+      <h3 id="curve_comparison">Curva: comparação de modelos</h3>
+      <p class="muted"><code>curve_comparison</code></p>
+      <ul>
+        <li>Fonte: livro p. 475–476</li>
+        <li>Testes que chamam o método: 4</li>
+        <li>Welham — verificado nos testes: Table 17.12</li>
+        <li>Verificação independente (auditoria 2): nenhuma — só casos-limite</li>
+      </ul>
+      <h3 id="multiple_regression">Regressão múltipla</h3>
+      <p class="muted"><code>multiple_regression</code></p>
+      <ul>
+        <li>Fonte: livro cap. 14</li>
+        <li>Testes que chamam o método: 10</li>
+        <li>Welham — verificado nos testes: Example 14.1J, Table 14.1, Table 14.3, Table 14.5, Table 14.7, Table 14.9–14.10</li>
+        <li>Verificação independente (auditoria 2): coeficientes, IC, VIF, R² ajustado — statsmodels</li>
+      </ul>
+      <h3 id="regression_subsets">Regressão: todos os subconjuntos</h3>
+      <p class="muted"><code>regression_subsets</code></p>
+      <ul>
+        <li>Fonte: livro p. 366</li>
+        <li>Testes que chamam o método: 4</li>
+        <li>Welham — verificado nos testes: Table 14.12, Table 14.16</li>
+        <li>Verificação independente (auditoria 2): nenhuma — só casos-limite</li>
+      </ul>
+      <h3 id="stepwise_selection">Regressão: seleção passo a passo</h3>
+      <p class="muted"><code>stepwise_selection</code></p>
+      <ul>
+        <li>Fonte: livro p. 370</li>
+        <li>Testes que chamam o método: 4</li>
+        <li>Welham — verificado nos testes: Example 14.2, Table 14.14</li>
+        <li>Verificação independente (auditoria 2): nenhuma — só casos-limite</li>
+      </ul>
+      <h3 id="model_cross_validation">Regressão: comparação de modelos por validação cruzada</h3>
+      <p class="muted"><code>model_cross_validation</code></p>
+      <ul>
+        <li>Fonte: livro p. 376</li>
+        <li>Testes que chamam o método: 2</li>
+        <li>Welham — verificado nos testes: p. 377</li>
+        <li>Verificação independente (auditoria 2): nenhuma — só casos-limite</li>
+      </ul>
+      <h3 id="response_surface">Superfície de resposta (2–4 variáveis)</h3>
+      <p class="muted"><code>response_surface</code></p>
+      <ul>
+        <li>Fonte: livro p. 463</li>
+        <li>Testes que chamam o método: 13</li>
+        <li>Welham — verificado nos testes: Example 17.3A, Example 17.3B, Table 17.8, Table 17.9, Table 17.10, Table 17.11</li>
+        <li>Verificação independente (auditoria 2): nenhuma — só casos-limite</li>
+      </ul>
+      <h3 id="regression_with_groups">Regressão com grupos (retas paralelas)</h3>
+      <p class="muted"><code>regression_with_groups</code></p>
+      <ul>
+        <li>Fonte: livro p. 382</li>
+        <li>Testes que chamam o método: 15</li>
+        <li>Welham — verificado nos testes: Example 15.1F, Example 15.1H, Example 15.1J, Example 15.2, Table 15.2, Table 15.5, Table 15.6, Table 15.8a, Table 15.10</li>
+        <li>Verificação independente (auditoria 2): nenhuma — só casos-limite</li>
+      </ul>
+      <h3 id="blocked_regression">Regressão num ensaio em blocos (RCBD)</h3>
+      <p class="muted"><code>blocked_regression</code></p>
+      <ul>
+        <li>Fonte: livro p. 405–409</li>
+        <li>Testes que chamam o método: 7</li>
+        <li>Welham — verificado nos testes: Table 15.12, Table 15.13, Table 15.14</li>
+        <li>Verificação independente (auditoria 2): nenhuma — só casos-limite</li>
+      </ul>
+      <h2>Comparação de vários grupos</h2>
+      <h3 id="ancova">Análise de covariância (ANCOVA)</h3>
+      <p class="muted"><code>ancova</code></p>
+      <ul>
+        <li>Fonte: livro p. 409</li>
+        <li>Testes que chamam o método: 10</li>
+        <li>Welham — verificado nos testes: Example 15.4A, Example 15.4B, Table 15.16, Table 15.17, Table 15.18</li>
+        <li>Verificação independente (auditoria 2): médias ajustadas, EP, SED — statsmodels</li>
+      </ul>
+      <h3 id="glm_analysis">GLM: proporções (binomial) e contagens (Poisson)</h3>
+      <p class="muted"><code>glm_analysis</code></p>
+      <ul>
+        <li>Fonte: livro p. 502</li>
+        <li>Testes que chamam o método: 26</li>
+        <li>Welham — verificado nos testes: Example 18.1B, Example 18.2B, Example 18.2E, Example 18.3B, Example 18.3C, Example 18.4, Table 18.6, Table 18.7a, Table 18.8, Table 18.9, Table 18.11, Table 18.13</li>
+        <li>Números de outros programas nos testes: GenStat</li>
+        <li>Verificação independente (auditoria 2): deviance, coeficientes, IC (binomial e Poisson) — statsmodels GLM</li>
+      </ul>
+      <h3 id="count_regression">Contagens: binomial negativa e com inflação de zeros</h3>
+      <p class="muted"><code>count_regression</code></p>
+      <ul>
+        <li>Fonte: livro p. 512</li>
+        <li>Testes que chamam o método: 6</li>
+        <li>Welham — verificado nos testes: Table 18.10</li>
+        <li>Verificação independente (auditoria 2): coeficiente, α, log L — statsmodels NegativeBinomial</li>
+      </ul>
+      <h3 id="glmm_analysis">GLMM: proporções e contagens com efeitos aleatórios (experimental)</h3>
+      <p class="muted"><code>glmm_analysis</code></p>
+      <ul>
+        <li>Fonte: livro p. 512–513</li>
+        <li>Testes que chamam o método: 11</li>
+        <li>Sem referências aos livros nos testes</li>
+        <li>Números de outros programas nos testes: glmmADMB, glmmML, lme4</li>
+        <li>Verificação independente (auditoria 2): nenhuma — só casos-limite</li>
+      </ul>
+      <h3 id="ordinal_regression">Regressão ordinal (chances proporcionais)</h3>
+      <p class="muted"><code>ordinal_regression</code></p>
+      <ul>
+        <li>Fonte: livro p. 513</li>
+        <li>Testes que chamam o método: 10</li>
+        <li>Sem referências aos livros nos testes</li>
+        <li>Verificação independente (auditoria 2): coeficientes, log L — statsmodels OrderedModel</li>
+      </ul>
+      <h3 id="curve_in_blocks">Curva em blocos e grupos: polinómio ou x transformado</h3>
+      <p class="muted"><code>curve_in_blocks</code></p>
+      <ul>
+        <li>Fonte: livro p. 405–409, 476</li>
+        <li>Testes que chamam o método: 6</li>
+        <li>Welham — verificado nos testes: Table 15.13</li>
+        <li>Verificação independente (auditoria 2): nenhuma — só casos-limite</li>
+      </ul>
+      <h3 id="nonlinear_in_blocks">Curva não linear em blocos e grupos</h3>
+      <p class="muted"><code>nonlinear_in_blocks</code></p>
+      <ul>
+        <li>Fonte: livro p. 476</li>
+        <li>Testes que chamam o método: 5</li>
+        <li>Welham — verificado nos testes: Example 17.1C</li>
+        <li>Verificação independente (auditoria 2): nenhuma — só casos-limite</li>
+      </ul>
+      <h3 id="mixed_model">Modelo misto (REML)</h3>
+      <p class="muted"><code>mixed_model</code></p>
+      <ul>
+        <li>Fonte: livro p. 100; livro p. 427</li>
+        <li>Testes que chamam o método: 17</li>
+        <li>Welham — verificado nos testes: Example 16.1C, Example 16.1F, Example 16.1H, Example 16.1I, Example 16.2, Table 9.12, Table 9.14, Table 16.1, Table 16.2, Table 16.3, Table 16.5, Table 16.6, Table 16.8, Table 16.9</li>
+        <li>Números de outros programas nos testes: GenStat</li>
+        <li>Verificação independente (auditoria 2): componentes de variância, efeitos — statsmodels MixedLM; EP — GLS manual</li>
+      </ul>
+      <h2>Relação entre variáveis</h2>
+      <h3 id="contingency_test">Tabela de contingência: χ² e teste exato de Fisher</h3>
+      <p class="muted"><code>contingency_test</code></p>
+      <ul>
+        <li>Fonte: livro p. 513</li>
+        <li>Testes que chamam o método: 18</li>
+        <li>Welham — verificado nos testes: p. 455, p. 513</li>
+        <li>Witte — verificado nos testes: Progress Check 19.4, Progress Check 19.6, Progress Check 19.8c, Review 19.13, Review 19.14, Review 19.17–19.18, Table 19.5, Table 19.7, Table 19.8</li>
+        <li>Números de outros programas nos testes: SAS</li>
+        <li>Verificação independente (auditoria 2): χ² com e sem correção, teste exato de Fisher — scipy</li>
+      </ul>
+      <h2>Planeamento do ensaio</h2>
+      <h3 id="sampling_scheme_power">Plano de amostragem hierárquica: EP e potência a partir de componentes de variância</h3>
+      <p class="muted"><code>sampling_scheme_power</code></p>
+      <ul>
+        <li>Fonte: livro p. 534–535</li>
+        <li>Testes que chamam o método: 5</li>
+        <li>Welham — verificado nos testes: Table 19.4a, Table 19.4b</li>
+        <li>Verificação independente (auditoria 2): nenhuma — só casos-limite</li>
+      </ul>
+      <h2>Relação entre variáveis</h2>
+      <h3 id="spearman_correlation">Correlação de Spearman (postos) <span class="tag">proposta</span></h3>
+      <p class="muted"><code>spearman_correlation</code></p>
+      <ul>
+        <li>Fonte: proposta: Witte p. 119; ДИ — Fieller, Hartley &amp; Pearson 1957</li>
+        <li>Testes que chamam o método: 4</li>
+        <li>Witte — verificado nos testes: Table 6.1</li>
+        <li>Verificação independente (auditoria 2): ρ, P — scipy</li>
+      </ul>
+      <h3 id="pearson_correlation">Correlação de Pearson</h3>
+      <p class="muted"><code>pearson_correlation</code></p>
+      <ul>
+        <li>Fonte: livro p. 36–38</li>
+        <li>Testes que chamam o método: 19</li>
+        <li>Welham — verificado nos testes: Example 2.3B</li>
+        <li>Witte — verificado nos testes: Fig. 6.6, Progress Check 6.5, Table 6.1, Table 6.3, Table 6.4</li>
+        <li>Números de outros programas nos testes: SPSS</li>
+        <li>Verificação independente (auditoria 2): r, P, IC de Fisher — scipy</li>
+      </ul>
+      <footer><a href="/pt/privacy/">Privacidade</a> · <a href="/pt/terms/">Termos</a> · <a href="/pt/methods/">Métodos e verificação</a> · <a href="/LICENSE.txt">Licença Apache-2.0</a></footer>
+    </main>
+  </body>
+</html>

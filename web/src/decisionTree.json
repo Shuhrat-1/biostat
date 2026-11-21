@@ -42,7 +42,8 @@
    "id": "D.describe",
    "kind": "leaf",
    "parent": "D",
-   "method": "describe_all"
+   "method": "describe_all",
+   "source": "кн. стр. 13–23"
   },
   {
    "id": "D.bygroup",
@@ -62,7 +63,8 @@
    "id": "D.ci",
    "kind": "leaf",
    "parent": "D",
-   "method": "mean_ci"
+   "method": "mean_ci",
+   "source": "кн. стр. 28–29, 32"
   },
   {
    "id": "D.onesample",
@@ -172,7 +174,8 @@
    "status": "experimental",
    "preset": {
     "distribution": "binomial"
-   }
+   },
+   "source": "кн. стр. 512–513"
   },
   {
    "id": "G1.one",
@@ -212,7 +215,8 @@
    "status": "experimental",
    "preset": {
     "distribution": "poisson"
-   }
+   },
+   "source": "кн. стр. 512–513"
   },
   {
    "id": "B0",
@@ -244,13 +248,15 @@
    "id": "B0.paired.t",
    "kind": "leaf",
    "parent": "B0.paired",
-   "method": "paired_t"
+   "method": "paired_t",
+   "source": "кн. стр. 41"
   },
   {
    "id": "B0.paired.w",
    "kind": "leaf",
    "parent": "B0.paired",
-   "method": "wilcoxon"
+   "method": "wilcoxon",
+   "source": "кн. стр. 127; предл.: Witte стр. 392–396"
   },
   {
    "id": "B0.paired.mcnemar",
@@ -381,13 +387,15 @@
    "id": "B4a.t",
    "kind": "leaf",
    "parent": "B4a",
-   "method": "two_sample_t"
+   "method": "two_sample_t",
+   "source": "кн. стр. 32–35"
   },
   {
    "id": "B4a.mw",
    "kind": "leaf",
    "parent": "B4a",
-   "method": "mann_whitney"
+   "method": "mann_whitney",
+   "source": "кн. стр. 127; предл.: Witte стр. 387–392"
   },
   {
    "id": "B4a.transform",
@@ -399,7 +407,8 @@
    "id": "B4a.transform.means",
    "kind": "leaf",
    "parent": "B4a.transform",
-   "method": "transformed_means"
+   "method": "transformed_means",
+   "source": "кн. стр. 113–121"
   },
   {
    "id": "B4b",
@@ -412,7 +421,8 @@
    "id": "B4b.anova",
    "kind": "leaf",
    "parent": "B4b",
-   "method": "one_way_anova"
+   "method": "one_way_anova",
+   "source": "кн. стр. 74–84"
   },
   {
    "id": "B4b.welch",
@@ -452,7 +462,8 @@
    "id": "B4b.transform.means",
    "kind": "leaf",
    "parent": "B4b.transform",
-   "method": "transformed_means"
+   "method": "transformed_means",
+   "source": "кн. стр. 113–121"
   },
   {
    "id": "B5",
@@ -472,7 +483,8 @@
    "id": "B5.contrasts",
    "kind": "leaf",
    "parent": "B5",
-   "method": "treatment_contrasts"
+   "method": "treatment_contrasts",
+   "source": "кн. стр. 182–187"
   },
   {
    "id": "B5.trend",
@@ -587,13 +599,15 @@
    "id": "A3.slr",
    "kind": "leaf",
    "parent": "A3",
-   "method": "simple_linear_regression"
+   "method": "simple_linear_regression",
+   "source": "кн. стр. 287–299"
   },
   {
    "id": "A3.details",
    "kind": "leaf",
    "parent": "A3",
-   "method": "regression_details"
+   "method": "regression_details",
+   "source": "кн. гл. 12"
   },
   {
    "id": "A3.inverse",
@@ -612,31 +626,36 @@
    "id": "A2.curve.xt",
    "kind": "leaf",
    "parent": "A2.curve",
-   "method": "x_transform_regression"
+   "method": "x_transform_regression",
+   "source": "кн. стр. 451–456"
   },
   {
    "id": "A2.curve.poly",
    "kind": "leaf",
    "parent": "A2.curve",
-   "method": "polynomial_regression"
+   "method": "polynomial_regression",
+   "source": "кн. стр. 456–460"
   },
   {
    "id": "A2.curve.nonlin",
    "kind": "leaf",
    "parent": "A2.curve",
-   "method": "nonlinear_regression"
+   "method": "nonlinear_regression",
+   "source": "кн. стр. 472–476"
   },
   {
    "id": "A2.curve.compare",
    "kind": "leaf",
    "parent": "A2.curve",
-   "method": "curve_comparison"
+   "method": "curve_comparison",
+   "source": "кн. стр. 475–476"
   },
   {
    "id": "A2.curve.smooth",
    "kind": "leaf",
    "parent": "A2.curve",
-   "method": "smooth_curve"
+   "method": "smooth_curve",
+   "source": "кн. стр. 460"
   },
   {
    "id": "A2.periodic",
@@ -655,7 +674,8 @@
    "id": "A1.multi.mlr",
    "kind": "leaf",
    "parent": "A1.multi",
-   "method": "multiple_regression"
+   "method": "multiple_regression",
+   "source": "кн. гл. 14"
   },
   {
    "id": "A1.multi.subsets",
@@ -695,19 +715,22 @@
    "id": "A1.blocks.line",
    "kind": "leaf",
    "parent": "A1.blocks",
-   "method": "blocked_regression"
+   "method": "blocked_regression",
+   "source": "кн. стр. 405–409"
   },
   {
    "id": "A1.blocks.curve",
    "kind": "leaf",
    "parent": "A1.blocks",
-   "method": "curve_in_blocks"
+   "method": "curve_in_blocks",
+   "source": "кн. стр. 405–409, 476"
   },
   {
    "id": "A1.blocks.nonlin",
    "kind": "leaf",
    "parent": "A1.blocks",
-   "method": "nonlinear_in_blocks"
+   "method": "nonlinear_in_blocks",
+   "source": "кн. стр. 476"
   },
   {
    "id": "A1.surface",
@@ -732,13 +755,15 @@
    "id": "A4.diag",
    "kind": "leaf",
    "parent": "A4",
-   "method": "regression_diagnostics"
+   "method": "regression_diagnostics",
+   "source": "кн. стр. 325–335"
   },
   {
    "id": "A4.cv",
    "kind": "leaf",
    "parent": "A4",
-   "method": "regression_cross_validation"
+   "method": "regression_cross_validation",
+   "source": "кн. стр. 338–342"
   },
   {
    "id": "DIAG",
@@ -751,13 +776,15 @@
    "id": "DIAG.residuals",
    "kind": "leaf",
    "parent": "DIAG",
-   "method": "anova_residuals"
+   "method": "anova_residuals",
+   "source": "кн. стр. 94–96, 108–110"
   },
   {
    "id": "DIAG.bartlett",
    "kind": "leaf",
    "parent": "DIAG",
-   "method": "bartlett_test"
+   "method": "bartlett_test",
+   "source": "кн. стр. 104–107"
   },
   {
    "id": "DIAG.serial",
