@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Конфиденциальность — BioStat</title>
+    <meta name="description" content="BioStat считает в браузере: файл не отправляется на сервер. Кто видит IP, что хранится в браузере, как обезличить данные. Проверяемые факты." />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="canonical" href="https://biostat.app/ru/privacy/" />
+    <link rel="alternate" hreflang="en" href="https://biostat.app/privacy/" />
+    <link rel="alternate" hreflang="ru" href="https://biostat.app/ru/privacy/" />
+    <link rel="alternate" hreflang="pt" href="https://biostat.app/pt/privacy/" />
+    <link rel="alternate" hreflang="x-default" href="https://biostat.app/privacy/" />
+    <style>body{margin:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:#18181b;background:#fafafa;line-height:1.6}main{max-width:44rem;margin:0 auto;padding:1.5rem 1rem 2rem}h1{font-size:1.6rem;margin:0.6rem 0 0.2rem}h2{font-size:1.1rem;margin:1.6rem 0 0.4rem}p{margin:0.4rem 0}a{color:#0f766e}.muted{color:#63636b;font-size:0.9rem}nav{display:flex;flex-wrap:wrap;gap:0.4rem 1rem;justify-content:space-between;align-items:center}footer{border-top:1px solid #e4e4e7;margin-top:2rem;padding-top:0.8rem;font-size:0.9rem}code{overflow-wrap:anywhere}</style>
+  </head>
+  <body>
+    <main>
+      <nav><a href="/">← Вернуться в BioStat</a><span><a href="/privacy/" hreflang="en" lang="en">English</a> · <a href="/ru/privacy/" hreflang="ru" lang="ru" aria-current="page">Русский</a> · <a href="/pt/privacy/" hreflang="pt" lang="pt">Português</a></span></nav>
+      <h1>Конфиденциальность</h1>
+      <p class="muted">Последнее изменение: 21.11.2026.</p>
+      <h2>Данные остаются в браузере</h2>
+      <p>Файл, который вы открываете в BioStat, читается и считается на вашем компьютере: расчёт идёт в браузере (Python в Pyodide). Файл и результаты на сервер не отправляются.</p>
+      <p>Это проверено журналом сетевых запросов собранного сайта: при загрузке файла, расчёте и всех выгрузках браузер ничего не отправляет — только получает файлы сайта (запросы GET, ни одного POST).</p>
+      <h2>Кто видит ваш IP-адрес</h2>
+      <p>Cloudflare — хостинг biostat.app: при открытии сайта браузер получает с него страницу, код, расчётное ядро и Python (Pyodide).</p>
+      <p>jsDelivr — сеть доставки пакетов Python: при открытии сайта браузер получает с неё 11 файлов пакетов (numpy, scipy, pandas, statsmodels и их зависимости). Если браузер сохранил их в своём кеше, он может взять их оттуда.</p>
+      <p>Других запросов нет: ни аналитики, ни рекламы, ни шрифтов и картинок с чужих сайтов.</p>
+      <h2>Отчёты об ошибках сети (NEL)</h2>
+      <p>Cloudflare добавляет к ответам сайта заголовки Report-To и NEL. По ним браузер может отправить Cloudflare отчёт, если страница не загрузилась из-за сбоя сети. Об успешных загрузках отчётов нет (success_fraction: 0). Содержимое ваших файлов в такой отчёт не попадает: оно не покидает браузер.</p>
+      <h2>Что хранится в браузере</h2>
+      <p>localStorage — только выбранный язык интерфейса (ключ biostat.lang). Cookie нет. Аналитики и счётчиков нет. Service Worker и кеш приложения не используются.</p>
+      <h2>Выгрузки</h2>
+      <p>JSON, CSV, Excel, PNG и SVG создаются в браузере и сохраняются на ваш компьютер. Дальше за них отвечаете вы. В выгрузке — результаты расчёта и имена колонок и групп; у многих методов ещё значения по наблюдениям (подогнанные значения, остатки), по которым часть данных можно восстановить. В JSON и Excel — также имя, размер и SHA-256 исходного файла.</p>
+      <h2>Совет: обезличьте данные</h2>
+      <p>Если для анализа не нужны идентификаторы, уберите их до загрузки: имена, адреса, номера животных или пациентов и другие сведения, по которым можно узнать человека или хозяйство. Для расчёта нужны только числа и группы.</p>
+      <h2>Контакт</h2>
+      <p>Вопросы о данных — privacy@biostat.app. Уязвимости — security@biostat.app (/.well-known/security.txt).</p>
+      <footer><a href="/ru/privacy/">Конфиденциальность</a></footer>
+    </main>
+  </body>
+</html>

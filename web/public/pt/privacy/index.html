@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="pt">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Privacidade — BioStat</title>
+    <meta name="description" content="O BioStat calcula no seu navegador: o ficheiro nunca é enviado a um servidor. Quem vê o IP, o que o navegador guarda, como anonimizar dados." />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="canonical" href="https://biostat.app/pt/privacy/" />
+    <link rel="alternate" hreflang="en" href="https://biostat.app/privacy/" />
+    <link rel="alternate" hreflang="ru" href="https://biostat.app/ru/privacy/" />
+    <link rel="alternate" hreflang="pt" href="https://biostat.app/pt/privacy/" />
+    <link rel="alternate" hreflang="x-default" href="https://biostat.app/privacy/" />
+    <style>body{margin:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:#18181b;background:#fafafa;line-height:1.6}main{max-width:44rem;margin:0 auto;padding:1.5rem 1rem 2rem}h1{font-size:1.6rem;margin:0.6rem 0 0.2rem}h2{font-size:1.1rem;margin:1.6rem 0 0.4rem}p{margin:0.4rem 0}a{color:#0f766e}.muted{color:#63636b;font-size:0.9rem}nav{display:flex;flex-wrap:wrap;gap:0.4rem 1rem;justify-content:space-between;align-items:center}footer{border-top:1px solid #e4e4e7;margin-top:2rem;padding-top:0.8rem;font-size:0.9rem}code{overflow-wrap:anywhere}</style>
+  </head>
+  <body>
+    <main>
+      <nav><a href="/">← Voltar ao BioStat</a><span><a href="/privacy/" hreflang="en" lang="en">English</a> · <a href="/ru/privacy/" hreflang="ru" lang="ru">Русский</a> · <a href="/pt/privacy/" hreflang="pt" lang="pt" aria-current="page">Português</a></span></nav>
+      <h1>Privacidade</h1>
+      <p class="muted">Última alteração: 21.11.2026.</p>
+      <h2>Os dados ficam no navegador</h2>
+      <p>O ficheiro que abre no BioStat é lido e analisado no seu computador: o cálculo corre no navegador (Python no Pyodide). Nem o ficheiro nem os resultados são enviados a um servidor.</p>
+      <p>Isto foi verificado com um registo de pedidos de rede do site compilado: ao carregar um ficheiro, calcular e exportar, o navegador não envia nada — apenas obtém os ficheiros do próprio site (pedidos GET, nenhum POST).</p>
+      <h2>Quem vê o seu endereço IP</h2>
+      <p>Cloudflare — o alojamento de biostat.app: ao abrir o site, o navegador obtém daí a página, o código, o núcleo de cálculo e o Python (Pyodide).</p>
+      <p>jsDelivr — a rede que entrega os pacotes Python: ao abrir o site, o navegador obtém daí 11 ficheiros de pacotes (numpy, scipy, pandas, statsmodels e as suas dependências). Se o navegador os guardou na sua cache, pode usá-los a partir daí.</p>
+      <p>Não há outros pedidos: nem análise de tráfego, nem publicidade, nem tipos de letra ou imagens de outros sites.</p>
+      <h2>Relatórios de erros de rede (NEL)</h2>
+      <p>A Cloudflare acrescenta às respostas do site os cabeçalhos Report-To e NEL. Com eles, o navegador pode enviar à Cloudflare um relatório se uma página não carregou devido a uma falha de rede. Os carregamentos bem-sucedidos não são comunicados (success_fraction: 0). O conteúdo dos seus ficheiros nunca está nesse relatório: não sai do navegador.</p>
+      <h2>O que o navegador guarda</h2>
+      <p>localStorage — apenas o idioma da interface escolhido (chave biostat.lang). Sem cookies. Sem análise de tráfego nem contadores. Sem Service Worker nem cache da aplicação.</p>
+      <h2>Exportações</h2>
+      <p>Os ficheiros JSON, CSV, Excel, PNG e SVG são criados no navegador e guardados no seu computador. A partir daí, a responsabilidade é sua. Uma exportação contém os resultados e os nomes das colunas e dos grupos; em muitos métodos também valores por observação (valores ajustados, resíduos), a partir dos quais parte dos dados pode ser reconstruída. Em JSON e Excel há ainda o nome, o tamanho e o SHA-256 do ficheiro de origem.</p>
+      <h2>Conselho: anonimize os dados</h2>
+      <p>Se a análise não precisa de identificadores, retire-os antes de carregar: nomes, moradas, números de animais ou de doentes e tudo o que permita identificar uma pessoa ou uma exploração. O cálculo só precisa de números e grupos.</p>
+      <h2>Contacto</h2>
+      <p>Questões sobre dados — privacy@biostat.app. Vulnerabilidades — security@biostat.app (/.well-known/security.txt).</p>
+      <footer><a href="/pt/privacy/">Privacidade</a></footer>
+    </main>
+  </body>
+</html>

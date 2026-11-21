@@ -42,7 +42,7 @@ import {
 } from "./pyodide/bridge";
 import { cancelRun, initRuntime, type LoadProgress } from "./pyodide/runtime";
 import { RunStatus, slowHint } from "./RunStatus";
-import { I18nContext, LANGUAGES, useT, type Lang } from "./i18n";
+import { I18nContext, LANGUAGES, useLang, useT, type Lang } from "./i18n";
 import { c, s } from "./styles";
 import { SensoryMap } from "./SensoryMap";
 import { useMapSync } from "./useMapSync";
@@ -497,8 +497,29 @@ function AppInner({
           </>
         )}
         </main>
+        <SiteFooter />
       </div>
     </div>
+  );
+}
+
+/** Адрес статичной страницы на языке интерфейса: английская — без префикса. */
+function pagePath(slug: string, lang: Lang): string {
+  return lang === "en" ? `/${slug}/` : `/${lang}/${slug}/`;
+}
+
+/**
+ * Подвал: «Конфиденциальность · Условия · Методы и проверка · Лицензия» —
+ * ссылки добавляются по мере готовности страниц (задание P1–P6).
+ */
+function SiteFooter() {
+  const t = useT();
+  const lang = useLang();
+  return (
+    <footer style={{ borderTop: `1px solid ${c.border}`, marginTop: "2rem", padding: "0.8rem 0",
+      fontSize: "0.85rem", color: c.muted }}>
+      <a href={pagePath("privacy", lang)} style={{ color: c.accent }}>{t("footer.privacy")}</a>
+    </footer>
   );
 }
 

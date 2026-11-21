@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Privacy — BioStat</title>
+    <meta name="description" content="BioStat computes in your browser: your file is never sent to a server. Who sees your IP, what the browser stores, how to de-identify data." />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="canonical" href="https://biostat.app/privacy/" />
+    <link rel="alternate" hreflang="en" href="https://biostat.app/privacy/" />
+    <link rel="alternate" hreflang="ru" href="https://biostat.app/ru/privacy/" />
+    <link rel="alternate" hreflang="pt" href="https://biostat.app/pt/privacy/" />
+    <link rel="alternate" hreflang="x-default" href="https://biostat.app/privacy/" />
+    <style>body{margin:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:#18181b;background:#fafafa;line-height:1.6}main{max-width:44rem;margin:0 auto;padding:1.5rem 1rem 2rem}h1{font-size:1.6rem;margin:0.6rem 0 0.2rem}h2{font-size:1.1rem;margin:1.6rem 0 0.4rem}p{margin:0.4rem 0}a{color:#0f766e}.muted{color:#63636b;font-size:0.9rem}nav{display:flex;flex-wrap:wrap;gap:0.4rem 1rem;justify-content:space-between;align-items:center}footer{border-top:1px solid #e4e4e7;margin-top:2rem;padding-top:0.8rem;font-size:0.9rem}code{overflow-wrap:anywhere}</style>
+  </head>
+  <body>
+    <main>
+      <nav><a href="/">← Back to BioStat</a><span><a href="/privacy/" hreflang="en" lang="en" aria-current="page">English</a> · <a href="/ru/privacy/" hreflang="ru" lang="ru">Русский</a> · <a href="/pt/privacy/" hreflang="pt" lang="pt">Português</a></span></nav>
+      <h1>Privacy</h1>
+      <p class="muted">Last updated: 2026-11-21.</p>
+      <h2>Your data stays in the browser</h2>
+      <p>The file you open in BioStat is read and analysed on your computer: the computation runs in the browser (Python in Pyodide). Neither the file nor the results are sent to a server.</p>
+      <p>This was checked with a network log of the built site: while loading a file, computing and exporting, the browser sends nothing — it only fetches the site&#x27;s own files (GET requests, not a single POST).</p>
+      <h2>Who sees your IP address</h2>
+      <p>Cloudflare — the host of biostat.app: when you open the site, the browser fetches the page, the code, the computing core and Python (Pyodide) from it.</p>
+      <p>jsDelivr — the network that delivers the Python packages: when you open the site, the browser fetches 11 package files from it (numpy, scipy, pandas, statsmodels and their dependencies). If the browser has kept them in its cache, it may take them from there.</p>
+      <p>There are no other requests: no analytics, no ads, no fonts or images from other sites.</p>
+      <h2>Network error reports (NEL)</h2>
+      <p>Cloudflare adds the Report-To and NEL headers to the site&#x27;s responses. With them, the browser may send Cloudflare a report if a page failed to load because of a network error. Successful loads are not reported (success_fraction: 0). The contents of your files are never in such a report: they do not leave the browser.</p>
+      <h2>What the browser stores</h2>
+      <p>localStorage — only the interface language you chose (key biostat.lang). No cookies. No analytics or counters. No Service Worker or application cache.</p>
+      <h2>Exports</h2>
+      <p>JSON, CSV, Excel, PNG and SVG files are created in the browser and saved to your computer. From then on they are your responsibility. An export contains the results and the column and group names; for many methods also per-observation values (fitted values, residuals) from which part of the data can be reconstructed. JSON and Excel also hold the name, size and SHA-256 of the source file.</p>
+      <h2>Tip: de-identify your data</h2>
+      <p>If the analysis does not need identifiers, remove them before loading: names, addresses, animal or patient numbers and anything else that could identify a person or a farm. The computation needs only numbers and groups.</p>
+      <h2>Contact</h2>
+      <p>Questions about data — privacy@biostat.app. Vulnerabilities — security@biostat.app (/.well-known/security.txt).</p>
+      <footer><a href="/privacy/">Privacy</a></footer>
+    </main>
+  </body>
+</html>
