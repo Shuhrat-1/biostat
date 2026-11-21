@@ -134,3 +134,24 @@ def test_mark_sets_state_only_where_navigation_api_exists() -> None:
     done = subprocess.run([_node(), "--experimental-strip-types", "--no-warnings", "--input-type=module", "-e", script],
                           capture_output=True, encoding="utf-8", check=True)
     assert json.loads(done.stdout) == [True, False, False, [{"biostat": "app"}]]
+
+
+def test_charts_shrink_after_the_window_narrows() -> None:
+    """Колонка сетки графиков не шире контейнера: иначе после сужения окна или поворота
+    телефона она держит ширину нарисованного графика (min-width: auto у элемента сетки)."""
+    charts = (WEB / "src" / "charts.tsx").read_text(encoding="utf-8")
+    plots = charts[charts.index("export function Plots"):]
+    assert 'display: "grid", gridTemplateColumns: "minmax(0, 1fr)"' in plots.split("{items.map")[0]
+
+
+@pytest.mark.parametrize("lang", ["ru", "en", "pt"])
+def test_privacy_page_names_the_history_mark(lang: str) -> None:
+    import sys
+
+    sys.path.insert(0, str(ROOT / "tools"))
+    import static_pages
+
+    mark = re.search(r"APP_HISTORY_STATE = \{ (\w+): \"(\w+)\" \}",
+                     (WEB / "src" / "historyMark.ts").read_text(encoding="utf-8"))
+    storage = next(ps for _h, ps in static_pages.PRIVACY[lang]["sections"] if "localStorage" in ps[0])
+    assert len(storage) == 2 and f'{{{mark.group(1)}: "{mark.group(2)}"}}' in storage[1]

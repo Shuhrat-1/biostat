@@ -30,6 +30,7 @@
       <p>Cloudflare adds the Report-To and NEL headers to the site&#x27;s responses. With them, the browser may send Cloudflare a report if a page failed to load because of a network error. Successful loads are not reported (success_fraction: 0). The contents of your files are never in such a report: they do not leave the browser.</p>
       <h2>What the browser stores</h2>
       <p>localStorage — only the interface language you chose (key biostat.lang). No cookies. No analytics or counters. No Service Worker or application cache.</p>
+      <p>In the tab history the app marks its own entry with {biostat: &quot;app&quot;}, so that the “← Back to BioStat” link returns you to the open calculation. The mark holds no data from your file and disappears with the tab history.</p>
       <h2>Exports</h2>
       <p>JSON, CSV, Excel, PNG and SVG files are created in the browser and saved to your computer. From then on they are your responsibility. An export contains the results and the column and group names; for many methods also per-observation values (fitted values, residuals) from which part of the data can be reconstructed. JSON and Excel also hold the name, size and SHA-256 of the source file.</p>
       <h2>Tip: de-identify your data</h2>

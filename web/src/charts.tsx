@@ -832,7 +832,9 @@ export function Plots({ bundle }: { bundle: PlotBundle }) {
   if (items.length === 0) return null;
 
   return (
-    <div style={{ display: "grid", gap: "1.5rem", marginTop: "1rem" }}>
+    // minmax(0, 1fr): колонка не шире контейнера, иначе после сужения окна (поворота
+    // телефона) она держит ширину уже нарисованного графика и chart.resize() её не уменьшит.
+    <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: "1.5rem", marginTop: "1rem" }}>
       {items.map(({ key, title, option, height }) => {
         const summary = chartSummary(key, bundle, t);
         return (

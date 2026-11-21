@@ -30,6 +30,7 @@
       <p>A Cloudflare acrescenta às respostas do site os cabeçalhos Report-To e NEL. Com eles, o navegador pode enviar à Cloudflare um relatório se uma página não carregou devido a uma falha de rede. Os carregamentos bem-sucedidos não são comunicados (success_fraction: 0). O conteúdo dos seus ficheiros nunca está nesse relatório: não sai do navegador.</p>
       <h2>O que o navegador guarda</h2>
       <p>localStorage — apenas o idioma da interface escolhido (chave biostat.lang). Sem cookies. Sem análise de tráfego nem contadores. Sem Service Worker nem cache da aplicação.</p>
+      <p>No histórico do separador, a aplicação marca a sua própria entrada com {biostat: &quot;app&quot;}, para que a ligação «← Voltar ao BioStat» o leve de volta ao cálculo aberto. A marca não contém dados do seu ficheiro e desaparece com o histórico do separador.</p>
       <h2>Exportações</h2>
       <p>Os ficheiros JSON, CSV, Excel, PNG e SVG são criados no navegador e guardados no seu computador. A partir daí, a responsabilidade é sua. Uma exportação contém os resultados e os nomes das colunas e dos grupos; em muitos métodos também valores por observação (valores ajustados, resíduos), a partir dos quais parte dos dados pode ser reconstruída. Em JSON e Excel há ainda o nome, o tamanho e o SHA-256 do ficheiro de origem.</p>
       <h2>Conselho: anonimize os dados</h2>

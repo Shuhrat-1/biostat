@@ -62,6 +62,9 @@ PRIVACY: dict[str, dict] = {
             ("Что хранится в браузере", [
                 "localStorage — только выбранный язык интерфейса (ключ biostat.lang). Cookie нет. Аналитики и "
                 "счётчиков нет. Service Worker и кеш приложения не используются.",
+                "В истории вкладки приложение помечает свою запись меткой {biostat: \"app\"}, чтобы ссылка "
+                "«← Вернуться в BioStat» вернула к открытому расчёту. Данных из файла в метке нет; она исчезает "
+                "вместе с историей вкладки.",
             ]),
             ("Выгрузки", [
                 "JSON, CSV, Excel, PNG и SVG создаются в браузере и сохраняются на ваш компьютер. Дальше за них "
@@ -112,6 +115,9 @@ PRIVACY: dict[str, dict] = {
             ("What the browser stores", [
                 "localStorage — only the interface language you chose (key biostat.lang). No cookies. No "
                 "analytics or counters. No Service Worker or application cache.",
+                "In the tab history the app marks its own entry with {biostat: \"app\"}, so that the "
+                "“← Back to BioStat” link returns you to the open calculation. The mark holds no data from your "
+                "file and disappears with the tab history.",
             ]),
             ("Exports", [
                 "JSON, CSV, Excel, PNG and SVG files are created in the browser and saved to your computer. From "
@@ -164,6 +170,9 @@ PRIVACY: dict[str, dict] = {
             ("O que o navegador guarda", [
                 "localStorage — apenas o idioma da interface escolhido (chave biostat.lang). Sem cookies. Sem "
                 "análise de tráfego nem contadores. Sem Service Worker nem cache da aplicação.",
+                "No histórico do separador, a aplicação marca a sua própria entrada com {biostat: \"app\"}, para "
+                "que a ligação «← Voltar ao BioStat» o leve de volta ao cálculo aberto. A marca não contém dados "
+                "do seu ficheiro e desaparece com o histórico do separador.",
             ]),
             ("Exportações", [
                 "Os ficheiros JSON, CSV, Excel, PNG e SVG são criados no navegador e guardados no seu "
