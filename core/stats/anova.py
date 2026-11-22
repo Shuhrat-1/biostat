@@ -18,8 +18,9 @@ from core.report.schema import Estimate, Severity, StatResult
 from core.stats.guards import check_group_sizes, note_single_groups, refuse_constant
 from core.stats.hypothesis import _refuse_flat_groups, levene_p_value
 from core.stats.normality_rule import check_normality
+from core.stats.variance_rule import spreads_of, variance_advice
+from core.stats.welch_rule import welch_advice
 
-_ASSUMPTION_ALPHA = 0.05
 _SHAPIRO_MIN = 3
 _SHAPIRO_MAX = 5000
 
@@ -160,24 +161,57 @@ def _check_anova_assumptions(groups: list[np.ndarray], result: StatResult) -> No
 
 
 def _check_variances(groups: list[np.ndarray], result: StatResult) -> None:
-    """Левене; при вырожденном тесте (группы по 2) — пометка вместо ложного сигнала."""
+    """Однородность дисперсий — по правилу, общему с картой (B4.2, B4.3, B4.5).
+
+    Три и более групп — Бартлетт и связь SD со средним (`variance_rule`); две —
+    отношение SD и баланс n (`welch_rule`). Левене остаётся справкой (levene_p).
+    """
     levene_p = levene_p_value(*groups)
-    if levene_p is None:
-        result.add_warning(
-            "levene_undefined",
-            "Тест Левене не определён (слишком мало наблюдений в группах); "
-            "равенство дисперсий не проверено.",
-            Severity.INFO,
-        )
-    else:
+    if levene_p is not None:
         result.statistics["levene_p"] = levene_p
-    if levene_p is not None and levene_p < _ASSUMPTION_ALPHA:
+    if len(groups) == 2:
+        _warn_two_groups(groups, result)
+        return
+    advice = variance_advice(spreads_of(groups))
+    if advice is None:
+        return
+    if advice.x2 is not None:
+        result.statistics["bartlett_x2"] = advice.x2
+    if advice.case == "welch":
+        params = {"x2": f"{advice.x2:.2f}", "crit": f"{advice.crit:.2f}"}
         result.add_warning(
             "variance_heterogeneity",
-            f"Тест Левене указывает на неравенство дисперсий (p={levene_p:.4f}). "
-            f"Рассмотри тест Уэлча ANOVA или Краскела-Уоллиса.",
-            Severity.WARNING,
-        )
+            f"Дисперсии групп неоднородны (Бартлетт X² = {params['x2']} > {params['crit']}) "
+            "и не растут со средним: ANOVA Уэлча.", Severity.WARNING, params=params)
+        return
+    params = {"r": f"{advice.r:.2f}"}
+    code = "variance_grows_with_mean" if advice.confident else "variance_grows_with_mean_three"
+    text = (f"SD групп растут вместе со средними (r = {params['r']} по логарифмам): "
+            "трансформация отклика (log).")
+    if not advice.confident:
+        text = (f"SD трёх групп растут вместе со средними (r = {params['r']} по логарифмам), но по "
+                "трём группам такая связь часто случайна: трансформация отклика (log) — под вопросом.")
+    severity = Severity.WARNING if advice.confident else Severity.INFO
+    result.add_warning(code, text, severity, params=params)
+
+
+def _warn_two_groups(groups: list[np.ndarray], result: StatResult) -> None:
+    """Две группы: то же правило, что у two_sample_t; совет — t-тест Уэлча."""
+    advice = welch_advice(groups[0], groups[1])
+    if advice is None:
+        return
+    params = {"sd_ratio": round(advice.sd_ratio, 2), "n_min": advice.n_min}
+    if not advice.reliable:
+        result.add_warning(
+            "unequal_variance_small_n",
+            f"SD групп различаются в {params['sd_ratio']} раза, но в меньшей группе всего "
+            f"{advice.n_min} наблюдений: по таким выборкам о дисперсиях судить нельзя.",
+            Severity.INFO, params=params)
+        return
+    result.add_warning(
+        "variance_two_groups",
+        f"SD двух групп различаются в {params['sd_ratio']} раза: сравните их t-тестом "
+        "в варианте Уэлча.", Severity.WARNING, params=params)
 
 
 def _check_residual_normality(groups: list[np.ndarray], result: StatResult) -> None:

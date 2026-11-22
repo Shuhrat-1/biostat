@@ -186,7 +186,8 @@ BIOSTAT_RULES = [
           "Dois grupos (B4.2, two_sample_t): t de Student por omissão; Welch é aconselhado quando a razão "
           "dos DP é > 2 com n equilibrados, ou > 1,5 quando a razão dos n excede 1,5; com n < 8 num grupo "
           "é só uma nota."),
-    _rule(["None — связи нет [BioStat]", "_MIN_GROUPS_FOR_TREND = 4", '@rule("B4.3"'],
+    _rule(["Связь SD со средним — критерий BioStat", "SD_RATIO_FOR_TREND = 2.0", "R_FOR_TREND = 0.8",
+           "MIN_GROUPS_FOR_TREND = 4", '@rule("B4.3"'],
           "SD растёт со средним (B4.3, сигнал к log-трансформации): r между log SD и log среднего групп "
           "≥ 0.8 при SD, различающихся не меньше чем вдвое; уверенный сигнал — с 4 групп.",
           "SD grows with the mean (B4.3, a cue for a log transformation): r between log SD and log mean of "

@@ -102,9 +102,24 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     pt: `Os DP dos grupos diferem {sd_ratio} vezes, mas o grupo menor tem apenas {n_min} observações: amostras tão pequenas dizem pouco sobre as variâncias.`,
   },
   variance_heterogeneity: {
-    ru: `Дисперсии групп неравны (тест Левене). Рассмотри Уэлча ANOVA или Краскела-Уоллиса.`,
-    en: `Group variances are unequal (Levene's test). Consider Welch's ANOVA or Kruskal-Wallis.`,
-    pt: `As variâncias dos grupos são desiguais (teste de Levene). Considere a ANOVA de Welch ou Kruskal-Wallis.`,
+    ru: `Дисперсии групп неоднородны (Бартлетт X² = {x2} > {crit}) и не растут со средним: ANOVA Уэлча.`,
+    en: `Group variances are heterogeneous (Bartlett X² = {x2} > {crit}) and do not grow with the mean: Welch's ANOVA.`,
+    pt: `As variâncias dos grupos são heterogéneas (Bartlett X² = {x2} > {crit}) e não crescem com a média: ANOVA de Welch.`,
+  },
+  variance_grows_with_mean: {
+    ru: `SD групп растут вместе со средними (r = {r} по логарифмам): трансформация отклика (log).`,
+    en: `Group SDs grow with the means (r = {r} on the log scale): transform the response (log).`,
+    pt: `Os DP dos grupos crescem com as médias (r = {r} na escala log): transforme a resposta (log).`,
+  },
+  variance_grows_with_mean_three: {
+    ru: `SD трёх групп растут вместе со средними (r = {r} по логарифмам), но по трём группам такая связь часто случайна: трансформация отклика (log) — под вопросом.`,
+    en: `The SDs of the three groups grow with the means (r = {r} on the log scale), but with three groups such a link often arises by chance: a log transformation is questionable.`,
+    pt: `Os DP dos três grupos crescem com as médias (r = {r} na escala log), mas com três grupos tal relação surge muitas vezes por acaso: a transformação log é discutível.`,
+  },
+  variance_two_groups: {
+    ru: `SD двух групп различаются в {sd_ratio} раза: сравните их t-тестом в варианте Уэлча.`,
+    en: `The SDs of the two groups differ {sd_ratio}-fold: compare them with the Welch variant of the t-test.`,
+    pt: `Os DP dos dois grupos diferem {sd_ratio} vezes: compare-os com a variante de Welch do teste t.`,
   },
   autocorrelation: {
     ru: `Возможна автокорреляция остатков (Дарбин-Уотсон далёк от 2). Проверь порядок наблюдений.`,
@@ -887,9 +902,9 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     pt: `Observações com |resíduo padronizado| > 2: {count} (cerca de {expected} esperadas sob normalidade). Verifique-as nos registos originais; não as remova sem causa identificada.`,
   },
   permutation_unequal_variances: {
-    ru: `Дисперсии групп неоднородны (тест Левене); перестановочный тест предполагает однородные дисперсии.`,
-    en: `Group variances are heterogeneous (Levene's test); the permutation test assumes homogeneous variances.`,
-    pt: `As variâncias dos grupos são heterogéneas (teste de Levene); o teste de permutação pressupõe variâncias homogéneas.`,
+    ru: `Дисперсии групп неоднородны; перестановочный тест предполагает однородные дисперсии.`,
+    en: `Group variances are heterogeneous; the permutation test assumes homogeneous variances.`,
+    pt: `As variâncias dos grupos são heterogéneas; o teste de permutação pressupõe variâncias homogéneas.`,
   },
   no_residual_variation: {
     ru: `Остаточной вариации нет (внутри групп значения одинаковы или модель описывает данные точно): стандартные ошибки равны нулю, F, t и доверительные интервалы не определены.`,

@@ -49,11 +49,11 @@ def test_levene_degenerate_for_pairs_returns_none():
 
 
 def test_anova_pairs_no_false_heterogeneity_warning():
-    """Было: Левене p = 0 → ложное variance_heterogeneity."""
+    """Было: Левене p = 0 → ложное variance_heterogeneity. Теперь решает Бартлетт
+    (variance_rule): X² = 1.67 < 5.99; вырожденный Левене не попадает в statistics."""
     r = one_way_anova([1.0, 2.5], [4.0, 3.5], [6.0, 9.0])
     codes = {w.code for w in r.warnings}
     assert "variance_heterogeneity" not in codes
-    assert "levene_undefined" in codes
     assert "levene_p" not in r.statistics
 
 

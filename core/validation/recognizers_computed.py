@@ -22,6 +22,7 @@ from scipy import stats
 
 from core.stats.normality_rule import check_normality, departure_matters, shapiro_p
 from core.stats.outliers import outlier_candidate
+from core.stats.variance_rule import MIN_GROUPS_FOR_TREND, Spread, bartlett, sd_tracks_mean
 from core.stats.welch_rule import welch_advice
 from core.validation import column_names as names
 from core.validation.recognize import COMPUTED, HINT, STRONG, Context, Rule, Signal, rule
@@ -172,15 +173,6 @@ def _kept(n: int, drop: int | None) -> np.ndarray:
     return keep
 
 
-@dataclass(frozen=True)
-class Spread:
-    """Разброс внутри варианта: среднее, оценка дисперсии и её df."""
-
-    mean: float
-    var: float
-    df: float
-
-
 def _spreads(ctx: Context, drop: int | None = None) -> list[Spread]:
     """Дисперсии вариантов для проверки однородности (группы с n ≥ 2).
 
@@ -241,23 +233,11 @@ def _shapiro(ctx: Context) -> float | None:
     return shapiro_p(fit.resid, truncate=True)
 
 
-def _bartlett_statistic(spreads: list[Spread]) -> float:
-    """X² Бартлетта по дисперсиям групп и их df [кн. стр. 105–106]."""
-    df = np.array([s.df for s in spreads])
-    var = np.array([s.var for s in spreads])
-    total = df.sum()
-    pooled = float(df @ var / total)
-    correction = 1 + (np.sum(1 / df) - 1 / total) / (3 * (df.size - 1))
-    return float((total * np.log(pooled) - df @ np.log(var)) / correction)
-
-
 def _bartlett(ctx: Context) -> tuple[float, float, int] | None:
-    """(X², критическое χ²₀.₉₅(t − 1), t) по вариантам с n ≥ 2 [кн. стр. 105–107]."""
+    """(X², критическое χ²₀.₉₅(t − 1), t) по вариантам с n ≥ 2 — `variance_rule`."""
     spreads = _spreads(ctx)
-    if len(spreads) < 2 or any(s.var <= 0 for s in spreads):
-        return None
-    crit = float(stats.chi2.ppf(1 - _ALPHA, len(spreads) - 1))
-    return _bartlett_statistic(spreads), crit, len(spreads)
+    res = bartlett(spreads)
+    return None if res is None else (*res, len(spreads))
 
 
 def _departure_matters(ctx: Context) -> bool:
@@ -362,7 +342,7 @@ def _skewed_without(ctx: Context, row: int) -> bool:
     v[row - 1] = np.nan
     v = v[~np.isnan(v)]
     right = v.size >= 8 and v.min() > 0 and float(stats.skew(v)) > 1
-    return right or _tracks_mean(_spreads(ctx, drop=row)) is not None
+    return right or sd_tracks_mean(_spreads(ctx, drop=row)) is not None
 
 
 def _log_scale_clears(ctx: Context, fit: Fit, hits: np.ndarray) -> bool:
@@ -480,20 +460,8 @@ def _skew_explains_spread(ctx: Context) -> bool:
 
 
 def _sd_tracks_mean(ctx: Context) -> float | None:
-    """r между log SD и log среднего групп; None — связи нет [BioStat]."""
-    return _tracks_mean(_spreads(ctx))
-
-
-def _tracks_mean(spreads: list[Spread]) -> float | None:
-    """Связь SD и среднего по готовым дисперсиям групп (≥ 3 групп, SD ×2, r ≥ 0.8)."""
-    means = np.array([s.mean for s in spreads])
-    if len(spreads) < 3 or means.min() <= 0:
-        return None
-    sds = np.sqrt([s.var for s in spreads])
-    if sds.min() <= 0 or sds.max() / sds.min() < 2:
-        return None
-    r = float(np.corrcoef(np.log(means), np.log(sds))[0, 1])
-    return r if r >= 0.8 else None
+    """r между log SD и log среднего групп; None — связи нет — `variance_rule`."""
+    return sd_tracks_mean(_spreads(ctx))
 
 
 @rule("B4.3", "B4", "transform_groups", STRONG, "кн. стр. 96–97, 115; критерий BioStat",
@@ -503,7 +471,7 @@ def sd_grows_with_mean(ctx: Context) -> Signal | None:
     r = ctx.memo("sd_mean", lambda: _sd_tracks_mean(ctx)) if _anova_applies(ctx) else None
     if r is None:
         return None
-    if len(_spreads(ctx)) < _MIN_GROUPS_FOR_TREND:
+    if len(_spreads(ctx)) < MIN_GROUPS_FOR_TREND:
         # По трём точкам r ≥ 0.8 часто выходит случайно (13 % при 3 × 3, аудит 01-07).
         return Signal("SD трёх групп растут вместе со средними (r = {r} по логарифмам), но"
                       " по трём группам такая связь часто случайна: трансформация отклика"
@@ -512,8 +480,6 @@ def sd_grows_with_mean(ctx: Context) -> Signal | None:
     return Signal("SD групп растут вместе со средними (r = {r} по логарифмам):"
                   " трансформация отклика (log).", {"r": round(r, 2)})
 
-
-_MIN_GROUPS_FOR_TREND = 4  # групп, с которых связь SD и среднего — уверенный сигнал [BioStat]
 
 
 @rule("B4.4", "B4", "pre_transform", HINT, "кн. стр. 102, 115; порог BioStat", cls=COMPUTED)

@@ -522,7 +522,7 @@
     "кн. стр. 74–84"
    ],
    "proposed": false,
-   "tests": 33,
+   "tests": 36,
    "test_files": [
     "test_anova.py",
     "test_audit2_guards.py",
@@ -534,6 +534,7 @@
     "test_scheffe.py",
     "test_simple_effects.py",
     "test_treatment_means.py",
+    "test_variance_rule.py",
     "test_welch_anova.py",
     "test_witte_anova.py"
    ],
@@ -903,9 +904,10 @@
     "кн. стр. 102"
    ],
    "proposed": false,
-   "tests": 7,
+   "tests": 8,
    "test_files": [
-    "test_anova_checks.py"
+    "test_anova_checks.py",
+    "test_variance_rule.py"
    ],
    "book_refs": {
     "welham": [],
@@ -2864,8 +2866,10 @@
   },
   {
    "anchors": [
-    "None — связи нет [BioStat]",
-    "_MIN_GROUPS_FOR_TREND = 4",
+    "Связь SD со средним — критерий BioStat",
+    "SD_RATIO_FOR_TREND = 2.0",
+    "R_FOR_TREND = 0.8",
+    "MIN_GROUPS_FOR_TREND = 4",
     "@rule(\"B4.3\""
    ],
    "ru": "SD растёт со средним (B4.3, сигнал к log-трансформации): r между log SD и log среднего групп ≥ 0.8 при SD, различающихся не меньше чем вдвое; уверенный сигнал — с 4 групп.",

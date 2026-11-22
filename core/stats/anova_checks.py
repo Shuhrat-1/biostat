@@ -17,6 +17,8 @@ from core.report.schema import Severity, StatResult
 from core.stats.anova import _clean_group, _pooled_variance, _resolve_labels
 from core.stats.guards import check_group_sizes
 from core.stats.hypothesis import levene_p_value
+from core.stats.variance_rule import bartlett, spreads_of
+from core.stats.welch_rule import welch_advice
 
 _ALPHA = 0.05
 _OUTLIER_CUTOFF = 2.0  # |r| > 2 — кандидаты в выбросы (стр. 95)
@@ -280,17 +282,25 @@ def _n_arrangements(groups: list[np.ndarray]) -> int:
 def _check_permutation_variances(groups: list[np.ndarray], result: StatResult) -> None:
     """Перестановочный тест требует сопоставимых дисперсий (стр. 102).
 
-    Вырожденный Левене (группы по 2 наблюдения) пропускается.
+    Правило то же, что у карты (B4.6 выбирает тест только при однородных
+    дисперсиях): три и более групп — Бартлетт (`variance_rule`), две — отношение
+    SD при n ≥ 8 (`welch_rule`). Левене — справка (levene_p).
     """
     levene_p = levene_p_value(*groups)
-    if levene_p is None:
-        return
-    result.statistics["levene_p"] = levene_p
-    if levene_p < _ALPHA:
+    if levene_p is not None:
+        result.statistics["levene_p"] = levene_p
+    if len(groups) == 2:
+        advice = welch_advice(groups[0], groups[1])
+        unequal = advice is not None and advice.reliable
+        params = {"test": "sd_ratio"}
+    else:
+        test = bartlett(spreads_of(groups))
+        unequal = test is not None and test[0] > test[1]
+        params = {"test": "bartlett"}
+    if unequal:
         result.add_warning(
             "permutation_unequal_variances",
-            f"Дисперсии групп неоднородны (Левене p={levene_p:.4f}); "
-            f"перестановочный тест в книге предполагается при однородных "
-            f"дисперсиях.",
-            Severity.WARNING,
+            "Дисперсии групп неоднородны; перестановочный тест в книге "
+            "предполагается при однородных дисперсиях.",
+            Severity.WARNING, params=params,
         )
