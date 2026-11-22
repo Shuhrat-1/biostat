@@ -105,7 +105,7 @@
         <li>ANCOVA: a falta de ajuste não é testada quando há mais de 200 x distintos (x é contínuo).</li>
         <li>Regressão com grupos: aviso quando as amplitudes de x de dois grupos se sobrepõem menos de metade.</li>
       </ul>
-      <h2>Estatística descritiva</h2>
+      <h2 id="group-descriptive">Estatística descritiva</h2>
       <h3 id="describe_all">Estatística descritiva resumida</h3>
       <p class="muted"><code>describe_all</code></p>
       <ul>
@@ -146,7 +146,7 @@
         <li>Sem referências aos livros nos testes</li>
         <li>Verificação independente (auditoria 2): IC — scipy</li>
       </ul>
-      <h2>Verificação de pressupostos</h2>
+      <h2 id="group-assumptions">Verificação de pressupostos</h2>
       <h3 id="normality_test">Teste de normalidade (Shapiro-Wilk)</h3>
       <p class="muted"><code>normality_test</code></p>
       <ul>
@@ -155,7 +155,7 @@
         <li>Sem referências aos livros nos testes</li>
         <li>Verificação independente (auditoria 2): W, P, assimetria, curtose — scipy</li>
       </ul>
-      <h2>Comparação com referência</h2>
+      <h2 id="group-reference">Comparação com referência</h2>
       <h3 id="one_sample_t">Teste t para uma amostra <span class="tag">proposta</span></h3>
       <p class="muted"><code>one_sample_t</code></p>
       <ul>
@@ -172,7 +172,7 @@
         <li>Witte — verificado nos testes: Review 19.11</li>
         <li>Verificação independente (auditoria 2): nenhuma — só casos-limite</li>
       </ul>
-      <h2>Comparação de dois grupos</h2>
+      <h2 id="group-two-groups">Comparação de dois grupos</h2>
       <h3 id="two_sample_t">Teste t para duas amostras</h3>
       <p class="muted"><code>two_sample_t</code></p>
       <ul>
@@ -206,7 +206,7 @@
         <li>Welham — verificado nos testes: Table 10.1</li>
         <li>Verificação independente (auditoria 2): nenhuma — só casos-limite</li>
       </ul>
-      <h2>Comparação com referência</h2>
+      <h2 id="group-reference">Comparação com referência</h2>
       <h3 id="one_sample_wilcoxon">Teste de Wilcoxon para uma amostra (não paramétrico) <span class="tag">proposta</span></h3>
       <p class="muted"><code>one_sample_wilcoxon</code></p>
       <ul>
@@ -215,7 +215,7 @@
         <li>Sem referências aos livros nos testes</li>
         <li>Verificação independente (auditoria 2): P — scipy</li>
       </ul>
-      <h2>Comparação de vários grupos</h2>
+      <h2 id="group-several-groups">Comparação de vários grupos</h2>
       <h3 id="one_way_anova">ANOVA de um fator</h3>
       <p class="muted"><code>one_way_anova</code></p>
       <ul>
@@ -293,7 +293,7 @@
         <li>Sem referências aos livros nos testes</li>
         <li>Verificação independente (auditoria 2): nenhuma — só casos-limite</li>
       </ul>
-      <h2>Verificação de pressupostos</h2>
+      <h2 id="group-assumptions">Verificação de pressupostos</h2>
       <h3 id="bartlett_test">Teste de Bartlett (igualdade de variâncias)</h3>
       <p class="muted"><code>bartlett_test</code></p>
       <ul>
@@ -310,7 +310,7 @@
         <li>Welham — verificado nos testes: p. 96</li>
         <li>Verificação independente (auditoria 2): nenhuma — só casos-limite</li>
       </ul>
-      <h2>Comparação de vários grupos</h2>
+      <h2 id="group-several-groups">Comparação de vários grupos</h2>
       <h3 id="transformed_means">ANOVA com resposta transformada</h3>
       <p class="muted"><code>transformed_means</code></p>
       <ul>
@@ -408,7 +408,7 @@
         <li>Welham — verificado nos testes: Example 9.9B</li>
         <li>Verificação independente (auditoria 2): F intrablocos, SED, eficiência, médias ajustadas — OLS</li>
       </ul>
-      <h2>Planeamento do ensaio</h2>
+      <h2 id="group-planning">Planeamento do ensaio</h2>
       <h3 id="replication_power">Repetição e potência (a partir de um piloto)</h3>
       <p class="muted"><code>replication_power</code></p>
       <ul>
@@ -417,7 +417,7 @@
         <li>Welham — verificado nos testes: Example 10.1A, Table 4.1</li>
         <li>Verificação independente (auditoria 2): potência e n — t não central</li>
       </ul>
-      <h2>Comparação de vários grupos</h2>
+      <h2 id="group-several-groups">Comparação de vários grupos</h2>
       <h3 id="equivalence_test">Teste de equivalência (TOST)</h3>
       <p class="muted"><code>equivalence_test</code></p>
       <ul>
@@ -434,7 +434,7 @@
         <li>Welham — verificado nos testes: Example 11.5, Fig. 11.6, Table 11.17, Table 11.18, Table 11.20, Table 11.23, Table 11.24</li>
         <li>Verificação independente (auditoria 2): SQ sequenciais nas duas ordens, tipo II — statsmodels</li>
       </ul>
-      <h2>Medições emparelhadas</h2>
+      <h2 id="group-paired">Medições emparelhadas</h2>
       <h3 id="paired_t">Teste t emparelhado</h3>
       <p class="muted"><code>paired_t</code></p>
       <ul>
@@ -451,7 +451,7 @@
         <li>Witte — verificado nos testes: Progress Check 20.3, Table 20.3</li>
         <li>Verificação independente (auditoria 2): W, P — scipy; amostras pequenas — enumeração exata</li>
       </ul>
-      <h2>Relação entre variáveis</h2>
+      <h2 id="group-relationships">Relação entre variáveis</h2>
       <h3 id="simple_linear_regression">Regressão linear simples</h3>
       <p class="muted"><code>simple_linear_regression</code></p>
       <ul>
@@ -598,7 +598,7 @@
         <li>Welham — verificado nos testes: Table 15.12, Table 15.13, Table 15.14</li>
         <li>Verificação independente (auditoria 2): nenhuma — só casos-limite</li>
       </ul>
-      <h2>Comparação de vários grupos</h2>
+      <h2 id="group-several-groups">Comparação de vários grupos</h2>
       <h3 id="ancova">Análise de covariância (ANCOVA)</h3>
       <p class="muted"><code>ancova</code></p>
       <ul>
@@ -666,7 +666,7 @@
         <li>Números de outros programas nos testes: GenStat</li>
         <li>Verificação independente (auditoria 2): componentes de variância, efeitos — statsmodels MixedLM; EP — GLS manual</li>
       </ul>
-      <h2>Relação entre variáveis</h2>
+      <h2 id="group-relationships">Relação entre variáveis</h2>
       <h3 id="contingency_test">Tabela de contingência: χ² e teste exato de Fisher</h3>
       <p class="muted"><code>contingency_test</code></p>
       <ul>
@@ -677,7 +677,7 @@
         <li>Números de outros programas nos testes: SAS</li>
         <li>Verificação independente (auditoria 2): χ² com e sem correção, teste exato de Fisher — scipy</li>
       </ul>
-      <h2>Planeamento do ensaio</h2>
+      <h2 id="group-planning">Planeamento do ensaio</h2>
       <h3 id="sampling_scheme_power">Plano de amostragem hierárquica: EP e potência a partir de componentes de variância</h3>
       <p class="muted"><code>sampling_scheme_power</code></p>
       <ul>
@@ -686,7 +686,7 @@
         <li>Welham — verificado nos testes: Table 19.4a, Table 19.4b</li>
         <li>Verificação independente (auditoria 2): nenhuma — só casos-limite</li>
       </ul>
-      <h2>Relação entre variáveis</h2>
+      <h2 id="group-relationships">Relação entre variáveis</h2>
       <h3 id="spearman_correlation">Correlação de Spearman (postos) <span class="tag">proposta</span></h3>
       <p class="muted"><code>spearman_correlation</code></p>
       <ul>

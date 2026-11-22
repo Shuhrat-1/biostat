@@ -105,7 +105,7 @@
         <li>ANCOVA: неадекватность не проверяется, если разных x больше 200 (x непрерывный).</li>
         <li>Регрессия по группам: предупреждение, если диапазоны x двух групп перекрываются меньше чем наполовину.</li>
       </ul>
-      <h2>Описательная статистика</h2>
+      <h2 id="group-descriptive">Описательная статистика</h2>
       <h3 id="describe_all">Сводная описательная статистика</h3>
       <p class="muted"><code>describe_all</code></p>
       <ul>
@@ -146,7 +146,7 @@
         <li>Ссылок на книги в тестах нет</li>
         <li>Независимая сверка (аудит 2): ДИ — scipy</li>
       </ul>
-      <h2>Проверка допущений</h2>
+      <h2 id="group-assumptions">Проверка допущений</h2>
       <h3 id="normality_test">Проверка нормальности (Шапиро-Уилк)</h3>
       <p class="muted"><code>normality_test</code></p>
       <ul>
@@ -155,7 +155,7 @@
         <li>Ссылок на книги в тестах нет</li>
         <li>Независимая сверка (аудит 2): W, P, асимметрия, эксцесс — scipy</li>
       </ul>
-      <h2>Сравнение с эталоном</h2>
+      <h2 id="group-reference">Сравнение с эталоном</h2>
       <h3 id="one_sample_t">Одновыборочный t-тест <span class="tag">предл.</span></h3>
       <p class="muted"><code>one_sample_t</code></p>
       <ul>
@@ -172,7 +172,7 @@
         <li>Witte — сверяют тесты: Review 19.11</li>
         <li>Независимая сверка (аудит 2): нет — только граничные случаи</li>
       </ul>
-      <h2>Сравнение двух групп</h2>
+      <h2 id="group-two-groups">Сравнение двух групп</h2>
       <h3 id="two_sample_t">Двухвыборочный t-тест</h3>
       <p class="muted"><code>two_sample_t</code></p>
       <ul>
@@ -206,7 +206,7 @@
         <li>Welham — сверяют тесты: Table 10.1</li>
         <li>Независимая сверка (аудит 2): нет — только граничные случаи</li>
       </ul>
-      <h2>Сравнение с эталоном</h2>
+      <h2 id="group-reference">Сравнение с эталоном</h2>
       <h3 id="one_sample_wilcoxon">Тест Уилкоксона одной выборки (непараметрический) <span class="tag">предл.</span></h3>
       <p class="muted"><code>one_sample_wilcoxon</code></p>
       <ul>
@@ -215,9 +215,9 @@
         <li>Ссылок на книги в тестах нет</li>
         <li>Независимая сверка (аудит 2): P — scipy</li>
       </ul>
-      <h2>Сравнение нескольких групп</h2>
+      <h2 id="group-several-groups">Сравнение нескольких групп</h2>
       <h3 id="one_way_anova">Однофакторный ANOVA</h3>
-      <p class="muted"><code>one_way_anova</code></p>
+      <p class="muted"><code>one_way_anova</code> · <a href="/ru/methods/one_way_anova/">Подробно →</a></p>
       <ul>
         <li>Источник: кн. стр. 74–84</li>
         <li>Тестов, вызывающих метод: 36</li>
@@ -293,7 +293,7 @@
         <li>Ссылок на книги в тестах нет</li>
         <li>Независимая сверка (аудит 2): нет — только граничные случаи</li>
       </ul>
-      <h2>Проверка допущений</h2>
+      <h2 id="group-assumptions">Проверка допущений</h2>
       <h3 id="bartlett_test">Тест Бартлетта (равенство дисперсий)</h3>
       <p class="muted"><code>bartlett_test</code></p>
       <ul>
@@ -310,7 +310,7 @@
         <li>Welham — сверяют тесты: стр. 96</li>
         <li>Независимая сверка (аудит 2): нет — только граничные случаи</li>
       </ul>
-      <h2>Сравнение нескольких групп</h2>
+      <h2 id="group-several-groups">Сравнение нескольких групп</h2>
       <h3 id="transformed_means">ANOVA с трансформацией отклика</h3>
       <p class="muted"><code>transformed_means</code></p>
       <ul>
@@ -408,7 +408,7 @@
         <li>Welham — сверяют тесты: Example 9.9B</li>
         <li>Независимая сверка (аудит 2): F внутри блоков, SED, эффективность, скорректированные средние — OLS</li>
       </ul>
-      <h2>Планирование опыта</h2>
+      <h2 id="group-planning">Планирование опыта</h2>
       <h3 id="replication_power">Повторность и мощность (по пилоту)</h3>
       <p class="muted"><code>replication_power</code></p>
       <ul>
@@ -417,7 +417,7 @@
         <li>Welham — сверяют тесты: Example 10.1A, Table 4.1</li>
         <li>Независимая сверка (аудит 2): мощность и n — нецентральное t</li>
       </ul>
-      <h2>Сравнение нескольких групп</h2>
+      <h2 id="group-several-groups">Сравнение нескольких групп</h2>
       <h3 id="equivalence_test">Тест эквивалентности (TOST)</h3>
       <p class="muted"><code>equivalence_test</code></p>
       <ul>
@@ -434,7 +434,7 @@
         <li>Welham — сверяют тесты: Example 11.5, Fig. 11.6, Table 11.17, Table 11.18, Table 11.20, Table 11.23, Table 11.24</li>
         <li>Независимая сверка (аудит 2): последовательные SS в обоих порядках, тип II — statsmodels</li>
       </ul>
-      <h2>Парные измерения</h2>
+      <h2 id="group-paired">Парные измерения</h2>
       <h3 id="paired_t">Парный t-тест</h3>
       <p class="muted"><code>paired_t</code></p>
       <ul>
@@ -451,7 +451,7 @@
         <li>Witte — сверяют тесты: Progress Check 20.3, Table 20.3</li>
         <li>Независимая сверка (аудит 2): W, P — scipy; малые выборки — точный перебор</li>
       </ul>
-      <h2>Связь переменных</h2>
+      <h2 id="group-relationships">Связь переменных</h2>
       <h3 id="simple_linear_regression">Простая линейная регрессия</h3>
       <p class="muted"><code>simple_linear_regression</code></p>
       <ul>
@@ -598,7 +598,7 @@
         <li>Welham — сверяют тесты: Table 15.12, Table 15.13, Table 15.14</li>
         <li>Независимая сверка (аудит 2): нет — только граничные случаи</li>
       </ul>
-      <h2>Сравнение нескольких групп</h2>
+      <h2 id="group-several-groups">Сравнение нескольких групп</h2>
       <h3 id="ancova">Ковариационный анализ (ANCOVA)</h3>
       <p class="muted"><code>ancova</code></p>
       <ul>
@@ -666,7 +666,7 @@
         <li>Числа других программ в тестах: GenStat</li>
         <li>Независимая сверка (аудит 2): компоненты дисперсии, эффекты — statsmodels MixedLM; SE — GLS вручную</li>
       </ul>
-      <h2>Связь переменных</h2>
+      <h2 id="group-relationships">Связь переменных</h2>
       <h3 id="contingency_test">Таблица сопряжённости: χ² и точный тест Фишера</h3>
       <p class="muted"><code>contingency_test</code></p>
       <ul>
@@ -677,7 +677,7 @@
         <li>Числа других программ в тестах: SAS</li>
         <li>Независимая сверка (аудит 2): χ² с поправкой и без, точный тест Фишера — scipy</li>
       </ul>
-      <h2>Планирование опыта</h2>
+      <h2 id="group-planning">Планирование опыта</h2>
       <h3 id="sampling_scheme_power">План вложенной выборки: SE и мощность по компонентам дисперсии</h3>
       <p class="muted"><code>sampling_scheme_power</code></p>
       <ul>
@@ -686,7 +686,7 @@
         <li>Welham — сверяют тесты: Table 19.4a, Table 19.4b</li>
         <li>Независимая сверка (аудит 2): нет — только граничные случаи</li>
       </ul>
-      <h2>Связь переменных</h2>
+      <h2 id="group-relationships">Связь переменных</h2>
       <h3 id="spearman_correlation">Корреляция Спирмена (ранговая) <span class="tag">предл.</span></h3>
       <p class="muted"><code>spearman_correlation</code></p>
       <ul>

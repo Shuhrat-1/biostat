@@ -105,7 +105,7 @@
         <li>ANCOVA: lack of fit is not tested when there are more than 200 distinct x (x is continuous).</li>
         <li>Regression with groups: a warning when the x ranges of two groups overlap by less than half.</li>
       </ul>
-      <h2>Descriptive statistics</h2>
+      <h2 id="group-descriptive">Descriptive statistics</h2>
       <h3 id="describe_all">Summary descriptive statistics</h3>
       <p class="muted"><code>describe_all</code></p>
       <ul>
@@ -146,7 +146,7 @@
         <li>No book references in the tests</li>
         <li>Independent cross-check (audit 2): CI — scipy</li>
       </ul>
-      <h2>Assumption checks</h2>
+      <h2 id="group-assumptions">Assumption checks</h2>
       <h3 id="normality_test">Normality test (Shapiro-Wilk)</h3>
       <p class="muted"><code>normality_test</code></p>
       <ul>
@@ -155,7 +155,7 @@
         <li>No book references in the tests</li>
         <li>Independent cross-check (audit 2): W, P, skewness, kurtosis — scipy</li>
       </ul>
-      <h2>Comparison to a reference</h2>
+      <h2 id="group-reference">Comparison to a reference</h2>
       <h3 id="one_sample_t">One-sample t-test <span class="tag">proposed</span></h3>
       <p class="muted"><code>one_sample_t</code></p>
       <ul>
@@ -172,7 +172,7 @@
         <li>Witte — checked by tests: Review 19.11</li>
         <li>Independent cross-check (audit 2): none — edge cases only</li>
       </ul>
-      <h2>Two-group comparison</h2>
+      <h2 id="group-two-groups">Two-group comparison</h2>
       <h3 id="two_sample_t">Two-sample t-test</h3>
       <p class="muted"><code>two_sample_t</code></p>
       <ul>
@@ -206,7 +206,7 @@
         <li>Welham — checked by tests: Table 10.1</li>
         <li>Independent cross-check (audit 2): none — edge cases only</li>
       </ul>
-      <h2>Comparison to a reference</h2>
+      <h2 id="group-reference">Comparison to a reference</h2>
       <h3 id="one_sample_wilcoxon">One-sample Wilcoxon test (nonparametric) <span class="tag">proposed</span></h3>
       <p class="muted"><code>one_sample_wilcoxon</code></p>
       <ul>
@@ -215,7 +215,7 @@
         <li>No book references in the tests</li>
         <li>Independent cross-check (audit 2): P — scipy</li>
       </ul>
-      <h2>Multi-group comparison</h2>
+      <h2 id="group-several-groups">Multi-group comparison</h2>
       <h3 id="one_way_anova">One-way ANOVA</h3>
       <p class="muted"><code>one_way_anova</code></p>
       <ul>
@@ -293,7 +293,7 @@
         <li>No book references in the tests</li>
         <li>Independent cross-check (audit 2): none — edge cases only</li>
       </ul>
-      <h2>Assumption checks</h2>
+      <h2 id="group-assumptions">Assumption checks</h2>
       <h3 id="bartlett_test">Bartlett&#x27;s test (equal variances)</h3>
       <p class="muted"><code>bartlett_test</code></p>
       <ul>
@@ -310,7 +310,7 @@
         <li>Welham — checked by tests: p. 96</li>
         <li>Independent cross-check (audit 2): none — edge cases only</li>
       </ul>
-      <h2>Multi-group comparison</h2>
+      <h2 id="group-several-groups">Multi-group comparison</h2>
       <h3 id="transformed_means">ANOVA on a transformed response</h3>
       <p class="muted"><code>transformed_means</code></p>
       <ul>
@@ -408,7 +408,7 @@
         <li>Welham — checked by tests: Example 9.9B</li>
         <li>Independent cross-check (audit 2): within-block F, SED, efficiency, adjusted means — OLS</li>
       </ul>
-      <h2>Experiment planning</h2>
+      <h2 id="group-planning">Experiment planning</h2>
       <h3 id="replication_power">Replication and power (from a pilot)</h3>
       <p class="muted"><code>replication_power</code></p>
       <ul>
@@ -417,7 +417,7 @@
         <li>Welham — checked by tests: Example 10.1A, Table 4.1</li>
         <li>Independent cross-check (audit 2): power and n — noncentral t</li>
       </ul>
-      <h2>Multi-group comparison</h2>
+      <h2 id="group-several-groups">Multi-group comparison</h2>
       <h3 id="equivalence_test">Equivalence test (TOST)</h3>
       <p class="muted"><code>equivalence_test</code></p>
       <ul>
@@ -434,7 +434,7 @@
         <li>Welham — checked by tests: Example 11.5, Fig. 11.6, Table 11.17, Table 11.18, Table 11.20, Table 11.23, Table 11.24</li>
         <li>Independent cross-check (audit 2): sequential SS in both orders, type II — statsmodels</li>
       </ul>
-      <h2>Paired measurements</h2>
+      <h2 id="group-paired">Paired measurements</h2>
       <h3 id="paired_t">Paired t-test</h3>
       <p class="muted"><code>paired_t</code></p>
       <ul>
@@ -451,7 +451,7 @@
         <li>Witte — checked by tests: Progress Check 20.3, Table 20.3</li>
         <li>Independent cross-check (audit 2): W, P — scipy; small samples — exact enumeration</li>
       </ul>
-      <h2>Relationship between variables</h2>
+      <h2 id="group-relationships">Relationship between variables</h2>
       <h3 id="simple_linear_regression">Simple linear regression</h3>
       <p class="muted"><code>simple_linear_regression</code></p>
       <ul>
@@ -598,7 +598,7 @@
         <li>Welham — checked by tests: Table 15.12, Table 15.13, Table 15.14</li>
         <li>Independent cross-check (audit 2): none — edge cases only</li>
       </ul>
-      <h2>Multi-group comparison</h2>
+      <h2 id="group-several-groups">Multi-group comparison</h2>
       <h3 id="ancova">Analysis of covariance (ANCOVA)</h3>
       <p class="muted"><code>ancova</code></p>
       <ul>
@@ -666,7 +666,7 @@
         <li>Numbers from other software in the tests: GenStat</li>
         <li>Independent cross-check (audit 2): variance components, effects — statsmodels MixedLM; SE — GLS by hand</li>
       </ul>
-      <h2>Relationship between variables</h2>
+      <h2 id="group-relationships">Relationship between variables</h2>
       <h3 id="contingency_test">Contingency table: χ² and Fisher&#x27;s exact test</h3>
       <p class="muted"><code>contingency_test</code></p>
       <ul>
@@ -677,7 +677,7 @@
         <li>Numbers from other software in the tests: SAS</li>
         <li>Independent cross-check (audit 2): χ² with and without correction, Fisher&#x27;s exact test — scipy</li>
       </ul>
-      <h2>Experiment planning</h2>
+      <h2 id="group-planning">Experiment planning</h2>
       <h3 id="sampling_scheme_power">Nested sampling plan: SE and power from variance components</h3>
       <p class="muted"><code>sampling_scheme_power</code></p>
       <ul>
@@ -686,7 +686,7 @@
         <li>Welham — checked by tests: Table 19.4a, Table 19.4b</li>
         <li>Independent cross-check (audit 2): none — edge cases only</li>
       </ul>
-      <h2>Relationship between variables</h2>
+      <h2 id="group-relationships">Relationship between variables</h2>
       <h3 id="spearman_correlation">Spearman correlation (rank) <span class="tag">proposed</span></h3>
       <p class="muted"><code>spearman_correlation</code></p>
       <ul>

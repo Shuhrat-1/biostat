@@ -374,7 +374,7 @@ TEXTS: dict[str, dict] = {
         "witte": "Witte — сверяют тесты", "external": "Числа других программ в тестах",
         "audit": "Независимая сверка (аудит {audit})", "edge_only": "нет — только граничные случаи",
         "no_refs": "Ссылок на книги в тестах нет", "in_tests": "в тестах — числа {ext}",
-        "tag": "предл.",
+        "tag": "предл.", "more": "Подробно →",
     },
     "en": {
         "title": "Methods and validation — BioStat",
@@ -407,7 +407,7 @@ TEXTS: dict[str, dict] = {
         "witte": "Witte — checked by tests", "external": "Numbers from other software in the tests",
         "audit": "Independent cross-check (audit {audit})", "edge_only": "none — edge cases only",
         "no_refs": "No book references in the tests", "in_tests": "the tests use numbers from {ext}",
-        "tag": "proposed",
+        "tag": "proposed", "more": "In detail →",
     },
     "pt": {
         "title": "Métodos e verificação — BioStat",
@@ -440,7 +440,7 @@ TEXTS: dict[str, dict] = {
         "witte": "Witte — verificado nos testes", "external": "Números de outros programas nos testes",
         "audit": "Verificação independente (auditoria {audit})", "edge_only": "nenhuma — só casos-limite",
         "no_refs": "Sem referências aos livros nos testes", "in_tests": "os testes usam números de {ext}",
-        "tag": "proposta",
+        "tag": "proposta", "more": "Em detalhe →",
     },
 }
 
@@ -501,12 +501,13 @@ def _overview(data: dict, t: dict, lang: str) -> str:
     return out + _li([esc(r[lang]) for r in data["biostat_thresholds"]])
 
 
-def _method(m: dict, t: dict, lang: str, words: dict) -> str:
-    """Карточка метода: заголовок с якорем и список фактов."""
-    esc = html.escape
-    tag = f' <span class="tag">{esc(t["tag"])}</span>' if m["proposed"] else ""
-    facts = [f'{esc(t["source"])}: {esc("; ".join(format_source(s, lang, words) for s in m["sources"]))}',
-             f'{esc(t["tests"])}: {m["tests"]}']
+def check_facts(m: dict, lang: str) -> list[str]:
+    """Факты о проверке метода (HTML-строки): тесты, ссылки на книги, эталоны, аудит 2.
+
+    Тот же список — в карточке списка и в блоке «Проверка метода» страницы метода.
+    """
+    esc, t = html.escape, TEXTS[lang]
+    facts = [f'{esc(t["tests"])}: {m["tests"]}']
     for book in ("welham", "witte"):
         if m["book_refs"][book]:
             refs = ", ".join(_page_ref(r, lang) for r in _shown(m["book_refs"][book]))
@@ -517,19 +518,36 @@ def _method(m: dict, t: dict, lang: str, words: dict) -> str:
         facts.append(f'{esc(t["external"])}: {esc(", ".join(m["external_reference_in_tests"]))}')
     audit = m["audit_reference"][lang] if m["audit_reference"] else t["edge_only"]
     facts.append(f'{esc(t["audit"].format(audit=AUDIT_ID))}: {esc(audit)}')
+    return facts
+
+
+def _method(m: dict, t: dict, lang: str, words: dict, detailed: set[str]) -> str:
+    """Карточка метода: заголовок с якорем, ссылка на страницу-объяснение и список фактов."""
+    esc = html.escape
+    tag = f' <span class="tag">{esc(t["tag"])}</span>' if m["proposed"] else ""
+    source = f'{esc(t["source"])}: {esc("; ".join(format_source(s, lang, words) for s in m["sources"]))}'
+    more = (f' · <a href="{sp.page_path("methods/" + m["id"], lang)}">{esc(t["more"])}</a>'
+            if m["id"] in detailed else "")
     return (f'      <h3 id="{m["id"]}">{esc(m["name"][lang])}{tag}</h3>\n'
-            f'      <p class="muted"><code>{m["id"]}</code></p>\n{_li(facts)}')
+            f'      <p class="muted"><code>{m["id"]}</code>{more}</p>\n{_li([source] + check_facts(m, lang))}')
+
+
+def group_id(group_ru: str) -> str:
+    """Якорь группы в списке (/methods/#group-…): по русскому ключу группы каталога."""
+    return "group-" + GROUP_IDS[group_ru]
 
 
 def body(data: dict, lang: str) -> str:
     """Тело страницы на языке lang."""
-    t, words = TEXTS[lang], source_words()
+    import method_pages  # здесь: method_pages сам импортирует этот модуль
+
+    t, words, detailed = TEXTS[lang], source_words(), set(method_pages.available(lang))
     out, group = _overview(data, t, lang), None
     for m in data["methods"]:
         if m["group"][lang] != group:
             group = m["group"][lang]
-            out += f"      <h2>{html.escape(group)}</h2>\n"
-        out += _method(m, t, lang, words)
+            out += f'      <h2 id="{group_id(m["group"]["ru"])}">{html.escape(group)}</h2>\n'
+        out += _method(m, t, lang, words, detailed)
     return out
 
 
@@ -537,13 +555,19 @@ def json_text(data: dict) -> str:
     return json.dumps(data, ensure_ascii=False, indent=1) + "\n"
 
 
-def pages() -> dict[Path, str]:
+def pages(data: dict | None = None) -> dict[Path, str]:
     """HTML трёх языковых версий и methods.json."""
-    data = methods_data()
+    data = data or methods_data()
     out = {sp.PUBLIC / sp.page_path("methods", lang).strip("/") / "index.html":
            sp.shell("methods", TEXTS[lang], lang, body(data, lang)) for lang in LANGS}
     out[JSON_OUT] = json_text(data)
     return out
 
 
+GROUP_IDS = {  # якоря групп; ключи — группы CATALOG (тест сверяет, что все на месте)
+    "Описательная статистика": "descriptive", "Сравнение с эталоном": "reference",
+    "Сравнение двух групп": "two-groups", "Парные измерения": "paired",
+    "Сравнение нескольких групп": "several-groups", "Связь переменных": "relationships",
+    "Проверка допущений": "assumptions", "Планирование опыта": "planning",
+}
 AUDIT_ID = json.loads(REFERENCE.read_text(encoding="utf-8"))["audit"]

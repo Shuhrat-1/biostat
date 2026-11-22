@@ -1,0 +1,86 @@
+/* Страницы методов (/methods/<id>/) и словарь обозначений — перенесено из образца
+   one_way_anova.html. Общие правила статичных страниц — в static_pages.STYLE. */
+:root {
+  --bg: #fafafa; --panel: #ffffff; --text: #18181b; --muted: #52525b; --line: #e4e4e7;
+  --accent: #0f766e; --accent-soft: #e6f4f1; --warn: #92400e; --warn-soft: #fef3c7;
+  --g1: #0072b2; --g2: #e69f00; --g3: #009e73; --g4: #cc79a7; --g5: #56b4e9; --g6: #d55e00;
+  --grand: #52525b;
+}
+main.mp { max-width: 1120px; font-size: 16px; }
+.mp * { box-sizing: border-box; }
+.mp .wrap { display: grid; grid-template-columns: minmax(0, 1fr) 220px; gap: 32px; }
+.mp article { min-width: 0; }
+.mp nav.crumbs { display: block; font-size: 14px; color: var(--muted); margin: 8px 0 4px; }
+.mp nav.crumbs a { text-decoration: none; }
+.mp h1 { font-size: 30px; line-height: 1.2; margin: 4px 0 6px; }
+.mp .lead { font-size: 18px; color: var(--muted); margin: 0 0 20px; }
+.mp section { background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+  padding: 20px 22px; margin: 0 0 18px; }
+.mp section h2 { font-size: 21px; margin: 0 0 10px; scroll-margin-top: 16px; }
+.mp section h3 { font-size: 16px; margin: 16px 0 6px; }
+.mp .math { overflow-x: auto; max-width: 100%; padding: 6px 0; font-size: 18px; }
+.mp .math.block { display: block; text-align: center; margin: 8px 0; }
+.mp .note { font-size: 14px; color: var(--muted); }
+.mp .src { font-size: 13px; color: var(--muted); }
+.mp .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.mp .plus, .mp .minus { border-radius: 8px; padding: 12px 14px; }
+.mp .plus { background: var(--accent-soft); }
+.mp .minus { background: var(--warn-soft); }
+.mp .plus h3, .mp .minus h3 { margin-top: 0; }
+.mp .plus ul, .mp .minus ul { margin: 0; padding-left: 20px; }
+.mp table { border-collapse: collapse; width: 100%; font-size: 15px; }
+.mp th, .mp td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+.mp th { font-weight: 600; background: #f4f4f5; }
+.mp .tablewrap { overflow-x: auto; }
+.mp .path { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 14px; }
+.mp .path span { background: #f4f4f5; border: 1px solid var(--line); border-radius: 6px; padding: 2px 8px; }
+.mp .path span.here { background: var(--accent-soft); border-color: var(--accent); font-weight: 600; }
+.mp .sig { font-family: ui-monospace, monospace; font-size: 13px; background: #f4f4f5;
+  border-radius: 4px; padding: 1px 5px; white-space: nowrap; }
+/* Название другого метода: в покое — как текст, при наведении и фокусе — ссылка. */
+.mp a.mlink { color: inherit; text-decoration: none; }
+.mp a.mlink:hover, .mp a.mlink:focus-visible { color: var(--accent); text-decoration: underline; }
+.mp a.mlink:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+/* интерактив */
+.mp .viz { display: grid; grid-template-columns: minmax(0, 1fr) 230px; gap: 18px; align-items: start; }
+.mp .viz svg { width: 100%; height: auto; display: block; }
+.mp .ctrl label { display: block; font-size: 14px; margin: 10px 0 2px; }
+.mp .ctrl input[type=range] { width: 100%; accent-color: var(--accent); }
+.mp .readout { margin-top: 12px; font-size: 14px; }
+.mp .readout div { display: flex; justify-content: space-between; border-bottom: 1px dashed var(--line); padding: 3px 0; }
+.mp .readout b { font-variant-numeric: tabular-nums; }
+.mp .bars { margin-top: 12px; }
+.mp .bar { height: 14px; border-radius: 3px; margin: 3px 0 8px; transition: width .15s; }
+@media (prefers-reduced-motion: reduce) { .mp .bar { transition: none; } }
+.mp .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 13px; color: var(--muted); margin-top: 6px; }
+.mp .legend i { display: inline-block; width: 18px; height: 0; border-top: 3px solid; vertical-align: middle; margin-right: 5px; }
+.mp details.glossary { margin: 14px 0; border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; }
+.mp details.glossary summary { cursor: pointer; font-weight: 600; }
+.mp details.check { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 22px; margin: 0 0 18px; }
+.mp details.check summary { cursor: pointer; font-weight: 600; }
+.mp .pager { display: flex; justify-content: space-between; gap: 12px; margin: 8px 0 32px; }
+.mp .pager a { display: block; border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px;
+  background: var(--panel); text-decoration: none; max-width: 48%; }
+.mp .pager a.next { margin-left: auto; text-align: right; }
+.mp .pager small { display: block; color: var(--muted); }
+.mp aside.toc { position: sticky; top: 16px; align-self: start; font-size: 14px; }
+.mp aside.toc b { display: block; margin-bottom: 6px; }
+.mp aside.toc a { display: block; padding: 4px 0 4px 10px; border-left: 2px solid var(--line);
+  text-decoration: none; color: var(--muted); }
+.mp aside.toc a:hover { color: var(--accent); border-left-color: var(--accent); }
+.mp aside.toc a.toc-back { margin-top: 12px; }
+/* «↑ К списку» вместо оглавления на узком экране: 44 × 44, место под неё — отступ снизу. */
+.mp .to-list { display: none; }
+.mp code.tex-missing { color: var(--warn); }
+@media (max-width: 860px) {
+  .mp .wrap { grid-template-columns: 1fr; gap: 0; }
+  .mp aside.toc { display: none; }
+  .mp .cols, .mp .viz { grid-template-columns: 1fr; }
+  .mp h1 { font-size: 25px; }
+  .mp section { padding: 16px; }
+  main.mp { padding-bottom: 80px; }
+  .mp .to-list { display: flex; align-items: center; justify-content: center; position: fixed;
+    right: 16px; bottom: 16px; width: 44px; height: 44px; border-radius: 50%; background: var(--accent);
+    color: #fff; font-size: 20px; text-decoration: none; box-shadow: 0 2px 8px rgba(0, 0, 0, .25); z-index: 10; }
+  .mp .to-list:focus-visible { outline: 3px solid #18181b; outline-offset: 2px; }
+}

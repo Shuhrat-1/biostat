@@ -40,6 +40,26 @@ pytest
   - [x] i18n — локализация UI и каталога методов (RU/EN/PT)
 - [~] Фаза 4: MVP собран локально, готов к проверке
 
+## Страницы методов
+
+Объяснения методов — `/ru/methods/<id>/` и словарь обозначений `/ru/methods/symbols/`.
+Вручную пишется только текст: `content/methods/<id>.json` (по языкам; страница на en или pt
+появляется, только когда есть её перевод). Числа примера считает ядро на
+`content/examples/field_trial.json` (копия примера сайта), путь по карте и сигналы берутся из
+дерева и распознавателей, блок «Проверка» — из `methods.json`.
+
+```
+python tools/static_pages.py        # страницы и content/math_tex.json (все формулы)
+node web/build-math.mjs             # формулы → MathML (KaTeX) в content/math_cache.json
+python tools/static_pages.py        # ещё раз: страницы с формулами
+```
+
+Проверка в браузере (ширина 375 px, CSP, кнопка «↑ К списку»), после `npm run build` в `web/`:
+
+```
+node tools/check_method_pages.mjs   # нужен Playwright: npm i -g playwright && npx playwright install chromium
+```
+
 ## Лицензия
 
 Copyright 2026 Shuhrat Maksumov

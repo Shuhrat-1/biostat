@@ -1,0 +1,38 @@
+{
+ "inline": [
+  "H_0",
+  "MS = SS/df",
+  "MS_W",
+  "N = \\textstyle\\sum n_i",
+  "N-t",
+  "P",
+  "SS_T",
+  "SS_T,\\ SS_B,\\ SS_W",
+  "\\bar y_{\\cdot\\cdot}",
+  "\\bar y_{i\\cdot}",
+  "\\eta^2",
+  "\\mathrm{LSD}",
+  "\\mathrm{SED}",
+  "\\mathrm{SE}",
+  "\\mu",
+  "\\omega^2",
+  "\\sigma^2",
+  "\\tau_i",
+  "\\varepsilon_{ij}",
+  "i = 1,\\dots,t",
+  "j = 1,\\dots,n_i",
+  "n_i",
+  "t",
+  "t-1,\\ N-t",
+  "t_{0.975;\\,N-t}",
+  "y_{ij}"
+ ],
+ "display": [
+  "F = \\frac{MS_B}{MS_W} = \\frac{SS_B/(t-1)}{SS_W/(N-t)} = \\frac{5.53/2}{0.85/15} = \\frac{2.765}{0.0567} = 48.8,\\qquad P = 2.7\\cdot10^{-7}",
+  "H_0:\\ \\tau_1 = \\tau_2 = \\dots = \\tau_t = 0",
+  "\\eta^2 = \\frac{SS_B}{SS_T} = 0.87,\\qquad \\omega^2 = \\frac{SS_B-(t-1)\\,MS_W}{SS_T+MS_W} = 0.84",
+  "\\mathrm{SE}(\\bar y_{i\\cdot}) = \\sqrt{\\frac{MS_W}{n_i}},\\quad \\mathrm{SED} = \\sqrt{MS_W\\left(\\frac1{n_i}+\\frac1{n_k}\\right)},\\quad \\bar y_{i\\cdot} \\pm t_{0.975;\\,N-t}\\,\\mathrm{SE},\\quad \\mathrm{LSD} = t_{0.975;\\,N-t}\\,\\mathrm{SED}",
+  "\\underbrace{\\sum_{i}\\sum_{j}(y_{ij}-\\bar y_{\\cdot\\cdot})^2}_{SS_T} = \\underbrace{\\sum_{i} n_i(\\bar y_{i\\cdot}-\\bar y_{\\cdot\\cdot})^2}_{SS_B} + \\underbrace{\\sum_{i}\\sum_{j}(y_{ij}-\\bar y_{i\\cdot})^2}_{SS_W}",
+  "y_{ij} = \\mu + \\tau_i + \\varepsilon_{ij},\\qquad \\varepsilon_{ij} \\sim N(0,\\sigma^2)\\ \\text{независимо},\\qquad \\textstyle\\sum_i n_i\\tau_i = 0"
+ ]
+}

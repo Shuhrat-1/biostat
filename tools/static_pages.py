@@ -342,30 +342,40 @@ def _footer(lang: str) -> str:
     return f"      <footer>{links}</footer>\n"
 
 
-def _links(slug: str, lang: str) -> str:
+def _links(slug: str, lang: str, langs: tuple[str, ...] = LANGS) -> str:
+    """canonical и hreflang; x-default — английская версия, а без неё — первая из langs."""
     alts = "".join(f'    <link rel="alternate" hreflang="{code}" href="{SITE}{page_path(slug, code)}" />\n'
-                   for code in LANGS)
+                   for code in langs)
+    default = "en" if "en" in langs else langs[0]
     return (f'    <link rel="canonical" href="{SITE}{page_path(slug, lang)}" />\n{alts}'
-            f'    <link rel="alternate" hreflang="x-default" href="{SITE}{page_path(slug, "en")}" />\n')
+            f'    <link rel="alternate" hreflang="x-default" href="{SITE}{page_path(slug, default)}" />\n')
 
 
-def shell(slug: str, t: dict, lang: str, body: str) -> str:
-    """Каркас страницы: head, навигация, заголовок, тело, подвал."""
+def shell(slug: str, t: dict, lang: str, body: str, *, langs: tuple[str, ...] = LANGS,
+          head: str = "", header: str | None = None, main_class: str = "") -> str:
+    """Каркас страницы: head, навигация, заголовок, тело, подвал.
+
+    langs — языки, на которых страница есть; head — доп. теги в <head>; header — свой
+    заголовок вместо h1 и строки даты; main_class — класс <main>.
+    """
     esc = html.escape
     current = ' aria-current="page"'
     switch = " · ".join(
         f'<a href="{page_path(slug, code)}" hreflang="{code}" lang="{code}"'
-        f'{current if code == lang else ""}>{LANG_NAMES[code]}</a>' for code in LANGS)
+        f'{current if code == lang else ""}>{LANG_NAMES[code]}</a>' for code in langs)
+    if header is None:
+        header = f'      <h1>{esc(t["h1"])}</h1>\n      <p class="muted">{esc(t["updated"])}</p>\n'
+    main = f'<main class="{main_class}">' if main_class else "<main>"
     return (
         f'<!doctype html>\n<html lang="{lang}">\n  <head>\n    <meta charset="UTF-8" />\n'
         f'    <meta name="viewport" content="width=device-width, initial-scale=1.0" />\n'
         f'    <title>{esc(t["title"])}</title>\n'
         f'    <meta name="description" content="{esc(t["description"])}" />\n'
         f'    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />\n'
-        f'{_links(slug, lang)}    <style>{STYLE}</style>\n'
-        f'    <script src="/back.js" defer></script>\n  </head>\n  <body>\n    <main>\n'
+        f'{_links(slug, lang, langs)}    <style>{STYLE}</style>\n{head}'
+        f'    <script src="/back.js" defer></script>\n  </head>\n  <body>\n    {main}\n'
         f'      <nav><a href="/" data-back>{esc(t["back"])}</a><span>{switch}</span></nav>\n'
-        f'      <h1>{esc(t["h1"])}</h1>\n      <p class="muted">{esc(t["updated"])}</p>\n{body}'
+        f'{header}{body}'
         f'{_footer(lang)}    </main>\n  </body>\n</html>\n'
     )
 
@@ -379,12 +389,14 @@ def render(slug: str, texts: dict[str, dict], lang: str) -> str:
 
 
 def pages() -> dict[Path, str]:
-    """Путь в web/public → содержимое всех статичных страниц (и methods.json)."""
-    import methods_page  # здесь: methods_page сам импортирует этот модуль
+    """Путь → содержимое всех статичных страниц (и methods.json, content/math_tex.json)."""
+    import method_pages  # здесь: оба модуля сами импортируют этот
+    import methods_page
 
     out = {PUBLIC / page_path(slug, lang).strip("/") / "index.html": render(slug, texts, lang)
            for slug, texts in PAGES.items() for lang in LANGS}
-    return out | methods_page.pages()
+    data = methods_page.methods_data()
+    return out | methods_page.pages(data) | method_pages.pages(data)
 
 
 def main() -> None:
