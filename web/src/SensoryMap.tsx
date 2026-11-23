@@ -242,7 +242,7 @@ function Badge({ text, tone }: { text: string; tone: "warn" | "muted" }) {
   return (
     <span style={{
       marginLeft: "0.35rem", fontSize: "0.72rem", fontWeight: 700, padding: "0 0.3rem", borderRadius: 4,
-      whiteSpace: "nowrap",
+      display: "inline-block",  // метка переносится целиком, но не шире колонки (без nowrap: 375 px)
       color: tone === "warn" ? c.warn : c.muted, background: tone === "warn" ? c.warnBg : c.bg,
     }}>
       {text}
