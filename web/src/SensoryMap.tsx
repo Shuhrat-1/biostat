@@ -36,6 +36,8 @@ interface Props {
   /** Идёт расчётная фаза распознавателей (подгонка модели). */
   computing: boolean;
   hasRoles: boolean;
+  /** Колонке назначена роль «блок»: листья методов без блока — «без блоков». */
+  hasBlock: boolean;
   context: Context;
   onContext: (ctx: Context) => void;
   /** Клик по листу с доступным методом: выбрать метод (и пресет) в форме. */
@@ -69,6 +71,10 @@ export function SensoryMap(props: Props) {
   const fired = useMemo(() => recognition?.fired ?? [], [recognition]);
   const marks = useMemo(() => buildMarks(fired), [fired]);
   const available = useMemo(() => new Set(suggestions.map((m) => m.method)), [suggestions]);
+  const blockless = useMemo(
+    () => (props.hasBlock ? withoutBlocks(suggestions) : new Set<string>()),
+    [props.hasBlock, suggestions],
+  );
   const methodLeaf = selection
     ? leafForMethod(selection.method, selection.params, marks, preferred)
     : undefined;
@@ -95,12 +101,13 @@ export function SensoryMap(props: Props) {
         <>
           <Breadcrumbs focus={focus} fill={fill} onPick={(id) => setFocus(id)} />
           <Columns
-            focus={focus} fill={fill} marks={marks} available={available}
+            focus={focus} fill={fill} marks={marks} available={available} blockless={blockless}
             registry={recognition?.registry ?? []} computing={props.computing}
             context={props.context} onPick={pick}
           />
           <Details
             focus={focus} suggestions={suggestions} fired={fired} marks={marks} available={available}
+            blockless={blockless}
             selected={selection?.method} methodLeaf={methodLeaf?.id}
             registry={recognition?.registry ?? []} computing={props.computing}
             context={props.context} hasRoles={props.hasRoles}
@@ -181,6 +188,7 @@ interface ColumnsProps {
   fill: Set<string>;
   marks: Marks;
   available: Set<string>;
+  blockless: Set<string>;
   registry: Recognition["registry"];
   computing: boolean;
   context: Context;
@@ -221,6 +229,7 @@ function Column(props: ColumnsProps & { parent: TreeNode; next?: string }) {
           key={node.id} node={node} state={states.get(node.id) ?? "none"}
           onFill={props.fill.has(node.id)} expanded={node.id === props.next}
           available={!node.method || props.available.has(node.method)}
+          blockless={Boolean(node.method && props.blockless.has(node.method))}
           flagged={(marks.notes.get(node.id)?.length ?? 0) > 0 || Boolean(contextNote(node.id, props.context, lang))}
           onPick={props.onPick}
         />
@@ -233,6 +242,7 @@ function Badge({ text, tone }: { text: string; tone: "warn" | "muted" }) {
   return (
     <span style={{
       marginLeft: "0.35rem", fontSize: "0.72rem", fontWeight: 700, padding: "0 0.3rem", borderRadius: 4,
+      whiteSpace: "nowrap",
       color: tone === "warn" ? c.warn : c.muted, background: tone === "warn" ? c.warnBg : c.bg,
     }}>
       {text}
@@ -250,12 +260,13 @@ function kindMark(node: TreeNode): string {
 
 function NodeButton(props: {
   node: TreeNode; state: NodeState; onFill: boolean; expanded: boolean;
-  available: boolean; flagged: boolean; onPick: (node: TreeNode) => void;
+  available: boolean; blockless: boolean; flagged: boolean; onPick: (node: TreeNode) => void;
 }) {
+  const t = useT();
   const lang = useLang();
   const { node, state, onFill } = props;
   const leaf = node.kind === "leaf";
-  const dim = state === "off" || node.status === "missing" || !props.available;
+  const dim = state === "off" || node.status === "missing" || !props.available || props.blockless;
   return (
     <button
       onClick={() => props.onPick(node)}
@@ -277,6 +288,7 @@ function NodeButton(props: {
       <span style={{ flex: "1 1 auto", minWidth: 0 }}>
         {kindMark(node)}{nodeLabel(node.id, lang)}
         {props.flagged && <Badge text="!" tone="warn" />}
+        {props.blockless && <Badge text={t("map.noBlocksShort")} tone="muted" />}
       </span>
       {!leaf && <span style={{ color: c.muted, fontSize: "0.75rem" }}>{leafCount(node.id)} ›</span>}
     </button>
@@ -289,6 +301,7 @@ interface DetailsProps {
   fired: FiredSignal[];
   marks: Marks;
   available: Set<string>;
+  blockless: Set<string>;
   selected?: string;
   methodLeaf?: string;
   registry: Recognition["registry"];
@@ -313,6 +326,24 @@ function signalsAround(focus: string, fired: FiredSignal[]): FiredSignal[] {
   const design = path.some((n) => n.id === DESIGNS_ROOT);
   return fired.filter((sig) => sig.node === "DIAG" || (design && sig.node === "B4")
     || owners(sig.node).some((o) => ids.has(o.id)));
+}
+
+/** Слоты, в которые идёт колонка блоков: блок, субъект (Фридман, rm_anova), ряд и колонка, страты. */
+const BLOCK_SLOTS = ["block", "subject", "row", "column", "stratum_1"];
+/** Слоты модели с фактором или x: только такие методы и проигнорировали бы блок. */
+const MODEL_SLOTS = ["group", "factor_a", "condition", "x"];
+/** Описание по группам выводов не делает: блок ему не нужен. */
+const DESCRIPTIVE = new Set(["describe_by_group"]);
+
+/**
+ * Методы модели без места для блока: при назначенной роли «блок» их лист на
+ * карте помечается «без блоков» — метод проигнорировал бы структуру опыта.
+ */
+export function withoutBlocks(suggestions: MethodSuggestion[]): Set<string> {
+  const has = (m: MethodSuggestion, slots: string[]) => slots.some((k) => k in m.needs);
+  return new Set(suggestions
+    .filter((m) => has(m, MODEL_SLOTS) && !has(m, BLOCK_SLOTS) && !DESCRIPTIVE.has(m.method))
+    .map((m) => m.method));
 }
 
 /** Сигналы, которые советуют преобразовать отклик. */
@@ -343,6 +374,7 @@ function Details(props: DetailsProps) {
   }
   if (node?.status === "experimental") lines.push({ text: t("map.experimental"), tone: "warn" });
   if (node?.method && !props.available.has(node.method)) lines.push({ text: t("map.unavailable"), tone: "muted" });
+  if (node?.method && props.blockless.has(node.method)) lines.push({ text: t("map.noBlocks"), tone: "warn" });
   if (node?.kind === "leaf" && node.id === props.methodLeaf) lines.push({ text: t("map.inForm"), tone: "muted" });
   ctxNotes.forEach((text) => lines.push({ text, tone: "warn" }));
   if (pending) lines.push({ text: t("map.awaits"), tone: "muted" });

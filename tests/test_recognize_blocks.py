@@ -11,6 +11,9 @@
 - блоки иной структуры (пропуски, повторы) → однофакторные советы B4 молчат,
   ведут структурные сигналы B1.
 
+Шаг «После ANOVA» (B5.4): при роли «блок» — подсказка о сравнениях по модели с
+блоками; листья методов без блока карта помечает «без блоков» (фронт).
+
 Синтетика — детерминированные квантили (как в test_recognize_computed):
 вариант i в блоке j = эффект варианта + эффект блока + отклонение.
 """
@@ -98,3 +101,11 @@ def test_other_block_structures_silence_one_way_advice():
     assert not {"B4.3", "B4.4", "B4.5", "B4.6", "B4.8"} & set(f)
     scores = {k: v[:-1] for k, v in SCORES.items()}
     assert "B4.8" not in _fired(scores)
+
+
+def test_b5_with_blocks_points_to_comparisons_with_blocks():
+    """B5.4: шаг «После ANOVA» при роли «блок» — сравнения по модели с блоками."""
+    f = _fired(SD_TRACKS)
+    assert f["B5.4"]["strength"] == HINT
+    assert _p(f, "B5.4") == {"branch": "B5.mc_tukey"}
+    assert "B5.4" not in _fired(SD_TRACKS, block=False)

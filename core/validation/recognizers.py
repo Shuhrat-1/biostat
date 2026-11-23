@@ -964,6 +964,23 @@ def structured_treatments(ctx: Context) -> Signal | None:
     return None
 
 
+@rule("B5.4", "B5", "mean_comparisons", HINT, "кн. стр. 140–141, 195–205")
+def comparisons_with_blocks(ctx: Context) -> Signal | None:
+    """Шаг «После ANOVA» в опыте с блоками: сравнения — по модели «вариант + блок».
+
+    Средние с LSD, Тьюки и Шеффе блоков не принимают (нет слота блока); средние, SED и
+    LSD модели с блоками уже даёт rcbd_anova (кн. стр. 140–141), сравнения с
+    поправкой — mean_comparisons с колонкой блока (гл. 8.8).
+    """
+    if not (ctx.role("block") and ctx.factor):
+        return None
+    return Signal("Опыт с блоками: сравнения — по модели с блоками: все пары (Тьюки),"
+                  " против контроля (Даннет), запланированные пары, тренд или контрасты."
+                  " Средние, SED и LSD уже есть в результате ANOVA с блоками; средние"
+                  " с LSD, Тьюки и Шеффе блоков не учитывают.",
+                  {"branch": "B5.mc_tukey"})
+
+
 # --- A1–A2. Регрессия -----------------------------------------------------------
 
 @rule("A1.1", "A1", "multiple_regression", HINT, "кн. гл. 14")

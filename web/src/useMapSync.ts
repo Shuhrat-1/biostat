@@ -143,6 +143,7 @@ export function useMapSync(table: ParsedTable | null) {
   return {
     context, setContext, selection, recognition, computing, request, onSelection, onPickLeaf,
     hasRoles: Object.keys(roles).length > 0,
+    hasBlock: Boolean(roles.block),
     blockHint: blockCandidate(recognition?.fired ?? []),
   };
 }

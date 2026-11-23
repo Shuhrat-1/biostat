@@ -478,6 +478,7 @@ function AppInner({
                   recognition={map.recognition}
                   computing={map.computing}
                   hasRoles={map.hasRoles}
+                  hasBlock={map.hasBlock}
                   context={map.context}
                   onContext={map.setContext}
                   onPickLeaf={map.onPickLeaf}
