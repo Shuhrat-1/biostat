@@ -90,13 +90,15 @@ def fmt_value(value: float, spec: str | None, tex: bool) -> str:
 
 
 def substitute(text: str, values: dict, tex: bool = False) -> str:
-    """⟦имя:формат⟧ → число из расчёта примера; ⟦p⟧ без формата — по правилу сайта."""
+    """⟦имя:формат⟧ → число из расчёта примера; ⟦p⟧ и ⟦имя:p⟧ — P по правилу сайта."""
     def one(m: re.Match) -> str:
         name, spec = m.group(1), m.group(2)
         if name not in values:
             raise KeyError(f"подстановка ⟦{name}⟧: такого числа у расчёта примера нет")
-        if name == "p" and spec is None:
-            return p_text(values["p"])
+        if spec == "p" or (name == "p" and spec is None):
+            return p_text(values[name])
+        if spec is None and isinstance(values[name], float):
+            raise ValueError(f"подстановка ⟦{name}⟧: у дробного числа нужен формат")
         return fmt_value(values[name], spec, tex)
     return PLACEHOLDER.sub(one, text)
 

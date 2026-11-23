@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Пост-хок Tukey HSD — BioStat</title>
+    <meta name="description" content="Метод Тьюки (HSD): все попарные сравнения после ANOVA с контролем ошибки на весь набор — идея, формулы, допущения и как карта BioStat предлагает этот шаг." />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="canonical" href="https://biostat.app/ru/methods/tukey_hsd/" />
+    <link rel="alternate" hreflang="ru" href="https://biostat.app/ru/methods/tukey_hsd/" />
+    <link rel="alternate" hreflang="x-default" href="https://biostat.app/ru/methods/tukey_hsd/" />
+    <style>body{margin:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:#18181b;background:#fafafa;line-height:1.6}main{max-width:44rem;margin:0 auto;padding:1.5rem 1rem 2rem}h1{font-size:1.6rem;margin:0.6rem 0 0.2rem}h2{font-size:1.1rem;margin:1.6rem 0 0.4rem}p{margin:0.4rem 0}a{color:#0f766e}.muted{color:#63636b;font-size:0.9rem}nav{display:flex;flex-wrap:wrap;gap:0.4rem 1rem;justify-content:space-between;align-items:center}footer{border-top:1px solid #e4e4e7;margin-top:2rem;padding-top:0.8rem;font-size:0.9rem}code{overflow-wrap:anywhere}h3{font-size:1rem;margin:1.4rem 0 0}ul{margin:0.3rem 0;padding-left:1.2rem}li{margin:0.15rem 0;overflow-wrap:anywhere}.tag{font-size:0.75rem;font-weight:400;color:#92400e;border:1px solid #f59e0b;border-radius:4px;padding:0 0.3rem;margin-left:0.4rem;white-space:nowrap}</style>
+    <link rel="stylesheet" href="/methods/assets/method.css" />
+    <script src="/back.js" defer></script>
+  </head>
+  <body>
+    <main class="mp">
+      <nav><a href="/" data-back>← Вернуться в BioStat</a><span><a href="/ru/methods/tukey_hsd/" hreflang="ru" lang="ru" aria-current="page">Русский</a></span></nav>
+<div class="wrap">
+<article>
+  <nav class="crumbs" aria-label="Навигация"><a href="/">BioStat</a> › <a href="/ru/methods/">Методы и проверка</a> › <a href="/ru/methods/#group-several-groups">Сравнение нескольких групп</a> › Пост-хок Tukey HSD</nav>
+  <h1>Пост-хок Tukey HSD</h1>
+  <p class="lead">Какие пары вариантов различаются, если сравниваются все пары сразу? Метод Тьюки строит интервалы для всех разностей так, чтобы вероятность хотя бы одной ложной находки на весь набор была не больше 5 %.</p>
+  <section id="idea">
+    <h2>Идея</h2>
+    <p>Из t вариантов получается t(t − 1)/2 пар. Если каждую проверять на 5 %, ложные находки накапливаются: ошибка на весь набор растёт с числом сравнений (Welham, стр. 195–196).</p>
+    <p>Тьюки берёт вместо квантиля t квантиль стьюдентизированного размаха q — распределения разности между наибольшей и наименьшей из t средних. Интервал <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false">(</mo><msub><mover accent="true"><mi>y</mi><mo>ˉ</mo></mover><mrow><mi>j</mi><mo>⋅</mo></mrow></msub><mo>−</mo><msub><mover accent="true"><mi>y</mi><mo>ˉ</mo></mover><mrow><mi>k</mi><mo>⋅</mo></mrow></msub><mo stretchy="false">)</mo><mo>±</mo><mrow><mi mathvariant="normal">H</mi><mi mathvariant="normal">S</mi><mi mathvariant="normal">D</mi></mrow></mrow><annotation encoding="application/x-tex">(\bar y_{j\cdot} - \bar y_{k\cdot}) \pm \mathrm{HSD}</annotation></semantics></math></span> шире LSD, зато 95 % относится ко всему набору интервалов сразу (Welham, стр. 200–201; Witte, стр. 311–313).</p>
+  </section>
+  <section id="model">
+    <h2>Модель и формулы</h2>
+    <details class="glossary" id="symbols">
+      <summary>Все обозначения на странице</summary>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Символ</th><th>Значение</th></tr></thead>
+      <tbody>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mi>S</mi><mo>=</mo><mi>S</mi><mi>S</mi><mi mathvariant="normal">/</mi><mi>d</mi><mi>f</mi></mrow><annotation encoding="application/x-tex">MS = SS/df</annotation></semantics></math></span></td><td>средний квадрат — сумма квадратов, делённая на свои степени свободы</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">S</mi><mi mathvariant="normal">E</mi><mi mathvariant="normal">D</mi></mrow><annotation encoding="application/x-tex">\mathrm{SED}</annotation></semantics></math></span></td><td>стандартная ошибка разности двух средних (<i>i</i> и <i>k</i>)</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>q</mi></mrow><annotation encoding="application/x-tex">q</annotation></semantics></math></span></td><td>квантиль стьюдентизированного размаха: для t средних и df остатка</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi></mrow><annotation encoding="application/x-tex">d</annotation></semantics></math></span></td><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi></mrow><annotation encoding="application/x-tex">d</annotation></semantics></math></span> Коэна: разность средних в единицах объединённого SD</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>=</mo><mstyle scriptlevel="0" displaystyle="false"><mo>∑</mo><msub><mi>n</mi><mi>i</mi></msub></mstyle></mrow><annotation encoding="application/x-tex">N = \textstyle\sum n_i</annotation></semantics></math></span></td><td>всего наблюдений</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi></mrow><annotation encoding="application/x-tex">P</annotation></semantics></math></span></td><td>вероятность получить статистику (F, t …) не менее крайнюю, чем наблюдённая, при верной <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>H</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">H_0</annotation></semantics></math></span></td></tr>
+</tbody>
+    </table></div>
+      <p class="note">Те же обозначения на всех страницах методов — <a href="/ru/methods/symbols/">общий словарь символов</a>.</p>
+    </details>
+    <p>При равной повторности n (Witte, стр. 312; Welham, стр. 200–201):</p>
+    <div class="math block"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mrow><mi mathvariant="normal">H</mi><mi mathvariant="normal">S</mi><mi mathvariant="normal">D</mi></mrow><mo>=</mo><msub><mi>q</mi><mrow><mn>0.05</mn><mo separator="true">;</mo><mtext> </mtext><mi>t</mi><mo separator="true">,</mo><mtext> </mtext><mi>N</mi><mo>−</mo><mi>t</mi></mrow></msub><mtext> </mtext><msqrt><mfrac><mrow><mi>M</mi><msub><mi>S</mi><mi>W</mi></msub></mrow><mi>n</mi></mfrac></msqrt><mo>=</mo><mfrac><msub><mi>q</mi><mrow><mn>0.05</mn><mo separator="true">;</mo><mtext> </mtext><mi>t</mi><mo separator="true">,</mo><mtext> </mtext><mi>N</mi><mo>−</mo><mi>t</mi></mrow></msub><msqrt><mn>2</mn></msqrt></mfrac><mtext> </mtext><mrow><mi mathvariant="normal">S</mi><mi mathvariant="normal">E</mi><mi mathvariant="normal">D</mi></mrow><mo>=</mo><mn>15.81</mn></mrow><annotation encoding="application/x-tex">\mathrm{HSD} = q_{0.05;\,t,\,N-t}\,\sqrt{\frac{MS_W}{n}} = \frac{q_{0.05;\,t,\,N-t}}{\sqrt2}\,\mathrm{SED} = 15.81</annotation></semantics></math></span></div>
+    <p>При неравных n Witte подставляет среднее n (стр. 312); BioStat считает вариант Тьюки–Крамера — у каждой пары своя SED (Welham, стр. 200–201; [предл.: Kramer 1956]).</p>
+    <h3>Размер эффекта пары</h3>
+    <div class="math block"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>d</mi><mo>=</mo><mfrac><mrow><msub><mover accent="true"><mi>y</mi><mo>ˉ</mo></mover><mrow><mi>j</mi><mo>⋅</mo></mrow></msub><mo>−</mo><msub><mover accent="true"><mi>y</mi><mo>ˉ</mo></mover><mrow><mi>k</mi><mo>⋅</mo></mrow></msub></mrow><msqrt><mrow><mi>M</mi><msub><mi>S</mi><mi>W</mi></msub></mrow></msqrt></mfrac></mrow><annotation encoding="application/x-tex">d = \frac{\bar y_{j\cdot} - \bar y_{k\cdot}}{\sqrt{MS_W}}</annotation></semantics></math></span></div>
+    <p>Разность в единицах объединённого SD (Witte, стр. 313–314).</p>
+    <h3>На примере</h3>
+    <p class="note">Те же данные, что на странице <a class="mlink" href="/ru/methods/treatment_means/" title="Открыть описание метода">средних и LSD</a>: Welham, Table 4.1 (кальций, по 5 горшков). HSD = 15.81 против LSD 11.72 — интервал Тьюки шире. D отличается от A, B и C: P Тьюки: 0.017, &lt; 0.001 и 0.006; d(D − B) = -3.48. Пара A–B: без поправки P = 0.052, у Тьюки P = 0.195 — плата за контроль ошибки на весь набор из 6 пар.</p>
+    <p class="src">Welham et al. (2015), стр. 195–196, 200–201; Witte &amp; Witte (2017), стр. 311–314.</p>
+  </section>
+  <section id="pros-cons">
+    <h2>Сильные и слабые стороны</h2>
+    <div class="cols">
+      <div class="plus">
+        <h3>Сильные стороны</h3>
+        <ul>
+      <li><b>Ошибка на весь набор пар ≤ 5 %</b> (Welham, стр. 200–201).</li>
+      <li><b>Одновременные ДИ разностей, а не только P</b> (Welham, стр. 200–201; Witte, стр. 317).</li>
+      <li><b>d для каждой пары</b> — разность в объединённых SD (Witte, стр. 313–314).</li>
+      <li><b>Неравная повторность</b> — вариант Тьюки–Крамера (Welham, стр. 200–201; [предл.: Kramer 1956]).</li>
+    </ul>
+      </div>
+      <div class="minus">
+        <h3>Слабые стороны</h3>
+        <ul>
+      <li><b>Консервативен, когда интересны не все пары:</b> у 14 линий люпина Тьюки учитывает все 91 пару, хотя вопрос опыта — 13 сравнений с одной линией (Welham, стр. 201–205). Для заранее выбранного набора — Даннет, Холм или FDR в <a class="mlink" href="/ru/methods/mean_comparisons/" title="Открыть описание метода">сравнениях средних</a>.</li>
+      <li><b>Только без блоков:</b> для опыта с блоками — Тьюки в <a class="mlink" href="/ru/methods/mean_comparisons/" title="Открыть описание метода">сравнениях средних</a> [BioStat].</li>
+      <li><b>Требует однородных дисперсий:</b> общая <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><msub><mi>S</mi><mi>W</mi></msub></mrow><annotation encoding="application/x-tex">MS_W</annotation></semantics></math></span>. При неравных дисперсиях — сравнения Геймса–Хауэлла в <a class="mlink" href="/ru/methods/welch_anova/" title="Открыть описание метода">ANOVA Уэлча</a> [BioStat].</li>
+    </ul>
+      </div>
+    </div>
+    <p class="src">Welham et al. (2015), стр. 200–205; Witte &amp; Witte (2017), стр. 313–314, 317; [BioStat]; [предл.: Kramer 1956].</p>
+  </section>
+  <section id="assumptions">
+    <h2>Допущения</h2>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Допущение</th><th>Что значит</th><th>Как проверяет BioStat</th></tr></thead>
+      <tbody>
+<tr><td>Однородность дисперсий и нормальность</td><td>Как у ANOVA: одна <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><msub><mi>S</mi><mi>W</mi></msub></mrow><annotation encoding="application/x-tex">MS_W</annotation></semantics></math></span> годится для всех пар, остатки нормальны.</td><td>Тьюки сам допущений не проверяет — их проверяют ANOVA и карта на шаг раньше.</td></tr>
+<tr><td>Равная точность сравнений</td><td>Все пары оценены с одинаковой SED — точно при равной повторности (Welham, стр. 200–201).</td><td>При неравной повторности — вариант Тьюки–Крамера (Welham, стр. 200–201; [предл.: Kramer 1956]).</td></tr>
+<tr><td>Независимость</td><td>Каждое наблюдение — отдельная единица, без блоков и повторных измерений.</td><td>Не проверяется расчётом — это свойство плана опыта.</td></tr>
+</tbody>
+    </table></div>
+    <p class="src">Welham et al. (2015), стр. 200–201.</p>
+  </section>
+  <section id="map">
+    <h2>Как метод выбирает карта</h2>
+    <h3>Путь к листу</h3>
+    <div class="path" aria-label="Путь по карте"><span>Анализ отклика</span>›<span>Непрерывный</span>›<span>Различия</span>›<span>Независимые единицы</span>›<span>Без блоков или полные блоки</span>›<span>Один фактор</span>›<span>Три и больше групп</span>›<span>После ANOVA</span>›<span class="here">Все пары (Тьюки)</span></div>
+    <p>Шаг «После ANOVA» (B5) карта предлагает после листьев сравнения нескольких групп, и выбор сравнений — <b>за пользователем</b>: он зависит от вопроса опыта (Welham, стр. 201–205). «Все пары (Тьюки)» — лист для случая, когда интересна каждая пара. При роли «блок» карта помечает этот лист «без блоков» и подсказывает <span class="sig">B5.4</span>: сравнения по модели с блоками.</p>
+    <p>Значимого F карта для этого шага не требует: «защита» F-тестом иллюзорна (Welham, стр. 198–199). Блок-схема Witte предлагает Тьюки только после значимого F (стр. 315) — здесь книги расходятся.</p>
+    <h3>Соседи на карте: когда выигрывают они</h3>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Сосед</th><th>Когда карта ведёт туда</th><th>Чем сосед лучше здесь</th><th>Чем платит</th></tr></thead>
+      <tbody>
+<tr><td><a class="mlink" href="/ru/methods/treatment_means/" title="Открыть описание метода">Средние групп с SED и LSD</a></td><td>одно-два заранее выбранных сравнения или только таблица средних</td><td>Уже интервалы (LSD)</td><td>Без поправки на множественность</td></tr>
+<tr><td><a class="mlink" href="/ru/methods/mean_comparisons/" title="Открыть описание метода">Сравнения средних с поправкой (Тьюки, Даннет, Холм, FDR)</a></td><td><span class="sig">B5.2</span> (подсказка) сравнения с контролем, заранее выбранный набор или опыт с блоками</td><td>Даннет мощнее Тьюки для сравнений с контролем; учитывает блоки</td><td>Процедуру нужно выбрать до анализа</td></tr>
+<tr><td><a class="mlink" href="/ru/methods/#polynomial_contrasts" title="Открыть описание метода">Полиномиальный тренд по уровням</a></td><td><span class="sig">B5.1</span> (подсказка) уровни — дозы, концентрации, сроки</td><td>Форма отклика на дозу вместо множества пар</td><td>Нужны числовые уровни</td></tr>
+<tr><td><a class="mlink" href="/ru/methods/#treatment_contrasts" title="Открыть описание метода">Контрасты вариантов</a></td><td>заранее заданные контрасты (группа против группы)</td><td>Проверяет именно вопрос опыта</td><td>Контрасты надо задать до анализа</td></tr>
+<tr><td><a class="mlink" href="/ru/methods/#scheffe_test" title="Открыть описание метода">Метод Шеффе (пары и сложные контрасты)</a></td><td>кроме пар нужны сложные контрасты</td><td>Ошибка ≤ 5 % на все контрасты, а не только пары</td><td>Консервативнее Тьюки для пар (Witte, стр. 314)</td></tr>
+</tbody>
+    </table></div>
+    <h3>Что карта проверит на этом листе</h3>
+    <ul>
+      <li><span class="sig">B5.1</span> (подсказка) Уровни фактора — числа, не коды 1…k: возможно, это дозы.</li>
+      <li><span class="sig">B5.2</span> (подсказка) Есть уровень с названием «контроль» (и уровней не меньше трёх).</li>
+      <li><span class="sig">B5.4</span> (подсказка) Колонке назначена роль «блок»: сравнения — по модели с блоками.</li>
+    </ul>
+    <h3>Что дальше</h3>
+    <p>Значимые пары — повод смотреть величину различий: ДИ разностей и d. Если цель — показать, что пары практически не различаются, это другая задача: <b><a class="mlink" href="/ru/methods/#equivalence_test" title="Открыть описание метода">тест эквивалентности (TOST)</a></b>; незначимая пара отсутствия различий не доказывает (Welham, стр. 253).</p>
+  </section>
+  <details class="check" id="check">
+    <summary>Проверка метода</summary>
+    <ul>
+      <li>Тестов, вызывающих метод: 11</li>
+      <li>Witte — сверяют тесты: Progress Check 16.7, Review 16.10, Table 16.8, Table 16.9</li>
+      <li>Числа других программ в тестах: Minitab</li>
+      <li>Независимая сверка (аудит 2): разности, P, ДИ (Тьюки–Крамер) — scipy tukey_hsd</li>
+    </ul>
+  </details>
+  <div class="pager"><a href="/ru/methods/welch_anova/"><small>← Предыдущий</small>ANOVA Уэлча (неравные дисперсии)</a><a class="next" href="/ru/methods/kruskal_wallis/"><small>Следующий →</small>Тест Краскела-Уоллиса (непараметрический)</a></div>
+</article>
+<aside class="toc" aria-label="На этой странице">
+  <b>На странице</b>
+  <a href="#idea">Идея</a>
+  <a href="#model">Модель и формулы</a>
+  <a href="#symbols">Обозначения</a>
+  <a href="#pros-cons">Сильные и слабые стороны</a>
+  <a href="#assumptions">Допущения</a>
+  <a href="#map">Как выбирает карта</a>
+  <a href="#check">Проверка метода</a>
+  <a class="toc-back" href="/ru/methods/#tukey_hsd">↑ К списку методов</a>
+</aside>
+<a class="to-list" href="/ru/methods/#tukey_hsd" aria-label="К списку методов">↑</a>
+</div>
+      <footer><a href="/ru/privacy/">Конфиденциальность</a> · <a href="/ru/terms/">Условия</a> · <a href="/ru/methods/">Методы и проверка</a> · <a href="/LICENSE.txt">Лицензия Apache-2.0</a></footer>
+    </main>
+  </body>
+</html>

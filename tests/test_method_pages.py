@@ -352,6 +352,10 @@ def test_welch_widget_n_slider_keeps_mean_and_sd() -> None:
 # туда, когда ни один сигнал не уводит в сторону.
 DEFAULT_METHODS = {"one_way_anova", "two_sample_t"}
 
+# Листья шага «После ANOVA» (B5), которые пользователь выбирает по вопросу опыта: сигнал за
+# них не обязателен, но ни один сигнал на данных примера не должен уводить к соседу.
+CHOICE_METHODS = {"treatment_means", "tukey_hsd", "mean_comparisons"}
+
 
 def _fired_methods(fired: dict, nodes: dict, targets: dict) -> set[str]:
     """Методы, к которым ведёт сработавший сигнал, в порядке resolveTargets (web/src/mapState.ts)."""
@@ -425,6 +429,10 @@ def test_example_data_lead_the_map_to_the_method(mid: str) -> None:
     if mid in DEFAULT_METHODS:  # B4.2 у t-теста ведёт на тот же лист (вариант Уэлча) — не уход
         assert all(not ms or mid in ms for ms in picks.values()), picks
         return
+    if mid in CHOICE_METHODS:
+        neighbours = {n["method"] for n in CONTENTS[mid]["ru"]["neighbours"]}
+        assert not any(ms & neighbours for ms in picks.values()), picks
+        return
     need_strong = _strong_route(mid)
     assert any(mid in picks.get(f["id"], ()) and (f["strength"] == STRONG or not need_strong)
                for f in fired), picks
@@ -443,6 +451,23 @@ def test_training_sets_are_copies_of_map_scenarios(sid: str) -> None:
         got = me.column(example, name)
         numeric = all(isinstance(v, (int, float)) for v in values)
         assert (me.numbers(got) if numeric else got) == ([float(v) for v in values] if numeric else values)
+
+
+@pytest.mark.parametrize("name, module, attr", [("welham_calcium", "tests.test_treatment_means", "CALCIUM"),
+                                                ("welham_lupin", "tests.test_multcomp", "_lupin")])
+def test_book_sets_are_copies_of_book_tests(name: str, module: str, attr: str) -> None:
+    """Книжные наборы примеров — те же числа, что в book-тестах ядра."""
+    import importlib
+
+    import method_examples as me
+
+    src, example = getattr(importlib.import_module(module), attr), me.load_example(name)
+    cols = [me.column(example, c) for c in example["columns"]]
+    if isinstance(src, dict):  # {вариант: значения}
+        assert list(zip(cols[0], me.numbers(cols[1]))) == [(k, float(v)) for k, vs in src.items() for v in vs]
+    else:  # функция → (отклик, вариант, блок)
+        y, g, b = src()
+        assert [cols[0], me.numbers(cols[1]), cols[2]] == [g, y, b]
 
 
 def test_signal_variants_on_pages_exist() -> None:

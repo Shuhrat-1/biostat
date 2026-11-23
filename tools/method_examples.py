@@ -184,9 +184,71 @@ def _rcbd(cfg: dict) -> dict:
                "t": len(labels), "n_blocks": len(blocks), "N": len(labels) * len(blocks)})
 
 
+def _treatment_means(cfg: dict) -> dict:
+    """treatment_means: средние с SEM и ДИ, SED, LSD и пары без поправки (p_<g1>_<g2>)."""
+    from core.stats.anova import treatment_means
+
+    groups = _levels(cfg)
+    result = treatment_means(*[y for _, y in groups], labels=[g for g, _ in groups])
+    values = _scalars(result.statistics) | _estimates(result)
+    values |= {f"se_{e.name.removeprefix('mean_')}": e.std_error for e in result.estimates if e.std_error}
+    for c in result.parameters["comparisons"]:
+        key = f"{c['group1']}_{c['group2']}"
+        values |= {f"diff_{key}": c["mean_diff"], f"p_{key}": c["p_unadjusted"],
+                   f"lo_{key}": c["ci_lower"], f"hi_{key}": c["ci_upper"]}
+    return values | {"groups": groups} | _sizes([y for _, y in groups])
+
+
+def _tukey(cfg: dict) -> dict:
+    """tukey_hsd: пары с поправленным P, ДИ и d; рядом — treatment_means (LSD без поправки).
+
+    hsd — полуширина интервала Тьюки из mean_comparisons(procedure="tukey") при равной повторности.
+    """
+    from core.stats.anova import tukey_hsd
+    from core.stats.multcomp import mean_comparisons
+
+    groups = _levels(cfg)
+    result = tukey_hsd(*[y for _, y in groups], labels=[g for g, _ in groups])
+    tk = mean_comparisons([v for _, ys in groups for v in ys], [g for g, ys in groups for _ in ys])
+    values = _scalars(result.statistics) | {f"lsd_{k}": v for k, v in _treatment_means(cfg).items()
+                                             if not isinstance(v, list)}
+    values["hsd"] = tk.parameters["comparisons"][0]["half_width"]
+    for c in result.parameters["comparisons"]:
+        key = f"{c['group1']}_{c['group2']}"
+        values |= {f"diff_{key}": c["mean_diff"], f"p_{key}": c["p_adj"], f"lo_{key}": c["ci_lower"],
+                   f"hi_{key}": c["ci_upper"], f"d_{key}": c["cohens_d"]}
+    return values | {"groups": groups} | _sizes([y for _, y in groups])
+
+
+def _mean_comparisons(cfg: dict) -> dict:
+    """mean_comparisons (с блоком) всеми процедурами против контроля: число отличий у каждой.
+
+    d_crit — квантиль Даннета ядра (dunnett_quantile) при равной повторности.
+    """
+    import numpy as np
+
+    from core.stats.multcomp import dunnett_quantile, mean_comparisons
+
+    example = load_example(cfg["data"])
+    y, g = numbers(column(example, cfg["response"])), column(example, cfg["factor"])
+    block = column(example, cfg["block"]) if "block" in cfg else None
+    values: dict = {"control": cfg["control"], "t": len(set(g)), "n_blocks": len(set(block or []))}
+    for proc in ("lsd", "holm", "bonferroni", "fdr", "tukey", "dunnett"):
+        result = mean_comparisons(y, g, block=block, procedure=proc, control=cfg["control"])
+        rows = result.parameters["comparisons"]
+        values |= {f"n_sig_{proc}": result.statistics["n_significant"], f"half_{proc}": rows[0]["half_width"]}
+        if proc == "dunnett":
+            values |= (_scalars(result.statistics) | _estimates(result, "mean_")
+                       | {"sed": rows[0]["sed"], "m": len(rows), "p": min(r["p_adjusted"] for r in rows),
+                          "sig_dunnett": ", ".join(r["group2"] for r in rows if r["significant"])})
+    values["d_crit"] = dunnett_quantile(0.05, np.ones(values["m"]), values["df_resid"])
+    return values
+
+
 RUNNERS = {"one_way_anova": _one_way, "two_sample_t": _two_sample, "welch_anova": _welch,
            "anova_permutation_test": _permutation, "kruskal_wallis": _kruskal,
-           "transformed_means": _transformed, "rcbd_anova": _rcbd}
+           "transformed_means": _transformed, "rcbd_anova": _rcbd, "treatment_means": _treatment_means,
+           "tukey_hsd": _tukey, "mean_comparisons": _mean_comparisons}
 
 
 def example_values(method: str, cfg: dict) -> dict:
