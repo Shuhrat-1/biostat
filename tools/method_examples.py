@@ -245,10 +245,49 @@ def _mean_comparisons(cfg: dict) -> dict:
     return values
 
 
+def _key(label: str) -> str:
+    """Метка уровня → часть имени подстановки: «S × 50 × 60» → «S_50_60»."""
+    return "_".join(label.replace("×", " ").replace("-", " ").split())
+
+
+def _equivalence(cfg: dict) -> dict:
+    """equivalence_test против стандарта cfg["control"] с границей cfg["margin"]."""
+    from core.stats.power import equivalence_test
+
+    example = load_example(cfg["data"])
+    result = equivalence_test(numbers(column(example, cfg["response"])), column(example, cfg["factor"]),
+                              control=cfg["control"], margin=cfg["margin"])
+    values = _scalars(result.statistics) | {"c": result.parameters["margin"], "control": cfg["control"],
+                                            "ci_level": result.parameters["ci_level"]}
+    for r in result.parameters["equivalence"]:
+        k = _key(r["level"])
+        values |= {f"d_{k}": r["difference"], f"lo_{k}": r["ci_lower"], f"hi_{k}": r["ci_upper"],
+                   f"p_{k}": r["p_tost"], "sed": r["sed"]}
+    values["equivalent"] = ", ".join(r["level"] for r in result.parameters["equivalence"] if r["equivalent"])
+    return values | {"t": len(result.parameters["equivalence"]) + 1}
+
+
+def _bartlett(cfg: dict) -> dict:
+    """bartlett_test + критическое χ² того же правила, что у карты (variance_rule.bartlett)."""
+    import numpy as np
+
+    from core.stats.anova_checks import bartlett_test
+    from core.stats.variance_rule import bartlett, spreads_of
+
+    groups = _levels(cfg)
+    result = bartlett_test(*[y for _, y in groups], labels=[g for g, _ in groups])
+    _, crit = bartlett(spreads_of([np.asarray(y, dtype=float) for _, y in groups]))
+    variances = {f"var_{_key(k)}": v for k, v in result.parameters["group_variances"].items()}
+    return (_scalars(result.statistics) | variances
+            | {"p": result.p_value, "crit": crit, "n_warnings": len(result.warnings)}
+            | _sizes([y for _, y in groups]))
+
+
 RUNNERS = {"one_way_anova": _one_way, "two_sample_t": _two_sample, "welch_anova": _welch,
            "anova_permutation_test": _permutation, "kruskal_wallis": _kruskal,
            "transformed_means": _transformed, "rcbd_anova": _rcbd, "treatment_means": _treatment_means,
-           "tukey_hsd": _tukey, "mean_comparisons": _mean_comparisons}
+           "tukey_hsd": _tukey, "mean_comparisons": _mean_comparisons, "equivalence_test": _equivalence,
+           "bartlett_test": _bartlett}
 
 
 def example_values(method: str, cfg: dict) -> dict:

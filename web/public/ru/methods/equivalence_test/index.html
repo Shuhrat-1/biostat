@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Тест эквивалентности (TOST) — BioStat</title>
+    <meta name="description" content="Тест эквивалентности (TOST): как доказать, что вариант практически не отличается от стандарта, — идея, формулы, допущения и как карта BioStat выбирает этот метод." />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="canonical" href="https://biostat.app/ru/methods/equivalence_test/" />
+    <link rel="alternate" hreflang="ru" href="https://biostat.app/ru/methods/equivalence_test/" />
+    <link rel="alternate" hreflang="x-default" href="https://biostat.app/ru/methods/equivalence_test/" />
+    <style>body{margin:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:#18181b;background:#fafafa;line-height:1.6}main{max-width:44rem;margin:0 auto;padding:1.5rem 1rem 2rem}h1{font-size:1.6rem;margin:0.6rem 0 0.2rem}h2{font-size:1.1rem;margin:1.6rem 0 0.4rem}p{margin:0.4rem 0}a{color:#0f766e}.muted{color:#63636b;font-size:0.9rem}nav{display:flex;flex-wrap:wrap;gap:0.4rem 1rem;justify-content:space-between;align-items:center}footer{border-top:1px solid #e4e4e7;margin-top:2rem;padding-top:0.8rem;font-size:0.9rem}code{overflow-wrap:anywhere}h3{font-size:1rem;margin:1.4rem 0 0}ul{margin:0.3rem 0;padding-left:1.2rem}li{margin:0.15rem 0;overflow-wrap:anywhere}.tag{font-size:0.75rem;font-weight:400;color:#92400e;border:1px solid #f59e0b;border-radius:4px;padding:0 0.3rem;margin-left:0.4rem;white-space:nowrap}</style>
+    <link rel="stylesheet" href="/methods/assets/method.css" />
+    <script src="/back.js" defer></script>
+  </head>
+  <body>
+    <main class="mp">
+      <nav><a href="/" data-back>← Вернуться в BioStat</a><span><a href="/ru/methods/equivalence_test/" hreflang="ru" lang="ru" aria-current="page">Русский</a></span></nav>
+<div class="wrap">
+<article>
+  <nav class="crumbs" aria-label="Навигация"><a href="/">BioStat</a> › <a href="/ru/methods/">Методы и проверка</a> › <a href="/ru/methods/#group-several-groups">Сравнение нескольких групп</a> › Тест эквивалентности (TOST)</nav>
+  <h1>Тест эквивалентности (TOST)</h1>
+  <p class="lead">Можно ли считать вариант практически не отличающимся от стандарта? Тест эквивалентности (TOST) проверяет, что разность средних лежит внутри заранее заданной границы ±c.</p>
+  <section id="idea">
+    <h2>Идея</h2>
+    <p>Незначимая разность не доказывает равенства: она может означать просто неточный опыт (Welham, стр. 253). Чтобы доказать «практически не отличается», гипотезы меняют местами: <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>H</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">H_0</annotation></semantics></math></span> — разность по модулю не меньше c, <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>H</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">H_1</annotation></semantics></math></span> — меньше c. Граница c — наибольшая разность, не важная на практике; её задают до анализа.</p>
+    <p>Проверка — два односторонних t-теста: разность больше −c и меньше +c. Это то же, что 90 % ДИ разности целиком внутри (−c; c). ДИ целиком вне (−c; c) — доказана неэквивалентность; задевает границу — опыту не хватает точности (Welham, стр. 253–256).</p>
+  </section>
+  <section id="model">
+    <h2>Модель и формулы</h2>
+    <details class="glossary" id="symbols">
+      <summary>Все обозначения на странице</summary>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Символ</th><th>Значение</th></tr></thead>
+      <tbody>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>H</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">H_0</annotation></semantics></math></span></td><td>нулевая гипотеза: все группы имеют одно среднее</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>μ</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">\mu_i</annotation></semantics></math></span></td><td>среднее группы <i>i</i> в генеральной совокупности</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>δ</mi></mrow><annotation encoding="application/x-tex">\delta</annotation></semantics></math></span></td><td>истинная разность средних варианта и стандарта</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>c</mi></mrow><annotation encoding="application/x-tex">c</annotation></semantics></math></span></td><td>граница эквивалентности: наибольшая разность, не важная на практике</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">S</mi><mi mathvariant="normal">E</mi><mi mathvariant="normal">D</mi></mrow><annotation encoding="application/x-tex">\mathrm{SED}</annotation></semantics></math></span></td><td>стандартная ошибка разности двух средних (<i>i</i> и <i>k</i>)</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>t</mi><mrow><mn>0.975</mn><mo separator="true">;</mo><mtext> </mtext><mi>N</mi><mo>−</mo><mi>t</mi></mrow></msub></mrow><annotation encoding="application/x-tex">t_{0.975;\,N-t}</annotation></semantics></math></span></td><td>квантиль t-распределения: 2.5 % справа, <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>−</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">N-t</annotation></semantics></math></span> степеней свободы</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>=</mo><mstyle scriptlevel="0" displaystyle="false"><mo>∑</mo><msub><mi>n</mi><mi>i</mi></msub></mstyle></mrow><annotation encoding="application/x-tex">N = \textstyle\sum n_i</annotation></semantics></math></span></td><td>всего наблюдений</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi></mrow><annotation encoding="application/x-tex">P</annotation></semantics></math></span></td><td>вероятность получить статистику (F, t …) не менее крайнюю, чем наблюдённая, при верной <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>H</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">H_0</annotation></semantics></math></span></td></tr>
+</tbody>
+    </table></div>
+      <p class="note">Те же обозначения на всех страницах методов — <a href="/ru/methods/symbols/">общий словарь символов</a>.</p>
+    </details>
+    <p>Разность варианта и стандарта <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>δ</mi><mo>=</mo><msub><mi>μ</mi><mi>j</mi></msub><mo>−</mo><msub><mi>μ</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">\delta = \mu_j - \mu_0</annotation></semantics></math></span>:</p>
+    <div class="math block"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>H</mi><mn>0</mn></msub><mo>:</mo><mtext> </mtext><mi mathvariant="normal">∣</mi><mi>δ</mi><mi mathvariant="normal">∣</mi><mo>≥</mo><mi>c</mi><mo separator="true">,</mo><mspace width="2em"/><msub><mi>H</mi><mn>1</mn></msub><mo>:</mo><mtext> </mtext><mi mathvariant="normal">∣</mi><mi>δ</mi><mi mathvariant="normal">∣</mi><mo>&lt;</mo><mi>c</mi></mrow><annotation encoding="application/x-tex">H_0:\ |\delta| \ge c,\qquad H_1:\ |\delta| &lt; c</annotation></semantics></math></span></div>
+    <h3>Два односторонних теста</h3>
+    <div class="math block"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>t</mi><mi>a</mi></msub><mo>=</mo><mfrac><mrow><mi>d</mi><mo>+</mo><mi>c</mi></mrow><mrow><mi mathvariant="normal">S</mi><mi mathvariant="normal">E</mi><mi mathvariant="normal">D</mi></mrow></mfrac><mo>≥</mo><msub><mi>t</mi><mrow><mi>N</mi><mo>−</mo><mi>t</mi></mrow></msub><mo stretchy="false">[</mo><mi>α</mi><mo stretchy="false">]</mo><mo separator="true">,</mo><mspace width="2em"/><msub><mi>t</mi><mi>b</mi></msub><mo>=</mo><mfrac><mrow><mi>d</mi><mo>−</mo><mi>c</mi></mrow><mrow><mi mathvariant="normal">S</mi><mi mathvariant="normal">E</mi><mi mathvariant="normal">D</mi></mrow></mfrac><mo>≤</mo><mo>−</mo><msub><mi>t</mi><mrow><mi>N</mi><mo>−</mo><mi>t</mi></mrow></msub><mo stretchy="false">[</mo><mi>α</mi><mo stretchy="false">]</mo></mrow><annotation encoding="application/x-tex">t_a = \frac{d + c}{\mathrm{SED}} \ge t_{N-t}[\alpha],\qquad t_b = \frac{d - c}{\mathrm{SED}} \le -t_{N-t}[\alpha]</annotation></semantics></math></span></div>
+    <p>d — разность средних в опыте, SED — по общей <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>s</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">s^2</annotation></semantics></math></span> ANOVA; P TOST — больший из двух P (Welham, стр. 253).</p>
+    <h3>То же через ДИ</h3>
+    <div class="math block"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>d</mi><mo>±</mo><msub><mi>t</mi><mrow><mi>N</mi><mo>−</mo><mi>t</mi></mrow></msub><mo stretchy="false">[</mo><mi>α</mi><mo stretchy="false">]</mo><mo>⋅</mo><mrow><mi mathvariant="normal">S</mi><mi mathvariant="normal">E</mi><mi mathvariant="normal">D</mi></mrow><mo>⊂</mo><mo stretchy="false">(</mo><mo>−</mo><mi>c</mi><mo separator="true">;</mo><mtext> </mtext><mi>c</mi><mo stretchy="false">)</mo><mo separator="true">,</mo><mspace width="2em"/><mn>100</mn><mo stretchy="false">(</mo><mn>1</mn><mo>−</mo><mn>2</mn><mi>α</mi><mo stretchy="false">)</mo><mtext> </mtext><mi mathvariant="normal">%</mi><mo>=</mo><mn>90</mn><mtext> </mtext><mi mathvariant="normal">%</mi></mrow><annotation encoding="application/x-tex">d \pm t_{N-t}[\alpha]\cdot\mathrm{SED} \subset (-c;\ c),\qquad 100(1-2\alpha)\,\% = 90\,\%</annotation></semantics></math></span></div>
+    <p>SED = 48.5, c = 110 в примере (Welham, стр. 253–256).</p>
+    <h3>На примере</h3>
+    <p class="note">Welham, Example 10.3 (Tables 10.5–10.7): содержание C (мг/кг) при 12 вариантах протокола — сито × навеска × время встряхивания, по 4 повтора; стандарт — S × 200 × 60, граница c = 110 мг/кг. ResMS 4705.15 на 36 df, SED 48.5. Эквивалентен стандарту только S × 50 × 60: разность 20.5, 90 % ДИ -61.4…102.4, P TOST 0.037. У S × 20 × 60 разность 51.0, ДИ -30.9…132.9 задевает +c — не доказано ни то, ни другое. Неэквивалентных нет (0). Мощность обычного t-теста обнаружить разность c — 0.60.</p>
+    <p class="src">Welham et al. (2015), стр. 253–256.</p>
+  </section>
+  <section id="pros-cons">
+    <h2>Сильные и слабые стороны</h2>
+    <div class="cols">
+      <div class="plus">
+        <h3>Сильные стороны</h3>
+        <ul>
+      <li><b>Доказывает то, что нужно:</b> «практически не отличается», а не «различий не нашли» (Welham, стр. 253).</li>
+      <li><b>Наглядный результат:</b> 90 % ДИ разности против границ ±c (Welham, стр. 253–256).</li>
+      <li><b>Три исхода:</b> эквивалентно, неэквивалентно, не хватает точности (Welham, стр. 253–256).</li>
+      <li><b>Граница — в единицах или в % от стандарта</b>; вариант — до трёх факторов вместе; блоки учитываются [BioStat].</li>
+      <li><b>Мощность для δ = c:</b> могла ли такая разность вообще обнаружиться в этом опыте [BioStat].</li>
+    </ul>
+      </div>
+      <div class="minus">
+        <h3>Слабые стороны</h3>
+        <ul>
+      <li><b>Граница c — решение исследователя:</b> её задают до анализа, по смыслу, а не по данным (Welham, стр. 253).</li>
+      <li><b>Незначимый TOST не доказывает неэквивалентность</b> (Welham, стр. 253–256).</li>
+      <li><b>При многих сравнениях со стандартом — поправка Бонферрони</b>: интервалы шире, и в примере книги эквивалентных не остаётся (Welham, стр. 255).</li>
+      <li><b>Значимая разность и эквивалентность одновременно</b> — не противоречие: в точном опыте небольшая разность может быть и заметной, и неважной (Welham, стр. 253–256).</li>
+      <li><b>Требует допущений ANOVA:</b> общая <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>s</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">s^2</annotation></semantics></math></span> на все варианты (Welham, стр. 253–256).</li>
+    </ul>
+      </div>
+    </div>
+    <p class="src">Welham et al. (2015), стр. 253–256; [BioStat].</p>
+  </section>
+  <section id="assumptions">
+    <h2>Допущения</h2>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Допущение</th><th>Что значит</th><th>Как проверяет BioStat</th></tr></thead>
+      <tbody>
+<tr><td>Граница задана заранее</td><td>c выбрана до анализа по практическому смыслу (Welham, стр. 253).</td><td>Не проверяется: c вводится в форме метода (в единицах или в % от средней стандарта).</td></tr>
+<tr><td>Допущения модели</td><td>Как у ANOVA (с блоками — у RCBD): однородные дисперсии, нормальные остатки.</td><td>Метод считает модель «вариант» или «вариант + блок» и отмечает единицы с |стандартизованным остатком| &gt; 2 [BioStat].</td></tr>
+<tr><td>Независимость</td><td>Каждое наблюдение — отдельная экспериментальная единица.</td><td>Не проверяется расчётом — это свойство плана опыта.</td></tr>
+</tbody>
+    </table></div>
+    <p class="src">Welham et al. (2015), стр. 253–256.</p>
+  </section>
+  <section id="map">
+    <h2>Как метод выбирает карта</h2>
+    <h3>Путь к листу</h3>
+    <div class="path" aria-label="Путь по карте"><span>Анализ отклика</span>›<span>Непрерывный</span>›<span>Различия</span>›<span>Независимые единицы</span>›<span>Без блоков или полные блоки</span>›<span>Один фактор</span>›<span>Три и больше групп</span>›<span>Цель — доказать отсутствие различий</span>›<span class="here">Эквивалентность (TOST)</span></div>
+    <p>Карта ведёт сюда выбором цели на развилке сравнения нескольких групп: «Цель — доказать отсутствие различий» (B6). Сигнала за этот лист нет: цель знает только исследователь. Стандарт и границу c задают в форме метода.</p>
+    <p>Для двух групп отдельного листа эквивалентности на карте нет; сам метод принимает и два уровня.</p>
+    <h3>Соседи на карте: когда выигрывают они</h3>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Сосед</th><th>Когда карта ведёт туда</th><th>Чем сосед лучше здесь</th><th>Чем платит</th></tr></thead>
+      <tbody>
+<tr><td><a class="mlink" href="/ru/methods/one_way_anova/" title="Открыть описание метода">Однофакторный ANOVA</a></td><td>вопрос — различаются ли средние вообще</td><td>Общий F-тест; лист по умолчанию</td><td>Незначимый F отсутствия различий не доказывает</td></tr>
+<tr><td><a class="mlink" href="/ru/methods/mean_comparisons/" title="Открыть описание метода">Сравнения средних с поправкой (Тьюки, Даннет, Холм, FDR)</a></td><td><span class="sig">B5.2</span> (подсказка) вопрос — какие варианты отличаются от контроля</td><td>Даннет: сравнения с контролем с поправкой</td><td>Доказывает различие, а не его отсутствие</td></tr>
+<tr><td><a class="mlink" href="/ru/methods/treatment_means/" title="Открыть описание метода">Средние групп с SED и LSD</a></td><td>нужны средние и ДИ разностей без заданной границы</td><td>95 % ДИ разности — видно, какие разности совместимы с данными</td><td>Решения об эквивалентности не даёт</td></tr>
+</tbody>
+    </table></div>
+    <h3>Что карта проверит на этом листе</h3>
+    <ul>
+      <li><span class="sig">B1.2</span> Опыт с блоками: метод принимает колонку блока — средние и SED из модели с блоками.</li>
+      <li><span class="sig">DIAG.3</span> Остаточных df меньше 10 — предупреждение о низкой мощности: эквивалентность доказать трудно.</li>
+    </ul>
+    <h3>Что дальше</h3>
+    <p>Эквивалентность доказана — вариант можно заменить стандартом в пределах c. Не доказана — посмотрите мощность для δ = c: часто нужен более точный опыт; число повторностей подбирает <a class="mlink" href="/ru/methods/#replication_power" title="Открыть описание метода">планирование повторности</a> (Welham, стр. 241–249).</p>
+  </section>
+  <details class="check" id="check">
+    <summary>Проверка метода</summary>
+    <ul>
+      <li>Тестов, вызывающих метод: 7</li>
+      <li>Welham — сверяют тесты: Example 10.3, Table 10.6, Table 10.7</li>
+      <li>Независимая сверка (аудит 2): нет — только граничные случаи</li>
+    </ul>
+  </details>
+  <div class="pager"><a href="/ru/methods/mean_comparisons/"><small>← Предыдущий</small>Сравнения средних с поправкой (Тьюки, Даннет, Холм, FDR)</a></div>
+</article>
+<aside class="toc" aria-label="На этой странице">
+  <b>На странице</b>
+  <a href="#idea">Идея</a>
+  <a href="#model">Модель и формулы</a>
+  <a href="#symbols">Обозначения</a>
+  <a href="#pros-cons">Сильные и слабые стороны</a>
+  <a href="#assumptions">Допущения</a>
+  <a href="#map">Как выбирает карта</a>
+  <a href="#check">Проверка метода</a>
+  <a class="toc-back" href="/ru/methods/#equivalence_test">↑ К списку методов</a>
+</aside>
+<a class="to-list" href="/ru/methods/#equivalence_test" aria-label="К списку методов">↑</a>
+</div>
+      <footer><a href="/ru/privacy/">Конфиденциальность</a> · <a href="/ru/terms/">Условия</a> · <a href="/ru/methods/">Методы и проверка</a> · <a href="/LICENSE.txt">Лицензия Apache-2.0</a></footer>
+    </main>
+  </body>
+</html>

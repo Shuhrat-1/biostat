@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Тест Бартлетта (равенство дисперсий) — BioStat</title>
+    <meta name="description" content="Тест Бартлетта на однородность дисперсий: идея, формула, допущения и как его использует карта BioStat." />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="canonical" href="https://biostat.app/ru/methods/bartlett_test/" />
+    <link rel="alternate" hreflang="ru" href="https://biostat.app/ru/methods/bartlett_test/" />
+    <link rel="alternate" hreflang="x-default" href="https://biostat.app/ru/methods/bartlett_test/" />
+    <style>body{margin:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:#18181b;background:#fafafa;line-height:1.6}main{max-width:44rem;margin:0 auto;padding:1.5rem 1rem 2rem}h1{font-size:1.6rem;margin:0.6rem 0 0.2rem}h2{font-size:1.1rem;margin:1.6rem 0 0.4rem}p{margin:0.4rem 0}a{color:#0f766e}.muted{color:#63636b;font-size:0.9rem}nav{display:flex;flex-wrap:wrap;gap:0.4rem 1rem;justify-content:space-between;align-items:center}footer{border-top:1px solid #e4e4e7;margin-top:2rem;padding-top:0.8rem;font-size:0.9rem}code{overflow-wrap:anywhere}h3{font-size:1rem;margin:1.4rem 0 0}ul{margin:0.3rem 0;padding-left:1.2rem}li{margin:0.15rem 0;overflow-wrap:anywhere}.tag{font-size:0.75rem;font-weight:400;color:#92400e;border:1px solid #f59e0b;border-radius:4px;padding:0 0.3rem;margin-left:0.4rem;white-space:nowrap}</style>
+    <link rel="stylesheet" href="/methods/assets/method.css" />
+    <script src="/back.js" defer></script>
+  </head>
+  <body>
+    <main class="mp">
+      <nav><a href="/" data-back>← Вернуться в BioStat</a><span><a href="/ru/methods/bartlett_test/" hreflang="ru" lang="ru" aria-current="page">Русский</a></span></nav>
+<div class="wrap">
+<article>
+  <nav class="crumbs" aria-label="Навигация"><a href="/">BioStat</a> › <a href="/ru/methods/">Методы и проверка</a> › <a href="/ru/methods/#group-assumptions">Проверка допущений</a> › Тест Бартлетта (равенство дисперсий)</nav>
+  <h1>Тест Бартлетта (равенство дисперсий)</h1>
+  <p class="lead">Одинаков ли разброс в группах? Тест Бартлетта проверяет, что дисперсии всех групп равны, — допущение ANOVA, t-теста Стьюдента и сравнений средних.</p>
+  <section id="idea">
+    <h2>Идея</h2>
+    <p>ANOVA объединяет дисперсии групп в одну <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>s</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">s^2</annotation></semantics></math></span>. Бартлетт сравнивает логарифм этой общей дисперсии со средним логарифмом дисперсий групп: при равных дисперсиях они близки, и чем сильнее дисперсии расходятся, тем больше X² (Welham, стр. 104–107).</p>
+    <p>Тест односторонний: X² сравнивают с χ² на t − 1 df. Он чувствителен к ненормальности — значимый X² может означать тяжёлые хвосты, а не разные дисперсии (Welham, стр. 107). Поэтому вместе с ним смотрят графики остатков и то, растут ли SD вместе со средними.</p>
+  </section>
+  <section id="model">
+    <h2>Модель и формулы</h2>
+    <details class="glossary" id="symbols">
+      <summary>Все обозначения на странице</summary>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Символ</th><th>Значение</th></tr></thead>
+      <tbody>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi><mo>=</mo><mn>1</mn><mo separator="true">,</mo><mo>…</mo><mo separator="true">,</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">i = 1,\dots,t</annotation></semantics></math></span></td><td>номер группы (варианта), <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi></mrow><annotation encoding="application/x-tex">t</annotation></semantics></math></span> — число групп</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>=</mo><mstyle scriptlevel="0" displaystyle="false"><mo>∑</mo><msub><mi>n</mi><mi>i</mi></msub></mstyle></mrow><annotation encoding="application/x-tex">N = \textstyle\sum n_i</annotation></semantics></math></span></td><td>всего наблюдений</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>s</mi><mi>i</mi><mn>2</mn></msubsup></mrow><annotation encoding="application/x-tex">s_i^2</annotation></semantics></math></span></td><td>выборочная дисперсия группы <i>i</i> (делитель <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>n</mi><mi>i</mi></msub><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">n_i-1</annotation></semantics></math></span>)</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>s</mi><mi>p</mi><mn>2</mn></msubsup></mrow><annotation encoding="application/x-tex">s_p^2</annotation></semantics></math></span></td><td>объединённая дисперсия групп (то же, что <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><msub><mi>S</mi><mi>W</mi></msub></mrow><annotation encoding="application/x-tex">MS_W</annotation></semantics></math></span>)</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mi>B</mi></msub></mrow><annotation encoding="application/x-tex">C_B</annotation></semantics></math></span></td><td>поправка Бартлетта на число групп и их объёмы</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>X</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">X^2</annotation></semantics></math></span></td><td>статистика Бартлетта; при равных дисперсиях — приближённо χ² на t − 1 df</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi></mrow><annotation encoding="application/x-tex">P</annotation></semantics></math></span></td><td>вероятность получить статистику (F, t …) не менее крайнюю, чем наблюдённая, при верной <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>H</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">H_0</annotation></semantics></math></span></td></tr>
+</tbody>
+    </table></div>
+      <p class="note">Те же обозначения на всех страницах методов — <a href="/ru/methods/symbols/">общий словарь символов</a>.</p>
+    </details>
+    <h3>Статистика Бартлетта</h3>
+    <div class="math block"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msup><mi>X</mi><mn>2</mn></msup><mo>=</mo><mfrac><mrow><mo stretchy="false">(</mo><mi>N</mi><mo>−</mo><mi>t</mi><mo stretchy="false">)</mo><mi>ln</mi><mo>⁡</mo><msubsup><mi>s</mi><mi>p</mi><mn>2</mn></msubsup><mo>−</mo><munder><mo>∑</mo><mi>i</mi></munder><mo stretchy="false">(</mo><msub><mi>n</mi><mi>i</mi></msub><mo>−</mo><mn>1</mn><mo stretchy="false">)</mo><mi>ln</mi><mo>⁡</mo><msubsup><mi>s</mi><mi>i</mi><mn>2</mn></msubsup></mrow><mrow><mn>1</mn><mo>+</mo><msub><mi>C</mi><mi>B</mi></msub></mrow></mfrac><mo separator="true">,</mo><mspace width="2em"/><msub><mi>C</mi><mi>B</mi></msub><mo>=</mo><mfrac><mn>1</mn><mrow><mn>3</mn><mo stretchy="false">(</mo><mi>t</mi><mo>−</mo><mn>1</mn><mo stretchy="false">)</mo></mrow></mfrac><mrow><mo fence="true">(</mo><munder><mo>∑</mo><mi>i</mi></munder><mfrac><mn>1</mn><mrow><msub><mi>n</mi><mi>i</mi></msub><mo>−</mo><mn>1</mn></mrow></mfrac><mo>−</mo><mfrac><mn>1</mn><mrow><mi>N</mi><mo>−</mo><mi>t</mi></mrow></mfrac><mo fence="true">)</mo></mrow></mrow><annotation encoding="application/x-tex">X^2 = \frac{(N-t)\ln s_p^2 - \sum_i (n_i-1)\ln s_i^2}{1 + C_B},\qquad C_B = \frac{1}{3(t-1)}\left(\sum_i \frac{1}{n_i-1} - \frac{1}{N-t}\right)</annotation></semantics></math></span></div>
+    <p>Формула книги (Welham, стр. 104–107); <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>s</mi><mi>p</mi><mn>2</mn></msubsup></mrow><annotation encoding="application/x-tex">s_p^2</annotation></semantics></math></span> — общая дисперсия, то же, что <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><msub><mi>S</mi><mi>W</mi></msub></mrow><annotation encoding="application/x-tex">MS_W</annotation></semantics></math></span>.</p>
+    <h3>Решение</h3>
+    <div class="math block"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msup><mi>X</mi><mn>2</mn></msup><mo>=</mo><mn>3.633</mn><mtext> против </mtext><msubsup><mi>χ</mi><mn>3</mn><mn>2</mn></msubsup><mo stretchy="false">[</mo><mn>0.05</mn><mo stretchy="false">]</mo><mo>=</mo><mn>7.815</mn><mo separator="true">,</mo><mspace width="2em"/><mi>P</mi><mo>=</mo><mn>0.304</mn></mrow><annotation encoding="application/x-tex">X^2 = 3.633 \ \text{против}\ \chi^2_{3}[0.05] = 7.815,\qquad P = 0.304</annotation></semantics></math></span></div>
+    <h3>На примере</h3>
+    <p class="note">Welham, Example 5.1E: длина корней при четырёх концентрациях кальция (Table 4.1), по 5 горшков. Дисперсии групп: A 135.2, B 45.2, C 105.7, D 19.3; общая <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>s</mi><mi>p</mi><mn>2</mn></msubsup></mrow><annotation encoding="application/x-tex">s_p^2</annotation></semantics></math></span> = 76.35. X² = 3.633 &lt; 7.815 (P = 0.304) — дисперсии можно считать однородными, как в книге. Предупреждений у метода: нет.</p>
+    <p class="src">Welham et al. (2015), стр. 104–107.</p>
+  </section>
+  <section id="pros-cons">
+    <h2>Сильные и слабые стороны</h2>
+    <div class="cols">
+      <div class="plus">
+        <h3>Сильные стороны</h3>
+        <ul>
+      <li><b>Один тест на все группы сразу</b> (Welham, стр. 104–107).</li>
+      <li><b>Неравная повторность допустима:</b> формула учитывает <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>n</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">n_i</annotation></semantics></math></span> (Welham, стр. 104–107).</li>
+      <li><b>То же правило, что у карты и ANOVA:</b> на Бартлетте основан совет о дисперсиях вместе со связью SD со средней [BioStat].</li>
+      <li><b>Дисперсии групп — в отчёте</b> [BioStat].</li>
+    </ul>
+      </div>
+      <div class="minus">
+        <h3>Слабые стороны</h3>
+        <ul>
+      <li><b>Чувствителен к ненормальности:</b> значимый X² может отражать её, а не неравные дисперсии (Welham, стр. 107).</li>
+      <li><b>Не говорит, что делать:</b> растут ли SD со средней — трансформация (Welham, стр. 113–118); не растут — Уэлч или взвешенный анализ (Welham, стр. 107).</li>
+      <li><b>Нужен разброс в каждой группе:</b> при одинаковых значениях в группе — ln 0, тест неприменим [BioStat].</li>
+      <li><b>Только без блоков:</b> метод сравнивает дисперсии групп по исходным значениям. В опыте с блоками однородность проверяет карта по остаткам модели «вариант + блок» (<span class="sig">B4.2</span>) [BioStat].</li>
+      <li><b>Альтернатива — Левене</b>, устойчивее к ненормальности (Welham, стр. 104–107; Witte, стр. 266); в BioStat он справочный — в ANOVA и t-тесте.</li>
+    </ul>
+      </div>
+    </div>
+    <p class="src">Welham et al. (2015), стр. 104–107, 113–118; Witte &amp; Witte (2017), стр. 266; [BioStat].</p>
+  </section>
+  <section id="assumptions">
+    <h2>Допущения</h2>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Допущение</th><th>Что значит</th><th>Как проверяет BioStat</th></tr></thead>
+      <tbody>
+<tr><td>Нормальность внутри групп</td><td>Значения в каждой группе распределены нормально (Welham, стр. 107).</td><td>Не проверяется этим методом. Нормальность остатков проверяет ANOVA и карта (<span class="sig">B4.1</span>).</td></tr>
+<tr><td>Независимость</td><td>Каждое наблюдение — отдельная единица.</td><td>Не проверяется расчётом — это свойство плана опыта.</td></tr>
+<tr><td>Не меньше двух значений и ненулевой разброс в группе</td><td>Без этого дисперсию группы не оценить.</td><td>Группа из одного значения — ошибка <span class="sig">n_too_small</span>; в группе все значения одинаковы — ошибка <span class="sig">zero_group_variance</span> (log 0) [BioStat].</td></tr>
+</tbody>
+    </table></div>
+    <p class="src">Welham et al. (2015), стр. 107.</p>
+  </section>
+  <section id="map">
+    <h2>Как метод выбирает карта</h2>
+    <h3>Путь к листу</h3>
+    <div class="path" aria-label="Путь по карте"><span>Анализ отклика</span>›<span>Непрерывный</span>›<span>Диагностика модели</span>›<span class="here">Однородность дисперсий</span></div>
+    <p>Лист «Однородность дисперсий» — в шаге «Диагностика модели» (DIAG) для непрерывного отклика; его пользователь открывает сам, чтобы увидеть тест целиком. Сигнала за этот лист нет.</p>
+    <p>Тот же тест карта считает сама на развилке сравнения нескольких групп: <span class="sig">B4.2</span> — дисперсии неоднородны; вместе с ним <span class="sig">B4.3</span> — SD растут со средними (к трансформации) или <span class="sig">B4.5</span> — без такой связи (к Уэлчу) [BioStat].</p>
+    <h3>Соседи на карте: когда выигрывают они</h3>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Сосед</th><th>Когда карта ведёт туда</th><th>Чем сосед лучше здесь</th><th>Чем платит</th></tr></thead>
+      <tbody>
+<tr><td><a class="mlink" href="/ru/methods/#anova_residuals" title="Открыть описание метода">Остатки ANOVA и выбросы</a></td><td>нужно увидеть остатки: графики, выбросы</td><td>Показывает, где именно разброс другой, и находит выбросы</td><td>Решения «однородны / нет» не даёт</td></tr>
+<tr><td><a class="mlink" href="/ru/methods/transformed_means/" title="Открыть описание метода">ANOVA с трансформацией отклика</a></td><td><span class="sig">B4.3</span> дисперсии неоднородны и SD растут со средними</td><td>Выравнивает дисперсии сменой шкалы</td><td>Результат — на другой шкале</td></tr>
+<tr><td><a class="mlink" href="/ru/methods/welch_anova/" title="Открыть описание метода">ANOVA Уэлча (неравные дисперсии)</a></td><td><span class="sig">B4.5</span> дисперсии неоднородны без связи со средними</td><td>Сравнивает средние без допущения равных дисперсий</td><td>Нет общей <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><msub><mi>S</mi><mi>W</mi></msub></mrow><annotation encoding="application/x-tex">MS_W</annotation></semantics></math></span></td></tr>
+</tbody>
+    </table></div>
+    <h3>Что карта проверит на этом листе</h3>
+    <ul>
+      <li><span class="sig">B4.2</span> Бартлетт на развилке сравнения групп: дисперсии неоднородны.</li>
+      <li><span class="sig">B4.3</span> SD растут со средними (четыре группы и больше) — к трансформации [BioStat].</li>
+      <li><span class="sig">B4.3</span> (подсказка) То же при трёх группах — только подсказка [BioStat: аудит 01-07].</li>
+      <li><span class="sig">B4.5</span> Неоднородны без связи со средними — к Уэлчу.</li>
+    </ul>
+    <h3>Что дальше</h3>
+    <p>Дисперсии однородны — общая <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>s</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">s^2</annotation></semantics></math></span> годится для ANOVA и сравнений средних. Неоднородны — посмотрите, растут ли SD вместе со средними: да — <a class="mlink" href="/ru/methods/transformed_means/" title="Открыть описание метода">трансформация</a>, нет — <a class="mlink" href="/ru/methods/welch_anova/" title="Открыть описание метода">ANOVA Уэлча</a>; и проверьте остатки на ненормальность (Welham, стр. 107).</p>
+  </section>
+  <details class="check" id="check">
+    <summary>Проверка метода</summary>
+    <ul>
+      <li>Тестов, вызывающих метод: 4</li>
+      <li>Ссылок на книги в тестах нет</li>
+      <li>Независимая сверка (аудит 2): X², P — scipy</li>
+    </ul>
+  </details>
+</article>
+<aside class="toc" aria-label="На этой странице">
+  <b>На странице</b>
+  <a href="#idea">Идея</a>
+  <a href="#model">Модель и формулы</a>
+  <a href="#symbols">Обозначения</a>
+  <a href="#pros-cons">Сильные и слабые стороны</a>
+  <a href="#assumptions">Допущения</a>
+  <a href="#map">Как выбирает карта</a>
+  <a href="#check">Проверка метода</a>
+  <a class="toc-back" href="/ru/methods/#bartlett_test">↑ К списку методов</a>
+</aside>
+<a class="to-list" href="/ru/methods/#bartlett_test" aria-label="К списку методов">↑</a>
+</div>
+      <footer><a href="/ru/privacy/">Конфиденциальность</a> · <a href="/ru/terms/">Условия</a> · <a href="/ru/methods/">Методы и проверка</a> · <a href="/LICENSE.txt">Лицензия Apache-2.0</a></footer>
+    </main>
+  </body>
+</html>

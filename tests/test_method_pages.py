@@ -188,7 +188,8 @@ def test_neighbour_names_are_quiet_links_to_cards_or_pages() -> None:
     page = _html("one_way_anova")
     welch = '<a class="mlink" href="/ru/methods/welch_anova/" title="Открыть описание метода">'
     assert welch + "ANOVA Уэлча (неравные дисперсии)</a>" in page  # имя — из CATALOG; есть страница
-    assert '<a class="mlink" href="/ru/methods/#equivalence_test"' in page  # страницы нет — карточка
+    assert '<a class="mlink" href="/ru/methods/equivalence_test/"' in page  # ссылка в тексте; есть страница
+    assert '<a class="mlink" href="/ru/methods/#polynomial_contrasts"' in page  # страницы нет — карточка
     css = (WEB / "public" / "methods" / "assets" / "method.css").read_text(encoding="utf-8")
     assert ".mp a.mlink { color: inherit; text-decoration: none; }" in css
     assert ".mp a.mlink:focus-visible { outline:" in css
@@ -352,9 +353,10 @@ def test_welch_widget_n_slider_keeps_mean_and_sd() -> None:
 # туда, когда ни один сигнал не уводит в сторону.
 DEFAULT_METHODS = {"one_way_anova", "two_sample_t"}
 
-# Листья шага «После ANOVA» (B5), которые пользователь выбирает по вопросу опыта: сигнал за
-# них не обязателен, но ни один сигнал на данных примера не должен уводить к соседу.
-CHOICE_METHODS = {"treatment_means", "tukey_hsd", "mean_comparisons"}
+# Листья, которые пользователь выбирает сам — шаг «После ANOVA» (B5), цель «доказать
+# отсутствие различий» (B6), диагностика (DIAG): сигнал за них не обязателен, но ни один
+# сигнал на данных примера не должен уводить к соседу.
+CHOICE_METHODS = {"treatment_means", "tukey_hsd", "mean_comparisons", "equivalence_test", "bartlett_test"}
 
 
 def _fired_methods(fired: dict, nodes: dict, targets: dict) -> set[str]:
@@ -454,7 +456,8 @@ def test_training_sets_are_copies_of_map_scenarios(sid: str) -> None:
 
 
 @pytest.mark.parametrize("name, module, attr", [("welham_calcium", "tests.test_treatment_means", "CALCIUM"),
-                                                ("welham_lupin", "tests.test_multcomp", "_lupin")])
+                                                ("welham_lupin", "tests.test_multcomp", "_lupin"),
+                                                ("welham_biomass", "tests.test_power", "BIOMASS")])
 def test_book_sets_are_copies_of_book_tests(name: str, module: str, attr: str) -> None:
     """Книжные наборы примеров — те же числа, что в book-тестах ядра."""
     import importlib
@@ -463,8 +466,9 @@ def test_book_sets_are_copies_of_book_tests(name: str, module: str, attr: str) -
 
     src, example = getattr(importlib.import_module(module), attr), me.load_example(name)
     cols = [me.column(example, c) for c in example["columns"]]
-    if isinstance(src, dict):  # {вариант: значения}
-        assert list(zip(cols[0], me.numbers(cols[1]))) == [(k, float(v)) for k, vs in src.items() for v in vs]
+    if isinstance(src, dict):  # {вариант: значения}; ключ-кортеж факторов → «S × 200 × 60»
+        label = lambda k: " × ".join(k) if isinstance(k, tuple) else k  # noqa: E731
+        assert list(zip(cols[0], me.numbers(cols[1]))) == [(label(k), float(v)) for k, vs in src.items() for v in vs]
     else:  # функция → (отклик, вариант, блок)
         y, g, b = src()
         assert [cols[0], me.numbers(cols[1]), cols[2]] == [g, y, b]
