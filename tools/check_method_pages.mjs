@@ -10,7 +10,8 @@
  * Скрипт сам раздаёт web/dist с заголовками блока «/*» из web/dist/_headers и для каждой
  * страницы /…/methods/<id>/ и словаря проверяет: на 375 px scrollWidth == clientWidth;
  * в консоли нет ошибок (в т. ч. CSP); на 375 px видна кнопка «↑ К списку» 44 × 44, на 1280 —
- * оглавление; у виджета «между / внутри» ползунок меняет F. Код выхода 1 — есть ошибки.
+ * оглавление; у виджета «между / внутри» ползунок меняет F, у виджета Уэлча ползунок средних меняет
+ * P Уэлча, ползунок n — подпись. Код выхода 1 — есть ошибки.
  */
 
 import { createServer } from "node:http";
@@ -78,6 +79,13 @@ async function checkPage(page, url, errors) {
     const isMethod = !url.endsWith("/symbols/");
     if (isMethod && width === 375 && JSON.stringify(m.button) !== "[44,44]") out.push(`375px: кнопка «↑» ${m.button}`);
     if (isMethod && width === 1280 && (m.button || !m.toc)) out.push("1280px: нет оглавления или видна кнопка");
+  }
+  if (await page.locator(".gw-kb").count()) {
+    const before = await page.locator(".gw-w-p").innerText();
+    await page.locator(".gw-kb").fill("0.1");
+    if ((await page.locator(".gw-w-p").innerText()) === before) out.push("ползунок средних не меняет P Уэлча");
+    await page.locator(".gw-nb").fill("3");
+    if ((await page.locator(".gw-nb-value").innerText()) !== "3") out.push("ползунок n не обновляет подпись");
   }
   if (await page.locator(".gs-kb").count()) {
     const before = await page.locator(".gs-f").innerText();

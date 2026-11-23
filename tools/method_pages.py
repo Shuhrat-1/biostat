@@ -27,7 +27,9 @@ for extra in (ROOT, ROOT / "tools"):
 
 import static_pages as sp  # noqa: E402
 from method_examples import example_values  # noqa: E402
-from method_widgets import groups_split  # noqa: E402
+from method_widgets import groups_split, groups_welch  # noqa: E402
+
+WIDGETS = {"groups-split": groups_split, "groups-welch": groups_welch}
 
 CONTENT = ROOT / "content"
 METHODS_DIR = CONTENT / "methods"
@@ -67,7 +69,10 @@ def p_text(p: float) -> str:
 
 
 def fmt_value(value: float, spec: str | None, tex: bool) -> str:
-    """Число для текста или TeX: формат Python, «sci1» — мантисса·10^порядок."""
+    """Число для текста или TeX: формат Python, «sci1» — мантисса·10^порядок,
+    «grp» — целое с узкими пробелами между тройками цифр (17 153 136)."""
+    if spec == "grp":
+        return format(int(value), ",d").replace(",", "\\," if tex else "\u202f")
     if spec == "sci1":
         mantissa, exp = f"{value:.1e}".split("e")
         power = int(exp)
@@ -210,8 +215,8 @@ def _table(head: list[str], rows: list[list[str]]) -> str:
 
 def idea_section(c: dict, t: dict, ctx: Ctx, example: dict) -> str:
     body = "".join(f"    <p>{inline(p, ctx)}</p>\n" for p in t["idea"])
-    if c.get("widget", {}).get("type") == "groups-split":
-        body += groups_split(c["widget"], t["widget"], example, ctx.values)
+    if c.get("widget", {}).get("type") in WIDGETS:
+        body += WIDGETS[c["widget"]["type"]](c["widget"], t["widget"], example, ctx.values)
     return _section("idea", CHROME[ctx.lang]["idea"], body)
 
 
@@ -238,8 +243,8 @@ def formula_block(f: dict, ctx: Ctx) -> str:
 
 
 def example_table(spec: dict, ctx: Ctx) -> str:
-    """«На примере»: таблица ANOVA из parameters.anova_table результата ядра."""
-    ch, fmt = CHROME[ctx.lang], spec["format"]
+    """«На примере»: таблица ANOVA (parameters.anova_table результата ядра) и строка итогов."""
+    ch, fmt = CHROME[ctx.lang], spec.get("format", {})
 
     def num(v, key: str) -> str:
         if v is None:
@@ -247,10 +252,13 @@ def example_table(spec: dict, ctx: Ctx) -> str:
         s = format(v, fmt[key]) if key in fmt else str(v)
         return s.rstrip("0").rstrip(".") if "." in s else s
 
-    rows = [[html.escape(spec["labels"][r["term"]]), str(r.get("df", "")), num(r.get("ss"), "ss"),
-             num(r.get("ms"), "ms"), num(r.get("F"), "F"), html.escape(p_text(r["p"])) if r.get("p") is not None else ""]
-            for r in ctx.values["anova_table"]]
-    return (f'    <h3>{html.escape(ch["example"])}</h3>\n{_table(ch["anova_head"], rows)}'
+    table = ""
+    if "labels" in spec:  # таблица ANOVA — только если в тексте заданы подписи её строк
+        rows = [[html.escape(spec["labels"][r["term"]]), str(r.get("df", "")), num(r.get("ss"), "ss"),
+                 num(r.get("ms"), "ms"), num(r.get("F"), "F"),
+                 html.escape(p_text(r["p"])) if r.get("p") is not None else ""] for r in ctx.values["anova_table"]]
+        table = _table(ch["anova_head"], rows)
+    return (f'    <h3>{html.escape(ch["example"])}</h3>\n{table}'
             f'    <p class="note">{inline(spec["note"], ctx)}</p>\n')
 
 
@@ -362,7 +370,7 @@ def method_page(mid: str, c: dict, data: dict, math: Math, lang: str) -> str:
                + assumptions_section(t, ctx) + map_section(c, t, ctx, names) + check_block(entry, ctx)
                + pager(mid, entry["group"]["ru"], data, ctx))
     body = f'<div class="wrap">\n<article>\n{article}</article>\n{toc(mid, ctx)}</div>\n'
-    head = CSS + (JS if c.get("widget", {}).get("type") == "groups-split" else "")
+    head = CSS + (JS if c.get("widget", {}).get("type") in WIDGETS else "")
     page_t = {"title": f'{entry["name"][lang]} — BioStat', "description": t["description"],
               "back": sp.PRIVACY[lang]["back"]}
     langs = tuple(code for code in LANGS if code in c)
@@ -425,7 +433,7 @@ CHROME: dict[str, dict] = {
         "assumptions": "Допущения", "assumptions_head": ["Допущение", "Что значит", "Как проверяет BioStat"],
         "map": "Как метод выбирает карта", "toc_map": "Как выбирает карта", "path": "Путь к листу",
         "path_aria": "Путь по карте", "neighbours": "Соседи на карте: когда выигрывают они",
-        "neighbour": "Сосед", "when": "Когда карта ведёт туда", "better": "Чем лучше {short} в этом случае",
+        "neighbour": "Сосед", "when": "Когда карта ведёт туда", "better": "Чем сосед лучше здесь",
         "cost": "Чем платит", "checks": "Что карта проверит на этом листе", "next": "Что дальше",
         "check": "Проверка метода", "prev": "← Предыдущий", "next_page": "Следующий →",
         "toc": "На странице", "toc_aria": "На этой странице", "to_list": "↑ К списку методов",

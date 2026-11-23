@@ -8,6 +8,7 @@ test_static_pages.py::test_committed_pages_match_the_generator; здесь — �
 from __future__ import annotations
 
 import html as html_lib
+import inspect
 import json
 import re
 import shutil
@@ -42,7 +43,7 @@ def _text_only(page: str) -> str:
 
 
 def test_pages_exist_only_for_written_languages() -> None:
-    assert sorted(CONTENTS) == ["one_way_anova"]
+    assert {"one_way_anova", "two_sample_t", "welch_anova", "anova_permutation_test"} <= set(CONTENTS)
     for mid, c in CONTENTS.items():
         for lang in mp.LANGS:
             assert (mp.page_file(f"methods/{mid}", lang) in PAGES) == (lang in c), (mid, lang)
@@ -86,14 +87,34 @@ def test_leaf_neighbours_and_signals_follow_the_map(mid: str) -> None:
 
 
 def _suggested_methods(signal: str) -> set[str]:
-    """Методы, к которым ведёт сигнал: suggests — метод, лист или слот targets дерева."""
+    """Методы, к которым ведёт сигнал.
+
+    suggests — метод или узел; узел (и слот targets) раскрывается до листьев
+    поддерева: pre-узел трансформации ведёт к своему листу. Метод, который правило
+    подставляет в params.method (Манн–Уитни при двух группах), — строковый литерал
+    в исходнике правила.
+    """
     import core.validation.recognizers  # noqa: F401
     from core.validation.recognize import REGISTRY
 
     nodes, targets = mp.tree_nodes(), json.loads(mp.TREE.read_text(encoding="utf-8"))["targets"]
-    suggests = next(r.suggests for r in REGISTRY if r.id == signal)
-    leaves = targets.get(suggests, [suggests])
-    return {suggests} | {nodes[x].get("method") for x in leaves if x in nodes}
+    rule = next(r for r in REGISTRY if r.id == signal)
+    found = {rule.suggests} | {m for nid in targets.get(rule.suggests, [rule.suggests])
+                               for m in _leaf_methods(nid, nodes)}
+    if rule.fn is not None:
+        source = inspect.getsource(inspect.unwrap(rule.fn))
+        found |= {m for m in METHOD_IDS if f'"{m}"' in source}
+    return found
+
+
+def _leaf_methods(nid: str, nodes: dict) -> set[str]:
+    """Методы листьев поддерева узла nid (сам лист — его метод)."""
+    if nid not in nodes:
+        return set()
+    if nodes[nid].get("method"):
+        return {nodes[nid]["method"]}
+    children = [k for k, n in nodes.items() if n.get("parent") == nid]
+    return {m for k in children for m in _leaf_methods(k, nodes)}
 
 
 def _near_path(method: str, path: set[str], nodes: dict) -> bool:
@@ -165,9 +186,9 @@ def test_hint_marker_comes_from_registry() -> None:
 
 def test_neighbour_names_are_quiet_links_to_cards_or_pages() -> None:
     page = _html("one_way_anova")
-    welch = '<a class="mlink" href="/ru/methods/#welch_anova" title="Открыть описание метода">'
-    assert welch + "ANOVA Уэлча (неравные дисперсии)</a>" in page  # имя — из CATALOG
-    assert '<a class="mlink" href="/ru/methods/#equivalence_test"' in page  # ссылка в тексте
+    welch = '<a class="mlink" href="/ru/methods/welch_anova/" title="Открыть описание метода">'
+    assert welch + "ANOVA Уэлча (неравные дисперсии)</a>" in page  # имя — из CATALOG; есть страница
+    assert '<a class="mlink" href="/ru/methods/#equivalence_test"' in page  # страницы нет — карточка
     css = (WEB / "public" / "methods" / "assets" / "method.css").read_text(encoding="utf-8")
     assert ".mp a.mlink { color: inherit; text-decoration: none; }" in css
     assert ".mp a.mlink:focus-visible { outline:" in css
@@ -178,13 +199,17 @@ def test_navigation_back_to_the_list() -> None:
     assert '<a class="toc-back" href="/ru/methods/#one_way_anova">↑ К списку методов</a>' in page
     assert '<a class="to-list" href="/ru/methods/#one_way_anova" aria-label="К списку методов">↑</a>' in page
     assert 'href="/ru/methods/#group-several-groups">Сравнение нескольких групп</a>' in page
-    assert '<div class="pager">' not in page  # других страниц пока нет
+    pager = re.search(r'<div class="pager">(.*?)</div>', page, re.S).group(1)
+    linked = re.findall(r'href="/ru/methods/([a-z0-9_]+)/"', pager)
+    assert linked and set(linked) <= {m for m, c in CONTENTS.items() if "ru" in c}  # только к страницам
 
 
 def test_list_page_links_detailed_methods_and_groups() -> None:
     ru, en = (PAGES[static_pages.PUBLIC / static_pages.page_path("methods", x).strip("/") / "index.html"]
               for x in ("ru", "en"))
-    assert '<a href="/ru/methods/one_way_anova/">Подробно →</a>' in ru and ru.count("Подробно →") == 1
+    written = [m for m, c in CONTENTS.items() if "ru" in c]
+    assert all(f'<a href="/ru/methods/{m}/">Подробно →</a>' in ru for m in written)
+    assert ru.count("Подробно →") == len(written)
     assert "In detail →" not in en  # на en страницы метода нет
     assert set(methods_page.GROUP_IDS) == {m.group for m in CATALOG}
     assert re.findall(r'<h3 id="([a-z0-9_]+)">', ru) == [m.method for m in CATALOG]  # порядок и якоря
@@ -196,6 +221,7 @@ def test_ru_only_hreflang_and_sitemap() -> None:
     assert re.findall(r'hreflang="([a-z-]+)" href="([^"]+)"', page) == [("ru", url), ("x-default", url)]
     sitemap = (WEB / "public" / "sitemap.xml").read_text(encoding="utf-8")
     assert f"<loc>{url}</loc>" in sitemap and "<loc>https://biostat.app/ru/methods/symbols/</loc>" in sitemap
+    assert all(f"<loc>https://biostat.app/ru/methods/{m}/</loc>" in sitemap for m, c in CONTENTS.items() if "ru" in c)
     assert "/en/methods/one_way_anova/" not in sitemap and "https://biostat.app/methods/one_way_anova/" not in sitemap
 
 
@@ -225,7 +251,7 @@ def _widget(script: str) -> dict:
 
 
 def _widget_data(page: str) -> dict:
-    attrs = dict(re.findall(r'data-(groups|df|highlight|y)="([^"]+)"', page))
+    attrs = dict(re.findall(r'data-(groups|df|highlight|y|focus)="([^"]+)"', page))
     return {k: json.loads(html_lib.unescape(v)) for k, v in attrs.items()}
 
 
@@ -260,3 +286,126 @@ def test_widget_script_has_no_storage_or_network() -> None:
     for api in ("localStorage", "sessionStorage", "cookie", "fetch", "XMLHttpRequest", "eval(", "innerHTML"):
         assert api not in src, api
     assert "prefers-reduced-motion" in (WEB / "public" / "methods" / "assets" / "method.css").read_text(encoding="utf-8")
+
+
+
+# --- Виджет Уэлча ----------------------------------------------------------------------------
+
+def _welch_start() -> tuple[dict, dict]:
+    page = _html("welch_anova")
+    d = _widget_data(page)
+    n = len(d["groups"][d["focus"]]["y"])
+    out = _widget(f"const g={json.dumps(d['groups'])};"
+                  f"const s=api.welchStats(g,{d['focus']},1,1,{n});"
+                  f"const l=api.welchLayout(g,{d['focus']},{json.dumps(d['y'])},1,1,{n});"
+                  "console.log(JSON.stringify({s:s,l:l}));")
+    return d, out
+
+
+@pytest.mark.skipif(_node() is None, reason="нужен node")
+def test_welch_widget_starts_at_the_core_result() -> None:
+    """Обычный F и F Уэлча скрипта по сводкам групп = ядро (one_way_anova, welch_anova)."""
+    import method_examples as me
+
+    _, out = _welch_start()
+    v = me.example_values("welch_anova", CONTENTS["welch_anova"]["example"])
+    c, w = out["s"]["classic"], out["s"]["welch"]
+    assert [c["F"], c["df2"]] == [pytest.approx(v["F_classic"]), v["df_classic_within"]]
+    assert c["p"] == pytest.approx(v["p_classic"], rel=1e-3)
+    assert [w["F"], w["df2"]] == [pytest.approx(v["F"]), pytest.approx(v["df_within"])]
+    assert w["p"] == pytest.approx(v["p"], rel=1e-3)
+
+
+@pytest.mark.skipif(_node() is None, reason="нужен node")
+def test_welch_widget_static_svg_is_the_scripts_start() -> None:
+    page = _html("welch_anova")
+    _, out = _welch_start()
+    lay = out["l"]
+    dots = re.findall(r'class="gs-dot" data-g="(\d+)" data-j="(\d+)" cx="([\d.]+)" cy="([\d.]+)"', page)
+    assert len(dots) == sum(len(a) for a in lay["dots"])
+    for g, j, cx, cy in dots:
+        ref = lay["dots"][int(g)][int(j)]
+        assert float(cx) == pytest.approx(ref["cx"], abs=0.01) and float(cy) == pytest.approx(ref["cy"], abs=0.01)
+    for cls, key in (("gw-grand", "grandY"), ("gw-wmean", "wmeanY")):
+        y = re.search(rf'class="{cls}"[^>]* y1="([\d.]+)"', page).group(1)
+        assert float(y) == pytest.approx(lay[key], abs=0.01)
+    shares = re.findall(r'class="bar gw-share" data-g="(\d+)" style="width:([\d.]+)%', page)
+    for g, width in shares:
+        assert float(width) == pytest.approx(max(1, 100 * out["s"]["shares"][int(g)]), abs=0.01)
+
+
+@pytest.mark.skipif(_node() is None, reason="нужен node")
+def test_welch_widget_n_slider_keeps_mean_and_sd() -> None:
+    """Ползунок n меняет только n группы: среднее и SD те же, бледнеют точки с номера n."""
+    d, _ = _welch_start()
+    out = _widget(f"const g={json.dumps(d['groups'])};const a=api.welchStats(g,{d['focus']},1,1,10),"
+                  f"b=api.welchStats(g,{d['focus']},1,1,3),l=api.welchLayout(g,{d['focus']},[0,40],1,1,3);"
+                  "console.log(JSON.stringify({a:a.means,b:b.means,na:a.ns,nb:b.ns,"
+                  f"faded:l.dots[{d['focus']}].map(x=>x.faded)}}));")
+    assert out["a"] == out["b"] and out["nb"][d["focus"]] == 3 and out["na"][d["focus"]] == 10
+    assert out["faded"] == [False] * 3 + [True] * 7
+
+
+# --- Пример страницы и карта ---------------------------------------------------------------
+
+# Листья по умолчанию своей развилки: положительного сигнала за них нет, карта приводит
+# туда, когда ни один сигнал не уводит в сторону.
+DEFAULT_METHODS = {"one_way_anova", "two_sample_t"}
+
+
+def _fired_methods(fired: dict, nodes: dict, targets: dict) -> set[str]:
+    """Методы, к которым ведёт сработавший сигнал, в порядке resolveTargets (web/src/mapState.ts)."""
+    params = fired.get("message", {}).get("params") or {}
+    s = fired["suggests"]
+    if params.get("branch"):
+        return _leaf_methods(params["branch"], nodes)
+    if params.get("method"):
+        return {params["method"]}
+    if s in nodes:
+        return _leaf_methods(s, nodes)
+    if s in METHOD_IDS:
+        return {s}
+    slots = targets.get(f"{s}#{params['variant']}") if params.get("variant") else None
+    return {m for nid in (slots if slots is not None else targets.get(s, [])) for m in _leaf_methods(nid, nodes)}
+
+
+def _example_signals(cfg: dict) -> list[dict]:
+    """Сигналы карты на данных примера страницы: роли — отклик и фактор (как в сценариях)."""
+    import method_examples as me
+    from core.validation.parser import parse_file
+    from core.validation.recognize import recognize
+
+    groups = me._levels(cfg)
+    text = "group,y\n" + "".join(f"{g},{y}\n" for g, ys in groups for y in ys)
+    out = recognize(parse_file(text.encode("utf-8")), {"value": "y", "group": "group"})
+    assert out["errors"] == []
+    return out["fired"]
+
+
+@pytest.mark.parametrize("mid", sorted(m for m, c in CONTENTS.items() if "example" in c))
+def test_example_data_lead_the_map_to_the_method(mid: str) -> None:
+    """На данных примера сильный сигнал ведёт к методу страницы; у листа по умолчанию — никуда не уводит.
+
+    Учитываются сигналы по свойствам данных (cls = computed): структурные (B3.1 — число уровней)
+    ведут на развилку, в поддереве которой есть и этот лист, и его соседи.
+    """
+    from core.validation.recognize import STRONG
+
+    nodes, targets = mp.tree_nodes(), json.loads(mp.TREE.read_text(encoding="utf-8"))["targets"]
+    fired = [f for f in _example_signals(CONTENTS[mid]["example"]) if f["cls"] == "computed"]
+    leads = {f["id"]: _fired_methods(f, nodes, targets) for f in fired}
+    if mid in DEFAULT_METHODS:  # B4.2 у t-теста ведёт на тот же лист (вариант Уэлча) — не уход
+        assert all(not ms or mid in ms for ms in leads.values()), leads
+    else:
+        assert any(mid in leads[f["id"]] and f["strength"] == STRONG for f in fired), leads
+
+
+@pytest.mark.parametrize("name, sid", [("scenario_s08", "S08"), ("scenario_s09", "S09")])
+def test_training_sets_are_copies_of_map_scenarios(name: str, sid: str) -> None:
+    import method_examples as me
+    from tests.map_scenarios import SCENARIOS
+
+    columns = next(s for s in SCENARIOS if s["id"] == sid)["columns"]
+    example = me.load_example(name)
+    assert example["columns"] == list(columns)
+    assert [me.column(example, "group"), me.numbers(me.column(example, "y"))] == [columns["group"], columns["y"]]

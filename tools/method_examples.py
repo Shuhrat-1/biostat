@@ -62,7 +62,70 @@ def _one_way(cfg: dict) -> dict:
     return values
 
 
-RUNNERS = {"one_way_anova": _one_way}
+def _levels(cfg: dict) -> list[tuple[str, list[float]]]:
+    """Группы примера; levels в cfg — взять только эти уровни (в их порядке)."""
+    groups = dict(groups_of(load_example(cfg["data"]), cfg["response"], cfg["factor"]))
+    return [(lv, groups[lv]) for lv in cfg.get("levels", groups)]
+
+
+def _scalars(stats: dict) -> dict:
+    return {k: v for k, v in stats.items() if isinstance(v, (int, float))}
+
+
+def _two_sample(cfg: dict) -> dict:
+    """two_sample_t на двух уровнях примера (cfg["levels"])."""
+    from core.stats.hypothesis import two_sample_t
+
+    groups = _levels(cfg)
+    (la, a), (lb, b) = groups
+    result = two_sample_t(a, b)
+    return _scalars(result.statistics) | {"p": result.p_value, "variant": result.parameters["variant"],
+                                          "groups": groups, "n_a": len(a), "n_b": len(b)}
+
+
+def _welch(cfg: dict) -> dict:
+    """welch_anova; для сравнения — обычный F и Бартлетт (variance_rule) на тех же данных."""
+    from core.stats.anova import one_way_anova
+    from core.stats.oneway import welch_anova
+    import numpy as np
+
+    from core.stats.variance_rule import bartlett, spreads_of
+
+    groups = _levels(cfg)
+    labels, samples = [g for g, _ in groups], [y for _, y in groups]
+    result, classic = welch_anova(*samples, labels=labels), one_way_anova(*samples, labels=labels)
+    x2, crit = bartlett(spreads_of([np.asarray(y) for y in samples]))
+    values = _scalars(result.statistics) | {
+        "p": result.p_value, "F_classic": classic.statistics["F"], "p_classic": classic.p_value,
+        "df_classic_between": classic.statistics["df_between"], "df_classic_within": classic.statistics["df_within"],
+        "bartlett_x2": x2, "bartlett_crit": crit, "groups": groups}
+    return values | _sizes(samples)
+
+
+def _permutation(cfg: dict) -> dict:
+    """anova_permutation_test с фиксированным seed (страница воспроизводима)."""
+    import numpy as np
+
+    from core.stats.anova_checks import _n_arrangements, anova_permutation_test
+
+    groups = _levels(cfg)
+    result = anova_permutation_test(*[y for _, y in groups], labels=[g for g, _ in groups],
+                                    n_permutations=cfg.get("n_permutations", 999), seed=cfg["seed"])
+    samples = [np.asarray(y, dtype=float) for _, y in groups]
+    return _scalars(result.statistics) | {"p": result.p_value, "seed": result.seed,
+                                          "n_permutations": result.parameters["n_permutations"],
+                                          "exact": result.parameters["exact"],
+                                          "arrangements": _n_arrangements(samples),
+                                          "groups": groups} | _sizes([y for _, y in groups])
+
+
+def _sizes(samples: list[list[float]]) -> dict:
+    sizes = {len(s) for s in samples}
+    return {"t": len(samples), "N": sum(len(s) for s in samples)} | ({"n_group": sizes.pop()} if len(sizes) == 1 else {})
+
+
+RUNNERS = {"one_way_anova": _one_way, "two_sample_t": _two_sample, "welch_anova": _welch,
+           "anova_permutation_test": _permutation}
 
 
 def example_values(method: str, cfg: dict) -> dict:

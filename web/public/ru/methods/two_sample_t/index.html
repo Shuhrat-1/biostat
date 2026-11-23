@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Двухвыборочный t-тест — BioStat</title>
+    <meta name="description" content="Двухвыборочный t-тест Стьюдента и Уэлча: идея, формулы, допущения, сильные и слабые стороны и как карта BioStat выбирает этот метод." />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="canonical" href="https://biostat.app/ru/methods/two_sample_t/" />
+    <link rel="alternate" hreflang="ru" href="https://biostat.app/ru/methods/two_sample_t/" />
+    <link rel="alternate" hreflang="x-default" href="https://biostat.app/ru/methods/two_sample_t/" />
+    <style>body{margin:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:#18181b;background:#fafafa;line-height:1.6}main{max-width:44rem;margin:0 auto;padding:1.5rem 1rem 2rem}h1{font-size:1.6rem;margin:0.6rem 0 0.2rem}h2{font-size:1.1rem;margin:1.6rem 0 0.4rem}p{margin:0.4rem 0}a{color:#0f766e}.muted{color:#63636b;font-size:0.9rem}nav{display:flex;flex-wrap:wrap;gap:0.4rem 1rem;justify-content:space-between;align-items:center}footer{border-top:1px solid #e4e4e7;margin-top:2rem;padding-top:0.8rem;font-size:0.9rem}code{overflow-wrap:anywhere}h3{font-size:1rem;margin:1.4rem 0 0}ul{margin:0.3rem 0;padding-left:1.2rem}li{margin:0.15rem 0;overflow-wrap:anywhere}.tag{font-size:0.75rem;font-weight:400;color:#92400e;border:1px solid #f59e0b;border-radius:4px;padding:0 0.3rem;margin-left:0.4rem;white-space:nowrap}</style>
+    <link rel="stylesheet" href="/methods/assets/method.css" />
+    <script src="/back.js" defer></script>
+  </head>
+  <body>
+    <main class="mp">
+      <nav><a href="/" data-back>← Вернуться в BioStat</a><span><a href="/ru/methods/two_sample_t/" hreflang="ru" lang="ru" aria-current="page">Русский</a></span></nav>
+<div class="wrap">
+<article>
+  <nav class="crumbs" aria-label="Навигация"><a href="/">BioStat</a> › <a href="/ru/methods/">Методы и проверка</a> › <a href="/ru/methods/#group-two-groups">Сравнение двух групп</a> › Двухвыборочный t-тест</nav>
+  <h1>Двухвыборочный t-тест</h1>
+  <p class="lead">Различаются ли средние двух групп — например, урожай двух сортов? t-тест делит разность средних на её стандартную ошибку и смотрит, велика ли она для такой случайности.</p>
+  <section id="idea">
+    <h2>Идея</h2>
+    <p>Разность средних сама по себе ничего не говорит: 0.5 т/га — много, если делянки одного сорта различаются на 0.1, и мало, если на 2. Поэтому разность делят на её стандартную ошибку SED, которая растёт с разбросом внутри групп и падает с числом наблюдений (Welham, стр. 32–34).</p>
+    <p>Получается <b>t</b> — сколько стандартных ошибок укладывается в разность. Если сорта на самом деле одинаковы, большие по модулю t получаются редко; P — вероятность получить |t| не меньше наблюдённого. На примере пшеницы и ячменя разность 0.55 т/га при SED 0.15 даёт t = 3.67.</p>
+  </section>
+  <section id="model">
+    <h2>Модель и формулы</h2>
+    <details class="glossary" id="symbols">
+      <summary>Все обозначения на странице</summary>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Символ</th><th>Значение</th></tr></thead>
+      <tbody>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub></mrow><annotation encoding="application/x-tex">y_{ij}</annotation></semantics></math></span></td><td>значение отклика у наблюдения <i>j</i> в группе <i>i</i></td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>μ</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">\mu_i</annotation></semantics></math></span></td><td>среднее группы <i>i</i> в генеральной совокупности</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ε</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub></mrow><annotation encoding="application/x-tex">\varepsilon_{ij}</annotation></semantics></math></span></td><td>случайная ошибка наблюдения</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>σ</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">\sigma^2</annotation></semantics></math></span></td><td>дисперсия ошибки, одна для всех групп</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>H</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">H_0</annotation></semantics></math></span></td><td>нулевая гипотеза: все группы имеют одно среднее</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover accent="true"><mi>y</mi><mo>ˉ</mo></mover><mrow><mi>i</mi><mo>⋅</mo></mrow></msub></mrow><annotation encoding="application/x-tex">\bar y_{i\cdot}</annotation></semantics></math></span></td><td>среднее группы <i>i</i> (точка — усреднение по <i>j</i>)</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>j</mi><mo>=</mo><mn>1</mn><mo separator="true">,</mo><mo>…</mo><mo separator="true">,</mo><msub><mi>n</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">j = 1,\dots,n_i</annotation></semantics></math></span></td><td>номер наблюдения в группе, <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>n</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">n_i</annotation></semantics></math></span> — объём группы <i>i</i></td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>s</mi><mi>i</mi><mn>2</mn></msubsup></mrow><annotation encoding="application/x-tex">s_i^2</annotation></semantics></math></span></td><td>выборочная дисперсия группы <i>i</i> (делитель <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>n</mi><mi>i</mi></msub><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">n_i-1</annotation></semantics></math></span>)</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>s</mi><mi>p</mi><mn>2</mn></msubsup></mrow><annotation encoding="application/x-tex">s_p^2</annotation></semantics></math></span></td><td>объединённая дисперсия двух групп (то же, что <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><msub><mi>S</mi><mi>W</mi></msub></mrow><annotation encoding="application/x-tex">MS_W</annotation></semantics></math></span> при двух группах)</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">S</mi><mi mathvariant="normal">E</mi><mi mathvariant="normal">D</mi></mrow><annotation encoding="application/x-tex">\mathrm{SED}</annotation></semantics></math></span></td><td>стандартная ошибка разности двух средних (<i>i</i> и <i>k</i>)</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi></mrow><annotation encoding="application/x-tex">t</annotation></semantics></math></span></td><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi></mrow><annotation encoding="application/x-tex">t</annotation></semantics></math></span>-статистика Стьюдента: разность средних в единицах её стандартной ошибки (не путать с числом групп <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi></mrow><annotation encoding="application/x-tex">t</annotation></semantics></math></span>)</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>t</mi><mrow><mn>0.975</mn><mo separator="true">;</mo><mtext> </mtext><mi>N</mi><mo>−</mo><mi>t</mi></mrow></msub></mrow><annotation encoding="application/x-tex">t_{0.975;\,N-t}</annotation></semantics></math></span></td><td>квантиль t-распределения: 2.5 % справа, <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>−</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">N-t</annotation></semantics></math></span> степеней свободы</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi></mrow><annotation encoding="application/x-tex">P</annotation></semantics></math></span></td><td>вероятность получить статистику (F, t …) не менее крайнюю, чем наблюдённая, при верной <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>H</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">H_0</annotation></semantics></math></span></td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi></mrow><annotation encoding="application/x-tex">d</annotation></semantics></math></span></td><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi></mrow><annotation encoding="application/x-tex">d</annotation></semantics></math></span> Коэна: разность средних в единицах объединённого SD</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi></mrow><annotation encoding="application/x-tex">g</annotation></semantics></math></span></td><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi></mrow><annotation encoding="application/x-tex">g</annotation></semantics></math></span> Хеджеса: <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi></mrow><annotation encoding="application/x-tex">d</annotation></semantics></math></span> с поправкой на смещение при малых <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi></mrow><annotation encoding="application/x-tex">n</annotation></semantics></math></span></td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>t</mi><mi>W</mi></msub></mrow><annotation encoding="application/x-tex">t_W</annotation></semantics></math></span></td><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi></mrow><annotation encoding="application/x-tex">t</annotation></semantics></math></span>-статистика Уэлча: разность средних, делённая на ошибку без объединения дисперсий</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ν</mi></mrow><annotation encoding="application/x-tex">\nu</annotation></semantics></math></span></td><td>приближённые степени свободы по Уэлчу (Саттертуэйту), обычно дробные</td></tr>
+</tbody>
+    </table></div>
+      <p class="note">Те же обозначения на всех страницах методов — <a href="/ru/methods/symbols/">общий словарь символов</a>.</p>
+    </details>
+    <p>Наблюдение <i>j</i> в группе <i>i</i> (<i>i</i> = 1, 2):</p>
+    <div class="math block"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>y</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>=</mo><msub><mi>μ</mi><mi>i</mi></msub><mo>+</mo><msub><mi>ε</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo separator="true">,</mo><mspace width="2em"/><msub><mi>ε</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>∼</mo><mi>N</mi><mo stretchy="false">(</mo><mn>0</mn><mo separator="true">,</mo><msup><mi>σ</mi><mn>2</mn></msup><mo stretchy="false">)</mo><mtext> независимо</mtext><mo separator="true">,</mo><mspace width="2em"/><msub><mi>H</mi><mn>0</mn></msub><mo>:</mo><mtext> </mtext><msub><mi>μ</mi><mn>1</mn></msub><mo>=</mo><msub><mi>μ</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">y_{ij} = \mu_i + \varepsilon_{ij},\qquad \varepsilon_{ij} \sim N(0,\sigma^2)\ \text{независимо},\qquad H_0:\ \mu_1 = \mu_2</annotation></semantics></math></span></div>
+    <h3>Объединённая дисперсия и SED</h3>
+    <div class="math block"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msubsup><mi>s</mi><mi>p</mi><mn>2</mn></msubsup><mo>=</mo><mfrac><mrow><mo stretchy="false">(</mo><msub><mi>n</mi><mn>1</mn></msub><mo>−</mo><mn>1</mn><mo stretchy="false">)</mo><mtext> </mtext><msubsup><mi>s</mi><mn>1</mn><mn>2</mn></msubsup><mo>+</mo><mo stretchy="false">(</mo><msub><mi>n</mi><mn>2</mn></msub><mo>−</mo><mn>1</mn><mo stretchy="false">)</mo><mtext> </mtext><msubsup><mi>s</mi><mn>2</mn><mn>2</mn></msubsup></mrow><mrow><msub><mi>n</mi><mn>1</mn></msub><mo>+</mo><msub><mi>n</mi><mn>2</mn></msub><mo>−</mo><mn>2</mn></mrow></mfrac><mo separator="true">,</mo><mspace width="2em"/><mrow><mi mathvariant="normal">S</mi><mi mathvariant="normal">E</mi><mi mathvariant="normal">D</mi></mrow><mo>=</mo><msqrt><mrow><msubsup><mi>s</mi><mi>p</mi><mn>2</mn></msubsup><mrow><mo fence="true">(</mo><mfrac><mn>1</mn><msub><mi>n</mi><mn>1</mn></msub></mfrac><mo>+</mo><mfrac><mn>1</mn><msub><mi>n</mi><mn>2</mn></msub></mfrac><mo fence="true">)</mo></mrow></mrow></msqrt></mrow><annotation encoding="application/x-tex">s_p^2 = \frac{(n_1-1)\,s_1^2 + (n_2-1)\,s_2^2}{n_1+n_2-2},\qquad \mathrm{SED} = \sqrt{s_p^2\left(\frac1{n_1}+\frac1{n_2}\right)}</annotation></semantics></math></span></div>
+    <h3>Статистика t</h3>
+    <div class="math block"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>t</mi><mo>=</mo><mfrac><mrow><msub><mover accent="true"><mi>y</mi><mo>ˉ</mo></mover><mrow><mn>1</mn><mo>⋅</mo></mrow></msub><mo>−</mo><msub><mover accent="true"><mi>y</mi><mo>ˉ</mo></mover><mrow><mn>2</mn><mo>⋅</mo></mrow></msub></mrow><mrow><mi mathvariant="normal">S</mi><mi mathvariant="normal">E</mi><mi mathvariant="normal">D</mi></mrow></mfrac><mo>=</mo><mfrac><mrow><mn>5.30</mn><mo>−</mo><mn>4.75</mn></mrow><mn>0.15</mn></mfrac><mo>=</mo><mn>3.67</mn><mo separator="true">,</mo><mspace width="2em"/><msub><mi>n</mi><mn>1</mn></msub><mo>+</mo><msub><mi>n</mi><mn>2</mn></msub><mo>−</mo><mn>2</mn><mo>=</mo><mn>10</mn><mtext> df</mtext><mo separator="true">,</mo><mspace width="2em"/><mi>P</mi><mo>=</mo><mn>0.0043</mn></mrow><annotation encoding="application/x-tex">t = \frac{\bar y_{1\cdot}-\bar y_{2\cdot}}{\mathrm{SED}} = \frac{5.30-4.75}{0.15} = 3.67,\qquad n_1+n_2-2 = 10\ \text{df},\qquad P = 0.0043</annotation></semantics></math></span></div>
+    <p>При верной <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>H</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">H_0</annotation></semantics></math></span> и выполненных допущениях t распределено как t с <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>n</mi><mn>1</mn></msub><mo>+</mo><msub><mi>n</mi><mn>2</mn></msub><mo>−</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">n_1+n_2-2</annotation></semantics></math></span> степенями свободы. При двух группах <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>t</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">t^2</annotation></semantics></math></span> равно F однофакторного ANOVA (Witte, стр. 308).</p>
+    <h3>Доверительный интервал и размер эффекта</h3>
+    <div class="math block"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mo stretchy="false">(</mo><msub><mover accent="true"><mi>y</mi><mo>ˉ</mo></mover><mrow><mn>1</mn><mo>⋅</mo></mrow></msub><mo>−</mo><msub><mover accent="true"><mi>y</mi><mo>ˉ</mo></mover><mrow><mn>2</mn><mo>⋅</mo></mrow></msub><mo stretchy="false">)</mo><mo>±</mo><msub><mi>t</mi><mrow><mn>0.975</mn><mo separator="true">;</mo><mtext> </mtext><mi>N</mi><mo>−</mo><mi>t</mi></mrow></msub><mtext> </mtext><mrow><mi mathvariant="normal">S</mi><mi mathvariant="normal">E</mi><mi mathvariant="normal">D</mi></mrow><mo>=</mo><mo stretchy="false">(</mo><mn>0.22</mn><mo separator="true">;</mo><mtext> </mtext><mn>0.88</mn><mo stretchy="false">)</mo><mo separator="true">,</mo><mspace width="2em"/><mi>d</mi><mo>=</mo><mfrac><mrow><msub><mover accent="true"><mi>y</mi><mo>ˉ</mo></mover><mrow><mn>1</mn><mo>⋅</mo></mrow></msub><mo>−</mo><msub><mover accent="true"><mi>y</mi><mo>ˉ</mo></mover><mrow><mn>2</mn><mo>⋅</mo></mrow></msub></mrow><msub><mi>s</mi><mi>p</mi></msub></mfrac><mo>=</mo><mn>2.12</mn></mrow><annotation encoding="application/x-tex">(\bar y_{1\cdot}-\bar y_{2\cdot}) \pm t_{0.975;\,N-t}\,\mathrm{SED} = (0.22;\ 0.88),\qquad d = \frac{\bar y_{1\cdot}-\bar y_{2\cdot}}{s_p} = 2.12</annotation></semantics></math></span></div>
+    <p>При двух группах <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>−</mo><mi>t</mi><mo>=</mo><msub><mi>n</mi><mn>1</mn></msub><mo>+</mo><msub><mi>n</mi><mn>2</mn></msub><mo>−</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">N-t = n_1+n_2-2</annotation></semantics></math></span>. <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi></mrow><annotation encoding="application/x-tex">g</annotation></semantics></math></span> Хеджеса — тот же <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi></mrow><annotation encoding="application/x-tex">d</annotation></semantics></math></span> с поправкой на смещение при малых n: 1.95 [предл.: Hedges 1981].</p>
+    <h3>Вариант Уэлча</h3>
+    <p>При неравных дисперсиях их не объединяют: каждая группа даёт свою ошибку, а степени свободы оцениваются по данным (Welham, стр. 33; Witte, стр. 266–267):</p>
+    <div class="math block"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>t</mi><mi>W</mi></msub><mo>=</mo><mfrac><mrow><msub><mover accent="true"><mi>y</mi><mo>ˉ</mo></mover><mrow><mn>1</mn><mo>⋅</mo></mrow></msub><mo>−</mo><msub><mover accent="true"><mi>y</mi><mo>ˉ</mo></mover><mrow><mn>2</mn><mo>⋅</mo></mrow></msub></mrow><msqrt><mrow><msubsup><mi>s</mi><mn>1</mn><mn>2</mn></msubsup><mi mathvariant="normal">/</mi><msub><mi>n</mi><mn>1</mn></msub><mo>+</mo><msubsup><mi>s</mi><mn>2</mn><mn>2</mn></msubsup><mi mathvariant="normal">/</mi><msub><mi>n</mi><mn>2</mn></msub></mrow></msqrt></mfrac><mo separator="true">,</mo><mspace width="2em"/><mi>ν</mi><mo>=</mo><mfrac><msup><mrow><mo fence="true">(</mo><msubsup><mi>s</mi><mn>1</mn><mn>2</mn></msubsup><mi mathvariant="normal">/</mi><msub><mi>n</mi><mn>1</mn></msub><mo>+</mo><msubsup><mi>s</mi><mn>2</mn><mn>2</mn></msubsup><mi mathvariant="normal">/</mi><msub><mi>n</mi><mn>2</mn></msub><mo fence="true">)</mo></mrow><mn>2</mn></msup><mrow><mfrac><mrow><mo stretchy="false">(</mo><msubsup><mi>s</mi><mn>1</mn><mn>2</mn></msubsup><mi mathvariant="normal">/</mi><msub><mi>n</mi><mn>1</mn></msub><msup><mo stretchy="false">)</mo><mn>2</mn></msup></mrow><mrow><msub><mi>n</mi><mn>1</mn></msub><mo>−</mo><mn>1</mn></mrow></mfrac><mo>+</mo><mfrac><mrow><mo stretchy="false">(</mo><msubsup><mi>s</mi><mn>2</mn><mn>2</mn></msubsup><mi mathvariant="normal">/</mi><msub><mi>n</mi><mn>2</mn></msub><msup><mo stretchy="false">)</mo><mn>2</mn></msup></mrow><mrow><msub><mi>n</mi><mn>2</mn></msub><mo>−</mo><mn>1</mn></mrow></mfrac></mrow></mfrac></mrow><annotation encoding="application/x-tex">t_W = \frac{\bar y_{1\cdot}-\bar y_{2\cdot}}{\sqrt{s_1^2/n_1 + s_2^2/n_2}},\qquad \nu = \frac{\left(s_1^2/n_1 + s_2^2/n_2\right)^2}{\dfrac{(s_1^2/n_1)^2}{n_1-1} + \dfrac{(s_2^2/n_2)^2}{n_2-1}}</annotation></semantics></math></span></div>
+    <h3>На примере</h3>
+    <p class="note">Пшеница 5.30, ячмень 4.75 т/га (по 6 делянок); разность 0.55, SED 0.15, t = 3.67 на 10 df, P = 0.0043; 95 % ДИ разности 0.22…0.88; d = 2.12, g = 1.95. Правило Уэлча не сработало — вариант Стьюдента; Левене (справка): P = 0.36.</p>
+    <p class="src">Welham et al. (2015), стр. 32–35; Witte &amp; Witte (2017), стр. 244–256 (t), 259–264 (ДИ и <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi></mrow><annotation encoding="application/x-tex">d</annotation></semantics></math></span>), 266–267 (Уэлч), 308 (<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi><mo>=</mo><msup><mi>t</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">F = t^2</annotation></semantics></math></span>); <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi></mrow><annotation encoding="application/x-tex">g</annotation></semantics></math></span> — [предл.: Hedges 1981].</p>
+  </section>
+  <section id="pros-cons">
+    <h2>Сильные и слабые стороны</h2>
+    <div class="cols">
+      <div class="plus">
+        <h3>Сильные стороны</h3>
+        <ul>
+      <li><b>Отвечает прямо на вопрос о двух группах.</b> Разность средних с SED и 95 % ДИ — то, что книга считает основным результатом (Welham, стр. 34–35).</li>
+      <li><b>Устойчив при равных n.</b> При равных группах больше ~10 наблюдений умеренные отклонения от допущений почти не влияют (Witte, стр. 266).</li>
+      <li><b>Вариант Уэлча</b> снимает требование равных дисперсий (Welham, стр. 33; Witte, стр. 266–267).</li>
+      <li><b>Даёт размер эффекта:</b> <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi></mrow><annotation encoding="application/x-tex">d</annotation></semantics></math></span> Коэна и <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi></mrow><annotation encoding="application/x-tex">g</annotation></semantics></math></span> Хеджеса (Witte, стр. 261–264; [предл.: Hedges 1981]).</li>
+      <li><b>Есть направленный вариант:</b> односторонний тест, если направление задано до опыта (Witte, стр. 195–202).</li>
+    </ul>
+      </div>
+      <div class="minus">
+        <h3>Слабые стороны</h3>
+        <ul>
+      <li><b>Только две группы.</b> Для трёх и более — <a class="mlink" href="/ru/methods/one_way_anova/" title="Открыть описание метода">однофакторный ANOVA</a> с одной оценкой σ² по всем группам (Welham, стр. 74–84).</li>
+      <li><b>Неравные дисперсии при неравных n:</b> при большей дисперсии в меньшей группе P Стьюдента занижен [BioStat; предл.: Ruxton 2006; Zimmerman 2004].</li>
+      <li><b>Один выброс</b> сдвигает среднее и раздувает SED (Welham, стр. 109–110).</li>
+      <li><b>Неверен для связанных измерений:</b> два измерения одного объекта — <a class="mlink" href="/ru/methods/#paired_t" title="Открыть описание метода">парный t-тест</a> (Welham, стр. 41).</li>
+      <li><b>При малых n (меньше ~10)</b> отклонения от нормальности опасны, а заметить их почти нельзя (Witte, стр. 387).</li>
+    </ul>
+      </div>
+    </div>
+    <p class="src">Welham et al. (2015), стр. 33–35, 41, 74–84, 109–110; Witte &amp; Witte (2017), стр. 195–202, 261–267, 387; правило Уэлча — [BioStat; предл.: Ruxton 2006; Zimmerman 2004].</p>
+  </section>
+  <section id="assumptions">
+    <h2>Допущения</h2>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Допущение</th><th>Что значит</th><th>Как проверяет BioStat</th></tr></thead>
+      <tbody>
+<tr><td>Независимость</td><td>Каждое наблюдение — отдельная единица: в группах разные объекты, без пар и повторных измерений.</td><td>Не проверяется расчётом — это свойство плана. Карта спрашивает о структуре до этого шага и подсказывает (<span class="sig">B0.2</span>), если две числовые колонки похожи на два измерения одних объектов.</td></tr>
+<tr><td>Нормальность остатков</td><td>Отклонения от средних своих групп распределены нормально.</td><td>Карта — Шапиро–Уилк по остаткам модели двух групп; при n &gt; 30 в обеих группах — только вместе с асимметрией &gt; 0.5 [BioStat]. Метод выдаёт ещё P Шапиро–Уилка по каждой группе — справка.</td></tr>
+<tr><td>Равенство дисперсий (для варианта Стьюдента)</td><td>σ² одинакова в обеих группах.</td><td>По умолчанию — Стьюдент. Совет Уэлча — по отношению SD и балансу n: при n, различающихся не больше чем в 1.5 раза, — если SD различаются больше чем вдвое, иначе — больше чем в 1.5 раза; при n &lt; 8 в группе — только справка [BioStat; предл.: Ruxton 2006]. Левене — справка. Правило общее для метода и карты.</td></tr>
+<tr><td>Нет грубых ошибок записи</td><td>Отдельная точка не искажает средние и SED.</td><td>Тест выброса по стьюдентизированным остаткам с поправкой Бонферрони; проверяется первым.</td></tr>
+</tbody>
+    </table></div>
+    <p class="src">Welham et al. (2015), стр. 33–34, 93–110; Witte &amp; Witte (2017), стр. 266.</p>
+  </section>
+  <section id="map">
+    <h2>Как метод выбирает карта</h2>
+    <h3>Путь к листу</h3>
+    <div class="path" aria-label="Путь по карте"><span>Анализ отклика</span>›<span>Непрерывный</span>›<span>Различия</span>›<span>Независимые единицы</span>›<span>Без блоков или полные блоки</span>›<span>Один фактор</span>›<span>Две группы</span>›<span class="here">t-тест</span></div>
+    <p>Карта приводит сюда, когда единицы независимы, а у единственного фактора два уровня. t-тест — <b>метод по умолчанию</b> в ветке «Две группы»: положительного сигнала за него нет.</p>
+    <p>Неравные дисперсии не уводят с этого листа: сигнал <span class="sig">B4.2</span> предлагает тот же t-тест в <b>варианте Уэлча</b> (выбор варианта — в форме метода). Если SD различаются из-за правой асимметрии при ненормальных остатках, <span class="sig">B4.2</span> молчит: тогда ведут <span class="sig">B4.1</span> и <span class="sig">B4.4</span> — к рангам или трансформации.</p>
+    <h3>Соседи на карте: когда выигрывают они</h3>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Сосед</th><th>Когда карта ведёт туда</th><th>Чем сосед лучше здесь</th><th>Чем платит</th></tr></thead>
+      <tbody>
+<tr><td><a class="mlink" href="/ru/methods/#mann_whitney" title="Открыть описание метода">Тест Манна-Уитни (непараметрический)</a></td><td><span class="sig">B4.1</span> / <span class="sig">B4.8</span> (подсказка) остатки ненормальны (Шапиро–Уилк) или отклик — немного целых значений (баллы)</td><td>Не требует нормальности; работает с баллами и рангами</td><td>Сравнивает распределения, а не средние; ДИ — для сдвига (Ходжес–Леман), а не для разности средних</td></tr>
+<tr><td><a class="mlink" href="/ru/methods/#transformed_means" title="Открыть описание метода">ANOVA с трансформацией отклика</a></td><td><span class="sig">B4.4</span> (подсказка) остатки сильно асимметричны (|g₁| &gt; 1)</td><td>Возвращает симметрию; разность становится отношением (во сколько раз)</td><td>Результат — на шкале log; обратно получаются геометрические средние с асимметричным ДИ</td></tr>
+<tr><td><a class="mlink" href="/ru/methods/#paired_t" title="Открыть описание метода">Парный t-тест</a></td><td><span class="sig">B0.2</span> (подсказка) две числовые колонки в одной шкале сильно связаны — похоже на два измерения одних объектов</td><td>Убирает различия между объектами из ошибки — точнее сравнение</td><td>Нужны пары: у каждого измерения — своё второе</td></tr>
+<tr><td><a class="mlink" href="/ru/methods/one_way_anova/" title="Открыть описание метода">Однофакторный ANOVA</a></td><td>развилка «сколько уровней» = три и больше</td><td>Одна оценка σ² по всем группам вместо серии t-тестов</td><td>Для двух групп — тот же P (F = t²), но без варианта Уэлча, одностороннего теста, ДИ разности и d</td></tr>
+</tbody>
+    </table></div>
+    <h3>Что карта проверит на этом листе</h3>
+    <ul>
+      <li><span class="sig">DIAG.1</span> <b>Выброс — первым.</b> При кандидате в выбросы совет Уэлча понижается до подсказки «сначала проверьте запись в строке N» (Welham, стр. 109–110).</li>
+      <li><span class="sig">B4.1</span> Нормальность остатков модели двух групп; при n &gt; 30 в обеих группах — только вместе с асимметрией &gt; 0.5 [BioStat]. Ведёт к Манну–Уитни.</li>
+      <li><span class="sig">B4.2</span> Неравные SD — тот же t-тест в варианте Уэлча; при n &lt; 8 в группе — только справка [BioStat].</li>
+      <li><span class="sig">B4.4</span> (подсказка) Сильная асимметрия остатков (|g₁| &gt; 1) — повод для трансформации.</li>
+      <li><span class="sig">B4.7</span> (подсказка) Во всех группах n &gt; 30: отклонение от нормальности, скорее всего, не страшно (эвристика ЦПТ) [BioStat].</li>
+      <li><span class="sig">DIAG.3</span> Остаточных df меньше 10 — предупреждение о низкой мощности.</li>
+    </ul>
+    <h3>Что дальше</h3>
+    <p>Значимый t говорит, что средние различаются; величину различия показывают разность и её 95 % ДИ — их и стоит приводить (Welham, стр. 34–35). Если цель — показать, что различий нет, это другая задача: <b><a class="mlink" href="/ru/methods/#equivalence_test" title="Открыть описание метода">тест эквивалентности (TOST)</a></b>; незначимый t отсутствия различий не доказывает (Welham, стр. 253).</p>
+  </section>
+  <details class="check" id="check">
+    <summary>Проверка метода</summary>
+    <ul>
+      <li>Тестов, вызывающих метод: 23</li>
+      <li>Witte — сверяют тесты: Progress Check 14.9b, Table 14.1, Table 14.4</li>
+      <li>Числа других программ в тестах: SAS</li>
+      <li>Независимая сверка (аудит 2): t, df, P, ДИ, d, g (Стьюдент и Уэлч) — scipy</li>
+    </ul>
+  </details>
+</article>
+<aside class="toc" aria-label="На этой странице">
+  <b>На странице</b>
+  <a href="#idea">Идея</a>
+  <a href="#model">Модель и формулы</a>
+  <a href="#symbols">Обозначения</a>
+  <a href="#pros-cons">Сильные и слабые стороны</a>
+  <a href="#assumptions">Допущения</a>
+  <a href="#map">Как выбирает карта</a>
+  <a href="#check">Проверка метода</a>
+  <a class="toc-back" href="/ru/methods/#two_sample_t">↑ К списку методов</a>
+</aside>
+<a class="to-list" href="/ru/methods/#two_sample_t" aria-label="К списку методов">↑</a>
+</div>
+      <footer><a href="/ru/privacy/">Конфиденциальность</a> · <a href="/ru/terms/">Условия</a> · <a href="/ru/methods/">Методы и проверка</a> · <a href="/LICENSE.txt">Лицензия Apache-2.0</a></footer>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Перестановочный F-тест (ANOVA) — BioStat</title>
+    <meta name="description" content="Перестановочный F-тест однофакторного ANOVA: P без допущения нормальности — идея, формула, допущения и как карта BioStat выбирает этот метод." />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="canonical" href="https://biostat.app/ru/methods/anova_permutation_test/" />
+    <link rel="alternate" hreflang="ru" href="https://biostat.app/ru/methods/anova_permutation_test/" />
+    <link rel="alternate" hreflang="x-default" href="https://biostat.app/ru/methods/anova_permutation_test/" />
+    <style>body{margin:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:#18181b;background:#fafafa;line-height:1.6}main{max-width:44rem;margin:0 auto;padding:1.5rem 1rem 2rem}h1{font-size:1.6rem;margin:0.6rem 0 0.2rem}h2{font-size:1.1rem;margin:1.6rem 0 0.4rem}p{margin:0.4rem 0}a{color:#0f766e}.muted{color:#63636b;font-size:0.9rem}nav{display:flex;flex-wrap:wrap;gap:0.4rem 1rem;justify-content:space-between;align-items:center}footer{border-top:1px solid #e4e4e7;margin-top:2rem;padding-top:0.8rem;font-size:0.9rem}code{overflow-wrap:anywhere}h3{font-size:1rem;margin:1.4rem 0 0}ul{margin:0.3rem 0;padding-left:1.2rem}li{margin:0.15rem 0;overflow-wrap:anywhere}.tag{font-size:0.75rem;font-weight:400;color:#92400e;border:1px solid #f59e0b;border-radius:4px;padding:0 0.3rem;margin-left:0.4rem;white-space:nowrap}</style>
+    <link rel="stylesheet" href="/methods/assets/method.css" />
+    <script src="/back.js" defer></script>
+  </head>
+  <body>
+    <main class="mp">
+      <nav><a href="/" data-back>← Вернуться в BioStat</a><span><a href="/ru/methods/anova_permutation_test/" hreflang="ru" lang="ru" aria-current="page">Русский</a></span></nav>
+<div class="wrap">
+<article>
+  <nav class="crumbs" aria-label="Навигация"><a href="/">BioStat</a> › <a href="/ru/methods/">Методы и проверка</a> › <a href="/ru/methods/#group-several-groups">Сравнение нескольких групп</a> › Перестановочный F-тест (ANOVA)</nav>
+  <h1>Перестановочный F-тест (ANOVA)</h1>
+  <p class="lead">Различаются ли средние групп, если остатки не нормальны? Перестановочный тест берёт тот же F, что и ANOVA, но P получает, перемешивая метки групп, а не из F-распределения.</p>
+  <section id="idea">
+    <h2>Идея</h2>
+    <p>Если вариант опыта на отклик не влияет, метка группы у единицы ничего не значит: в рандомизированном опыте любая раскладка меток по единицам была одинаково возможна. Тест много раз перемешивает метки, каждый раз пересчитывает <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>F</mi><mo>∗</mo></msup></mrow><annotation encoding="application/x-tex">F^*</annotation></semantics></math></span> и смотрит, как часто случайная раскладка даёт F не меньше наблюдённого (Welham, стр. 102–103).</p>
+    <p>F-распределение здесь не нужно — его заменяет распределение самих <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>F</mi><mo>∗</mo></msup></mrow><annotation encoding="application/x-tex">F^*</annotation></semantics></math></span>. Поэтому нормальность не требуется, а однородность дисперсий — по-прежнему да: перемешивание предполагает, что группы различаются только сдвигом (Welham, стр. 102).</p>
+  </section>
+  <section id="model">
+    <h2>Модель и формулы</h2>
+    <details class="glossary" id="symbols">
+      <summary>Все обозначения на странице</summary>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Символ</th><th>Значение</th></tr></thead>
+      <tbody>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>H</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">H_0</annotation></semantics></math></span></td><td>нулевая гипотеза: все группы имеют одно среднее</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mi>S</mi><mo>=</mo><mi>S</mi><mi>S</mi><mi mathvariant="normal">/</mi><mi>d</mi><mi>f</mi></mrow><annotation encoding="application/x-tex">MS = SS/df</annotation></semantics></math></span></td><td>средний квадрат — сумма квадратов, делённая на свои степени свободы</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi><mo>−</mo><mn>1</mn><mo separator="true">,</mo><mtext> </mtext><mi>N</mi><mo>−</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">t-1,\ N-t</annotation></semantics></math></span></td><td>степени свободы между и внутри групп</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>F</mi><mo>∗</mo></msup></mrow><annotation encoding="application/x-tex">F^*</annotation></semantics></math></span></td><td>F на данных с перемешанными метками групп</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi></mrow><annotation encoding="application/x-tex">B</annotation></semantics></math></span></td><td>число случайных перестановок</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi></mrow><annotation encoding="application/x-tex">P</annotation></semantics></math></span></td><td>вероятность получить статистику (F, t …) не менее крайнюю, чем наблюдённая, при верной <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>H</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">H_0</annotation></semantics></math></span></td></tr>
+</tbody>
+    </table></div>
+      <p class="note">Те же обозначения на всех страницах методов — <a href="/ru/methods/symbols/">общий словарь символов</a>.</p>
+    </details>
+    <h3>Статистика — тот же F</h3>
+    <div class="math block"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>F</mi><mo>=</mo><mfrac><mrow><mi>M</mi><msub><mi>S</mi><mi>B</mi></msub></mrow><mrow><mi>M</mi><msub><mi>S</mi><mi>W</mi></msub></mrow></mfrac><mo>=</mo><mn>27.8</mn><mo separator="true">,</mo><mspace width="2em"/><mi>d</mi><mi>f</mi><mo>=</mo><mo stretchy="false">(</mo><mn>2</mn><mo separator="true">;</mo><mtext> </mtext><mn>27</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">F = \frac{MS_B}{MS_W} = 27.8,\qquad df = (2;\ 27)</annotation></semantics></math></span></div>
+    <h3>P по случайным перестановкам</h3>
+    <div class="math block"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>P</mi><mo>=</mo><mfrac><mrow><mn>1</mn><mo>+</mo><mi mathvariant="normal">#</mi><mo stretchy="false">{</mo><mtext> </mtext><mi>b</mi><mo>:</mo><mtext> </mtext><msubsup><mi>F</mi><mi>b</mi><mo>∗</mo></msubsup><mo>≥</mo><mi>F</mi><mtext> </mtext><mo stretchy="false">}</mo></mrow><mrow><mi>B</mi><mo>+</mo><mn>1</mn></mrow></mfrac><mo separator="true">,</mo><mspace width="2em"/><mi>B</mi><mo>=</mo><mn>999</mn><mo separator="true">,</mo><mspace width="1em"/><mi>P</mi><mo>=</mo><mn>0.001</mn></mrow><annotation encoding="application/x-tex">P = \frac{1 + \#\{\,b:\ F^*_b \ge F\,\}}{B+1},\qquad B = 999,\quad P = 0.001</annotation></semantics></math></span></div>
+    <p>Единица в числителе и знаменателе учитывает сами наблюдённые данные как одну из раскладок, поэтому P не бывает меньше <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mi mathvariant="normal">/</mi><mo stretchy="false">(</mo><mi>B</mi><mo>+</mo><mn>1</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">1/(B+1)</annotation></semantics></math></span> [предл.: Phipson &amp; Smyth 2010]. Если различных раскладок не больше B, BioStat перебирает их все, и P — точная доля раскладок с <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>F</mi><mo>∗</mo></msup><mo>≥</mo><mi>F</mi></mrow><annotation encoding="application/x-tex">F^* \ge F</annotation></semantics></math></span> (наблюдённая — одна из них), без добавления единицы (Welham, стр. 102–103).</p>
+    <h3>На примере</h3>
+    <p class="note">Учебный набор (сценарий S09 карты): три группы по 10 значений одинаковой правой асимметричной формы, сдвинутые на 5, 6 и 8 — дисперсии равны (Левене, справка: P = 1.00), остатки ненормальны, и карта выдаёт <span class="sig">B4.6</span>. F = 27.8 на (2; 27) df. Ни одна из 999 перестановок (seed = 1) не дала <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>F</mi><mo>∗</mo></msup><mo>≥</mo></mrow><annotation encoding="application/x-tex">F^* \ge</annotation></semantics></math></span> 27.8, поэтому P = 0.001 — наименьшее возможное при B = 999; по F-распределению P = 2.8·10⁻⁷. Раскладок 30 значений по трём группам — 5 550 996 791 340, поэтому перестановки случайные. На этом наборе карта подсказывает и трансформацию (<span class="sig">B4.4</span>, асимметрия остатков больше 1); подсказка <span class="sig">DIAG.2</span> о корреляции по порядку строк — следствие того, что значения в наборе упорядочены.</p>
+    <p class="src">Welham et al. (2015), стр. 102–103; формула P — [предл.: Phipson &amp; Smyth 2010].</p>
+  </section>
+  <section id="pros-cons">
+    <h2>Сильные и слабые стороны</h2>
+    <div class="cols">
+      <div class="plus">
+        <h3>Сильные стороны</h3>
+        <ul>
+      <li><b>Не требует нормальности остатков</b> — P берётся из распределения <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>F</mi><mo>∗</mo></msup></mrow><annotation encoding="application/x-tex">F^*</annotation></semantics></math></span> (Welham, стр. 102).</li>
+      <li><b>Та же статистика и те же средние</b>, что в ANOVA: результаты сравнимы напрямую [BioStat].</li>
+      <li><b>Точный при малом числе раскладок:</b> если их не больше B, перебор полный (Welham, стр. 102–103).</li>
+      <li><b>Воспроизводим:</b> seed сохраняется в результате, повторный расчёт даёт тот же P [BioStat].</li>
+    </ul>
+      </div>
+      <div class="minus">
+        <h3>Слабые стороны</h3>
+        <ul>
+      <li><b>Требует однородных дисперсий</b> — при неоднородных это не замена Уэлчу (Welham, стр. 102).</li>
+      <li><b>Обоснован рандомизацией:</b> в наблюдательных данных перестановка меток — лишь приближение (Welham, стр. 103).</li>
+      <li><b>P не меньше <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mi mathvariant="normal">/</mi><mo stretchy="false">(</mo><mi>B</mi><mo>+</mo><mn>1</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">1/(B+1)</annotation></semantics></math></span></b> при случайных перестановках и при другом seed немного меняется; для очень малых P нужно больше перестановок (B до 99 999) [BioStat].</li>
+      <li><b>Только один фактор без блоков.</b> Перестановки должны учитывать структуру опыта (Welham, стр. 102–103); для блоков такого варианта в BioStat нет.</li>
+      <li><b>Выброс не исправляет:</b> F по-прежнему строится на средних (Welham, стр. 109–110).</li>
+    </ul>
+      </div>
+    </div>
+    <p class="src">Welham et al. (2015), стр. 102–103, 109–110; [BioStat].</p>
+  </section>
+  <section id="assumptions">
+    <h2>Допущения</h2>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Допущение</th><th>Что значит</th><th>Как проверяет BioStat</th></tr></thead>
+      <tbody>
+<tr><td>Перестановочность (рандомизация)</td><td>При верной <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>H</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">H_0</annotation></semantics></math></span> любая раскладка меток по единицам одинаково возможна — так и есть в рандомизированном опыте.</td><td>Не проверяется расчётом. Карта показывает оговорку по выбору на первом шаге: «опыт» — тест обоснован рандомизацией; «наблюдение» — лишь приближение, выводы осторожно.</td></tr>
+<tr><td>Однородность дисперсий</td><td>Группы различаются сдвигом, а не разбросом.</td><td>То же правило, что у карты: для трёх и более групп — Бартлетт, для двух — отношение SD (при n ≥ 8 в группе); при нарушении метод предупреждает. Левене — справка.</td></tr>
+<tr><td>Нет грубых ошибок записи</td><td>Отдельная точка не искажает средние и <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><msub><mi>S</mi><mi>W</mi></msub></mrow><annotation encoding="application/x-tex">MS_W</annotation></semantics></math></span>.</td><td>Тест выброса по стьюдентизированным остаткам с поправкой Бонферрони; проверяется первым.</td></tr>
+</tbody>
+    </table></div>
+    <p class="src">Welham et al. (2015), стр. 102–110.</p>
+  </section>
+  <section id="map">
+    <h2>Как метод выбирает карта</h2>
+    <h3>Путь к листу</h3>
+    <div class="path" aria-label="Путь по карте"><span>Анализ отклика</span>›<span>Непрерывный</span>›<span>Различия</span>›<span>Независимые единицы</span>›<span>Без блоков или полные блоки</span>›<span>Один фактор</span>›<span>Три и больше групп</span>›<span class="here">Перестановочный тест</span></div>
+    <p>Карта ведёт сюда сигналом <span class="sig">B4.6</span>: в трёх и более группах <b>остатки ненормальны</b> (<span class="sig">B4.1</span>), а <b>дисперсии однородны</b> (<span class="sig">B4.2</span> молчит). Если дисперсии неоднородны, <span class="sig">B4.6</span> молчит, и выбор — между Уэлчем и трансформацией.</p>
+    <p>Для двух групп листа перестановочного теста на карте нет: ненормальные остатки ведут к Манну–Уитни. Сам метод две группы принимает. При кандидате в выбросы <span class="sig">B4.6</span> становится подсказкой: сначала проверьте запись.</p>
+    <h3>Соседи на карте: когда выигрывают они</h3>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Сосед</th><th>Когда карта ведёт туда</th><th>Чем сосед лучше здесь</th><th>Чем платит</th></tr></thead>
+      <tbody>
+<tr><td><a class="mlink" href="/ru/methods/one_way_anova/" title="Открыть описание метода">Однофакторный ANOVA</a></td><td>остатки нормальны — лист по умолчанию</td><td>P из F-распределения: без случайности и без нижней границы P</td><td>Требует нормальности остатков</td></tr>
+<tr><td><a class="mlink" href="/ru/methods/welch_anova/" title="Открыть описание метода">ANOVA Уэлча (неравные дисперсии)</a></td><td><span class="sig">B4.5</span> дисперсии неоднородны и не растут вместе со средними</td><td>Верен при неравных дисперсиях</td><td>Требует нормальности; нет общей <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><msub><mi>S</mi><mi>W</mi></msub></mrow><annotation encoding="application/x-tex">MS_W</annotation></semantics></math></span></td></tr>
+<tr><td><a class="mlink" href="/ru/methods/#transformed_means" title="Открыть описание метода">ANOVA с трансформацией отклика</a></td><td><span class="sig">B4.3</span> / <span class="sig">B4.4</span> (подсказка) SD растут со средними или остатки сильно асимметричны (|g₁| &gt; 1)</td><td>Исправляет асимметрию и неоднородность сразу; обычный F и SED на новой шкале</td><td>Средние — геометрические, ДИ асимметричны</td></tr>
+<tr><td><a class="mlink" href="/ru/methods/#kruskal_wallis" title="Открыть описание метода">Тест Краскела-Уоллиса (непараметрический)</a></td><td><span class="sig">B4.8</span> (подсказка) отклик — немного целых значений (баллы)</td><td>Работает с рангами; устойчив к выбросам</td><td>Сравнивает распределения, а не средние</td></tr>
+<tr><td><a class="mlink" href="/ru/methods/#rcbd_anova" title="Открыть описание метода">Блочный ANOVA (RCBD)</a></td><td><span class="sig">B1.2</span> / <span class="sig">B1.8</span> (подсказка) каждый вариант по разу в каждом блоке (или колонка, похожая на блоки)</td><td>Убирает различия между блоками из ошибки</td><td>Нужна колонка блоков; нормальность остатков снова требуется</td></tr>
+</tbody>
+    </table></div>
+    <h3>Что карта проверит на этом листе</h3>
+    <ul>
+      <li><span class="sig">DIAG.1</span> <b>Выброс — первым.</b> При кандидате в выбросы совет перестановочного теста понижается до подсказки «сначала проверьте запись в строке N» (Welham, стр. 109–110).</li>
+      <li><span class="sig">B4.1</span> Нормальность остатков (Шапиро–Уилк), при n &gt; 30 в каждой группе — только вместе с асимметрией &gt; 0.5 [BioStat].</li>
+      <li><span class="sig">B4.2</span> Однородность дисперсий (Бартлетт): при неоднородных — Уэлч или трансформация вместо этого теста.</li>
+      <li><span class="sig">B4.3</span> / <span class="sig">B4.4</span> (подсказка) Связь SD со средними и сильная асимметрия остатков — повод для трансформации.</li>
+      <li><span class="sig">DIAG.3</span> Остаточных df меньше 10 — предупреждение о низкой мощности.</li>
+    </ul>
+    <h3>Что дальше</h3>
+    <p>Перестановочный P отвечает на вопрос, различаются ли средние вообще. Сравнения после ANOVA (B5) считаются по t-распределению: при явно ненормальных остатках их P приближённые; перестановочного варианта сравнений в BioStat нет. Если цель — показать, что различий нет, это другая задача: <b><a class="mlink" href="/ru/methods/#equivalence_test" title="Открыть описание метода">тест эквивалентности (TOST)</a></b>; незначимый F отсутствия различий не доказывает (Welham, стр. 253).</p>
+  </section>
+  <details class="check" id="check">
+    <summary>Проверка метода</summary>
+    <ul>
+      <li>Тестов, вызывающих метод: 8</li>
+      <li>Ссылок на книги в тестах нет</li>
+      <li>Независимая сверка (аудит 2): нет — только граничные случаи</li>
+    </ul>
+  </details>
+  <div class="pager"><a href="/ru/methods/welch_anova/"><small>← Предыдущий</small>ANOVA Уэлча (неравные дисперсии)</a></div>
+</article>
+<aside class="toc" aria-label="На этой странице">
+  <b>На странице</b>
+  <a href="#idea">Идея</a>
+  <a href="#model">Модель и формулы</a>
+  <a href="#symbols">Обозначения</a>
+  <a href="#pros-cons">Сильные и слабые стороны</a>
+  <a href="#assumptions">Допущения</a>
+  <a href="#map">Как выбирает карта</a>
+  <a href="#check">Проверка метода</a>
+  <a class="toc-back" href="/ru/methods/#anova_permutation_test">↑ К списку методов</a>
+</aside>
+<a class="to-list" href="/ru/methods/#anova_permutation_test" aria-label="К списку методов">↑</a>
+</div>
+      <footer><a href="/ru/privacy/">Конфиденциальность</a> · <a href="/ru/terms/">Условия</a> · <a href="/ru/methods/">Методы и проверка</a> · <a href="/LICENSE.txt">Лицензия Apache-2.0</a></footer>
+    </main>
+  </body>
+</html>
