@@ -690,14 +690,17 @@
     "кн. стр. 107; предл.: Welch 1951; Witte стр. 316"
    ],
    "proposed": true,
-   "tests": 6,
+   "tests": 12,
    "test_files": [
     "test_fixes_20_11.py",
+    "test_games_howell.py",
     "test_plotsummary.py",
     "test_welch_anova.py"
    ],
    "book_refs": {
-    "welham": [],
+    "welham": [
+     "стр. 107"
+    ],
     "witte": [
      "Table 14.4",
      "Table 16.3",

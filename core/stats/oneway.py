@@ -1,7 +1,8 @@
 """Однофакторный анализ: дополнения к anova.py по Witte (гл. 16).
 
 - ``welch_anova`` — F Уэлча для неравных дисперсий [Witte, стр. 316;
-  предл.: Welch 1951]. В Welham не рассматривается.
+  предл.: Welch 1951] и попарные сравнения Геймса–Хауэлла [предл.: Games &
+  Howell 1976]. В Welham не рассматривается.
 - ``scheffe_test`` — метод Шеффе: все пары и любые контрасты с контролем
   ошибки I рода для всего семейства контрастов [Witte, стр. 314;
   предл.: Scheffé 1953]. Синтаксис контрастов — как у treatment_contrasts.
@@ -13,6 +14,7 @@ from __future__ import annotations
 
 import numpy as np
 from scipy import stats
+from statsmodels.stats.libqsturng import qsturng
 
 from core.report.schema import Estimate, Severity, StatResult
 from core.stats.anova import group_mean_estimate
@@ -70,23 +72,60 @@ def _welch_guard(clean: list[np.ndarray], result: StatResult) -> bool:
     return True
 
 
+def games_howell_pairs(
+    names: list[str], clean: list[np.ndarray], alpha: float
+) -> list[dict]:
+    """Попарные сравнения Геймса–Хауэлла [предл.: Games & Howell 1976].
+
+    Для пары (i, j): SE = √(s²ᵢ/nᵢ + s²ⱼ/nⱼ), df — по Уэлчу–Саттертуэйту,
+    q = |x̄ⱼ − x̄ᵢ| / (SE/√2) против стьюдентизированного размаха (k, df).
+    P — точный (scipy studentized_range.sf). Критическое q для ДИ — приближение
+    Глисона (statsmodels qsturng, как в pairwise_tukeyhsd; отклонение от точного
+    квантиля < 0.2 %): точный квантиль scipy считается ~0.1 с на пару.
+    Общей MS_within нет: каждая пара — со своими дисперсиями. Знак, как у
+    tukey_hsd: mean_diff = mean(group2) − mean(group1).
+    """
+    k = len(clean)
+    stats_ = [(g.mean(), g.var(ddof=1) / g.size, g.size) for g in clean]
+    rows = []
+    for i in range(k):
+        for j in range(i + 1, k):
+            (m1, a1, n1), (m2, a2, n2) = stats_[i], stats_[j]
+            se = float(np.sqrt(a1 + a2))
+            df = float((a1 + a2) ** 2 / (a1**2 / (n1 - 1) + a2**2 / (n2 - 1)))
+            diff = float(m2 - m1)
+            q = abs(diff) / (se / np.sqrt(2))
+            p = float(stats.studentized_range.sf(q, k, df))
+            half = float(qsturng(1 - alpha, k, df)) * se / np.sqrt(2)
+            rows.append({"group1": names[i], "group2": names[j], "mean_diff": diff,
+                         "se": se, "df": df, "t": diff / se, "q": float(q), "p_adj": min(p, 1.0),
+                         "ci_lower": diff - half, "ci_upper": diff + half,
+                         "reject": bool(p < alpha)})
+    return rows
+
+
 def welch_anova(
     *groups: np.ndarray | list[float],
     labels: list[str] | None = None,
+    alpha: float = 0.05,
 ) -> StatResult:
     """ANOVA Уэлча: сравнение средних нескольких групп без равенства дисперсий.
 
     Альтернатива обычному F при явном неравенстве дисперсий, особенно при
     неравных n (Witte, гл. 16.13, стр. 316: «более сложная версия F,
-    рассчитанная на неравные дисперсии»).
+    рассчитанная на неравные дисперсии»). Попарные сравнения — по Геймсу–Хауэллу:
+    сравнения после ANOVA (B5) опираются на общую MS_within и при неравных
+    дисперсиях не подходят.
     """
+    if not 0 < alpha < 1:
+        raise ValueError("alpha ∈ (0, 1)")
     clean = [_clean(g) for g in groups]
     names = _labels(labels, len(clean))
     sizes = [int(g.size) for g in clean]
     result = StatResult(
         method="welch_anova",
         n=int(sum(sizes)),
-        parameters={"labels": names, "group_sizes": sizes},
+        parameters={"labels": names, "group_sizes": sizes, "alpha": alpha},
     )
     if not _welch_guard(clean, result):
         return result
@@ -99,6 +138,16 @@ def welch_anova(
     for lab, g, v in zip(names, clean, variances):
         result.estimates.append(group_mean_estimate(lab, g))
         result.statistics[f"sd_{lab}"] = float(np.sqrt(v))
+    comparisons = games_howell_pairs(names, clean, alpha)
+    result.parameters["comparisons"] = comparisons
+    result.add_warning(
+        "games_howell_pairs",
+        "Попарные сравнения — по Геймсу–Хауэллу: у каждой пары свои дисперсии и df "
+        "(общей MS_within нет), P поправлены на число пар.",
+        Severity.INFO,
+    )
+    result.statistics["n_comparisons"] = len(comparisons)
+    result.statistics["n_significant"] = sum(c["reject"] for c in comparisons)
     return result
 
 

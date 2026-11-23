@@ -211,7 +211,7 @@ DESCRIPTIONS: dict[str, dict[str, str]] = {
             "Compares two groups without assuming normality."
         ),
         "Сравнивает средние нескольких групп.": "Compares the means of several groups.",
-        "Сравнивает средние нескольких групп без предположения о равных дисперсиях.": "Compares the means of several groups without assuming equal variances.",
+        "Сравнивает средние нескольких групп без предположения о равных дисперсиях; попарные сравнения — по Геймсу–Хауэллу.": "Compares the means of several groups without assuming equal variances; pairwise comparisons use Games–Howell.",
         "Одни и те же субъекты во всех условиях: F, η²p, поправки ГГ/ХФ, сравнения пар.": "Same subjects in every condition: F, partial η², GG/HF corrections, pairwise comparisons.",
         "Одни и те же субъекты во всех условиях, ранги внутри субъекта: χ², W Кендалла, F Имана–Давенпорта, пары Уилкоксона.": "Same subjects in every condition, ranks within subject: χ², Kendall's W, Iman–Davenport F, Wilcoxon pairs.",
         "Сила и направление монотонной связи двух переменных по рангам (ρ), ДИ и тест ρ = 0.": "Strength and direction of a monotonic association of two variables from ranks (ρ), CI and test of ρ = 0.",
@@ -329,7 +329,7 @@ DESCRIPTIONS: dict[str, dict[str, str]] = {
             "Compara dois grupos sem assumir normalidade."
         ),
         "Сравнивает средние нескольких групп.": "Compara as médias de vários grupos.",
-        "Сравнивает средние нескольких групп без предположения о равных дисперсиях.": "Compara as médias de vários grupos sem assumir variâncias iguais.",
+        "Сравнивает средние нескольких групп без предположения о равных дисперсиях; попарные сравнения — по Геймсу–Хауэллу.": "Compara as médias de vários grupos sem assumir variâncias iguais; comparações par a par por Games–Howell.",
         "Одни и те же субъекты во всех условиях: F, η²p, поправки ГГ/ХФ, сравнения пар.": "Os mesmos sujeitos em todas as condições: F, η² parcial, correções GG/HF, comparações de pares.",
         "Одни и те же субъекты во всех условиях, ранги внутри субъекта: χ², W Кендалла, F Имана–Давенпорта, пары Уилкоксона.": "Os mesmos sujeitos em todas as condições, postos dentro do sujeito: χ², W de Kendall, F de Iman–Davenport, pares de Wilcoxon.",
         "Сила и направление монотонной связи двух переменных по рангам (ρ), ДИ и тест ρ = 0.": "Força e direção de uma associação monótona de duas variáveis a partir dos postos (ρ), IC e teste de ρ = 0.",

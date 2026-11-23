@@ -101,6 +101,11 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
     en: `Group SDs differ {sd_ratio}-fold, but the smaller group has only {n_min} observations: samples this small say little about the variances.`,
     pt: `Os DP dos grupos diferem {sd_ratio} vezes, mas o grupo menor tem apenas {n_min} observações: amostras tão pequenas dizem pouco sobre as variâncias.`,
   },
+  games_howell_pairs: {
+    ru: `Попарные сравнения — по Геймсу–Хауэллу: у каждой пары свои дисперсии и df (общей MS_within нет), P поправлены на число пар.`,
+    en: `Pairwise comparisons use the Games–Howell procedure: each pair has its own variances and df (no common MS_within); P values are adjusted for the number of pairs.`,
+    pt: `As comparações par a par usam o procedimento de Games–Howell: cada par tem as suas variâncias e gl (sem MS_within comum); os valores P são ajustados ao número de pares.`,
+  },
   variance_heterogeneity: {
     ru: `Дисперсии групп неоднородны (Бартлетт X² = {x2} > {crit}) и не растут со средним: ANOVA Уэлча.`,
     en: `Group variances are heterogeneous (Bartlett X² = {x2} > {crit}) and do not grow with the mean: Welch's ANOVA.`,
