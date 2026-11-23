@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Тест Краскела-Уоллиса (непараметрический) — BioStat</title>
+    <meta name="description" content="Критерий Краскела–Уоллиса: сравнение трёх и более групп по рангам — идея, формула, допущения и как карта BioStat выбирает этот метод." />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="canonical" href="https://biostat.app/ru/methods/kruskal_wallis/" />
+    <link rel="alternate" hreflang="ru" href="https://biostat.app/ru/methods/kruskal_wallis/" />
+    <link rel="alternate" hreflang="x-default" href="https://biostat.app/ru/methods/kruskal_wallis/" />
+    <style>body{margin:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:#18181b;background:#fafafa;line-height:1.6}main{max-width:44rem;margin:0 auto;padding:1.5rem 1rem 2rem}h1{font-size:1.6rem;margin:0.6rem 0 0.2rem}h2{font-size:1.1rem;margin:1.6rem 0 0.4rem}p{margin:0.4rem 0}a{color:#0f766e}.muted{color:#63636b;font-size:0.9rem}nav{display:flex;flex-wrap:wrap;gap:0.4rem 1rem;justify-content:space-between;align-items:center}footer{border-top:1px solid #e4e4e7;margin-top:2rem;padding-top:0.8rem;font-size:0.9rem}code{overflow-wrap:anywhere}h3{font-size:1rem;margin:1.4rem 0 0}ul{margin:0.3rem 0;padding-left:1.2rem}li{margin:0.15rem 0;overflow-wrap:anywhere}.tag{font-size:0.75rem;font-weight:400;color:#92400e;border:1px solid #f59e0b;border-radius:4px;padding:0 0.3rem;margin-left:0.4rem;white-space:nowrap}</style>
+    <link rel="stylesheet" href="/methods/assets/method.css" />
+    <script src="/back.js" defer></script>
+  </head>
+  <body>
+    <main class="mp">
+      <nav><a href="/" data-back>← Вернуться в BioStat</a><span><a href="/ru/methods/kruskal_wallis/" hreflang="ru" lang="ru" aria-current="page">Русский</a></span></nav>
+<div class="wrap">
+<article>
+  <nav class="crumbs" aria-label="Навигация"><a href="/">BioStat</a> › <a href="/ru/methods/">Методы и проверка</a> › <a href="/ru/methods/#group-several-groups">Сравнение нескольких групп</a> › Тест Краскела-Уоллиса (непараметрический)</nav>
+  <h1>Тест Краскела-Уоллиса (непараметрический)</h1>
+  <p class="lead">Различаются ли три и более группы, если отклик — баллы или его распределение далеко от нормального? Критерий Краскела–Уоллиса заменяет значения рангами и сравнивает суммы рангов групп.</p>
+  <section id="idea">
+    <h2>Идея</h2>
+    <p>Все наблюдения ранжируют вместе: наименьшее получает ранг 1, наибольшее — N, одинаковым значениям дают средний из их рангов (Witte, стр. 390, 396–397). Если группы не различаются, средние ранги групп близки; H растёт, когда они расходятся.</p>
+    <p>Сравниваются не средние: отвергнутая <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>H</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">H_0</annotation></semantics></math></span> значит только «распределения групп различаются» (Witte, стр. 396–399). Говорить о различии медиан можно, если формы распределений в группах одинаковы и различаются они только сдвигом [предл.: Hollander &amp; Wolfe 1999].</p>
+  </section>
+  <section id="model">
+    <h2>Модель и формулы</h2>
+    <details class="glossary" id="symbols">
+      <summary>Все обозначения на странице</summary>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Символ</th><th>Значение</th></tr></thead>
+      <tbody>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi><mo>=</mo><mn>1</mn><mo separator="true">,</mo><mo>…</mo><mo separator="true">,</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">i = 1,\dots,t</annotation></semantics></math></span></td><td>номер группы (варианта), <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi></mrow><annotation encoding="application/x-tex">t</annotation></semantics></math></span> — число групп</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>j</mi><mo>=</mo><mn>1</mn><mo separator="true">,</mo><mo>…</mo><mo separator="true">,</mo><msub><mi>n</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">j = 1,\dots,n_i</annotation></semantics></math></span></td><td>номер наблюдения в группе, <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>n</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">n_i</annotation></semantics></math></span> — объём группы <i>i</i></td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>=</mo><mstyle scriptlevel="0" displaystyle="false"><mo>∑</mo><msub><mi>n</mi><mi>i</mi></msub></mstyle></mrow><annotation encoding="application/x-tex">N = \textstyle\sum n_i</annotation></semantics></math></span></td><td>всего наблюдений</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>H</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">H_0</annotation></semantics></math></span></td><td>нулевая гипотеза: все группы имеют одно среднее</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>R</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">R_i</annotation></semantics></math></span></td><td>сумма рангов группы <i>i</i> (ранги — по всем наблюдениям вместе)</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>τ</mi></mrow><annotation encoding="application/x-tex">\tau</annotation></semantics></math></span></td><td>число одинаковых значений в группе совпадений</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>H</mi></mrow><annotation encoding="application/x-tex">H</annotation></semantics></math></span></td><td>статистика Краскела–Уоллиса</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi></mrow><annotation encoding="application/x-tex">C</annotation></semantics></math></span></td><td>поправка на совпадения рангов (<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">C = 1</annotation></semantics></math></span>, если совпадений нет)</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi></mrow><annotation encoding="application/x-tex">P</annotation></semantics></math></span></td><td>вероятность получить статистику (F, t …) не менее крайнюю, чем наблюдённая, при верной <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>H</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">H_0</annotation></semantics></math></span></td></tr>
+</tbody>
+    </table></div>
+      <p class="note">Те же обозначения на всех страницах методов — <a href="/ru/methods/symbols/">общий словарь символов</a>.</p>
+    </details>
+    <p>Проверяется гипотеза:</p>
+    <div class="math block"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>H</mi><mn>0</mn></msub><mo>:</mo><mtext> распределения отклика во всех </mtext><mi>t</mi><mtext> группах одинаковы</mtext></mrow><annotation encoding="application/x-tex">H_0:\ \text{распределения отклика во всех } t \text{ группах одинаковы}</annotation></semantics></math></span></div>
+    <h3>Статистика H</h3>
+    <div class="math block"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>H</mi><mo>=</mo><mfrac><mn>12</mn><mrow><mi>N</mi><mo stretchy="false">(</mo><mi>N</mi><mo>+</mo><mn>1</mn><mo stretchy="false">)</mo></mrow></mfrac><munder><mo>∑</mo><mi>i</mi></munder><mfrac><msubsup><mi>R</mi><mi>i</mi><mn>2</mn></msubsup><msub><mi>n</mi><mi>i</mi></msub></mfrac><mo>−</mo><mn>3</mn><mo stretchy="false">(</mo><mi>N</mi><mo>+</mo><mn>1</mn><mo stretchy="false">)</mo><mo>=</mo><mn>13.88</mn></mrow><annotation encoding="application/x-tex">H = \frac{12}{N(N+1)} \sum_i \frac{R_i^2}{n_i} - 3(N+1) = 13.88</annotation></semantics></math></span></div>
+    <p>Формула книги (Witte, стр. 396–397): <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>R</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">R_i</annotation></semantics></math></span> — сумма рангов группы <i>i</i>, <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>n</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">n_i</annotation></semantics></math></span> — её объём.</p>
+    <h3>Поправка на совпадения и P</h3>
+    <div class="math block"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>C</mi><mo>=</mo><mn>1</mn><mo>−</mo><mfrac><mrow><mo>∑</mo><mo stretchy="false">(</mo><msup><mi>τ</mi><mn>3</mn></msup><mo>−</mo><mi>τ</mi><mo stretchy="false">)</mo></mrow><mrow><msup><mi>N</mi><mn>3</mn></msup><mo>−</mo><mi>N</mi></mrow></mfrac><mo>=</mo><mn>0.949</mn><mo separator="true">,</mo><mspace width="2em"/><mfrac><mi>H</mi><mi>C</mi></mfrac><mo>=</mo><mn>14.62</mn><mo separator="true">,</mo><mspace width="2em"/><mi>d</mi><mi>f</mi><mo>=</mo><mi>t</mi><mo>−</mo><mn>1</mn><mo>=</mo><mn>2</mn><mo separator="true">,</mo><mspace width="2em"/><mi>P</mi><mo>&lt;</mo><mn>0.001</mn></mrow><annotation encoding="application/x-tex">C = 1 - \frac{\sum(\tau^3-\tau)}{N^3-N} = 0.949,\qquad \frac{H}{C} = 14.62,\qquad df = t-1 = 2,\qquad P &lt; 0.001</annotation></semantics></math></span></div>
+    <p>BioStat делит H на C всегда [предл.: Kruskal &amp; Wallis 1952]; Witte поправку не вводит и советует думать о совпадениях, только если тест едва не значим (стр. 400). P — по χ² с <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">t-1</annotation></semantics></math></span> df: приближение достаточно точно, когда в каждой группе не меньше 4 наблюдений (Witte, стр. 398).</p>
+    <h3>На примере</h3>
+    <p class="note">Учебный набор (сценарий S12 карты): баллы 1–5, три группы по 8. Суммы рангов: a 45, b 105, c 150; медианы 2, 3 и 4.5. Баллов всего пять, совпадений много, поэтому поправка заметна: H = 13.88 без неё и 14.62 с ней на 2 df, P &lt; 0.001. Карта выдаёт подсказку <span class="sig">B4.8</span>; подсказка <span class="sig">R2.2</span> (неотрицательные целые — похоже на счёты) срабатывает на тех же числах, а выбор между ними — по смыслу отклика.</p>
+    <p class="src">Witte &amp; Witte (2017), стр. 386–387, 390, 396–400; Welham et al. (2015), стр. 127; поправка C — [предл.: Kruskal &amp; Wallis 1952]; толкование через медианы — [предл.: Hollander &amp; Wolfe 1999].</p>
+  </section>
+  <section id="pros-cons">
+    <h2>Сильные и слабые стороны</h2>
+    <div class="cols">
+      <div class="plus">
+        <h3>Сильные стороны</h3>
+        <ul>
+      <li><b>Не требует нормальности</b> — работает с рангами (Witte, стр. 386–387).</li>
+      <li><b>Подходит для баллов и рангов</b>, где среднее плохо определено (Witte, стр. 386; Welham, стр. 127).</li>
+      <li><b>Крайнее значение — лишь крайний ранг:</b> выброс влияет на H меньше, чем на F [предл.: Hollander &amp; Wolfe 1999].</li>
+      <li><b>В отчёте — суммы рангов, H без поправки и медианы групп</b>, как в книге (Witte, стр. 396–399) [BioStat].</li>
+    </ul>
+      </div>
+      <div class="minus">
+        <h3>Слабые стороны</h3>
+        <ul>
+      <li><b>Слабее ANOVA, если допущения ANOVA выполнены</b> (Witte, стр. 387).</li>
+      <li><b>Отвечает о распределениях, а не о средних:</b> нет SED, LSD и ДИ разностей средних (Witte, стр. 396–399).</li>
+      <li><b>P приближённый</b> (χ²): достаточно точен, когда в каждой группе не меньше 4 наблюдений (Witte, стр. 398); при меньших группах BioStat пишет справку — приближение обычно завышает P (на 3 группах по 3 — 0.027 против точного 0.0036) [BioStat: аудит 02-02].</li>
+      <li><b>Какие группы различаются, H не говорит.</b> Стандартные попарные сравнения после H — тест Данна [предл.: Dunn 1964]; в BioStat его нет.</li>
+      <li><b>Один фактор без блоков.</b> Для баллов в блоках (каждый вариант по разу в каждом блоке) — <a class="mlink" href="/ru/methods/#friedman" title="Открыть описание метода">критерий Фридмана</a>; для баллов в опыте с несколькими факторами — <a class="mlink" href="/ru/methods/#ordinal_regression" title="Открыть описание метода">порядковая регрессия</a> (Welham, стр. 513).</li>
+    </ul>
+      </div>
+    </div>
+    <p class="src">Witte &amp; Witte (2017), стр. 386–387, 396–399; Welham et al. (2015), стр. 127, 513; [BioStat]; [предл.: Dunn 1964].</p>
+  </section>
+  <section id="assumptions">
+    <h2>Допущения</h2>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Допущение</th><th>Что значит</th><th>Как проверяет BioStat</th></tr></thead>
+      <tbody>
+<tr><td>Независимость</td><td>Каждое наблюдение — отдельная единица, без повторных измерений и блоков.</td><td>Не проверяется расчётом — это свойство плана; карта спрашивает о структуре до этого шага.</td></tr>
+<tr><td>Порядковая шкала отклика</td><td>Значения можно упорядочить: баллы, ранги, количественные измерения.</td><td>Метки-категории без порядка уводят к таблицам частот раньше (<span class="sig">R2.5</span>).</td></tr>
+<tr><td>Мало совпадений (для χ²-приближения)</td><td>Критерий выведен для непрерывного отклика без совпадений (Witte, стр. 400).</td><td>Поправка C на совпадения применяется всегда; при группах меньше 4 наблюдений — справка о приближённом P.</td></tr>
+</tbody>
+    </table></div>
+    <p class="src">Witte &amp; Witte (2017), стр. 386–387, 398, 400.</p>
+  </section>
+  <section id="map">
+    <h2>Как метод выбирает карта</h2>
+    <h3>Путь к листу</h3>
+    <div class="path" aria-label="Путь по карте"><span>Анализ отклика</span>›<span>Непрерывный</span>›<span>Различия</span>›<span>Независимые единицы</span>›<span>Без блоков или полные блоки</span>›<span>Один фактор</span>›<span>Три и больше групп</span>›<span class="here">Краскел–Уоллис</span></div>
+    <p>Карта ведёт сюда только <b>подсказкой</b> <span class="sig">B4.8</span>: отклик — немного целых значений в узком диапазоне (от 3 до 10 разных значений, размах не больше 10) — похоже на баллы [BioStat]. При двух группах та же подсказка ведёт к Манну–Уитни, в полном блочном опыте (роль «блок») — к критерию Фридмана.</p>
+    <p>Ненормальные остатки сами по себе сюда не ведут: в трёх и более группах при однородных дисперсиях карта предлагает перестановочный тест (<span class="sig">B4.6</span>), а при асимметрии — трансформацию (<span class="sig">B4.4</span>).</p>
+    <h3>Соседи на карте: когда выигрывают они</h3>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Сосед</th><th>Когда карта ведёт туда</th><th>Чем сосед лучше здесь</th><th>Чем платит</th></tr></thead>
+      <tbody>
+<tr><td><a class="mlink" href="/ru/methods/one_way_anova/" title="Открыть описание метода">Однофакторный ANOVA</a></td><td>отклик непрерывный, остатки нормальны — лист по умолчанию</td><td>Средние, SED и LSD; мощнее при выполненных допущениях</td><td>Для баллов среднее плохо определено</td></tr>
+<tr><td><a class="mlink" href="/ru/methods/anova_permutation_test/" title="Открыть описание метода">Перестановочный F-тест (ANOVA)</a></td><td><span class="sig">B4.6</span> остатки ненормальны при однородных дисперсиях</td><td>Сравнивает средние, не требуя нормальности</td><td>Требует однородных дисперсий; P случайный при B перестановках</td></tr>
+<tr><td><a class="mlink" href="/ru/methods/transformed_means/" title="Открыть описание метода">ANOVA с трансформацией отклика</a></td><td><span class="sig">B4.3</span> / <span class="sig">B4.4</span> (подсказка) SD растут со средними или остатки сильно асимметричны (|g₁| &gt; 1)</td><td>ANOVA, SED и LSD на новой шкале; для log — отношения средних</td><td>Результат — на шкале трансформации; для баллов трансформация мало помогает</td></tr>
+<tr><td><a class="mlink" href="/ru/methods/welch_anova/" title="Открыть описание метода">ANOVA Уэлча (неравные дисперсии)</a></td><td><span class="sig">B4.5</span> дисперсии неоднородны и не растут со средними</td><td>Сравнивает средние при неравных дисперсиях</td><td>Требует нормальности внутри групп</td></tr>
+<tr><td><a class="mlink" href="/ru/methods/rcbd_anova/" title="Открыть описание метода">Блочный ANOVA (RCBD)</a></td><td><span class="sig">B1.2</span> / <span class="sig">B1.8</span> (подсказка) каждый вариант по разу в каждом блоке (или колонка, похожая на блоки)</td><td>Убирает различия между блоками из ошибки</td><td>Нормальность остатков снова требуется; для баллов в блоках карта ведёт к Фридману</td></tr>
+<tr><td><a class="mlink" href="/ru/methods/#mann_whitney" title="Открыть описание метода">Тест Манна-Уитни (непараметрический)</a></td><td>развилка «сколько уровней» = 2</td><td>Ранговый критерий двух групп с оценкой сдвига Ходжеса–Лемана и ДИ</td><td>—</td></tr>
+</tbody>
+    </table></div>
+    <h3>Что карта проверит на этом листе</h3>
+    <ul>
+      <li><span class="sig">B4.8</span> (подсказка) Отклик похож на баллы: от 3 до 10 разных целых значений, размах не больше 10 [BioStat].</li>
+      <li><span class="sig">R2.2</span> (подсказка) Неотрицательные целые похожи и на счёты: если отклик — число объектов, а не балл, нужна счётная модель (GLM).</li>
+      <li><span class="sig">B4.1</span> Ненормальность остатков проверяется, но к этому листу не ведёт: при трёх и более группах это справка.</li>
+    </ul>
+    <h3>Что дальше</h3>
+    <p>Значимый H говорит, что распределения групп не все одинаковы, но не какие именно различаются. Стандартные попарные сравнения после H — тест Данна [предл.: Dunn 1964]; в BioStat его нет. Сравнения после ANOVA (B5) считаются по средним и общей <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><msub><mi>S</mi><mi>W</mi></msub></mrow><annotation encoding="application/x-tex">MS_W</annotation></semantics></math></span> — к ранговому анализу они не относятся.</p>
+  </section>
+  <details class="check" id="check">
+    <summary>Проверка метода</summary>
+    <ul>
+      <li>Тестов, вызывающих метод: 5</li>
+      <li>Witte — сверяют тесты: Progress Check 20.4, Table 20.4</li>
+      <li>Независимая сверка (аудит 2): H, P — scipy; малые выборки — точный перебор</li>
+    </ul>
+  </details>
+  <div class="pager"><a href="/ru/methods/welch_anova/"><small>← Предыдущий</small>ANOVA Уэлча (неравные дисперсии)</a><a class="next" href="/ru/methods/anova_permutation_test/"><small>Следующий →</small>Перестановочный F-тест (ANOVA)</a></div>
+</article>
+<aside class="toc" aria-label="На этой странице">
+  <b>На странице</b>
+  <a href="#idea">Идея</a>
+  <a href="#model">Модель и формулы</a>
+  <a href="#symbols">Обозначения</a>
+  <a href="#pros-cons">Сильные и слабые стороны</a>
+  <a href="#assumptions">Допущения</a>
+  <a href="#map">Как выбирает карта</a>
+  <a href="#check">Проверка метода</a>
+  <a class="toc-back" href="/ru/methods/#kruskal_wallis">↑ К списку методов</a>
+</aside>
+<a class="to-list" href="/ru/methods/#kruskal_wallis" aria-label="К списку методов">↑</a>
+</div>
+      <footer><a href="/ru/privacy/">Конфиденциальность</a> · <a href="/ru/terms/">Условия</a> · <a href="/ru/methods/">Методы и проверка</a> · <a href="/LICENSE.txt">Лицензия Apache-2.0</a></footer>
+    </main>
+  </body>
+</html>

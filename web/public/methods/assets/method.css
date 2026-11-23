@@ -66,6 +66,8 @@ main.mp { max-width: 1120px; font-size: 16px; }
 .mp .pager a { display: block; border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px;
   background: var(--panel); text-decoration: none; max-width: 48%; }
 .mp .pager a.next { margin-left: auto; text-align: right; }
+.mp .pager a { min-width: 0; overflow-wrap: anywhere; }
+@media (max-width: 520px) { .mp .pager { flex-direction: column; } .mp .pager a { max-width: none; } .mp .pager a.next { margin-left: 0; } }
 .mp .pager small { display: block; color: var(--muted); }
 .mp aside.toc { position: sticky; top: 16px; align-self: start; font-size: 14px; }
 .mp aside.toc b { display: block; margin-bottom: 6px; }

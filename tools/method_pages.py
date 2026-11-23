@@ -28,6 +28,7 @@ for extra in (ROOT, ROOT / "tools"):
 import static_pages as sp  # noqa: E402
 from method_examples import example_values  # noqa: E402
 from method_widgets import groups_split, groups_welch  # noqa: E402
+import signal_variants  # noqa: E402
 
 WIDGETS = {"groups-split": groups_split, "groups-welch": groups_welch}
 
@@ -70,7 +71,13 @@ def p_text(p: float) -> str:
 
 def fmt_value(value: float, spec: str | None, tex: bool) -> str:
     """Число для текста или TeX: формат Python, «sci1» — мантисса·10^порядок,
-    «grp» — целое с узкими пробелами между тройками цифр (17 153 136)."""
+    «grp» — целое с узкими пробелами между тройками цифр (17 153 136),
+    «rel» — P со знаком по правилу сайта: «= 0.012» или «< 0.001»,
+    «0=слово» — целое число, а ноль — слово из текста страницы («0=нет»)."""
+    if spec and spec.startswith("0="):
+        return spec[2:] if value == 0 else str(int(value))
+    if spec == "rel":
+        return "< 0.001" if value < 0.001 else f"= {value:.3f}"
     if spec == "grp":
         return format(int(value), ",d").replace(",", "\\," if tex else "\u202f")
     if spec == "sci1":
@@ -181,19 +188,25 @@ def path_labels(leaf: str, lang: str) -> list[str]:
 
 
 def signal_strengths() -> dict[str, str]:
-    """id сигнала → сила из REGISTRY (strong / hint)."""
+    """id или id#variant → сила (strong / hint).
+
+    id — сила правила из REGISTRY; id#variant — явная strength= вызова Signal(...) с этим
+    вариантом (разбор исходника, общий с тестом карты), иначе сила правила.
+    """
     import core.validation.recognizers  # noqa: F401 — регистрирует правила
     import core.validation.recognizers_computed  # noqa: F401
     from core.validation.recognize import REGISTRY
 
-    return {r.id: r.strength for r in REGISTRY}
+    rules = {r.id: r.strength for r in REGISTRY}
+    return rules | {key: call.strength or rules[call.rule]
+                    for key, call in signal_variants.rule_calls().items() if call.variant}
 
 
 def signals_html(ids: list[str], ctx: Ctx, strengths: dict[str, str]) -> str:
-    """Плашки сигналов через « / »; у подсказки (HINT) — «(подсказка)»."""
+    """Плашки сигналов через « / » (без #variant); у подсказки — «(подсказка)»."""
     hint = CHROME[ctx.lang]["hint"]
-    return " / ".join(f'<span class="sig">{s}</span>' + (f" {html.escape(hint)}" if strengths[s] == "hint" else "")
-                      for s in ids)
+    return " / ".join(f'<span class="sig">{s.split("#")[0]}</span>'
+                      + (f" {html.escape(hint)}" if strengths[s] == "hint" else "") for s in ids)
 
 
 # --- разделы страницы -----------------------------------------------------------------------

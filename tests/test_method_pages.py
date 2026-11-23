@@ -78,7 +78,7 @@ def test_leaf_neighbours_and_signals_follow_the_map(mid: str) -> None:
             assert n["method"] in METHOD_IDS
             assert all(s in strengths for s in n["signals"])
             if n["signals"]:
-                assert all(n["method"] in _suggested_methods(s) for s in n["signals"]), n
+                assert all(n["method"] in _suggested_methods(s.split("#")[0]) for s in n["signals"]), n
             else:  # сосед выбирается веткой структуры: его лист — рядом с путём
                 assert _near_path(n["method"], path, nodes), n
         assert all(s in strengths for k in t["checks"] for s in k["signals"])
@@ -370,42 +370,115 @@ def _fired_methods(fired: dict, nodes: dict, targets: dict) -> set[str]:
 
 
 def _example_signals(cfg: dict) -> list[dict]:
-    """Сигналы карты на данных примера страницы: роли — отклик и фактор (как в сценариях)."""
+    """Сигналы карты на колонках, которые использует страница: отклик, фактор, у RCBD — блок.
+
+    levels — только эти уровни фактора. Роли — как в сценариях карты.
+    """
     import method_examples as me
     from core.validation.parser import parse_file
     from core.validation.recognize import recognize
 
-    groups = me._levels(cfg)
-    text = "group,y\n" + "".join(f"{g},{y}\n" for g, ys in groups for y in ys)
-    out = recognize(parse_file(text.encode("utf-8")), {"value": "y", "group": "group"})
+    example = me.load_example(cfg["data"])
+    names = [cfg["factor"], cfg["response"]] + ([cfg["block"]] if "block" in cfg else [])
+    cols = [me.column(example, n) for n in names]
+    cols[1] = [repr(v) for v in me.numbers(cols[1])]
+    rows = [r for r in zip(*cols) if r[0] in cfg.get("levels", [r[0]])]
+    text = "\n".join(";".join(r) for r in [names, *rows]) + "\n"
+    roles = {"value": cfg["response"], "group": cfg["factor"]} | ({"block": cfg["block"]} if "block" in cfg else {})
+    out = recognize(parse_file(text.encode("utf-8")), roles)
     assert out["errors"] == []
     return out["fired"]
 
 
+def _picks(fired: list[dict], nodes: dict, targets: dict) -> dict[str, set[str]]:
+    """Сигналы, выбирающие лист или предобработку, → их методы.
+
+    Сигнал, ведущий на развилку (B3.1 — «сколько уровней»), не выбирает метод: в её
+    поддереве и лист страницы, и все его соседи.
+    """
+    params = lambda f: f.get("message", {}).get("params") or {}  # noqa: E731
+    forks = {k for k, n in nodes.items() if n.get("kind") in ("test", "choice")}
+    return {f["id"]: _fired_methods(f, nodes, targets) for f in fired
+            if params(f).get("branch") not in forks and f["suggests"] not in forks}
+
+
+def _strong_route(mid: str) -> bool:
+    """Есть ли в REGISTRY сильный сигнал, ведущий к методу mid."""
+    import core.validation.recognizers  # noqa: F401
+    from core.validation.recognize import REGISTRY, STRONG
+
+    return any(r.strength == STRONG and mid in _suggested_methods(r.id) for r in REGISTRY)
+
+
 @pytest.mark.parametrize("mid", sorted(m for m, c in CONTENTS.items() if "example" in c))
 def test_example_data_lead_the_map_to_the_method(mid: str) -> None:
-    """На данных примера сильный сигнал ведёт к методу страницы; у листа по умолчанию — никуда не уводит.
+    """На данных примера карта выбирает метод страницы; у листа по умолчанию — никуда не уводит.
 
-    Учитываются сигналы по свойствам данных (cls = computed): структурные (B3.1 — число уровней)
-    ведут на развилку, в поддереве которой есть и этот лист, и его соседи.
+    Сигнал должен быть сильным, если сильный путь к методу в REGISTRY есть; к Краскелу–Уоллису
+    ведёт только подсказка B4.8 (баллы).
     """
     from core.validation.recognize import STRONG
 
     nodes, targets = mp.tree_nodes(), json.loads(mp.TREE.read_text(encoding="utf-8"))["targets"]
-    fired = [f for f in _example_signals(CONTENTS[mid]["example"]) if f["cls"] == "computed"]
-    leads = {f["id"]: _fired_methods(f, nodes, targets) for f in fired}
+    fired = _example_signals(CONTENTS[mid]["example"])
+    picks = _picks(fired, nodes, targets)
     if mid in DEFAULT_METHODS:  # B4.2 у t-теста ведёт на тот же лист (вариант Уэлча) — не уход
-        assert all(not ms or mid in ms for ms in leads.values()), leads
-    else:
-        assert any(mid in leads[f["id"]] and f["strength"] == STRONG for f in fired), leads
+        assert all(not ms or mid in ms for ms in picks.values()), picks
+        return
+    need_strong = _strong_route(mid)
+    assert any(mid in picks.get(f["id"], ()) and (f["strength"] == STRONG or not need_strong)
+               for f in fired), picks
 
 
-@pytest.mark.parametrize("name, sid", [("scenario_s08", "S08"), ("scenario_s09", "S09")])
-def test_training_sets_are_copies_of_map_scenarios(name: str, sid: str) -> None:
+@pytest.mark.parametrize("sid", ["S07", "S08", "S09", "S12", "S13"])
+def test_training_sets_are_copies_of_map_scenarios(sid: str) -> None:
+    """content/examples/scenario_<sid>.json — колонки сценария карты без изменений."""
     import method_examples as me
     from tests.map_scenarios import SCENARIOS
 
     columns = next(s for s in SCENARIOS if s["id"] == sid)["columns"]
-    example = me.load_example(name)
+    example = me.load_example(f"scenario_{sid.lower()}")
     assert example["columns"] == list(columns)
-    assert [me.column(example, "group"), me.numbers(me.column(example, "y"))] == [columns["group"], columns["y"]]
+    for name, values in columns.items():
+        got = me.column(example, name)
+        numeric = all(isinstance(v, (int, float)) for v in values)
+        assert (me.numbers(got) if numeric else got) == ([float(v) for v in values] if numeric else values)
+
+
+def test_signal_variants_on_pages_exist() -> None:
+    """id#variant в соседях и проверках — есть Signal(...) с этим вариантом и текст в treeLabels.json."""
+    import signal_variants
+
+    calls = signal_variants.rule_calls()
+    labels = json.loads((ROOT / "web" / "src" / "treeLabels.json").read_text(encoding="utf-8"))["ru"]["rec"]
+    used = {s for c in CONTENTS.values() if "ru" in c
+            for block in (c["ru"].get("neighbours", []), c["ru"].get("checks", [])) for item in block
+            for s in item["signals"] if "#" in s}
+    assert used, "варианты на страницах не используются — тест ничего не проверяет"
+    for key in used:
+        assert key in calls and key in labels, key
+
+
+def test_variant_strength_comes_from_the_signal_call() -> None:
+    """Явная strength= у Signal(...) варианта, иначе сила правила (B4.8#blocks)."""
+    s = mp.signal_strengths()
+    assert [s["B4.5"], s["B4.5#blocks"], s["B4.6"], s["B4.6#blocks"]] == ["strong", "hint", "strong", "hint"]
+    assert [s["B4.3"], s["B4.3#three"], s["B4.8#blocks"]] == ["strong", "hint", "hint"]
+
+
+def test_number_formats() -> None:
+    """⟦p⟧ — правило сайта; rel — P со знаком; sci1 — мантисса·10^k; grp — тройки цифр."""
+    sub = mp.substitute
+    assert sub("⟦p⟧ ⟦p:rel⟧", {"p": 2e-4}) == "< 0.001 < 0.001"
+    assert sub("⟦p:rel⟧", {"p": 0.0123}) == "= 0.012"
+    assert sub("⟦x:sci1⟧", {"x": 2.72e-7}) == "2.7·10⁻⁷"
+    assert sub("⟦x:sci1⟧", {"x": 2.72e-7}, tex=True) == "2.7\\cdot10^{-7}"
+    assert sub("⟦n:grp⟧", {"n": 17153136}) == "17 153 136"
+
+
+def test_no_equals_before_less_than() -> None:
+    """«P = < 0.001» — ошибка подстановки: для P ниже порога — ⟦p:rel⟧."""
+    for mid, c in CONTENTS.items():
+        if "ru" in c:
+            text = re.sub(r"<[^>]+>", " ", _html(mid))
+            assert not re.search(r"=\s*(&lt;|<)\s*0\.001", text), mid

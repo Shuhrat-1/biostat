@@ -77,7 +77,7 @@ def _two_sample(cfg: dict) -> dict:
     from core.stats.hypothesis import two_sample_t
 
     groups = _levels(cfg)
-    (la, a), (lb, b) = groups
+    (_, a), (_, b) = groups
     result = two_sample_t(a, b)
     return _scalars(result.statistics) | {"p": result.p_value, "variant": result.parameters["variant"],
                                           "groups": groups, "n_a": len(a), "n_b": len(b)}
@@ -124,8 +124,69 @@ def _sizes(samples: list[list[float]]) -> dict:
     return {"t": len(samples), "N": sum(len(s) for s in samples)} | ({"n_group": sizes.pop()} if len(sizes) == 1 else {})
 
 
+def _estimates(result, prefix: str = "") -> dict:
+    """Оценки результата: <name> — значение, <name>_lo / _hi — границы ДИ (если есть)."""
+    out = {}
+    for est in result.estimates:
+        out[prefix + est.name] = est.value
+        if est.ci_lower is not None:
+            out[f"{prefix}{est.name}_lo"], out[f"{prefix}{est.name}_hi"] = est.ci_lower, est.ci_upper
+    return out
+
+
+def _kruskal(cfg: dict) -> dict:
+    """kruskal_wallis: H, поправка на совпадения, суммы рангов, медианы групп."""
+    from core.stats.anova import kruskal_wallis
+
+    groups = _levels(cfg)
+    result = kruskal_wallis(*[y for _, y in groups], labels=[g for g, _ in groups])
+    return (_scalars(result.statistics) | _estimates(result) | {"p": result.p_value, "groups": groups}
+            | _sizes([y for _, y in groups]))
+
+
+# Предупреждения о дисперсиях one_way_anova (_check_variances, _warn_two_groups) — их же
+# выдаёт transformed_means на шкале анализа; тест сверяет набор с исходником ядра.
+VARIANCE_WARNINGS = {"variance_heterogeneity", "variance_grows_with_mean", "variance_grows_with_mean_three",
+                     "variance_two_groups", "unequal_variance_small_n"}
+
+
+def _transformed(cfg: dict) -> dict:
+    """transformed_means (log10 и т. п.) + арифметические средние treatment_means на исходной шкале."""
+    from core.stats.anova import treatment_means
+    from core.stats.transforms import transformed_means
+
+    groups = _levels(cfg)
+    labels, samples = [g for g, _ in groups], [y for _, y in groups]
+    result = transformed_means(*samples, labels=labels, transform_kind=cfg.get("transform", "log10"))
+    raw = treatment_means(*samples, labels=labels)
+    log = result.parameters["transformed"]
+    values = (_scalars(result.statistics) | _estimates(result) | _estimates(raw, "arith_")
+              | {f"log_{k}": v for k, v in log["means"].items()}
+              | {f"log_{k}": v for k, v in _scalars(log["statistics"]).items()})
+    for r in result.parameters.get("ratios", []):
+        key = f"ratio_{r['group2']}_{r['group1']}"
+        values |= {key: r["ratio"], f"{key}_lo": r["ci_lower"], f"{key}_hi": r["ci_upper"]}
+    n_var = sum(w.code in VARIANCE_WARNINGS for w in result.warnings)
+    return values | {"p": result.p_value, "anova_table": result.parameters["anova_table"],
+                     "n_variance_warnings": n_var, "groups": groups} | _sizes(samples)
+
+
+def _rcbd(cfg: dict) -> dict:
+    """rcbd_anova: отклик, вариант и блок из колонок примера."""
+    from core.stats.blocking import rcbd_anova
+
+    example = load_example(cfg["data"])
+    result = rcbd_anova(numbers(column(example, cfg["response"])), column(example, cfg["factor"]),
+                        column(example, cfg["block"]))
+    labels, blocks = result.parameters["labels"], result.parameters["blocks"]
+    return (_scalars(result.statistics) | _estimates(result)
+            | {"p": result.p_value, "anova_table": result.parameters["anova_table"],
+               "t": len(labels), "n_blocks": len(blocks), "N": len(labels) * len(blocks)})
+
+
 RUNNERS = {"one_way_anova": _one_way, "two_sample_t": _two_sample, "welch_anova": _welch,
-           "anova_permutation_test": _permutation}
+           "anova_permutation_test": _permutation, "kruskal_wallis": _kruskal,
+           "transformed_means": _transformed, "rcbd_anova": _rcbd}
 
 
 def example_values(method: str, cfg: dict) -> dict:

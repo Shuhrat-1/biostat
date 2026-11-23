@@ -8,9 +8,9 @@
 
 from __future__ import annotations
 
-import ast
 import json
 import re
+import sys
 from pathlib import Path
 
 import pytest
@@ -18,6 +18,9 @@ import pytest
 from core.validation import recognizers  # noqa: F401  регистрирует правила
 from core.validation.catalog import CATALOG
 from core.validation.recognize import REGISTRY
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
+import signal_variants  # noqa: E402  общий разбор Signal(...) с генератором страниц методов
 
 WEB = Path(__file__).resolve().parents[1] / "web" / "src"
 DATA = json.loads((WEB / "decisionTree.json").read_text(encoding="utf-8"))
@@ -176,31 +179,8 @@ def test_context_notes_consistent_across_languages():
 
 
 def _python_notes() -> dict[str, str]:
-    """Русские тексты Signal(...) из правил: ключ id или id#variant."""
-    from core.validation import recognizers_computed
-
-    out = {}
-    for module in (recognizers, recognizers_computed):
-        out.update(_module_notes(Path(module.__file__).read_text(encoding="utf-8")))
-    return out
-
-
-def _module_notes(src: str) -> dict[str, str]:
-    out = {}
-    for fn in (n for n in ast.parse(src).body if isinstance(n, ast.FunctionDef)):
-        rid = next((d.args[0].value for d in fn.decorator_list
-                    if isinstance(d, ast.Call) and getattr(d.func, "id", "") == "rule"), None)
-        if rid is None:
-            continue
-        for call in (c for c in ast.walk(fn)
-                     if isinstance(c, ast.Call) and getattr(c.func, "id", "") == "Signal"):
-            variant = None
-            if len(call.args) > 1 and isinstance(call.args[1], ast.Dict):
-                for k, v in zip(call.args[1].keys, call.args[1].values):
-                    if getattr(k, "value", None) == "variant":
-                        variant = v.value
-            out[f"{rid}#{variant}" if variant else rid] = ast.literal_eval(call.args[0])
-    return out
+    """Русские тексты Signal(...) из правил: ключ id или id#variant (общий разбор tools/signal_variants)."""
+    return {key: call.text for key, call in signal_variants.rule_calls().items()}
 
 
 def test_recognizer_templates_match_rules_in_all_languages():
