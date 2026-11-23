@@ -490,6 +490,20 @@ def rcbd_layout(ctx: Context) -> Signal | None:
                   {"t": t, "b": b, "method": "factorial_anova", "variant": "factorial"})
 
 
+def block_design(ctx: Context) -> str | None:
+    """Блоки и проверки допущений (B4): куда вести, если колонке дана роль «блок».
+
+    "rcbd" — один фактор, каждый вариант ровно раз в каждом блоке: советы B4
+    ведут к rcbd_anova (трансформация — её параметр) или к Фридману; "other" —
+    блоки иной структуры: однофакторные советы B4 неприменимы, ведут сигналы B1;
+    None — блоков нет [кн. стр. 58, 102, 129].
+    """
+    if not ctx.role("block"):
+        return None
+    sig = rcbd_layout(ctx)
+    return "rcbd" if sig is not None and "method" not in sig.params else "other"
+
+
 @rule("B1.3", "B1", "rcbd_subsampling_anova", STRONG, "кн. стр. 46, 145")
 def subsamples(ctx: Context) -> Signal | None:
     lay = _layout(ctx)
@@ -894,6 +908,13 @@ def score_response(ctx: Context) -> Signal | None:
     if v is None:
         return None
     if _score_like(v):
+        blocks = block_design(ctx)
+        if blocks == "other":
+            return None
+        if blocks == "rcbd":
+            return Signal("Отклик — немного целых значений (баллы?), каждый вариант по разу в"
+                          " каждом блоке: тест Фридмана (блок — «объект»).",
+                          {"method": "friedman", "variant": "blocks"})
         method = "mann_whitney" if len(_group_sizes(ctx)) == 2 else "kruskal_wallis"
         return Signal("Отклик — немного целых значений (баллы?): ранговые методы или"
                       " порядковая регрессия.", {"method": method})

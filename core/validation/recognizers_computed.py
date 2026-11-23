@@ -27,11 +27,12 @@ from core.stats.welch_rule import welch_advice
 from core.validation import column_names as names
 from core.validation.recognize import COMPUTED, HINT, STRONG, Context, Rule, Signal, rule
 from core.validation.recognizers import (
-    _count_like, _treatment_labels, _trials_column, _trials_guess, binary_response,
+    _count_like, _treatment_labels, _trials_column, _trials_guess, binary_response, block_design,
     in_glm_branch, many_zeros, right_skew, transform_branch,
 )
 
 _ALPHA = 0.05
+_RCBD_LEAF = "B4b.rcbd"  # лист ANOVA с блоками: советы B4 при полном RCBD [кн. стр. 58]
 _SHAPIRO_MAX = 5000  # предел scipy.stats.shapiro
 
 
@@ -469,9 +470,21 @@ def _sd_tracks_mean(ctx: Context) -> float | None:
 @outlier_aware
 def sd_grows_with_mean(ctx: Context) -> Signal | None:
     r = ctx.memo("sd_mean", lambda: _sd_tracks_mean(ctx)) if _anova_applies(ctx) else None
-    if r is None:
+    blocks = block_design(ctx)
+    if r is None or blocks == "other":
         return None
-    if len(_spreads(ctx)) < MIN_GROUPS_FOR_TREND:
+    three = len(_spreads(ctx)) < MIN_GROUPS_FOR_TREND
+    if blocks == "rcbd" and three:
+        return Signal("SD трёх вариантов растут вместе со средними (r = {r} по логарифмам), но"
+                      " по трём вариантам такая связь часто случайна: ANOVA с блоками на шкале"
+                      " log — под вопросом (параметр «Трансформация»).",
+                      {"r": round(r, 2), "branch": _RCBD_LEAF, "variant": "blocks_three"},
+                      strength=HINT)
+    if blocks == "rcbd":
+        return Signal("SD вариантов растут вместе со средними (r = {r} по логарифмам): ANOVA"
+                      " с блоками на шкале log — параметр «Трансформация» в форме метода.",
+                      {"r": round(r, 2), "branch": _RCBD_LEAF, "variant": "blocks"})
+    if three:
         # По трём точкам r ≥ 0.8 часто выходит случайно (13 % при 3 × 3, аудит 01-07).
         return Signal("SD трёх групп растут вместе со средними (r = {r} по логарифмам), но"
                       " по трём группам такая связь часто случайна: трансформация отклика"
@@ -488,11 +501,16 @@ def skewed_residuals(ctx: Context) -> Signal | None:
     if fit is None or fit.resid.size < 8:
         return None
     g = float(stats.skew(fit.resid))
-    if abs(g) > 1:
-        return Signal("Остатки асимметричны (коэффициент асимметрии {g}): попробуйте"
-                      " трансформацию отклика.",
-                      {"g": round(g, 2), "branch": transform_branch(ctx)})
-    return None
+    blocks = block_design(ctx)
+    if abs(g) <= 1 or blocks == "other":
+        return None
+    if blocks == "rcbd":
+        return Signal("Остатки асимметричны (коэффициент асимметрии {g}): трансформация"
+                      " отклика — параметр «Трансформация» ANOVA с блоками.",
+                      {"g": round(g, 2), "branch": _RCBD_LEAF, "variant": "blocks"})
+    return Signal("Остатки асимметричны (коэффициент асимметрии {g}): попробуйте"
+                  " трансформацию отклика.",
+                  {"g": round(g, 2), "branch": transform_branch(ctx)})
 
 
 @rule("B4.5", "B4", "welch_anova", STRONG, "кн. стр. 107; предл.: Welch 1951", cls=COMPUTED)
@@ -500,8 +518,14 @@ def skewed_residuals(ctx: Context) -> Signal | None:
 def heterogeneous_unrelated(ctx: Context) -> Signal | None:
     if len(_groups(ctx)) < 3 or heterogeneous_variances(ctx) is None:
         return None
-    if sd_grows_with_mean(ctx) is not None:
+    blocks = block_design(ctx)
+    if sd_grows_with_mean(ctx) is not None or blocks == "other":
         return None
+    if blocks == "rcbd":
+        return Signal("Дисперсии вариантов неоднородны и не растут со средним; аналога ANOVA"
+                      " Уэлча с учётом блоков нет — P и SED ANOVA с блоками"
+                      " приближённые.", {"branch": _RCBD_LEAF, "variant": "blocks"},
+                      strength=HINT)
     return Signal("Дисперсии неоднородны и не растут со средним: ANOVA Уэлча"
                   " (книга: взвешенный ANOVA или Уэлч).")
 
@@ -511,8 +535,14 @@ def heterogeneous_unrelated(ctx: Context) -> Signal | None:
 def nonnormal_homogeneous(ctx: Context) -> Signal | None:
     if len(_groups(ctx)) < 3 or nonnormal_residuals(ctx) is None:
         return None
-    if heterogeneous_variances(ctx) is not None:
+    blocks = block_design(ctx)
+    if heterogeneous_variances(ctx) is not None or blocks == "other":
         return None
+    if blocks == "rcbd":
+        return Signal("Остатки ненормальны при однородных дисперсиях; перестановочного теста"
+                      " с учётом блоков нет — ранговая альтернатива: тест Фридмана"
+                      " (блок — «объект»).", {"method": "friedman", "variant": "blocks"},
+                      strength=HINT)
     return Signal("Остатки ненормальны при однородных дисперсиях: перестановочный тест"
                   " сохранит F и средние.")
 
