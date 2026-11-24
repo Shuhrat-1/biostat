@@ -26,7 +26,7 @@ for extra in (ROOT, ROOT / "tools"):
         sys.path.insert(0, str(extra))
 
 import static_pages as sp  # noqa: E402
-from method_examples import example_values  # noqa: E402
+from method_examples import example_values, load_example  # noqa: E402
 from method_widgets import groups_split, groups_welch  # noqa: E402
 import signal_variants  # noqa: E402
 
@@ -312,7 +312,7 @@ def map_section(c: dict, t: dict, ctx: Ctx, names: dict[str, str]) -> str:
     rows = [[method_link(n["method"], html.escape(names[n["method"]]), ctx),
              " ".join(x for x in (signals_html(n["signals"], ctx, strengths), inline(n["when"], ctx)) if x),
              inline(n["advantage"], ctx), inline(n["cost"], ctx)] for n in t["neighbours"]]
-    head = [ch["neighbour"], ch["when"], ch["better"].format(short=t["short"]), ch["cost"]]
+    head = [ch["neighbour"], ch["when"], ch["better"], ch["cost"]]
     body += f'    <h3>{html.escape(ch["neighbours"])}</h3>\n' + _table(head, rows)
     checks = [f'{signals_html(k["signals"], ctx, strengths)} {inline(k["text"], ctx)}' for k in t["checks"]]
     body += f'    <h3>{html.escape(ch["checks"])}</h3>\n' + _ul(checks)
@@ -372,11 +372,20 @@ def crumbs(entry: dict, ctx: Ctx) -> str:
             f'{html.escape(entry["name"][lang])}</nav>\n')
 
 
+def localized(values: dict, example: dict, lang: str) -> dict:
+    """Подписи групп примера на языке страницы: labels в content/examples/<имя>.json
+    (копия WORDS.<язык>.crops из exampleData.ts). Числа и ключи подстановок не меняются."""
+    labels = load_example(example["data"]).get("labels", {}).get(lang, {})
+    if not labels or "groups" not in values:
+        return values
+    return values | {"groups": [(labels.get(name, name), y) for name, y in values["groups"]]}
+
+
 def method_page(mid: str, c: dict, data: dict, math: Math, lang: str) -> str:
     """HTML страницы метода mid на языке lang."""
     t, entries = c[lang], {m["id"]: m for m in data["methods"]}
     entry = entries[mid]
-    values = example_values(mid, c["example"])
+    values = localized(example_values(mid, c["example"]), c["example"], lang)
     ctx = Ctx(lang, values, math)
     names = {m: e["name"][lang] for m, e in entries.items()}
     article = (crumbs(entry, ctx) + f'  <h1>{html.escape(entry["name"][lang])}</h1>\n'
@@ -388,7 +397,7 @@ def method_page(mid: str, c: dict, data: dict, math: Math, lang: str) -> str:
     head = CSS + (JS if c.get("widget", {}).get("type") in WIDGETS else "")
     page_t = {"title": f'{entry["name"][lang]} — BioStat', "description": t["description"],
               "back": sp.PRIVACY[lang]["back"]}
-    langs = tuple(code for code in LANGS if code in c)
+    langs = tuple(code for code in sp.LANGS if code in c)
     return sp.shell(f"methods/{mid}", page_t, lang, body, langs=langs, head=head, header="", main_class="mp")
 
 
@@ -410,7 +419,7 @@ def symbols_page(lang: str, math: Math, pages_by_key: dict[str, list[tuple[str, 
             + _table([ch["symbol"], ch["meaning"], ch["used_on"]], rows).replace("    ", "      ", 1))
     t = {"title": ch["symbols_title"], "description": ch["symbols_description"], "h1": ch["symbols_h1"],
          "updated": sp.PRIVACY[lang]["updated"], "back": sp.PRIVACY[lang]["back"]}
-    langs = tuple(code for code in LANGS if available(code))
+    langs = tuple(code for code in sp.LANGS if available(code))
     return sp.shell("methods/symbols", t, lang, body, langs=langs, head=CSS, main_class="mp symbols")
 
 
@@ -469,8 +478,8 @@ CHROME: dict[str, dict] = {
         "pros_cons": "Strengths and weaknesses", "pros": "Strengths", "cons": "Weaknesses",
         "assumptions": "Assumptions", "assumptions_head": ["Assumption", "What it means", "How BioStat checks it"],
         "map": "How the map chooses this method", "toc_map": "How the map chooses", "path": "Path to the leaf",
-        "path_aria": "Path on the map", "neighbours": "Neighbours on the map: when they win",
-        "neighbour": "Neighbour", "when": "When the map leads there", "better": "Why it beats {short} there",
+        "path_aria": "Path on the map", "neighbours": "Neighbors on the map: when they win",
+        "neighbour": "Neighbor", "when": "When the map leads there", "better": "Why the neighbor is better here",
         "cost": "What it costs", "checks": "What the map checks at this leaf", "next": "What next",
         "check": "Validation of the method", "prev": "← Previous", "next_page": "Next →",
         "toc": "On this page", "toc_aria": "On this page", "to_list": "↑ Back to the method list",
@@ -491,8 +500,8 @@ CHROME: dict[str, dict] = {
         "pros_cons": "Pontos fortes e fracos", "pros": "Pontos fortes", "cons": "Pontos fracos",
         "assumptions": "Pressupostos", "assumptions_head": ["Pressuposto", "O que significa", "Como o BioStat verifica"],
         "map": "Como o mapa escolhe este método", "toc_map": "Como o mapa escolhe", "path": "Caminho até à folha",
-        "path_aria": "Caminho no mapa", "neighbours": "Vizinhos no mapa: quando ganham eles",
-        "neighbour": "Vizinho", "when": "Quando o mapa leva lá", "better": "Em que supera {short} nesse caso",
+        "path_aria": "Caminho no mapa", "neighbours": "Vizinhos no mapa: quando são preferíveis",
+        "neighbour": "Vizinho", "when": "Quando o mapa leva lá", "better": "Em que o vizinho é melhor aqui",
         "cost": "O que custa", "checks": "O que o mapa verifica nesta folha", "next": "O que vem a seguir",
         "check": "Verificação do método", "prev": "← Anterior", "next_page": "Seguinte →",
         "toc": "Nesta página", "toc_aria": "Nesta página", "to_list": "↑ Voltar à lista de métodos",

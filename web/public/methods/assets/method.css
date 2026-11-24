@@ -58,6 +58,7 @@ main.mp { max-width: 1120px; font-size: 16px; }
 @media (prefers-reduced-motion: reduce) { .mp .bar { transition: none; } }
 .mp .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 13px; color: var(--muted); margin-top: 6px; }
 .mp .legend i { display: inline-block; width: 18px; height: 0; border-top: 3px solid; vertical-align: middle; margin-right: 5px; }
+.mp .viz .gs-note { margin: 10px 0 0; }
 .mp details.glossary { margin: 14px 0; border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; }
 .mp details.glossary summary { cursor: pointer; font-weight: 600; }
 .mp details.check { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 22px; margin: 0 0 18px; }

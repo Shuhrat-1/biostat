@@ -84,6 +84,11 @@ def _marks(frame: Frame, groups: list[tuple[str, list[float]]], highlight: list[
     return "".join(out)
 
 
+def _note(t: dict) -> str:
+    """Пояснение к ползункам — под легендой графика, на всю ширину левой колонки (скрыто без JS)."""
+    return f'<p class="note gs-note" hidden>{html.escape(t["note"])}</p>'
+
+
 def _controls(t: dict, values: dict) -> str:
     """Ползунки (скрыты без JS), полосы MS и итог: исходное положение — расчёт ядра."""
     esc = html.escape
@@ -102,8 +107,7 @@ def _controls(t: dict, values: dict) -> str:
         f'<div class="bar gs-bar-b" style="width:{_r(100 * msb / top)}%;background:#c2410c"></div>'
         f'<div class="note">{esc(t["ms_within"])}</div>'
         f'<div class="bar gs-bar-w" style="width:{_r(max(1, 100 * msw / top))}%;background:#7c3aed"></div></div>'
-        f'<div class="readout" aria-live="polite">{readout}</div>'
-        f'<p class="note gs-note" hidden>{esc(t["note"])}</p></div>')
+        f'<div class="readout" aria-live="polite">{readout}</div></div>')
 
 
 def groups_split(cfg: dict, t: dict, example: dict, values: dict) -> str:
@@ -122,7 +126,7 @@ def groups_split(cfg: dict, t: dict, example: dict, values: dict) -> str:
               f'{esc(t["legend_grand"])}</span><span><i style="border-color:#18181b"></i>{esc(t["legend_mean"])}</span>'
               f'<span>{esc(t["legend_segments"])} <b style="color:#c2410c">{esc(t["between"])}</b> {esc(t["and"])} '
               f'<b style="color:#7c3aed">{esc(t["within"])}</b></span></div>')
-    return f'    <div class="viz" {attrs}>\n      <div>{svg}{legend}</div>\n      {_controls(t, values)}\n    </div>\n'
+    return f'    <div class="viz" {attrs}>\n      <div>{svg}{legend}{_note(t)}</div>\n      {_controls(t, values)}\n    </div>\n'
 
 
 # --- groups-welch: обычный F и F Уэлча ----------------------------------------------------------
@@ -183,8 +187,7 @@ def _welch_controls(t: dict, values: dict, names: list[str], shares: list[float]
     head = "".join(f"<th>{esc(h)}</th>" for h in ("", "df", "F", "P"))
     return (f'<div class="ctrl"><div class="gs-sliders" hidden>{sliders}</div>'
             f'<div class="bars" aria-hidden="true"><div class="note"><b>{esc(t["weights"])}</b></div>{bars}</div>'
-            f'<table class="readout-table" aria-live="polite"><thead><tr>{head}</tr></thead><tbody>{table}</tbody></table>'
-            f'<p class="note gs-note" hidden>{esc(t["note"])}</p></div>')
+            f'<table class="readout-table" aria-live="polite"><thead><tr>{head}</tr></thead><tbody>{table}</tbody></table></div>')
 
 
 def groups_welch(cfg: dict, t: dict, example: dict, values: dict) -> str:
@@ -203,4 +206,4 @@ def groups_welch(cfg: dict, t: dict, example: dict, values: dict) -> str:
               f'{esc(t["legend_grand"])}</span><span><i style="border-color:var(--grand);border-top-style:dashed"></i>'
               f'{esc(t["legend_wmean"])}</span><span><i style="border-color:#18181b"></i>{esc(t["legend_mean"])}</span></div>')
     controls = _welch_controls(t, values, names, shares, len(groups[focus][1]))
-    return f'    <div class="viz" {attrs}>\n      <div>{svg}{legend}</div>\n      {controls}\n    </div>\n'
+    return f'    <div class="viz" {attrs}>\n      <div>{svg}{legend}{_note(t)}</div>\n      {controls}\n    </div>\n'

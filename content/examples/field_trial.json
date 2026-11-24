@@ -1,5 +1,5 @@
 {
- "source": "web/src/exampleData.ts (ROWS, WORDS.ru.header) — копия; тест сверяет",
+ "source": "web/src/exampleData.ts (ROWS, WORDS.ru.header, WORDS.<язык>.crops) — копия; тест сверяет",
  "columns": [
   "сорт",
   "урожай",
@@ -115,5 +115,17 @@
    "73,2",
    "85"
   ]
- ]
+ ],
+ "labels": {
+  "en": {
+   "пшеница": "wheat",
+   "ячмень": "barley",
+   "овёс": "oats"
+  },
+  "pt": {
+   "пшеница": "trigo",
+   "ячмень": "cevada",
+   "овёс": "aveia"
+  }
+ }
 }

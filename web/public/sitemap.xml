@@ -96,34 +96,122 @@
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://biostat.app/ru/methods/one_way_anova/</loc>
+    <loc>https://biostat.app/methods/one_way_anova/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://biostat.app/methods/one_way_anova/" />
     <xhtml:link rel="alternate" hreflang="ru" href="https://biostat.app/ru/methods/one_way_anova/" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://biostat.app/ru/methods/one_way_anova/" />
-    <lastmod>2026-11-22</lastmod>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://biostat.app/pt/methods/one_way_anova/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://biostat.app/methods/one_way_anova/" />
+    <lastmod>2026-11-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://biostat.app/ru/methods/one_way_anova/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://biostat.app/methods/one_way_anova/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://biostat.app/ru/methods/one_way_anova/" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://biostat.app/pt/methods/one_way_anova/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://biostat.app/methods/one_way_anova/" />
+    <lastmod>2026-11-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://biostat.app/pt/methods/one_way_anova/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://biostat.app/methods/one_way_anova/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://biostat.app/ru/methods/one_way_anova/" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://biostat.app/pt/methods/one_way_anova/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://biostat.app/methods/one_way_anova/" />
+    <lastmod>2026-11-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://biostat.app/methods/two_sample_t/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://biostat.app/methods/two_sample_t/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://biostat.app/ru/methods/two_sample_t/" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://biostat.app/pt/methods/two_sample_t/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://biostat.app/methods/two_sample_t/" />
+    <lastmod>2026-11-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://biostat.app/ru/methods/two_sample_t/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://biostat.app/methods/two_sample_t/" />
     <xhtml:link rel="alternate" hreflang="ru" href="https://biostat.app/ru/methods/two_sample_t/" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://biostat.app/ru/methods/two_sample_t/" />
-    <lastmod>2026-11-22</lastmod>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://biostat.app/pt/methods/two_sample_t/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://biostat.app/methods/two_sample_t/" />
+    <lastmod>2026-11-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://biostat.app/pt/methods/two_sample_t/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://biostat.app/methods/two_sample_t/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://biostat.app/ru/methods/two_sample_t/" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://biostat.app/pt/methods/two_sample_t/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://biostat.app/methods/two_sample_t/" />
+    <lastmod>2026-11-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://biostat.app/methods/welch_anova/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://biostat.app/methods/welch_anova/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://biostat.app/ru/methods/welch_anova/" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://biostat.app/pt/methods/welch_anova/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://biostat.app/methods/welch_anova/" />
+    <lastmod>2026-11-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://biostat.app/ru/methods/welch_anova/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://biostat.app/methods/welch_anova/" />
     <xhtml:link rel="alternate" hreflang="ru" href="https://biostat.app/ru/methods/welch_anova/" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://biostat.app/ru/methods/welch_anova/" />
-    <lastmod>2026-11-22</lastmod>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://biostat.app/pt/methods/welch_anova/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://biostat.app/methods/welch_anova/" />
+    <lastmod>2026-11-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://biostat.app/pt/methods/welch_anova/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://biostat.app/methods/welch_anova/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://biostat.app/ru/methods/welch_anova/" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://biostat.app/pt/methods/welch_anova/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://biostat.app/methods/welch_anova/" />
+    <lastmod>2026-11-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://biostat.app/methods/anova_permutation_test/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://biostat.app/methods/anova_permutation_test/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://biostat.app/ru/methods/anova_permutation_test/" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://biostat.app/pt/methods/anova_permutation_test/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://biostat.app/methods/anova_permutation_test/" />
+    <lastmod>2026-11-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://biostat.app/ru/methods/anova_permutation_test/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://biostat.app/methods/anova_permutation_test/" />
     <xhtml:link rel="alternate" hreflang="ru" href="https://biostat.app/ru/methods/anova_permutation_test/" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://biostat.app/ru/methods/anova_permutation_test/" />
-    <lastmod>2026-11-22</lastmod>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://biostat.app/pt/methods/anova_permutation_test/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://biostat.app/methods/anova_permutation_test/" />
+    <lastmod>2026-11-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://biostat.app/pt/methods/anova_permutation_test/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://biostat.app/methods/anova_permutation_test/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://biostat.app/ru/methods/anova_permutation_test/" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://biostat.app/pt/methods/anova_permutation_test/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://biostat.app/methods/anova_permutation_test/" />
+    <lastmod>2026-11-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -187,15 +275,37 @@
     <loc>https://biostat.app/ru/methods/bartlett_test/</loc>
     <xhtml:link rel="alternate" hreflang="ru" href="https://biostat.app/ru/methods/bartlett_test/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://biostat.app/ru/methods/bartlett_test/" />
-    <lastmod>2026-11-23</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://biostat.app/ru/methods/symbols/</loc>
+    <loc>https://biostat.app/methods/symbols/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://biostat.app/methods/symbols/" />
     <xhtml:link rel="alternate" hreflang="ru" href="https://biostat.app/ru/methods/symbols/" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://biostat.app/ru/methods/symbols/" />
-    <lastmod>2026-11-22</lastmod>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://biostat.app/pt/methods/symbols/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://biostat.app/methods/symbols/" />
+    <lastmod>2026-11-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://biostat.app/ru/methods/symbols/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://biostat.app/methods/symbols/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://biostat.app/ru/methods/symbols/" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://biostat.app/pt/methods/symbols/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://biostat.app/methods/symbols/" />
+    <lastmod>2026-11-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://biostat.app/pt/methods/symbols/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://biostat.app/methods/symbols/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://biostat.app/ru/methods/symbols/" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://biostat.app/pt/methods/symbols/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://biostat.app/methods/symbols/" />
+    <lastmod>2026-11-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>

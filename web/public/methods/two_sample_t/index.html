@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Two-sample t-test — BioStat</title>
+    <meta name="description" content="Student&#x27;s and Welch&#x27;s two-sample t-test: idea, formulas, assumptions, strengths and weaknesses, and how the BioStat map chooses this method." />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="canonical" href="https://biostat.app/methods/two_sample_t/" />
+    <link rel="alternate" hreflang="en" href="https://biostat.app/methods/two_sample_t/" />
+    <link rel="alternate" hreflang="ru" href="https://biostat.app/ru/methods/two_sample_t/" />
+    <link rel="alternate" hreflang="pt" href="https://biostat.app/pt/methods/two_sample_t/" />
+    <link rel="alternate" hreflang="x-default" href="https://biostat.app/methods/two_sample_t/" />
+    <style>body{margin:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:#18181b;background:#fafafa;line-height:1.6}main{max-width:44rem;margin:0 auto;padding:1.5rem 1rem 2rem}h1{font-size:1.6rem;margin:0.6rem 0 0.2rem}h2{font-size:1.1rem;margin:1.6rem 0 0.4rem}p{margin:0.4rem 0}a{color:#0f766e}.muted{color:#63636b;font-size:0.9rem}nav{display:flex;flex-wrap:wrap;gap:0.4rem 1rem;justify-content:space-between;align-items:center}footer{border-top:1px solid #e4e4e7;margin-top:2rem;padding-top:0.8rem;font-size:0.9rem}code{overflow-wrap:anywhere}h3{font-size:1rem;margin:1.4rem 0 0}ul{margin:0.3rem 0;padding-left:1.2rem}li{margin:0.15rem 0;overflow-wrap:anywhere}.tag{font-size:0.75rem;font-weight:400;color:#92400e;border:1px solid #f59e0b;border-radius:4px;padding:0 0.3rem;margin-left:0.4rem;white-space:nowrap}</style>
+    <link rel="stylesheet" href="/methods/assets/method.css" />
+    <script src="/back.js" defer></script>
+  </head>
+  <body>
+    <main class="mp">
+      <nav><a href="/" data-back>← Back to BioStat</a><span><a href="/methods/two_sample_t/" hreflang="en" lang="en" aria-current="page">English</a> · <a href="/ru/methods/two_sample_t/" hreflang="ru" lang="ru">Русский</a> · <a href="/pt/methods/two_sample_t/" hreflang="pt" lang="pt">Português</a></span></nav>
+<div class="wrap">
+<article>
+  <nav class="crumbs" aria-label="Breadcrumbs"><a href="/">BioStat</a> › <a href="/methods/">Methods and validation</a> › <a href="/methods/#group-two-groups">Two-group comparison</a> › Two-sample t-test</nav>
+  <h1>Two-sample t-test</h1>
+  <p class="lead">Do the means of two groups differ — for example, the yields of two varieties? The t-test divides the difference of means by its standard error and asks whether it is large for chance alone.</p>
+  <section id="idea">
+    <h2>Idea</h2>
+    <p>A difference of means says nothing by itself: 0.5 t/ha is a lot if plots of one variety differ by 0.1, and little if they differ by 2. So the difference is divided by its standard error SED, which grows with the spread within groups and falls with the number of observations (Welham, p. 32–34).</p>
+    <p>The result is <b>t</b> — how many standard errors fit into the difference. If the varieties are really the same, large |t| are rare; P is the probability of a |t| at least as large as the observed one. For wheat and barley, a difference of 0.55 t/ha with SED 0.15 gives t = 3.67.</p>
+  </section>
+  <section id="model">
+    <h2>Model and formulas</h2>
+    <details class="glossary" id="symbols">
+      <summary>All symbols on this page</summary>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Symbol</th><th>Meaning</th></tr></thead>
+      <tbody>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub></mrow><annotation encoding="application/x-tex">y_{ij}</annotation></semantics></math></span></td><td>response value of observation <i>j</i> in group <i>i</i></td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>μ</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">\mu_i</annotation></semantics></math></span></td><td>population mean of group <i>i</i></td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ε</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub></mrow><annotation encoding="application/x-tex">\varepsilon_{ij}</annotation></semantics></math></span></td><td>random error of the observation</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>σ</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">\sigma^2</annotation></semantics></math></span></td><td>error variance, the same for all groups</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>H</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">H_0</annotation></semantics></math></span></td><td>null hypothesis: all groups have the same mean</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover accent="true"><mi>y</mi><mo>ˉ</mo></mover><mrow><mi>i</mi><mo>⋅</mo></mrow></msub></mrow><annotation encoding="application/x-tex">\bar y_{i\cdot}</annotation></semantics></math></span></td><td>mean of group <i>i</i> (the dot means averaging over <i>j</i>)</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>j</mi><mo>=</mo><mn>1</mn><mo separator="true">,</mo><mo>…</mo><mo separator="true">,</mo><msub><mi>n</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">j = 1,\dots,n_i</annotation></semantics></math></span></td><td>observation index within a group, <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>n</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">n_i</annotation></semantics></math></span> — size of group <i>i</i></td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>s</mi><mi>i</mi><mn>2</mn></msubsup></mrow><annotation encoding="application/x-tex">s_i^2</annotation></semantics></math></span></td><td>sample variance of group <i>i</i> (divisor <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>n</mi><mi>i</mi></msub><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">n_i-1</annotation></semantics></math></span>)</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>s</mi><mi>p</mi><mn>2</mn></msubsup></mrow><annotation encoding="application/x-tex">s_p^2</annotation></semantics></math></span></td><td>pooled variance of the groups (the same as <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><msub><mi>S</mi><mi>W</mi></msub></mrow><annotation encoding="application/x-tex">MS_W</annotation></semantics></math></span>)</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">S</mi><mi mathvariant="normal">E</mi><mi mathvariant="normal">D</mi></mrow><annotation encoding="application/x-tex">\mathrm{SED}</annotation></semantics></math></span></td><td>standard error of the difference between two means (<i>i</i> and <i>k</i>)</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi></mrow><annotation encoding="application/x-tex">t</annotation></semantics></math></span></td><td>Student&#x27;s <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi></mrow><annotation encoding="application/x-tex">t</annotation></semantics></math></span> statistic: the difference of means in units of its standard error (not the number of groups <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi></mrow><annotation encoding="application/x-tex">t</annotation></semantics></math></span>)</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>t</mi><mrow><mn>0.975</mn><mo separator="true">;</mo><mtext> </mtext><mi>N</mi><mo>−</mo><mi>t</mi></mrow></msub></mrow><annotation encoding="application/x-tex">t_{0.975;\,N-t}</annotation></semantics></math></span></td><td>quantile of the t distribution: 2.5 % to the right, <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>−</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">N-t</annotation></semantics></math></span> degrees of freedom</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi></mrow><annotation encoding="application/x-tex">P</annotation></semantics></math></span></td><td>probability of a test statistic (F, t …) at least as extreme as the observed one when <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>H</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">H_0</annotation></semantics></math></span> is true</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi></mrow><annotation encoding="application/x-tex">d</annotation></semantics></math></span></td><td>Cohen&#x27;s <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi></mrow><annotation encoding="application/x-tex">d</annotation></semantics></math></span>: the difference of means in units of the pooled SD</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi></mrow><annotation encoding="application/x-tex">g</annotation></semantics></math></span></td><td>Hedges&#x27; <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi></mrow><annotation encoding="application/x-tex">g</annotation></semantics></math></span>: <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi></mrow><annotation encoding="application/x-tex">d</annotation></semantics></math></span> corrected for small-sample bias</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>t</mi><mi>W</mi></msub></mrow><annotation encoding="application/x-tex">t_W</annotation></semantics></math></span></td><td>Welch&#x27;s <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi></mrow><annotation encoding="application/x-tex">t</annotation></semantics></math></span> statistic: the difference of means divided by its unpooled standard error</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ν</mi></mrow><annotation encoding="application/x-tex">\nu</annotation></semantics></math></span></td><td>approximate Welch (Satterthwaite) degrees of freedom, usually fractional</td></tr>
+</tbody>
+    </table></div>
+      <p class="note">The same notation is used on every method page — <a href="/methods/symbols/">symbol glossary</a>.</p>
+    </details>
+    <p>Observation <i>j</i> in group <i>i</i> (<i>i</i> = 1, 2):</p>
+    <div class="math block"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>y</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>=</mo><msub><mi>μ</mi><mi>i</mi></msub><mo>+</mo><msub><mi>ε</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo separator="true">,</mo><mspace width="2em"/><msub><mi>ε</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>∼</mo><mi>N</mi><mo stretchy="false">(</mo><mn>0</mn><mo separator="true">,</mo><msup><mi>σ</mi><mn>2</mn></msup><mo stretchy="false">)</mo><mtext> independently</mtext><mo separator="true">,</mo><mspace width="2em"/><msub><mi>H</mi><mn>0</mn></msub><mo>:</mo><mtext> </mtext><msub><mi>μ</mi><mn>1</mn></msub><mo>=</mo><msub><mi>μ</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">y_{ij} = \mu_i + \varepsilon_{ij},\qquad \varepsilon_{ij} \sim N(0,\sigma^2)\ \text{independently},\qquad H_0:\ \mu_1 = \mu_2</annotation></semantics></math></span></div>
+    <h3>Pooled variance and SED</h3>
+    <div class="math block"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msubsup><mi>s</mi><mi>p</mi><mn>2</mn></msubsup><mo>=</mo><mfrac><mrow><mo stretchy="false">(</mo><msub><mi>n</mi><mn>1</mn></msub><mo>−</mo><mn>1</mn><mo stretchy="false">)</mo><mtext> </mtext><msubsup><mi>s</mi><mn>1</mn><mn>2</mn></msubsup><mo>+</mo><mo stretchy="false">(</mo><msub><mi>n</mi><mn>2</mn></msub><mo>−</mo><mn>1</mn><mo stretchy="false">)</mo><mtext> </mtext><msubsup><mi>s</mi><mn>2</mn><mn>2</mn></msubsup></mrow><mrow><msub><mi>n</mi><mn>1</mn></msub><mo>+</mo><msub><mi>n</mi><mn>2</mn></msub><mo>−</mo><mn>2</mn></mrow></mfrac><mo separator="true">,</mo><mspace width="2em"/><mrow><mi mathvariant="normal">S</mi><mi mathvariant="normal">E</mi><mi mathvariant="normal">D</mi></mrow><mo>=</mo><msqrt><mrow><msubsup><mi>s</mi><mi>p</mi><mn>2</mn></msubsup><mrow><mo fence="true">(</mo><mfrac><mn>1</mn><msub><mi>n</mi><mn>1</mn></msub></mfrac><mo>+</mo><mfrac><mn>1</mn><msub><mi>n</mi><mn>2</mn></msub></mfrac><mo fence="true">)</mo></mrow></mrow></msqrt></mrow><annotation encoding="application/x-tex">s_p^2 = \frac{(n_1-1)\,s_1^2 + (n_2-1)\,s_2^2}{n_1+n_2-2},\qquad \mathrm{SED} = \sqrt{s_p^2\left(\frac1{n_1}+\frac1{n_2}\right)}</annotation></semantics></math></span></div>
+    <h3>The t statistic</h3>
+    <div class="math block"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>t</mi><mo>=</mo><mfrac><mrow><msub><mover accent="true"><mi>y</mi><mo>ˉ</mo></mover><mrow><mn>1</mn><mo>⋅</mo></mrow></msub><mo>−</mo><msub><mover accent="true"><mi>y</mi><mo>ˉ</mo></mover><mrow><mn>2</mn><mo>⋅</mo></mrow></msub></mrow><mrow><mi mathvariant="normal">S</mi><mi mathvariant="normal">E</mi><mi mathvariant="normal">D</mi></mrow></mfrac><mo>=</mo><mfrac><mrow><mn>5.30</mn><mo>−</mo><mn>4.75</mn></mrow><mn>0.15</mn></mfrac><mo>=</mo><mn>3.67</mn><mo separator="true">,</mo><mspace width="2em"/><msub><mi>n</mi><mn>1</mn></msub><mo>+</mo><msub><mi>n</mi><mn>2</mn></msub><mo>−</mo><mn>2</mn><mo>=</mo><mn>10</mn><mtext> df</mtext><mo separator="true">,</mo><mspace width="2em"/><mi>P</mi><mo>=</mo><mn>0.0043</mn></mrow><annotation encoding="application/x-tex">t = \frac{\bar y_{1\cdot}-\bar y_{2\cdot}}{\mathrm{SED}} = \frac{5.30-4.75}{0.15} = 3.67,\qquad n_1+n_2-2 = 10\ \text{df},\qquad P = 0.0043</annotation></semantics></math></span></div>
+    <p>If <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>H</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">H_0</annotation></semantics></math></span> is true and the assumptions hold, t follows the t distribution with <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>n</mi><mn>1</mn></msub><mo>+</mo><msub><mi>n</mi><mn>2</mn></msub><mo>−</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">n_1+n_2-2</annotation></semantics></math></span> degrees of freedom. With two groups, <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>t</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">t^2</annotation></semantics></math></span> equals the F of one-way ANOVA (Witte, p. 308).</p>
+    <h3>Confidence interval and effect size</h3>
+    <div class="math block"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mo stretchy="false">(</mo><msub><mover accent="true"><mi>y</mi><mo>ˉ</mo></mover><mrow><mn>1</mn><mo>⋅</mo></mrow></msub><mo>−</mo><msub><mover accent="true"><mi>y</mi><mo>ˉ</mo></mover><mrow><mn>2</mn><mo>⋅</mo></mrow></msub><mo stretchy="false">)</mo><mo>±</mo><msub><mi>t</mi><mrow><mn>0.975</mn><mo separator="true">;</mo><mtext> </mtext><mi>N</mi><mo>−</mo><mi>t</mi></mrow></msub><mtext> </mtext><mrow><mi mathvariant="normal">S</mi><mi mathvariant="normal">E</mi><mi mathvariant="normal">D</mi></mrow><mo>=</mo><mo stretchy="false">(</mo><mn>0.22</mn><mo separator="true">;</mo><mtext> </mtext><mn>0.88</mn><mo stretchy="false">)</mo><mo separator="true">,</mo><mspace width="2em"/><mi>d</mi><mo>=</mo><mfrac><mrow><msub><mover accent="true"><mi>y</mi><mo>ˉ</mo></mover><mrow><mn>1</mn><mo>⋅</mo></mrow></msub><mo>−</mo><msub><mover accent="true"><mi>y</mi><mo>ˉ</mo></mover><mrow><mn>2</mn><mo>⋅</mo></mrow></msub></mrow><msub><mi>s</mi><mi>p</mi></msub></mfrac><mo>=</mo><mn>2.12</mn></mrow><annotation encoding="application/x-tex">(\bar y_{1\cdot}-\bar y_{2\cdot}) \pm t_{0.975;\,N-t}\,\mathrm{SED} = (0.22;\ 0.88),\qquad d = \frac{\bar y_{1\cdot}-\bar y_{2\cdot}}{s_p} = 2.12</annotation></semantics></math></span></div>
+    <p>With two groups, <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>−</mo><mi>t</mi><mo>=</mo><msub><mi>n</mi><mn>1</mn></msub><mo>+</mo><msub><mi>n</mi><mn>2</mn></msub><mo>−</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">N-t = n_1+n_2-2</annotation></semantics></math></span>. Hedges&#x27; <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi></mrow><annotation encoding="application/x-tex">g</annotation></semantics></math></span> is the same <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi></mrow><annotation encoding="application/x-tex">d</annotation></semantics></math></span> corrected for small-sample bias: 1.95 [proposed: Hedges 1981].</p>
+    <h3>Welch version</h3>
+    <p>When the variances are unequal they are not pooled: each group gives its own error, and the degrees of freedom are estimated from the data (Welham, p. 33; Witte, p. 266–267):</p>
+    <div class="math block"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>t</mi><mi>W</mi></msub><mo>=</mo><mfrac><mrow><msub><mover accent="true"><mi>y</mi><mo>ˉ</mo></mover><mrow><mn>1</mn><mo>⋅</mo></mrow></msub><mo>−</mo><msub><mover accent="true"><mi>y</mi><mo>ˉ</mo></mover><mrow><mn>2</mn><mo>⋅</mo></mrow></msub></mrow><msqrt><mrow><msubsup><mi>s</mi><mn>1</mn><mn>2</mn></msubsup><mi mathvariant="normal">/</mi><msub><mi>n</mi><mn>1</mn></msub><mo>+</mo><msubsup><mi>s</mi><mn>2</mn><mn>2</mn></msubsup><mi mathvariant="normal">/</mi><msub><mi>n</mi><mn>2</mn></msub></mrow></msqrt></mfrac><mo separator="true">,</mo><mspace width="2em"/><mi>ν</mi><mo>=</mo><mfrac><msup><mrow><mo fence="true">(</mo><msubsup><mi>s</mi><mn>1</mn><mn>2</mn></msubsup><mi mathvariant="normal">/</mi><msub><mi>n</mi><mn>1</mn></msub><mo>+</mo><msubsup><mi>s</mi><mn>2</mn><mn>2</mn></msubsup><mi mathvariant="normal">/</mi><msub><mi>n</mi><mn>2</mn></msub><mo fence="true">)</mo></mrow><mn>2</mn></msup><mrow><mfrac><mrow><mo stretchy="false">(</mo><msubsup><mi>s</mi><mn>1</mn><mn>2</mn></msubsup><mi mathvariant="normal">/</mi><msub><mi>n</mi><mn>1</mn></msub><msup><mo stretchy="false">)</mo><mn>2</mn></msup></mrow><mrow><msub><mi>n</mi><mn>1</mn></msub><mo>−</mo><mn>1</mn></mrow></mfrac><mo>+</mo><mfrac><mrow><mo stretchy="false">(</mo><msubsup><mi>s</mi><mn>2</mn><mn>2</mn></msubsup><mi mathvariant="normal">/</mi><msub><mi>n</mi><mn>2</mn></msub><msup><mo stretchy="false">)</mo><mn>2</mn></msup></mrow><mrow><msub><mi>n</mi><mn>2</mn></msub><mo>−</mo><mn>1</mn></mrow></mfrac></mrow></mfrac></mrow><annotation encoding="application/x-tex">t_W = \frac{\bar y_{1\cdot}-\bar y_{2\cdot}}{\sqrt{s_1^2/n_1 + s_2^2/n_2}},\qquad \nu = \frac{\left(s_1^2/n_1 + s_2^2/n_2\right)^2}{\dfrac{(s_1^2/n_1)^2}{n_1-1} + \dfrac{(s_2^2/n_2)^2}{n_2-1}}</annotation></semantics></math></span></div>
+    <h3>On the example</h3>
+    <p class="note">Wheat 5.30, barley 4.75 t/ha (6 plots each); difference 0.55, SED 0.15, t = 3.67 on 10 df, P = 0.0043; 95 % CI of the difference 0.22…0.88; d = 2.12, g = 1.95. The Welch rule did not fire — Student version; Levene (for reference): P = 0.36.</p>
+    <p class="src">Welham et al. (2015), p. 32–35; Witte &amp; Witte (2017), p. 244–256 (t), 259–264 (CI and <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi></mrow><annotation encoding="application/x-tex">d</annotation></semantics></math></span>), 266–267 (Welch), 308 (<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi><mo>=</mo><msup><mi>t</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">F = t^2</annotation></semantics></math></span>); <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi></mrow><annotation encoding="application/x-tex">g</annotation></semantics></math></span> — [proposed: Hedges 1981].</p>
+  </section>
+  <section id="pros-cons">
+    <h2>Strengths and weaknesses</h2>
+    <div class="cols">
+      <div class="plus">
+        <h3>Strengths</h3>
+        <ul>
+      <li><b>Answers the two-group question directly.</b> The difference of means with SED and 95 % CI is what the book treats as the main result (Welham, p. 34–35).</li>
+      <li><b>Robust with equal n.</b> With equal groups of more than ~10 observations, moderate departures from the assumptions hardly matter (Witte, p. 266).</li>
+      <li><b>The Welch version</b> removes the requirement of equal variances (Welham, p. 33; Witte, p. 266–267).</li>
+      <li><b>Gives an effect size:</b> Cohen&#x27;s <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi></mrow><annotation encoding="application/x-tex">d</annotation></semantics></math></span> and Hedges&#x27; <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi></mrow><annotation encoding="application/x-tex">g</annotation></semantics></math></span> (Witte, p. 261–264; [proposed: Hedges 1981]).</li>
+      <li><b>Has a directional version:</b> a one-sided test, if the direction is set before the experiment (Witte, p. 195–202).</li>
+    </ul>
+      </div>
+      <div class="minus">
+        <h3>Weaknesses</h3>
+        <ul>
+      <li><b>Two groups only.</b> For three or more — <a class="mlink" href="/methods/one_way_anova/" title="Open the method description">one-way ANOVA</a> with a single estimate of σ² from all groups (Welham, p. 74–84).</li>
+      <li><b>Unequal variances with unequal n:</b> when the larger variance is in the smaller group, Student&#x27;s P is too small [BioStat; proposed: Ruxton 2006; Zimmerman 2004].</li>
+      <li><b>A single outlier</b> shifts the mean and inflates SED (Welham, p. 109–110).</li>
+      <li><b>Wrong for linked measurements:</b> two measurements of the same unit call for the <a class="mlink" href="/methods/#paired_t" title="Open the method description">paired t-test</a> (Welham, p. 41).</li>
+      <li><b>With small n (below ~10)</b> departures from normality are dangerous and almost impossible to detect (Witte, p. 387).</li>
+    </ul>
+      </div>
+    </div>
+    <p class="src">Welham et al. (2015), p. 33–35, 41, 74–84, 109–110; Witte &amp; Witte (2017), p. 195–202, 261–267, 387; the Welch rule — [BioStat; proposed: Ruxton 2006; Zimmerman 2004].</p>
+  </section>
+  <section id="assumptions">
+    <h2>Assumptions</h2>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Assumption</th><th>What it means</th><th>How BioStat checks it</th></tr></thead>
+      <tbody>
+<tr><td>Independence</td><td>Each observation is a separate unit: the groups contain different units, with no pairs and no repeated measurements.</td><td>Not checked by calculation — it is a property of the design. The map asks about the structure before this step and gives a hint (<span class="sig">B0.2</span>) if two numeric columns look like two measurements of the same units.</td></tr>
+<tr><td>Normality of residuals</td><td>Deviations from their group means are normally distributed.</td><td>The map uses Shapiro–Wilk on the residuals of the two-group model; with n &gt; 30 in both groups, only together with skewness &gt; 0.5 [BioStat]. The method also reports the Shapiro–Wilk P for each group — for reference.</td></tr>
+<tr><td>Equal variances (for the Student version)</td><td>σ² is the same in both groups.</td><td>Student by default. Welch is advised from the SD ratio and the balance of n: when the n differ by no more than 1.5 times, if the SDs differ by more than twice, otherwise by more than 1.5 times; with n &lt; 8 in a group, for reference only [BioStat; proposed: Ruxton 2006]. Levene — for reference. The rule is shared by the method and the map.</td></tr>
+<tr><td>No gross recording errors</td><td>A single point does not distort the means and SED.</td><td>Outlier test on the Studentized residuals with Bonferroni correction; checked first.</td></tr>
+</tbody>
+    </table></div>
+    <p class="src">Welham et al. (2015), p. 33–34, 93–110; Witte &amp; Witte (2017), p. 266.</p>
+  </section>
+  <section id="map">
+    <h2>How the map chooses this method</h2>
+    <h3>Path to the leaf</h3>
+    <div class="path" aria-label="Path on the map"><span>Analyse a response</span>›<span>Continuous</span>›<span>Differences</span>›<span>Independent units</span>›<span>No blocks or complete blocks</span>›<span>One factor</span>›<span>Two groups</span>›<span class="here">t-test</span></div>
+    <p>The map leads here when the units are independent and the single factor has two levels. The t-test is the <b>default method</b> in the “Two groups” branch: there is no positive signal for it.</p>
+    <p>Unequal variances do not move you off this leaf: signal <span class="sig">B4.2</span> suggests the same t-test in its <b>Welch version</b> (the version is chosen in the method form). If the SDs differ because of right skewness with non-normal residuals, <span class="sig">B4.2</span> stays silent: then <span class="sig">B4.1</span> and <span class="sig">B4.4</span> lead to ranks or a transformation.</p>
+    <h3>Neighbors on the map: when they win</h3>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Neighbor</th><th>When the map leads there</th><th>Why the neighbor is better here</th><th>What it costs</th></tr></thead>
+      <tbody>
+<tr><td><a class="mlink" href="/methods/#mann_whitney" title="Open the method description">Mann-Whitney test (nonparametric)</a></td><td><span class="sig">B4.1</span> / <span class="sig">B4.8</span> (hint) residuals are non-normal (Shapiro–Wilk) or the response takes only a few integer values (scores)</td><td>Does not need normality; works with scores and ranks</td><td>Compares distributions, not means; the CI is for the shift (Hodges–Lehmann), not for the difference of means</td></tr>
+<tr><td><a class="mlink" href="/methods/#transformed_means" title="Open the method description">ANOVA on a transformed response</a></td><td><span class="sig">B4.4</span> (hint) residuals are strongly skewed (|g₁| &gt; 1)</td><td>Restores symmetry; the difference becomes a ratio (how many times)</td><td>The result is on the log scale; back-transformation gives geometric means with an asymmetric CI</td></tr>
+<tr><td><a class="mlink" href="/methods/#paired_t" title="Open the method description">Paired t-test</a></td><td><span class="sig">B0.2</span> (hint) two numeric columns on the same scale are strongly correlated — they look like two measurements of the same units</td><td>Removes the differences between units from the error — a more precise comparison</td><td>Needs pairs: every measurement must have its partner</td></tr>
+<tr><td><a class="mlink" href="/methods/one_way_anova/" title="Open the method description">One-way ANOVA</a></td><td>branch point “how many levels” = three or more</td><td>One estimate of σ² from all groups instead of a series of t-tests</td><td>For two groups — the same P (F = t²), but without the Welch version, a one-sided test, the CI of the difference and d</td></tr>
+</tbody>
+    </table></div>
+    <h3>What the map checks at this leaf</h3>
+    <ul>
+      <li><span class="sig">DIAG.1</span> <b>Outlier first.</b> With an outlier candidate, the Welch advice is demoted to a hint “check the record in row N first” (Welham, p. 109–110).</li>
+      <li><span class="sig">B4.1</span> Normality of the residuals of the two-group model; with n &gt; 30 in both groups, only together with skewness &gt; 0.5 [BioStat]. Leads to Mann–Whitney.</li>
+      <li><span class="sig">B4.2</span> Unequal SDs — the same t-test in the Welch version; with n &lt; 8 in a group, for reference only [BioStat].</li>
+      <li><span class="sig">B4.4</span> (hint) Strong skewness of residuals (|g₁| &gt; 1) — a reason to transform.</li>
+      <li><span class="sig">B4.7</span> (hint) All groups have n &gt; 30: a departure from normality is probably harmless (CLT heuristic) [BioStat].</li>
+      <li><span class="sig">DIAG.3</span> Fewer than 10 residual df — a warning about low power.</li>
+    </ul>
+    <h3>What next</h3>
+    <p>A significant t says that the means differ; the size of the difference is shown by the difference itself and its 95 % CI — these are what to report (Welham, p. 34–35). If the goal is to show that there are no differences, that is a different task: <b><a class="mlink" href="/methods/#equivalence_test" title="Open the method description">the equivalence test (TOST)</a></b>; a non-significant t does not prove the absence of differences (Welham, p. 253).</p>
+  </section>
+  <details class="check" id="check">
+    <summary>Validation of the method</summary>
+    <ul>
+      <li>Tests that call the method: 23</li>
+      <li>Witte — checked by tests: Progress Check 14.9b, Table 14.1, Table 14.4</li>
+      <li>Numbers from other software in the tests: SAS</li>
+      <li>Independent cross-check (audit 2): t, df, P, CI, d, g (Student and Welch) — scipy</li>
+    </ul>
+  </details>
+</article>
+<aside class="toc" aria-label="On this page">
+  <b>On this page</b>
+  <a href="#idea">Idea</a>
+  <a href="#model">Model and formulas</a>
+  <a href="#symbols">Notation</a>
+  <a href="#pros-cons">Strengths and weaknesses</a>
+  <a href="#assumptions">Assumptions</a>
+  <a href="#map">How the map chooses</a>
+  <a href="#check">Validation of the method</a>
+  <a class="toc-back" href="/methods/#two_sample_t">↑ Back to the method list</a>
+</aside>
+<a class="to-list" href="/methods/#two_sample_t" aria-label="Back to the method list">↑</a>
+</div>
+      <footer><a href="/privacy/">Privacy</a> · <a href="/terms/">Terms</a> · <a href="/methods/">Methods and validation</a> · <a href="/LICENSE.txt">Apache-2.0 License</a></footer>
+    </main>
+  </body>
+</html>

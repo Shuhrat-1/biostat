@@ -10,7 +10,6 @@
  },
  "ru": {
   "description": "Перестановочный F-тест однофакторного ANOVA: P без допущения нормальности — идея, формула, допущения и как карта BioStat выбирает этот метод.",
-  "short": "перестановочный тест",
   "lead": "Различаются ли средние групп, если остатки не нормальны? Перестановочный тест берёт тот же F, что и ANOVA, но P получает, перемешивая метки групп, а не из F-распределения.",
   "idea": [
    "Если вариант опыта на отклик не влияет, метка группы у единицы ничего не значит: в рандомизированном опыте любая раскладка меток по единицам была одинаково возможна. Тест много раз перемешивает метки, каждый раз пересчитывает $F^*$ и смотрит, как часто случайная раскладка даёт F не меньше наблюдённого (Welham, стр. 102–103).",
@@ -149,6 +148,306 @@
    "model": "Welham et al. (2015), стр. 102–103; формула P — [предл.: Phipson & Smyth 2010].",
    "pros_cons": "Welham et al. (2015), стр. 102–103, 109–110; [BioStat].",
    "assumptions": "Welham et al. (2015), стр. 102–110."
+  },
+  "symbols": [
+   "H0",
+   "MS",
+   "df_BW",
+   "F_star",
+   "B_perm",
+   "P"
+  ]
+ },
+ "en": {
+  "description": "The permutation F-test for one-way ANOVA: P without assuming normality — idea, formula, assumptions, and how the BioStat map chooses this method.",
+  "lead": "Do the group means differ when the residuals are not normal? The permutation test uses the same F as ANOVA but gets P by shuffling the group labels rather than from the F distribution.",
+  "idea": [
+   "If the treatment has no effect on the response, a unit's group label means nothing: in a randomized experiment, any allocation of the labels to the units was equally possible. The test shuffles the labels many times, recomputes $F^*$ each time and checks how often a random allocation gives an F at least as large as the observed one (Welham, p. 102–103).",
+   "The F distribution is not needed — the distribution of the $F^*$ values themselves replaces it. So normality is not required, but homogeneity of variances still is: shuffling assumes that the groups differ only by a shift (Welham, p. 102)."
+  ],
+  "formulas": [
+   {
+    "title": "The statistic — the same F",
+    "tex": "F = \\frac{MS_B}{MS_W} = ⟦F:.1f⟧,\\qquad df = (⟦df_between⟧;\\ ⟦df_within⟧)"
+   },
+   {
+    "title": "P from random permutations",
+    "tex": "P = \\frac{1 + \\#\\{\\,b:\\ F^*_b \\ge F\\,\\}}{B+1},\\qquad B = ⟦n_permutations⟧,\\quad P = ⟦p⟧",
+    "text_after": "The one added to the numerator and the denominator counts the observed data as one of the allocations, so P is never smaller than $1/(B+1)$ [proposed: Phipson & Smyth 2010]. If there are no more distinct allocations than B, BioStat enumerates all of them, and P is the exact share of allocations with $F^* \\ge F$ (the observed one among them), with no one added (Welham, p. 102–103)."
+   }
+  ],
+  "example_table": {
+   "note": "Illustrative data set (map scenario S09): three groups of ⟦n_group⟧ values of the same right-skewed shape, shifted by 5, 6 and 8 — the variances are equal (Levene, for reference: P = ⟦levene_p:.2f⟧), the residuals are non-normal, and the map gives `B4.6`. F = ⟦F:.1f⟧ on (⟦df_between⟧; ⟦df_within⟧) df. None of the ⟦n_permutations⟧ permutations (seed = ⟦seed⟧) gave $F^* \\ge$ ⟦F:.1f⟧, so P = ⟦p⟧ — the smallest possible with B = ⟦n_permutations⟧; from the F distribution, P = ⟦f_test_p:sci1⟧. There are ⟦arrangements:grp⟧ allocations of 30 values to three groups, so the permutations are random. On this set the map also hints at a transformation (`B4.4`, residual skewness above 1); the `DIAG.2` hint about correlation along the row order arises because the values in the set are sorted."
+  },
+  "pros": [
+   "**Does not need normal residuals** — P comes from the distribution of $F^*$ (Welham, p. 102).",
+   "**The same statistic and the same means** as in ANOVA: the results compare directly [BioStat].",
+   "**Exact when there are few allocations:** if there are no more than B, all of them are enumerated (Welham, p. 102–103).",
+   "**Reproducible:** the seed is stored in the result, and a recalculation gives the same P [BioStat]."
+  ],
+  "cons": [
+   "**Needs homogeneous variances** — with heterogeneous ones it is no substitute for Welch (Welham, p. 102).",
+   "**Justified by randomization:** with observational data, shuffling the labels is only an approximation (Welham, p. 103).",
+   "**P is never below $1/(B+1)$** with random permutations and changes slightly with another seed; very small P need more permutations (B up to 99 999) [BioStat].",
+   "**One factor without blocks only.** The permutations must respect the structure of the experiment (Welham, p. 102–103); BioStat has no such version for blocks.",
+   "**Does not fix an outlier:** F is still built on the means (Welham, p. 109–110)."
+  ],
+  "assumptions": [
+   {
+    "name": "Exchangeability (randomization)",
+    "meaning": "If $H_0$ is true, any allocation of the labels to the units is equally possible — as it is in a randomized experiment.",
+    "biostat": "Not checked by calculation. The map shows a caveat depending on the choice at the first step: “Experiment” — the test is justified by randomization; “Observational” — only an approximation, draw conclusions with care."
+   },
+   {
+    "name": "Homogeneity of variances",
+    "meaning": "The groups differ by a shift, not by spread.",
+    "biostat": "The same rule as the map's: Bartlett for three or more groups, the SD ratio for two (with n ≥ 8 per group); if it is violated, the method warns. Levene — for reference."
+   },
+   {
+    "name": "No gross recording errors",
+    "meaning": "A single point does not distort the means and $MS_W$.",
+    "biostat": "Outlier test on the Studentized residuals with Bonferroni correction; checked first."
+   }
+  ],
+  "map_intro": [
+   "The map leads here with signal `B4.6`: in three or more groups **the residuals are non-normal** (`B4.1`) while **the variances are homogeneous** (`B4.2` is silent). If the variances are heterogeneous, `B4.6` stays silent, and the choice is between Welch and a transformation.",
+   "For two groups the map has no permutation-test leaf: non-normal residuals lead to Mann–Whitney. The method itself accepts two groups. With an outlier candidate, `B4.6` becomes a hint: check the record first."
+  ],
+  "neighbours": [
+   {
+    "method": "one_way_anova",
+    "signals": [],
+    "when": "residuals are normal — the default leaf",
+    "advantage": "P from the F distribution: no randomness and no lower bound on P",
+    "cost": "Needs normal residuals"
+   },
+   {
+    "method": "welch_anova",
+    "signals": [
+     "B4.5"
+    ],
+    "when": "variances are heterogeneous and do not grow with the means",
+    "advantage": "Correct with unequal variances",
+    "cost": "Needs normality; no common $MS_W$"
+   },
+   {
+    "method": "transformed_means",
+    "signals": [
+     "B4.3",
+     "B4.4"
+    ],
+    "when": "SDs grow with the means or residuals are strongly skewed (|g₁| > 1)",
+    "advantage": "Fixes skewness and heterogeneity at once; ordinary F and SED on the new scale",
+    "cost": "Means are geometric, CIs asymmetric"
+   },
+   {
+    "method": "kruskal_wallis",
+    "signals": [
+     "B4.8"
+    ],
+    "when": "the response takes only a few integer values (scores)",
+    "advantage": "Works with ranks; robust to outliers",
+    "cost": "Compares distributions, not means"
+   },
+   {
+    "method": "rcbd_anova",
+    "signals": [
+     "B1.2",
+     "B1.8"
+    ],
+    "when": "each treatment once in every block (or a column that looks like blocks)",
+    "advantage": "Removes the differences between blocks from the error",
+    "cost": "Needs a block column; normal residuals are required again"
+   }
+  ],
+  "checks": [
+   {
+    "signals": [
+     "DIAG.1"
+    ],
+    "text": "**Outlier first.** With an outlier candidate, the permutation-test advice is demoted to a hint “check the record in row N first” (Welham, p. 109–110)."
+   },
+   {
+    "signals": [
+     "B4.1"
+    ],
+    "text": "Normality of residuals (Shapiro–Wilk); with n > 30 in every group, only together with skewness > 0.5 [BioStat]."
+   },
+   {
+    "signals": [
+     "B4.2"
+    ],
+    "text": "Homogeneity of variances (Bartlett): if heterogeneous — Welch or a transformation instead of this test."
+   },
+   {
+    "signals": [
+     "B4.3",
+     "B4.4"
+    ],
+    "text": "A link between SD and the means and strong skewness of residuals — reasons to transform."
+   },
+   {
+    "signals": [
+     "DIAG.3"
+    ],
+    "text": "Fewer than 10 residual df — a warning about low power."
+   }
+  ],
+  "next": "The permutation P answers whether the means differ at all. The comparisons after ANOVA (B5) use the t distribution: with clearly non-normal residuals their P are approximate; BioStat has no permutation version of the comparisons. If the goal is to show that there are no differences, that is a different task: **[the equivalence test (TOST)](method:equivalence_test)**; a non-significant F does not prove the absence of differences (Welham, p. 253).",
+  "sources": {
+   "model": "Welham et al. (2015), p. 102–103; the formula for P — [proposed: Phipson & Smyth 2010].",
+   "pros_cons": "Welham et al. (2015), p. 102–103, 109–110; [BioStat].",
+   "assumptions": "Welham et al. (2015), p. 102–110."
+  },
+  "symbols": [
+   "H0",
+   "MS",
+   "df_BW",
+   "F_star",
+   "B_perm",
+   "P"
+  ]
+ },
+ "pt": {
+  "description": "Teste F de permutação da ANOVA a um fator: P sem pressupor normalidade — ideia, fórmula, pressupostos e como o mapa do BioStat escolhe este método.",
+  "lead": "As médias dos grupos diferem quando os resíduos não são normais? O teste de permutação usa o mesmo F da ANOVA, mas obtém o P (valor de prova) baralhando os rótulos dos grupos, e não a partir da distribuição F.",
+  "idea": [
+   "Se o tratamento não afeta a resposta, o rótulo do grupo de uma unidade nada significa: num ensaio casualizado, qualquer atribuição dos rótulos às unidades era igualmente possível. O teste baralha os rótulos muitas vezes, recalcula $F^*$ de cada vez e vê com que frequência uma atribuição aleatória dá um F pelo menos tão grande como o observado (Welham, p. 102–103).",
+   "A distribuição F não é necessária — substitui-a a distribuição dos próprios $F^*$. Por isso não se exige normalidade, mas continua a exigir-se homogeneidade de variâncias: baralhar pressupõe que os grupos diferem apenas por um deslocamento (Welham, p. 102)."
+  ],
+  "formulas": [
+   {
+    "title": "A estatística — o mesmo F",
+    "tex": "F = \\frac{MS_B}{MS_W} = ⟦F:.1f⟧,\\qquad df = (⟦df_between⟧;\\ ⟦df_within⟧)"
+   },
+   {
+    "title": "P por permutações aleatórias",
+    "tex": "P = \\frac{1 + \\#\\{\\,b:\\ F^*_b \\ge F\\,\\}}{B+1},\\qquad B = ⟦n_permutations⟧,\\quad P = ⟦p⟧",
+    "text_after": "A unidade somada ao numerador e ao denominador conta os próprios dados observados como uma das atribuições, por isso o P nunca é menor do que $1/(B+1)$ [proposta: Phipson & Smyth 2010]. Se não houver mais atribuições distintas do que B, o BioStat percorre-as todas, e o P é a proporção exata de atribuições com $F^* \\ge F$ (a observada é uma delas), sem somar a unidade (Welham, p. 102–103)."
+   }
+  ],
+  "example_table": {
+   "note": "Conjunto ilustrativo (cenário S09 do mapa): três grupos de ⟦n_group⟧ valores com a mesma forma assimétrica à direita, deslocados de 5, 6 e 8 — as variâncias são iguais (Levene, referência: P = ⟦levene_p:.2f⟧), os resíduos não são normais e o mapa dá `B4.6`. F = ⟦F:.1f⟧ com (⟦df_between⟧; ⟦df_within⟧) gl. Nenhuma das ⟦n_permutations⟧ permutações (seed = ⟦seed⟧) deu $F^* \\ge$ ⟦F:.1f⟧, por isso P = ⟦p⟧ — o menor possível com B = ⟦n_permutations⟧; pela distribuição F, P = ⟦f_test_p:sci1⟧. Há ⟦arrangements:grp⟧ atribuições de 30 valores a três grupos, por isso as permutações são aleatórias. Neste conjunto o mapa sugere também uma transformação (`B4.4`, assimetria dos resíduos acima de 1); a sugestão `DIAG.2` sobre correlação pela ordem das linhas resulta de os valores do conjunto estarem ordenados."
+  },
+  "pros": [
+   "**Não exige normalidade dos resíduos** — o P vem da distribuição de $F^*$ (Welham, p. 102).",
+   "**A mesma estatística e as mesmas médias** que na ANOVA: os resultados comparam-se diretamente [BioStat].",
+   "**Exato quando há poucas atribuições:** se não forem mais do que B, percorrem-se todas (Welham, p. 102–103).",
+   "**Reprodutível:** a seed fica guardada no resultado, e um novo cálculo dá o mesmo P [BioStat]."
+  ],
+  "cons": [
+   "**Exige variâncias homogéneas** — com variâncias heterogéneas não substitui Welch (Welham, p. 102).",
+   "**Justifica-se pela casualização:** em dados observacionais, baralhar os rótulos é só uma aproximação (Welham, p. 103).",
+   "**O P nunca é inferior a $1/(B+1)$** com permutações aleatórias e varia ligeiramente com outra seed; para P muito pequenos são precisas mais permutações (B até 99 999) [BioStat].",
+   "**Só um fator, sem blocos.** As permutações têm de respeitar a estrutura do ensaio (Welham, p. 102–103); para blocos, o BioStat não tem esta variante.",
+   "**Não corrige uma observação atípica:** o F continua a basear-se nas médias (Welham, p. 109–110)."
+  ],
+  "assumptions": [
+   {
+    "name": "Permutabilidade (casualização)",
+    "meaning": "Com $H_0$ verdadeira, qualquer atribuição dos rótulos às unidades é igualmente possível — como num ensaio casualizado.",
+    "biostat": "Não se verifica por cálculo. O mapa mostra uma ressalva conforme a escolha no primeiro passo: «Experiência» — o teste justifica-se pela casualização; «Observacional» — só uma aproximação, conclusões com cautela."
+   },
+   {
+    "name": "Homogeneidade de variâncias",
+    "meaning": "Os grupos diferem por um deslocamento, não pela dispersão.",
+    "biostat": "A mesma regra que a do mapa: para três ou mais grupos — Bartlett, para dois — a razão dos DP (com n ≥ 8 por grupo); se for violada, o método avisa. Levene — referência."
+   },
+   {
+    "name": "Sem erros grosseiros de registo",
+    "meaning": "Um ponto isolado não distorce as médias nem o quadrado médio residual (QMRE, $MS_W$).",
+    "biostat": "Teste de observação atípica nos resíduos Studentizados com correção de Bonferroni; verificado primeiro."
+   }
+  ],
+  "map_intro": [
+   "O mapa conduz a esta folha com o sinal `B4.6`: em três ou mais grupos **os resíduos não são normais** (`B4.1`) e **as variâncias são homogéneas** (`B4.2` fica em silêncio). Se as variâncias forem heterogéneas, `B4.6` fica em silêncio, e a escolha é entre Welch e a transformação.",
+   "Para dois grupos, o mapa não tem folha de teste de permutação: resíduos não normais levam a Mann–Whitney. O próprio método aceita dois grupos. Com uma candidata a observação atípica, `B4.6` passa a sugestão: verifique primeiro o registo."
+  ],
+  "neighbours": [
+   {
+    "method": "one_way_anova",
+    "signals": [],
+    "when": "resíduos normais — folha por omissão",
+    "advantage": "P pela distribuição F: sem aleatoriedade e sem limite inferior do P",
+    "cost": "Exige resíduos normais"
+   },
+   {
+    "method": "welch_anova",
+    "signals": [
+     "B4.5"
+    ],
+    "when": "variâncias heterogéneas que não crescem com as médias",
+    "advantage": "Correta com variâncias desiguais",
+    "cost": "Exige normalidade; sem $MS_W$ comum"
+   },
+   {
+    "method": "transformed_means",
+    "signals": [
+     "B4.3",
+     "B4.4"
+    ],
+    "when": "os DP crescem com as médias ou os resíduos são fortemente assimétricos (|g₁| > 1)",
+    "advantage": "Corrige a assimetria e a heterogeneidade de uma vez; F habitual e EPD (nas fórmulas: SED) na nova escala",
+    "cost": "Médias geométricas, IC assimétricos"
+   },
+   {
+    "method": "kruskal_wallis",
+    "signals": [
+     "B4.8"
+    ],
+    "when": "a resposta tem poucos valores inteiros (pontuações)",
+    "advantage": "Trabalha com postos; resistente a observações atípicas",
+    "cost": "Compara distribuições, não médias"
+   },
+   {
+    "method": "rcbd_anova",
+    "signals": [
+     "B1.2",
+     "B1.8"
+    ],
+    "when": "cada tratamento uma vez em cada bloco (ou uma coluna que parece blocos)",
+    "advantage": "Retira do erro as diferenças entre blocos",
+    "cost": "Precisa de uma coluna de blocos; volta a exigir resíduos normais"
+   }
+  ],
+  "checks": [
+   {
+    "signals": [
+     "DIAG.1"
+    ],
+    "text": "**Observação atípica primeiro.** Com uma candidata a observação atípica, o conselho do teste de permutação passa a sugestão «verifique primeiro o registo na linha N» (Welham, p. 109–110)."
+   },
+   {
+    "signals": [
+     "B4.1"
+    ],
+    "text": "Normalidade dos resíduos (Shapiro–Wilk); com n > 30 em cada grupo, só em conjunto com assimetria > 0.5 [BioStat]."
+   },
+   {
+    "signals": [
+     "B4.2"
+    ],
+    "text": "Homogeneidade de variâncias (Bartlett): se forem heterogéneas — Welch ou uma transformação em vez deste teste."
+   },
+   {
+    "signals": [
+     "B4.3",
+     "B4.4"
+    ],
+    "text": "Relação entre DP e médias e assimetria forte dos resíduos — motivos para transformar."
+   },
+   {
+    "signals": [
+     "DIAG.3"
+    ],
+    "text": "Menos de 10 gl do resíduo — aviso de potência baixa."
+   }
+  ],
+  "next": "O P de permutação responde se as médias diferem de todo. As comparações após a ANOVA (B5) usam a distribuição t: com resíduos claramente não normais, os seus P são aproximados; o BioStat não tem variante de permutação das comparações. Se o objetivo for mostrar que não há diferenças, trata-se de outra tarefa: **[o teste de equivalência (TOST)](method:equivalence_test)**; um F não significativo não prova a ausência de diferenças (Welham, p. 253).",
+  "sources": {
+   "model": "Welham et al. (2015), p. 102–103; fórmula do P — [proposta: Phipson & Smyth 2010].",
+   "pros_cons": "Welham et al. (2015), p. 102–103, 109–110; [BioStat].",
+   "assumptions": "Welham et al. (2015), p. 102–110."
   },
   "symbols": [
    "H0",

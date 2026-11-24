@@ -114,12 +114,17 @@
   "d \\pm t_{N-t}[\\alpha]\\cdot\\mathrm{SED} \\subset (-c;\\ c),\\qquad 100(1-2\\alpha)\\,\\% = 90\\,\\%",
   "s_p^2 = \\frac{(n_1-1)\\,s_1^2 + (n_2-1)\\,s_2^2}{n_1+n_2-2},\\qquad \\mathrm{SED} = \\sqrt{s_p^2\\left(\\frac1{n_1}+\\frac1{n_2}\\right)}",
   "t = \\frac{\\bar y_{1\\cdot}-\\bar y_{2\\cdot}}{\\mathrm{SED}} = \\frac{5.30-4.75}{0.15} = 3.67,\\qquad n_1+n_2-2 = 10\\ \\text{df},\\qquad P = 0.0043",
+  "t = \\frac{\\bar y_{1\\cdot}-\\bar y_{2\\cdot}}{\\mathrm{SED}} = \\frac{5.30-4.75}{0.15} = 3.67,\\qquad n_1+n_2-2 = 10\\ \\text{gl},\\qquad P = 0.0043",
   "t_W = \\frac{\\bar y_{1\\cdot}-\\bar y_{2\\cdot}}{\\sqrt{s_1^2/n_1 + s_2^2/n_2}},\\qquad \\nu = \\frac{\\left(s_1^2/n_1 + s_2^2/n_2\\right)^2}{\\dfrac{(s_1^2/n_1)^2}{n_1-1} + \\dfrac{(s_2^2/n_2)^2}{n_2-1}}",
   "t_a = \\frac{d + c}{\\mathrm{SED}} \\ge t_{N-t}[\\alpha],\\qquad t_b = \\frac{d - c}{\\mathrm{SED}} \\le -t_{N-t}[\\alpha]",
   "t_{jk} = \\frac{\\bar y_{j\\cdot} - \\bar y_{k\\cdot}}{\\mathrm{SED}_{jk}},\\qquad (\\bar y_{j\\cdot} - \\bar y_{k\\cdot}) \\pm c\\cdot\\mathrm{SED}_{jk}",
   "w_i = \\frac{n_i}{s_i^2},\\qquad W = \\sum_i w_i,\\qquad \\bar y_w = \\frac{\\sum_i w_i\\,\\bar y_{i\\cdot}}{W}",
   "y_{ij} = \\mu + \\tau_i + \\beta_j + \\varepsilon_{ij},\\qquad \\varepsilon_{ij} \\sim N(0,\\sigma^2)\\ \\text{независимо}",
+  "y_{ij} = \\mu + \\tau_i + \\varepsilon_{ij},\\qquad \\varepsilon_{ij} \\sim N(0,\\sigma^2)\\ \\text{independentes},\\qquad \\textstyle\\sum_i n_i\\tau_i = 0",
+  "y_{ij} = \\mu + \\tau_i + \\varepsilon_{ij},\\qquad \\varepsilon_{ij} \\sim N(0,\\sigma^2)\\ \\text{independently},\\qquad \\textstyle\\sum_i n_i\\tau_i = 0",
   "y_{ij} = \\mu + \\tau_i + \\varepsilon_{ij},\\qquad \\varepsilon_{ij} \\sim N(0,\\sigma^2)\\ \\text{независимо},\\qquad \\textstyle\\sum_i n_i\\tau_i = 0",
+  "y_{ij} = \\mu_i + \\varepsilon_{ij},\\qquad \\varepsilon_{ij} \\sim N(0,\\sigma^2)\\ \\text{independentes},\\qquad H_0:\\ \\mu_1 = \\mu_2",
+  "y_{ij} = \\mu_i + \\varepsilon_{ij},\\qquad \\varepsilon_{ij} \\sim N(0,\\sigma^2)\\ \\text{independently},\\qquad H_0:\\ \\mu_1 = \\mu_2",
   "y_{ij} = \\mu_i + \\varepsilon_{ij},\\qquad \\varepsilon_{ij} \\sim N(0,\\sigma^2)\\ \\text{независимо},\\qquad H_0:\\ \\mu_1 = \\mu_2",
   "z_{ij} = \\log_{10}(y_{ij} + c)"
  ]

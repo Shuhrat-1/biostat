@@ -27,6 +27,8 @@ import static_pages  # noqa: E402
 from core.validation.catalog import CATALOG  # noqa: E402
 
 CONTENTS = mp.contents()
+WRITTEN = [(mid, lang) for mid, c in sorted(CONTENTS.items()) for lang in mp.LANGS if lang in c]
+TRANSLATED = [(mid, lang) for mid, lang in WRITTEN if lang != "ru"]
 PAGES = static_pages.pages()
 METHOD_IDS = {m.method for m in CATALOG}
 WIDGET_JS = WEB / "public" / "methods" / "assets" / "groups-split.js"
@@ -47,7 +49,8 @@ def test_pages_exist_only_for_written_languages() -> None:
     for mid, c in CONTENTS.items():
         for lang in mp.LANGS:
             assert (mp.page_file(f"methods/{mid}", lang) in PAGES) == (lang in c), (mid, lang)
-    assert mp.page_file("methods/symbols", "ru") in PAGES and mp.page_file("methods/symbols", "en") not in PAGES
+    for lang in mp.LANGS:
+        assert (mp.page_file("methods/symbols", lang) in PAGES) == bool(mp.available(lang)), lang
 
 
 @pytest.mark.parametrize("path", [p for p in PAGES if "methods/" in p.as_posix() and p.suffix == ".html"])
@@ -140,9 +143,9 @@ def test_symbols_are_defined_in_three_languages() -> None:
             assert set(c[lang]["symbols"]) <= set(symbols)
 
 
-@pytest.mark.parametrize("mid", sorted(CONTENTS))
-def test_substitutions_resolved_and_markup_consumed(mid: str) -> None:
-    text = _text_only(_html(mid))
+@pytest.mark.parametrize("mid,lang", WRITTEN)
+def test_substitutions_resolved_and_markup_consumed(mid: str, lang: str) -> None:
+    text = _text_only(_html(mid, lang))
     for leftover in ("⟦", "⟧", "$", "**", "](method:"):
         assert leftover not in text, leftover
 
@@ -206,24 +209,43 @@ def test_navigation_back_to_the_list() -> None:
 
 
 def test_list_page_links_detailed_methods_and_groups() -> None:
-    ru, en = (PAGES[static_pages.PUBLIC / static_pages.page_path("methods", x).strip("/") / "index.html"]
-              for x in ("ru", "en"))
-    written = [m for m, c in CONTENTS.items() if "ru" in c]
-    assert all(f'<a href="/ru/methods/{m}/">Подробно →</a>' in ru for m in written)
-    assert ru.count("Подробно →") == len(written)
-    assert "In detail →" not in en  # на en страницы метода нет
+    lists = {x: PAGES[static_pages.PUBLIC / static_pages.page_path("methods", x).strip("/") / "index.html"]
+             for x in mp.LANGS}
+    for lang, page in lists.items():  # «Подробно →» — только к страницам на языке списка
+        more, written = methods_page.TEXTS[lang]["more"], mp.available(lang)
+        path = static_pages.page_path
+        assert all(f'<a href="{path("methods/" + m, lang)}">{more}</a>' in page for m in written), lang
+        assert page.count(more) == len(written), lang
+    ru = lists["ru"]
     assert set(methods_page.GROUP_IDS) == {m.group for m in CATALOG}
     assert re.findall(r'<h3 id="([a-z0-9_]+)">', ru) == [m.method for m in CATALOG]  # порядок и якоря
 
 
-def test_ru_only_hreflang_and_sitemap() -> None:
-    page = _html("one_way_anova")
-    url = "https://biostat.app/ru/methods/one_way_anova/"
-    assert re.findall(r'hreflang="([a-z-]+)" href="([^"]+)"', page) == [("ru", url), ("x-default", url)]
+def _alternates(slug: str, langs: list[str]) -> list[tuple[str, str]]:
+    """hreflang страницы: её языки и x-default — английская версия, а без неё — первая."""
+    url = lambda code: "https://biostat.app" + static_pages.page_path(slug, code)  # noqa: E731
+    return [(x, url(x)) for x in langs] + [("x-default", url("en" if "en" in langs else langs[0]))]
+
+
+@pytest.mark.parametrize("mid,lang", WRITTEN)
+def test_hreflang_and_sitemap_list_only_written_languages(mid: str, lang: str) -> None:
+    langs = [x for x in static_pages.LANGS if x in CONTENTS[mid]]
+    expected = _alternates(f"methods/{mid}", langs)
+    assert re.findall(r'hreflang="([a-z-]+)" href="([^"]+)"', _html(mid, lang)) == expected
     sitemap = (WEB / "public" / "sitemap.xml").read_text(encoding="utf-8")
-    assert f"<loc>{url}</loc>" in sitemap and "<loc>https://biostat.app/ru/methods/symbols/</loc>" in sitemap
-    assert all(f"<loc>https://biostat.app/ru/methods/{m}/</loc>" in sitemap for m, c in CONTENTS.items() if "ru" in c)
-    assert "/en/methods/one_way_anova/" not in sitemap and "https://biostat.app/methods/one_way_anova/" not in sitemap
+    entry = re.search(rf"<loc>{re.escape(expected[langs.index(lang)][1])}</loc>(.*?)</url>", sitemap, re.S)
+    assert entry, (mid, lang)
+    assert re.findall(r'hreflang="([a-z-]+)" href="([^"]+)"', entry.group(1)) == expected
+    unwritten = [x for x in mp.LANGS if x not in langs]
+    assert all(f"<loc>https://biostat.app{static_pages.page_path('methods/' + mid, x)}</loc>" not in sitemap
+               for x in unwritten)
+
+
+def test_sitemap_lists_the_symbols_page_in_every_written_language() -> None:
+    sitemap = (WEB / "public" / "sitemap.xml").read_text(encoding="utf-8")
+    for lang in mp.LANGS:
+        loc = f"<loc>https://biostat.app{static_pages.page_path('methods/symbols', lang)}</loc>"
+        assert (loc in sitemap) == bool(mp.available(lang)), lang
 
 
 def test_symbols_page_lists_every_key_with_pages() -> None:
@@ -507,7 +529,108 @@ def test_number_formats() -> None:
 
 def test_no_equals_before_less_than() -> None:
     """«P = < 0.001» — ошибка подстановки: для P ниже порога — ⟦p:rel⟧."""
-    for mid, c in CONTENTS.items():
-        if "ru" in c:
-            text = re.sub(r"<[^>]+>", " ", _html(mid))
-            assert not re.search(r"=\s*(&lt;|<)\s*0\.001", text), mid
+    for mid, lang in WRITTEN:
+        text = re.sub(r"<[^>]+>", " ", _html(mid, lang))
+        assert not re.search(r"=\s*(&lt;|<)\s*0\.001", text), (mid, lang)
+
+
+# --- M3: переводы en и pt ------------------------------------------------------------------
+
+PLACEHOLDER = re.compile(r"⟦[^⟧]+⟧")
+METHOD_LINK = re.compile(r"\]\(method:([a-z0-9_]+)\)")
+SIGNAL = re.compile(r"`([^`]+)`")
+INLINE_TEX = re.compile(r"\$([^$]+)\$")
+TEX_TEXT = re.compile(r"\\text\{[^{}]*\}")
+PAGE_REF = re.compile(r"(Welham|Witte)|(?:стр\.|p\.)\s*(\d+(?:–\d+)?(?:\s*(?:\([^()]*\))?\s*,\s*\d+(?:–\d+)?)*)")
+TAG = re.compile(r"\[([^\[\]]*(?:BioStat|предл\.|proposed|proposta)[^\[\]]*)\](?!\()")
+PROPOSED = re.compile(r"^(?:предл\.|proposed|proposta):\s*")
+
+
+def _leaves(node, path: str = "") -> dict[str, str]:
+    """Все строки блока языка: путь (ключи и индексы) → текст."""
+    if isinstance(node, dict):
+        return {k: v for key, val in node.items() for k, v in _leaves(val, f"{path}/{key}").items()}
+    if isinstance(node, list):
+        return {k: v for i, val in enumerate(node) for k, v in _leaves(val, f"{path}[{i}]").items()}
+    return {path: node}
+
+
+def _source_refs(text: str) -> list[tuple[str, str]]:
+    """Источники строки: страницы Welham и Witte, метки [предл.: …] и [BioStat …]."""
+    refs, author = [], "Welham"
+    for name, pages in PAGE_REF.findall(text):
+        if name:
+            author = name
+            continue
+        refs += [(author, r) for r in re.findall(r"\d+(?:–\d+)?", re.sub(r"\([^()]*\)", "", pages))]
+    for tag in TAG.findall(text):
+        kind = None
+        for item in (x.strip() for x in tag.split(";")):
+            if item.startswith("BioStat"):
+                kind = "BioStat"
+                refs.append(("BioStat", " ".join(re.findall(r"\d+(?:-\d+)?", item))))
+            elif PROPOSED.match(item) or kind == "proposed":
+                kind = "proposed"
+                refs.append(("proposed", PROPOSED.sub("", item)))
+    return sorted(refs)
+
+
+def _markers(text: str) -> tuple:
+    """То, что перевод не меняет: подстановки, ссылки на методы, сигналы, формулы, источники."""
+    tex = sorted(TEX_TEXT.sub(r"\\text{}", t) for t in INLINE_TEX.findall(text))
+    return (sorted(PLACEHOLDER.findall(text)), METHOD_LINK.findall(text), sorted(SIGNAL.findall(text)),
+            tex, _source_refs(text))
+
+
+@pytest.mark.parametrize("mid,lang", TRANSLATED)
+def test_translation_keeps_the_structure_of_ru(mid: str, lang: str) -> None:
+    """Перевод, а не новый текст: те же поля и пункты, соседи, сигналы, символы."""
+    ru, t = _leaves(CONTENTS[mid]["ru"]), _leaves(CONTENTS[mid][lang])
+    assert set(t) == set(ru)
+    same = [k for k in ru if re.search(r"/(method|signals\[\d+\]|symbols\[\d+\])$", k)
+            or k.startswith("/example_table/format")]
+    assert {k: t[k] for k in same} == {k: ru[k] for k in same}
+
+
+@pytest.mark.parametrize("mid,lang", TRANSLATED)
+def test_translation_keeps_numbers_links_formulas_and_sources(mid: str, lang: str) -> None:
+    """В каждой строке — те же ⟦…⟧, ссылки method:, `сигналы`, $TeX$ и источники, что в ru."""
+    ru, t = _leaves(CONTENTS[mid]["ru"]), _leaves(CONTENTS[mid][lang])
+    for key, text in ru.items():
+        if key.endswith("/tex"):
+            assert TEX_TEXT.sub(r"\\text{}", t[key]) == TEX_TEXT.sub(r"\\text{}", text), key
+        else:
+            assert _markers(t[key]) == _markers(text), key
+
+
+def test_source_refs_parser() -> None:
+    text = ("(Welham, стр. 33; Witte, стр. 266–267) Witte & Witte (2017), стр. 244–256 (t), 259–264 (ДИ), 308 "
+            "[BioStat; предл.: Ruxton 2006; Zimmerman 2004] [BioStat: имитация, аудит 01] [ссылка](method:x)")
+    assert _source_refs(text) == sorted([
+        ("Welham", "33"), ("Witte", "266–267"), ("Witte", "244–256"), ("Witte", "259–264"), ("Witte", "308"),
+        ("BioStat", ""), ("proposed", "Ruxton 2006"), ("proposed", "Zimmerman 2004"), ("BioStat", "01")])
+    en = text.replace("стр.", "p.").replace("предл.", "proposed").replace("имитация, аудит", "simulation, audit")
+    assert _source_refs(en) == _source_refs(text)
+
+
+@pytest.mark.parametrize("mid,lang", TRANSLATED)
+def test_translated_page_has_no_russian(mid: str, lang: str) -> None:
+    """Ни одной кириллической буквы: ни в тексте, ни в подписях карты, данных и проверки."""
+    page = re.sub(r"<annotation[^>]*>.*?</annotation>", "", _html(mid, lang), flags=re.S)
+    page = re.sub(r'<a [^>]*lang="ru"[^>]*>Русский</a>', "", page)  # переключатель языка
+    assert not re.findall(r".{0,40}[А-Яа-яЁё].{0,40}", page)
+
+
+def test_example_labels_are_copies_of_example_data_words() -> None:
+    src = (WEB / "src" / "exampleData.ts").read_text(encoding="utf-8")
+    example = json.loads((mp.CONTENT / "examples" / "field_trial.json").read_text(encoding="utf-8"))
+    for lang in ("en", "pt"):
+        crops = re.search(lang + r': \{ header: "[^"]+",\s*crops: \{([^}]*)\}', src).group(1)
+        assert example["labels"][lang] == dict(re.findall(r'"([^"]+)": "([^"]+)"', crops)), lang
+
+
+def test_widget_group_names_follow_the_page_language() -> None:
+    for lang, names in (("en", ("wheat", "barley", "oats")), ("pt", ("trigo", "cevada", "aveia"))):
+        if "one_way_anova" in mp.available(lang):
+            page = _html("one_way_anova", lang)
+            assert all(f">{n}</text>" in page for n in names), lang

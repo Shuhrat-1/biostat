@@ -15,7 +15,6 @@
  },
  "ru": {
   "description": "ANOVA Уэлча: сравнение средних трёх и более групп при неравных дисперсиях — идея, формулы, допущения и как карта BioStat выбирает этот метод.",
-  "short": "ANOVA Уэлча",
   "lead": "Различаются ли средние трёх и более групп, если разброс внутри групп разный? ANOVA Уэлча сравнивает средние, не объединяя дисперсии групп в одну.",
   "idea": [
    "Обычный ANOVA оценивает одну дисперсию на все группы — $MS_W$. Если в одной группе разброс большой, а в другой малый, общая оценка не подходит ни одной: при неравных n P получается неверным [предл.: Glass et al. 1972].",
@@ -205,6 +204,392 @@
    "classic": "Обычный F",
    "welch": "Уэлч",
    "note": "В исходном положении — учебный набор S08: оба P очень малы. Сблизьте средние почти до совпадения: обычный F теряет различие раньше Уэлча — общая MS внутри раздута разбросом группы b, а у Уэлча вес b мал. Уменьшите разброс b примерно до ×0.2: дисперсии сравняются, веса тоже, и оба теста дадут близкие P. Ползунок n меняет только число значений в b при том же среднем и SD; бледные точки — «убранные»."
+  }
+ },
+ "en": {
+  "description": "Welch's ANOVA: comparing the means of three or more groups with unequal variances — idea, formulas, assumptions, and how the BioStat map chooses this method.",
+  "lead": "Do the means of three or more groups differ when the spread within the groups is different? Welch's ANOVA compares the means without pooling the group variances into one.",
+  "idea": [
+   "Ordinary ANOVA estimates one variance for all groups — $MS_W$. If the spread is large in one group and small in another, the pooled estimate fits neither: with unequal n, P comes out wrong [proposed: Glass et al. 1972].",
+   "Welch weights each group mean by its own precision: the weight $w_i = n_i/s_i^2$ is larger the smaller the spread and the more observations there are. $F_W$ measures how far the means scatter around the weighted grand mean, and the denominator degrees of freedom are estimated from the data and are usually fractional [proposed: Welch 1951]."
+  ],
+  "formulas": [
+   {
+    "title": "Weights and weighted mean",
+    "tex": "w_i = \\frac{n_i}{s_i^2},\\qquad W = \\sum_i w_i,\\qquad \\bar y_w = \\frac{\\sum_i w_i\\,\\bar y_{i\\cdot}}{W}"
+   },
+   {
+    "title": "Welch statistic",
+    "tex": "F_W = \\frac{\\sum_i w_i\\,(\\bar y_{i\\cdot}-\\bar y_w)^2/(t-1)}{1 + \\frac{2(t-2)}{t^2-1}\\,\\Lambda},\\qquad \\Lambda = \\sum_i \\frac{(1-w_i/W)^2}{n_i-1}"
+   },
+   {
+    "title": "Degrees of freedom and P",
+    "tex": "\\nu_1 = t-1,\\qquad \\nu_2 = \\frac{t^2-1}{3\\Lambda};\\qquad F_W = ⟦F:.1f⟧,\\quad \\nu_2 = ⟦df_within:.1f⟧,\\quad P = ⟦p:sci1⟧",
+    "text_after": "If $H_0$ is true, $F_W$ approximately follows the F distribution with ($\\nu_1$, $\\nu_2$) degrees of freedom; with two groups $F_W = t_W^2$ — the square of Welch's t statistic."
+   }
+  ],
+  "example_table": {
+   "note": "Illustrative data set (map scenario S08): three groups of ⟦n_group⟧ values, built as 10, 20 and 30 plus normal noise with SD 1, 5 and 1 — the spread does not grow with the mean. Sample SDs: a ⟦sd_a:.2f⟧, b ⟦sd_b:.2f⟧, c ⟦sd_c:.2f⟧. The variances are heterogeneous (Bartlett X² = ⟦bartlett_x2:.1f⟧ > ⟦bartlett_crit:.2f⟧), and the map gives `B4.5`. $F_W$ = ⟦F:.1f⟧ on (⟦df_between:.0f⟧; ⟦df_within:.1f⟧) df, P = ⟦p:sci1⟧; ordinary F = ⟦F_classic:.1f⟧ on (⟦df_classic_between⟧; ⟦df_classic_within⟧) df, P = ⟦p_classic:sci1⟧. Games–Howell: ⟦n_significant⟧ of ⟦n_comparisons⟧ pairs differ. Signal `B4.1` (pooled residuals non-normal) fires too: a mixture of residuals with different SDs is not normal, although the values within each group were built as normal."
+  },
+  "pros": [
+   "**Does not need equal variances.** P is correct with unequal σ² and unequal n — where the ordinary F goes wrong [proposed: Welch 1951; Glass et al. 1972].",
+   "**Computed from group summaries:** only n, the means and the variances are needed (Witte, p. 316).",
+   "**For two groups it is Welch's t-test:** $F_W = t_W^2$ [proposed: Welch 1951]."
+  ],
+  "cons": [
+   "**No common $MS_W$** — no single SED and LSD: each pair in the comparisons has its own SE (Games–Howell).",
+   "**Requires normality within groups**, like ordinary ANOVA (Welham, p. 107).",
+   "**With small n the weights are unstable:** the $s_i^2$ in a weight is a rough estimate, and a group with a small SD by chance gets too large a weight. With equal variances and n = 5, the ratio of sample SDs exceeds 2 in 22 % of cases [BioStat: simulation, audit 01].",
+   "**A group without spread stops the calculation:** if all values in a group are equal, its weight is undefined — BioStat reports an error [BioStat].",
+   "**If the SDs grow with the means**, transforming the response is better: the variances even out, and the effects become ratios (Welham, p. 96–98, 114–118)."
+  ],
+  "assumptions": [
+   {
+    "name": "Independence",
+    "meaning": "Each observation is a separate experimental unit.",
+    "biostat": "Not checked by calculation — it is a property of the design; the map asks about the structure before this step."
+   },
+   {
+    "name": "Normality within groups",
+    "meaning": "Deviations from the group means are normally distributed.",
+    "biostat": "Shapiro–Wilk on the model residuals; with n > 30 per group, only together with skewness > 0.5 [BioStat]."
+   },
+   {
+    "name": "Variances not linked to the means",
+    "meaning": "The groups differ in spread, but the spread does not grow with the mean.",
+    "biostat": "The link between SD and mean is checked by the same rule that leads to a transformation (`B4.3`); if it is present, the map does not suggest Welch."
+   },
+   {
+    "name": "No gross recording errors",
+    "meaning": "A single point does not distort the mean and the variance of its group.",
+    "biostat": "Outlier test on the Studentized residuals with Bonferroni correction; checked first."
+   }
+  ],
+  "map_intro": [
+   "The map leads here with signal `B4.5`: the group variances are heterogeneous (Bartlett's test) and at the same time **do not grow with the means**. If the SDs grow with the means, the same spread is explained by the scale, `B4.5` stays silent, and the map leads to a transformation (`B4.3`).",
+   "Heterogeneity is decided by the same rule as the warning of one-way ANOVA (the shared function `variance_rule`). With an outlier candidate, `B4.5` becomes a hint: check the record first."
+  ],
+  "neighbours": [
+   {
+    "method": "one_way_anova",
+    "signals": [],
+    "when": "variances are homogeneous — the default leaf",
+    "advantage": "Common $MS_W$: single SED and LSD and the comparisons of the “After ANOVA” step",
+    "cost": "With unequal variances and unequal n, P is wrong"
+   },
+   {
+    "method": "transformed_means",
+    "signals": [
+     "B4.3"
+    ],
+    "when": "group SDs grow with the means (≥ 4 groups; with 3, only a hint)",
+    "advantage": "Evens out the variances and restores a common $MS_W$ on the new scale",
+    "cost": "Means are geometric, CIs asymmetric"
+   },
+   {
+    "method": "anova_permutation_test",
+    "signals": [
+     "B4.6"
+    ],
+    "when": "residuals are non-normal with **homogeneous** variances",
+    "advantage": "P without assuming normality",
+    "cost": "Needs homogeneous variances — with heterogeneous ones it is no substitute for Welch"
+   },
+   {
+    "method": "kruskal_wallis",
+    "signals": [
+     "B4.8"
+    ],
+    "when": "the response takes only a few integer values (scores)",
+    "advantage": "Works with ranks: scores, strong skewness",
+    "cost": "Compares distributions, not means; no CIs of means"
+   },
+   {
+    "method": "rcbd_anova",
+    "signals": [
+     "B1.2",
+     "B1.8"
+    ],
+    "when": "each treatment once in every block (or a column that looks like blocks)",
+    "advantage": "Removes the differences between blocks from the error",
+    "cost": "Needs a block column; the variances must again be homogeneous"
+   },
+   {
+    "method": "two_sample_t",
+    "signals": [],
+    "when": "branch point “how many levels” = 2",
+    "advantage": "For two groups — the t-test in its Welch version, with a CI of the difference of means",
+    "cost": "—"
+   }
+  ],
+  "checks": [
+   {
+    "signals": [
+     "DIAG.1"
+    ],
+    "text": "**Outlier first.** With an outlier candidate, the Welch advice is demoted to a hint “check the record in row N first” (Welham, p. 109–110)."
+   },
+   {
+    "signals": [
+     "B4.1"
+    ],
+    "text": "Normality of residuals (Shapiro–Wilk); with n > 30 in every group, only together with skewness > 0.5 [BioStat]."
+   },
+   {
+    "signals": [
+     "B4.2",
+     "B4.5"
+    ],
+    "text": "Heterogeneous variances (Bartlett) without a link between SD and the means — lead here."
+   },
+   {
+    "signals": [
+     "B4.3"
+    ],
+    "text": "A link between SD and the means — leads to a transformation instead of Welch."
+   },
+   {
+    "signals": [
+     "B4.4"
+    ],
+    "text": "Strong skewness of residuals (|g₁| > 1) — a reason to transform."
+   },
+   {
+    "signals": [
+     "DIAG.3"
+    ],
+    "text": "Fewer than 10 residual df — a warning about low power."
+   }
+  ],
+  "next": "A significant $F_W$ says only that the means are not all equal. The method itself shows which pairs differ — Games–Howell comparisons: each pair has its own SE and Welch–Satterthwaite df, P and 95 % CI of the difference [proposed: Games & Howell 1976]. The comparisons after ANOVA (B5) use the common $MS_W$ and are unsuitable with unequal variances. If the goal is to show that there are no differences, that is a different task: **[the equivalence test (TOST)](method:equivalence_test)**; a non-significant F does not prove the absence of differences (Welham, p. 253).",
+  "sources": {
+   "model": "[proposed: Welch 1951]; Welham et al. (2015), p. 107 (analysis with unequal variances not linked to the mean); Witte & Witte (2017), p. 316.",
+   "pros_cons": "Welham et al. (2015), p. 96–98, 107, 114–118; Witte & Witte (2017), p. 316; [proposed: Welch 1951; Glass et al. 1972; Games & Howell 1976]; [BioStat].",
+   "assumptions": "Welham et al. (2015), p. 93–110."
+  },
+  "symbols": [
+   "i_group",
+   "j_obs",
+   "ybar_i",
+   "s2_i",
+   "w_i",
+   "W_sum",
+   "ybar_w",
+   "F_W",
+   "Lambda_W",
+   "nu_W",
+   "H0",
+   "P",
+   "t_W",
+   "SED",
+   "LSD"
+  ],
+  "widget": {
+   "aria": "Dot plot of the three groups of the illustrative data set: group means, the ordinary and the weighted grand means",
+   "axis": "y",
+   "legend_grand": "grand mean (ordinary F)",
+   "legend_wmean": "weighted mean (Welch)",
+   "legend_mean": "group mean",
+   "kb": "How far apart the group means are",
+   "ksd": "Spread of group b",
+   "nb": "Values in group b",
+   "weights": "Group weight in Welch",
+   "classic": "Ordinary F",
+   "welch": "Welch",
+   "note": "In the starting position — illustrative data set S08: both P are very small. Bring the means almost together: the ordinary F loses the difference before Welch does — the common MS within is inflated by the spread of group b, while Welch gives b a small weight. Reduce the spread of b to about ×0.2: the variances become equal, and so do the weights, and both tests give similar P. The n slider changes only the number of values in b, keeping its mean and SD; the pale points are the “removed” ones."
+  }
+ },
+ "pt": {
+  "description": "ANOVA de Welch: comparação das médias de três ou mais grupos com variâncias desiguais — ideia, fórmulas, pressupostos e como o mapa do BioStat escolhe este método.",
+  "lead": "As médias de três ou mais grupos diferem quando a dispersão dentro dos grupos é diferente? A ANOVA de Welch compara as médias sem juntar as variâncias dos grupos numa variância comum.",
+  "idea": [
+   "A ANOVA habitual estima uma só variância para todos os grupos — o quadrado médio residual (QMRE, $MS_W$). Se a dispersão é grande num grupo e pequena noutro, esta estimativa comum não serve a nenhum: com n desiguais, o P (valor de prova) sai errado [proposta: Glass et al. 1972].",
+   "Welch pondera a média de cada grupo pela sua própria precisão: o peso $w_i = n_i/s_i^2$ é tanto maior quanto menor a dispersão e maior o número de observações. $F_W$ mede quanto as médias se dispersam em torno da média geral ponderada, e os graus de liberdade do denominador são estimados a partir dos dados e, em geral, fracionários [proposta: Welch 1951]."
+  ],
+  "formulas": [
+   {
+    "title": "Pesos e média ponderada",
+    "tex": "w_i = \\frac{n_i}{s_i^2},\\qquad W = \\sum_i w_i,\\qquad \\bar y_w = \\frac{\\sum_i w_i\\,\\bar y_{i\\cdot}}{W}"
+   },
+   {
+    "title": "Estatística de Welch",
+    "tex": "F_W = \\frac{\\sum_i w_i\\,(\\bar y_{i\\cdot}-\\bar y_w)^2/(t-1)}{1 + \\frac{2(t-2)}{t^2-1}\\,\\Lambda},\\qquad \\Lambda = \\sum_i \\frac{(1-w_i/W)^2}{n_i-1}"
+   },
+   {
+    "title": "Graus de liberdade e P",
+    "tex": "\\nu_1 = t-1,\\qquad \\nu_2 = \\frac{t^2-1}{3\\Lambda};\\qquad F_W = ⟦F:.1f⟧,\\quad \\nu_2 = ⟦df_within:.1f⟧,\\quad P = ⟦p:sci1⟧",
+    "text_after": "Com $H_0$ verdadeira, $F_W$ segue aproximadamente a distribuição F com ($\\nu_1$, $\\nu_2$) graus de liberdade; com dois grupos, $F_W = t_W^2$ — o quadrado da estatística t de Welch."
+   }
+  ],
+  "example_table": {
+   "note": "Conjunto ilustrativo (cenário S08 do mapa): três grupos de ⟦n_group⟧ valores, construídos como 10, 20 e 30 mais ruído normal com DP 1, 5 e 1 — a dispersão não cresce com a média. DP amostrais: a ⟦sd_a:.2f⟧, b ⟦sd_b:.2f⟧, c ⟦sd_c:.2f⟧. As variâncias são heterogéneas (Bartlett X² = ⟦bartlett_x2:.1f⟧ > ⟦bartlett_crit:.2f⟧), e o mapa dá `B4.5`. $F_W$ = ⟦F:.1f⟧ com (⟦df_between:.0f⟧; ⟦df_within:.1f⟧) gl, P = ⟦p:sci1⟧; F habitual = ⟦F_classic:.1f⟧ com (⟦df_classic_between⟧; ⟦df_classic_within⟧) gl, P = ⟦p_classic:sci1⟧. Games–Howell: diferem ⟦n_significant⟧ de ⟦n_comparisons⟧ pares. O sinal `B4.1` (resíduos globais não normais) também dispara: uma mistura de resíduos com DP diferentes não é normal, embora dentro de cada grupo os valores tenham sido construídos como normais."
+  },
+  "pros": [
+   "**Não exige variâncias iguais.** O P é correto com σ² desiguais e n desiguais — onde o F habitual falha [proposta: Welch 1951; Glass et al. 1972].",
+   "**Calcula-se a partir de resumos dos grupos:** bastam n, as médias e as variâncias (Witte, p. 316).",
+   "**Com dois grupos é o teste t de Welch:** $F_W = t_W^2$ [proposta: Welch 1951]."
+  ],
+  "cons": [
+   "**Sem $MS_W$ comum** — sem EPD e DMS únicos (nas fórmulas: SED e LSD): cada par nas comparações tem o seu próprio EP (Games–Howell).",
+   "**Exige normalidade dentro dos grupos**, como a ANOVA habitual (Welham, p. 107).",
+   "**Com n pequenos os pesos são instáveis:** o $s_i^2$ do peso é uma estimativa grosseira, e um grupo com DP pequeno por acaso recebe um peso excessivo. Com variâncias iguais e n = 5, a razão dos DP amostrais excede 2 em 22 % dos casos [BioStat: simulação, auditoria 01].",
+   "**Um grupo sem dispersão interrompe o cálculo:** se todos os valores de um grupo forem iguais, o seu peso fica indefinido — o BioStat devolve um erro [BioStat].",
+   "**Se os DP crescem com as médias**, é melhor transformar a resposta: as variâncias igualam-se e os efeitos passam a razões (Welham, p. 96–98, 114–118)."
+  ],
+  "assumptions": [
+   {
+    "name": "Independência",
+    "meaning": "Cada observação é uma unidade experimental separada.",
+    "biostat": "Não se verifica por cálculo — é uma propriedade do delineamento; o mapa pergunta pela estrutura antes deste passo."
+   },
+   {
+    "name": "Normalidade dentro dos grupos",
+    "meaning": "Os desvios em relação às médias dos grupos têm distribuição normal.",
+    "biostat": "Shapiro–Wilk nos resíduos do modelo; com n > 30 num grupo, só em conjunto com assimetria > 0.5 [BioStat]."
+   },
+   {
+    "name": "Variâncias não ligadas às médias",
+    "meaning": "Os grupos diferem na dispersão, mas a dispersão não cresce com a média.",
+    "biostat": "A relação entre DP e média verifica-se com a mesma regra que leva à transformação (`B4.3`); se existir, o mapa não propõe Welch."
+   },
+   {
+    "name": "Sem erros grosseiros de registo",
+    "meaning": "Um ponto isolado não distorce a média e a variância do seu grupo.",
+    "biostat": "Teste de observação atípica nos resíduos Studentizados com correção de Bonferroni; verificado primeiro."
+   }
+  ],
+  "map_intro": [
+   "O mapa conduz a esta folha com o sinal `B4.5`: as variâncias dos grupos são heterogéneas (teste de Bartlett) e, ao mesmo tempo, **não crescem com as médias**. Se os DP crescem com as médias, essa dispersão explica-se pela escala, `B4.5` fica em silêncio e o mapa leva à transformação (`B4.3`).",
+   "A heterogeneidade decide-se pela mesma regra que o aviso da ANOVA a um fator (a função comum `variance_rule`). Com uma candidata a observação atípica, `B4.5` passa a sugestão: verifique primeiro o registo."
+  ],
+  "neighbours": [
+   {
+    "method": "one_way_anova",
+    "signals": [],
+    "when": "variâncias homogéneas — folha por omissão",
+    "advantage": "$MS_W$ comum: EPD e DMS únicos e as comparações do passo «Após a ANOVA»",
+    "cost": "Com variâncias desiguais e n desiguais, o P está errado"
+   },
+   {
+    "method": "transformed_means",
+    "signals": [
+     "B4.3"
+    ],
+    "when": "os DP dos grupos crescem com as médias (≥ 4 grupos; com 3, só sugestão)",
+    "advantage": "Iguala as variâncias e repõe um $MS_W$ comum na nova escala",
+    "cost": "Médias geométricas, IC assimétricos"
+   },
+   {
+    "method": "anova_permutation_test",
+    "signals": [
+     "B4.6"
+    ],
+    "when": "resíduos não normais com variâncias **homogéneas**",
+    "advantage": "P sem pressupor normalidade",
+    "cost": "Exige variâncias homogéneas — com variâncias heterogéneas não substitui Welch"
+   },
+   {
+    "method": "kruskal_wallis",
+    "signals": [
+     "B4.8"
+    ],
+    "when": "a resposta tem poucos valores inteiros (pontuações)",
+    "advantage": "Trabalha com postos: pontuações, assimetria forte",
+    "cost": "Compara distribuições, não médias; sem IC das médias"
+   },
+   {
+    "method": "rcbd_anova",
+    "signals": [
+     "B1.2",
+     "B1.8"
+    ],
+    "when": "cada tratamento uma vez em cada bloco (ou uma coluna que parece blocos)",
+    "advantage": "Retira do erro as diferenças entre blocos",
+    "cost": "Precisa de uma coluna de blocos; as variâncias voltam a ter de ser homogéneas"
+   },
+   {
+    "method": "two_sample_t",
+    "signals": [],
+    "when": "bifurcação «quantos níveis» = 2",
+    "advantage": "Para dois grupos — o teste t na variante de Welch, com IC da diferença das médias",
+    "cost": "—"
+   }
+  ],
+  "checks": [
+   {
+    "signals": [
+     "DIAG.1"
+    ],
+    "text": "**Observação atípica primeiro.** Com uma candidata a observação atípica, o conselho de Welch passa a sugestão «verifique primeiro o registo na linha N» (Welham, p. 109–110)."
+   },
+   {
+    "signals": [
+     "B4.1"
+    ],
+    "text": "Normalidade dos resíduos (Shapiro–Wilk); com n > 30 em cada grupo, só em conjunto com assimetria > 0.5 [BioStat]."
+   },
+   {
+    "signals": [
+     "B4.2",
+     "B4.5"
+    ],
+    "text": "Variâncias heterogéneas (Bartlett) sem relação entre DP e médias — levam aqui."
+   },
+   {
+    "signals": [
+     "B4.3"
+    ],
+    "text": "Relação entre DP e médias — leva à transformação em vez de Welch."
+   },
+   {
+    "signals": [
+     "B4.4"
+    ],
+    "text": "Assimetria forte dos resíduos (|g₁| > 1) — motivo para transformar."
+   },
+   {
+    "signals": [
+     "DIAG.3"
+    ],
+    "text": "Menos de 10 gl do resíduo — aviso de potência baixa."
+   }
+  ],
+  "next": "Um $F_W$ significativo diz apenas que as médias não são todas iguais. Quais os pares que diferem mostra-o o próprio método — comparações de Games–Howell: cada par tem o seu EP e os gl de Welch–Satterthwaite, P e IC 95 % da diferença [proposta: Games & Howell 1976]. As comparações após a ANOVA (B5) usam o $MS_W$ comum e não servem com variâncias desiguais. Se o objetivo for mostrar que não há diferenças, trata-se de outra tarefa: **[o teste de equivalência (TOST)](method:equivalence_test)**; um F não significativo não prova a ausência de diferenças (Welham, p. 253).",
+  "sources": {
+   "model": "[proposta: Welch 1951]; Welham et al. (2015), p. 107 (análise com variâncias desiguais não ligadas à média); Witte & Witte (2017), p. 316.",
+   "pros_cons": "Welham et al. (2015), p. 96–98, 107, 114–118; Witte & Witte (2017), p. 316; [proposta: Welch 1951; Glass et al. 1972; Games & Howell 1976]; [BioStat].",
+   "assumptions": "Welham et al. (2015), p. 93–110."
+  },
+  "symbols": [
+   "i_group",
+   "j_obs",
+   "ybar_i",
+   "s2_i",
+   "w_i",
+   "W_sum",
+   "ybar_w",
+   "F_W",
+   "Lambda_W",
+   "nu_W",
+   "H0",
+   "P",
+   "t_W",
+   "SED",
+   "LSD"
+  ],
+  "widget": {
+   "aria": "Gráfico de pontos dos três grupos do conjunto ilustrativo: médias dos grupos, média geral habitual e média ponderada",
+   "axis": "y",
+   "legend_grand": "média geral (F habitual)",
+   "legend_wmean": "média ponderada (Welch)",
+   "legend_mean": "média do grupo",
+   "kb": "Quanto se afastam as médias dos grupos",
+   "ksd": "Dispersão do grupo b",
+   "nb": "Valores no grupo b",
+   "weights": "Peso do grupo em Welch",
+   "classic": "F habitual",
+   "welch": "Welch",
+   "note": "Na posição inicial — conjunto ilustrativo S08: os dois P são muito pequenos. Aproxime as médias até quase coincidirem: o F habitual perde a diferença antes de Welch — o QM dentro comum está inflacionado pela dispersão do grupo b, enquanto em Welch o peso de b é pequeno. Reduza a dispersão de b para cerca de ×0.2: as variâncias igualam-se, os pesos também, e os dois testes dão P próximos. O cursor n muda só o número de valores em b, mantendo a média e o DP; os pontos pálidos são os «retirados»."
   }
  }
 }

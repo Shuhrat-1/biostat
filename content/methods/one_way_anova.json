@@ -5,7 +5,6 @@
  "widget": {"type": "groups-split", "highlight": [0, 3], "y_min": 2.5, "y_max": 7.0, "y_step": 1},
  "ru": {
   "description": "Однофакторный дисперсионный анализ: идея, формулы, допущения, сильные и слабые стороны и как карта BioStat выбирает этот метод.",
-  "short": "ANOVA",
   "lead": "Различаются ли средние трёх и более групп — например, урожай нескольких сортов? Ответ строится из сравнения двух разбросов: между группами и внутри них.",
   "idea": [
    "Посмотрите на точки ниже: урожай трёх сортов, по ⟦n_group⟧ делянок. Каждая точка отклоняется от общего среднего по двум причинам: потому что её сорт в среднем другой (отрезок **между** средней сорта и общей средней) и из-за случайности делянки (отрезок **внутри** — от точки до средней своего сорта).",
@@ -26,7 +25,7 @@
    "ms_within": "MS внутри",
    "ss_between": "SS между",
    "ss_within": "SS внутри",
-   "note": "В исходном положении (обе ручки на месте) — реальные данные примера BioStat. Сдвиньте средние к нулю: F упадёт к 1, а P — к большим значениям."
+   "note": "В исходном положении (обе ручки на месте) — реальные данные примера BioStat. Сведите средние к нулю: SS между исчезает, F падает до 0, а P растёт к 1."
   },
   "formulas": [
    {"text_before": "Наблюдение *j* в группе *i* (из *t* групп, всего *N* наблюдений):",
@@ -72,7 +71,7 @@
     "biostat": "Тест Бартлетта и связь SD со средней — одно правило для карты и для предупреждения в результате метода. Левене — справка."},
    {"name": "Нормальность остатков",
     "meaning": "Отклонения от средних групп распределены нормально.",
-    "biostat": "Шапиро–Уилк по остаткам модели, при n > 30 в группе — ещё асимметрия > 0.5."},
+    "biostat": "Шапиро–Уилк по остаткам модели, при n > 30 в группе — только вместе с асимметрией > 0.5."},
    {"name": "Нет грубых ошибок записи",
     "meaning": "Отдельная точка не искажает средние и $MS_W$.",
     "biostat": "Тест выброса по стьюдентизированным остаткам с поправкой Бонферрони; проверяется первым."}
@@ -121,5 +120,445 @@
    "assumptions": "Welham et al. (2015), стр. 69–72, 93–110."
   },
   "symbols": ["y_ij", "i_group", "j_obs", "mu", "tau_i", "eps_ij", "sigma2", "H0", "ybar_i", "ybar", "N", "SS", "MS", "df_BW", "P", "SE", "SED", "t_quant", "LSD", "eta2", "omega2"]
+ },
+ "en": {
+  "description": "One-way analysis of variance: idea, formulas, assumptions, strengths and weaknesses, and how the BioStat map chooses this method.",
+  "lead": "Do the means of three or more groups differ — for example, the yields of several varieties? The answer comes from comparing two kinds of spread: between the groups and within them.",
+  "idea": [
+   "Look at the points below: the yields of three varieties, ⟦n_group⟧ plots each. Each point deviates from the grand mean for two reasons: because its variety differs on average (the **between** segment, from the variety mean to the grand mean) and because of plot-to-plot chance (the **within** segment, from the point to the mean of its own variety).",
+   "If the varieties are really the same, their means scatter only by that same chance, and “between” is comparable in size to “within”. If “between” is much larger, the differences are real. ANOVA measures this ratio and calls it **F**."
+  ],
+  "widget": {
+   "aria": "Dot plot of the yields of three varieties with the variety means and the grand mean",
+   "axis": "yield, t/ha",
+   "legend_grand": "grand mean",
+   "legend_mean": "variety mean",
+   "legend_segments": "segments at the highlighted point:",
+   "between": "between",
+   "within": "within",
+   "and": "and",
+   "kb": "How far apart the variety means are",
+   "kw": "How large the spread within varieties is",
+   "ms_between": "MS between",
+   "ms_within": "MS within",
+   "ss_between": "SS between",
+   "ss_within": "SS within",
+   "note": "In the starting position (both handles in place) these are the real data of the BioStat example. Slide the separation of the means to zero: SS between vanishes, F drops to 0 and P rises towards 1."
+  },
+  "formulas": [
+   {
+    "text_before": "Observation *j* in group *i* (of *t* groups, *N* observations in total):",
+    "tex": "y_{ij} = \\mu + \\tau_i + \\varepsilon_{ij},\\qquad \\varepsilon_{ij} \\sim N(0,\\sigma^2)\\ \\text{independently},\\qquad \\textstyle\\sum_i n_i\\tau_i = 0"
+   },
+   {
+    "text_before": "The hypothesis tested is that there is no group effect:",
+    "tex": "H_0:\\ \\tau_1 = \\tau_2 = \\dots = \\tau_t = 0"
+   },
+   {
+    "title": "Partition of the sum of squares",
+    "tex": "\\underbrace{\\sum_{i}\\sum_{j}(y_{ij}-\\bar y_{\\cdot\\cdot})^2}_{SS_T} = \\underbrace{\\sum_{i} n_i(\\bar y_{i\\cdot}-\\bar y_{\\cdot\\cdot})^2}_{SS_B} + \\underbrace{\\sum_{i}\\sum_{j}(y_{ij}-\\bar y_{i\\cdot})^2}_{SS_W}"
+   },
+   {
+    "title": "The F statistic",
+    "tex": "F = \\frac{MS_B}{MS_W} = \\frac{SS_B/(t-1)}{SS_W/(N-t)} = \\frac{⟦ss_between:.2f⟧/⟦df_between⟧}{⟦ss_within:.2f⟧/⟦df_within⟧} = \\frac{⟦ms_between:.3f⟧}{⟦ms_within:.4f⟧} = ⟦F:.1f⟧,\\qquad P = ⟦p:sci1⟧",
+    "text_after": "If $H_0$ is true and the assumptions hold, F follows the F distribution with (*t* − 1, *N* − *t*) degrees of freedom. P is the share of that distribution to the right of the observed F."
+   },
+   {
+    "title": "Means, SED and confidence intervals",
+    "text_before": "The residual mean square $MS_W$ is the pooled estimate of σ² over all groups. The standard errors of the means, the standard error of the difference (SED) and the intervals are built on it:",
+    "tex": "\\mathrm{SE}(\\bar y_{i\\cdot}) = \\sqrt{\\frac{MS_W}{n_i}},\\quad \\mathrm{SED} = \\sqrt{MS_W\\left(\\frac1{n_i}+\\frac1{n_k}\\right)},\\quad \\bar y_{i\\cdot} \\pm t_{0.975;\\,N-t}\\,\\mathrm{SE},\\quad \\mathrm{LSD} = t_{0.975;\\,N-t}\\,\\mathrm{SED}"
+   },
+   {
+    "title": "Effect size",
+    "tex": "\\eta^2 = \\frac{SS_B}{SS_T} = ⟦eta2:.2f⟧,\\qquad \\omega^2 = \\frac{SS_B-(t-1)\\,MS_W}{SS_T+MS_W} = ⟦omega2:.2f⟧"
+   }
+  ],
+  "example_table": {
+   "labels": {
+    "Between": "Between varieties",
+    "Within": "Within varieties",
+    "Total": "Total"
+   },
+   "format": {
+    "ss": ".2f",
+    "ms": ".4f",
+    "F": ".1f"
+   },
+   "note": "Means: wheat ⟦mean_пшеница:.2f⟧, barley ⟦mean_ячмень:.2f⟧, oats ⟦mean_овёс:.2f⟧; SE of each mean ⟦se_пшеница:.3f⟧, SED ⟦sed:.3f⟧, LSD (5 %) ⟦lsd:.3f⟧; η² = ⟦eta2:.2f⟧, ω² = ⟦omega2:.2f⟧."
+  },
+  "pros": [
+   "**Uses all the data at once.** One estimate of σ² from all groups: N − t degrees of freedom instead of n − 1 in each pair — more power than a series of t-tests, and no inflation of the Type I error.",
+   "**Gives more than P.** Means with CIs, SED and LSD for comparisons — all on the common $MS_W$.",
+   "**Robust to moderate departures from normality**, especially in a randomized experiment.",
+   "**The basis of all linear models.** The same partition of SS carries over to blocks, factorials and split plots.",
+   "**Two groups are a special case:** F = t² of [Student's two-sample t-test](method:two_sample_t)."
+  ],
+  "cons": [
+   "**Sensitive to unequal variances when the n are unequal.** If the larger variance is in the smaller group, P is too small [proposed: Glass et al. 1972].",
+   "**A single outlier** inflates $MS_W$ and shifts the mean.",
+   "**Answers only “are there any differences at all”.** Which groups differ is the next step: comparisons.",
+   "**Wrong with dependent observations.** Blocks and pseudo-replicates analyzed as independent give false precision.",
+   "**Not for proportions, counts or scores** — for them, a GLM or rank methods."
+  ],
+  "assumptions": [
+   {
+    "name": "Independence",
+    "meaning": "Each observation is a separate experimental unit: no blocks, no repeated measurements, no several measurements from one plot.",
+    "biostat": "Not checked by calculation — it is a property of the design. The map asks about the structure before this step and gives a hint if it sees a column that looks like blocks or subjects."
+   },
+   {
+    "name": "Homogeneity of variances",
+    "meaning": "σ² is the same in all groups.",
+    "biostat": "Bartlett's test and the link between SD and mean — one rule for the map and for the warning in the method's result. Levene — for reference."
+   },
+   {
+    "name": "Normality of residuals",
+    "meaning": "Deviations from the group means are normally distributed.",
+    "biostat": "Shapiro–Wilk on the model residuals; with n > 30 per group, only together with skewness > 0.5."
+   },
+   {
+    "name": "No gross recording errors",
+    "meaning": "A single point does not distort the means and $MS_W$.",
+    "biostat": "Outlier test on the Studentized residuals with Bonferroni correction; checked first."
+   }
+  ],
+  "map_intro": [
+   "First the map establishes the **structure of the experiment** (whether measurements are linked, whether there are blocks, how many factors) and only then the **assumptions**. A one-way analysis with ignored blocks is wrong whatever the normality (Welham, p. 69), so this order never changes.",
+   "ANOVA is the **default method** in its branch. There is no separate “green” signal for it: if no assumption rule fires, the map leaves ANOVA without remarks and the neighbors without highlighting."
+  ],
+  "neighbours": [
+   {
+    "method": "welch_anova",
+    "signals": [
+     "B4.5"
+    ],
+    "when": "variances are heterogeneous (Bartlett) and do not grow with the mean",
+    "advantage": "Does not need equal variances: P is correct with unequal σ² and unequal n",
+    "cost": "No common $MS_W$ — no single SED and LSD; slightly less powerful when variances are equal"
+   },
+   {
+    "method": "transformed_means",
+    "signals": [
+     "B4.3"
+    ],
+    "when": "group SDs grow with the means (≥ 4 groups; with 3, only a hint)",
+    "advantage": "Restores equal variances and symmetry; effects become ratios (how many times larger)",
+    "cost": "Means on the log scale; back-transformation gives geometric means with asymmetric CIs"
+   },
+   {
+    "method": "anova_permutation_test",
+    "signals": [
+     "B4.6"
+    ],
+    "when": "residuals are non-normal while variances are homogeneous",
+    "advantage": "P without assuming normality; F, the means and the table are the same",
+    "cost": "Still needs homogeneous variances; P is random (Monte Carlo) and changes slightly between runs"
+   },
+   {
+    "method": "kruskal_wallis",
+    "signals": [
+     "B4.8"
+    ],
+    "when": "the response takes only a few integer values (scores)",
+    "advantage": "Works with ranks: scores, strong skewness, outliers",
+    "cost": "Compares distributions, not means; no CIs of means and no SED; loses information on magnitudes"
+   },
+   {
+    "method": "rcbd_anova",
+    "signals": [],
+    "when": "branch “complete blocks”: each treatment once in every block",
+    "advantage": "Removes the variation between blocks from $MS_W$ — more precise comparisons",
+    "cost": "Needs a block column; incomplete blocks need another method"
+   },
+   {
+    "method": "two_sample_t",
+    "signals": [],
+    "when": "branch point “how many levels” = 2",
+    "advantage": "The same result (F = t²), plus the Welch version and a directional hypothesis",
+    "cost": "—"
+   }
+  ],
+  "checks": [
+   {
+    "signals": [
+     "DIAG.1"
+    ],
+    "text": "**Outlier first.** If one point stands out sharply (Bonferroni correction), the Welch, log and permutation-test advice is demoted to a hint: “check the record in row N first”. The method is not changed because of an outlier (Welham, p. 109–110)."
+   },
+   {
+    "signals": [
+     "B4.1"
+    ],
+    "text": "Normality of residuals (Shapiro–Wilk); with n > 30 in every group, only together with skewness > 0.5 [BioStat]."
+   },
+   {
+    "signals": [
+     "B4.2",
+     "B4.3"
+    ],
+    "text": "Homogeneity of variances and the link between SD and mean — lead to Welch or to a transformation."
+   },
+   {
+    "signals": [
+     "B4.4"
+    ],
+    "text": "Strong skewness of residuals (|g₁| > 1) — a reason to transform."
+   },
+   {
+    "signals": [
+     "DIAG.3"
+    ],
+    "text": "Fewer than 10 residual df — a warning about the low power of the comparisons."
+   }
+  ],
+  "next": "A significant F says only that the means are not all equal. The next step on the map is **“After ANOVA: which comparisons?”**: [pre-planned contrasts](method:treatment_contrasts), [a dose trend](method:polynomial_contrasts), [all pairs by Tukey](method:tukey_hsd), [against a control by Dunnett](method:mean_comparisons), [planned pairs by Holm](method:mean_comparisons). If the goal is to show that there are no differences, that is a different task: **[the equivalence test (TOST)](method:equivalence_test)**; a non-significant F does not prove the absence of differences (Welham, p. 253).",
+  "sources": {
+   "model": "Welham et al. (2015), p. 74–88; Witte & Witte (2017), p. 310 (η²), p. 311 (ω² — no formula; formula [proposed: Hays 1963], BioStat truncates a negative value to 0).",
+   "pros_cons": "Welham et al. (2015), p. 33, 69, 75, 83, 84, 86, 102–107, 127.",
+   "assumptions": "Welham et al. (2015), p. 69–72, 93–110."
+  },
+  "symbols": [
+   "y_ij",
+   "i_group",
+   "j_obs",
+   "mu",
+   "tau_i",
+   "eps_ij",
+   "sigma2",
+   "H0",
+   "ybar_i",
+   "ybar",
+   "N",
+   "SS",
+   "MS",
+   "df_BW",
+   "P",
+   "SE",
+   "SED",
+   "t_quant",
+   "LSD",
+   "eta2",
+   "omega2"
+  ]
+ },
+ "pt": {
+  "description": "Análise de variância a um fator: ideia, fórmulas, pressupostos, pontos fortes e fracos e como o mapa do BioStat escolhe este método.",
+  "lead": "As médias de três ou mais grupos diferem — por exemplo, a produção de várias variedades? A resposta resulta da comparação de duas dispersões: entre os grupos e dentro deles.",
+  "idea": [
+   "Observe os pontos abaixo: a produção de três variedades, ⟦n_group⟧ parcelas cada. Cada ponto afasta-se da média geral por duas razões: porque a sua variedade é diferente em média (o segmento **entre**, da média da variedade à média geral) e por causa do acaso da parcela (o segmento **dentro**, do ponto à média da sua variedade).",
+   "Se as variedades forem realmente iguais, as suas médias dispersam-se só por esse mesmo acaso, e «entre» é comparável em tamanho a «dentro». Se «entre» for muito maior, as diferenças são reais. A ANOVA mede esta razão e chama-lhe **F**."
+  ],
+  "widget": {
+   "aria": "Gráfico de pontos da produção de três variedades com as médias das variedades e a média geral",
+   "axis": "produção, t/ha",
+   "legend_grand": "média geral",
+   "legend_mean": "média da variedade",
+   "legend_segments": "segmentos no ponto destacado:",
+   "between": "entre",
+   "within": "dentro",
+   "and": "e",
+   "kb": "Quanto se afastam as médias das variedades",
+   "kw": "Quão grande é a dispersão dentro das variedades",
+   "ms_between": "QM entre",
+   "ms_within": "QM dentro",
+   "ss_between": "SQ entre",
+   "ss_within": "SQ dentro",
+   "note": "Na posição inicial (os dois cursores no lugar) estão os dados reais do exemplo do BioStat. Leve a separação das médias a zero: a SQ entre anula-se, F desce para 0 e P (valor de prova) sobe para 1."
+  },
+  "formulas": [
+   {
+    "text_before": "Observação *j* no grupo *i* (de *t* grupos, *N* observações no total):",
+    "tex": "y_{ij} = \\mu + \\tau_i + \\varepsilon_{ij},\\qquad \\varepsilon_{ij} \\sim N(0,\\sigma^2)\\ \\text{independentes},\\qquad \\textstyle\\sum_i n_i\\tau_i = 0"
+   },
+   {
+    "text_before": "Testa-se a hipótese de ausência de efeito dos grupos:",
+    "tex": "H_0:\\ \\tau_1 = \\tau_2 = \\dots = \\tau_t = 0"
+   },
+   {
+    "title": "Decomposição da soma de quadrados",
+    "tex": "\\underbrace{\\sum_{i}\\sum_{j}(y_{ij}-\\bar y_{\\cdot\\cdot})^2}_{SS_T} = \\underbrace{\\sum_{i} n_i(\\bar y_{i\\cdot}-\\bar y_{\\cdot\\cdot})^2}_{SS_B} + \\underbrace{\\sum_{i}\\sum_{j}(y_{ij}-\\bar y_{i\\cdot})^2}_{SS_W}"
+   },
+   {
+    "title": "Estatística F",
+    "tex": "F = \\frac{MS_B}{MS_W} = \\frac{SS_B/(t-1)}{SS_W/(N-t)} = \\frac{⟦ss_between:.2f⟧/⟦df_between⟧}{⟦ss_within:.2f⟧/⟦df_within⟧} = \\frac{⟦ms_between:.3f⟧}{⟦ms_within:.4f⟧} = ⟦F:.1f⟧,\\qquad P = ⟦p:sci1⟧",
+    "text_after": "Com $H_0$ verdadeira e os pressupostos cumpridos, F segue a distribuição F com (*t* − 1, *N* − *t*) graus de liberdade. P é a parte dessa distribuição à direita do F observado."
+   },
+   {
+    "title": "Médias, EPD e intervalos de confiança",
+    "text_before": "O quadrado médio residual (QMRE, $MS_W$) estima a variância comum σ² a partir de todos os grupos. Com ele obtêm-se os EP das médias, o erro padrão da diferença (EPD) e os intervalos (nas fórmulas: SED e LSD):",
+    "tex": "\\mathrm{SE}(\\bar y_{i\\cdot}) = \\sqrt{\\frac{MS_W}{n_i}},\\quad \\mathrm{SED} = \\sqrt{MS_W\\left(\\frac1{n_i}+\\frac1{n_k}\\right)},\\quad \\bar y_{i\\cdot} \\pm t_{0.975;\\,N-t}\\,\\mathrm{SE},\\quad \\mathrm{LSD} = t_{0.975;\\,N-t}\\,\\mathrm{SED}"
+   },
+   {
+    "title": "Tamanho do efeito",
+    "tex": "\\eta^2 = \\frac{SS_B}{SS_T} = ⟦eta2:.2f⟧,\\qquad \\omega^2 = \\frac{SS_B-(t-1)\\,MS_W}{SS_T+MS_W} = ⟦omega2:.2f⟧"
+   }
+  ],
+  "example_table": {
+   "labels": {
+    "Between": "Entre variedades",
+    "Within": "Dentro das variedades",
+    "Total": "Total"
+   },
+   "format": {
+    "ss": ".2f",
+    "ms": ".4f",
+    "F": ".1f"
+   },
+   "note": "Médias: trigo ⟦mean_пшеница:.2f⟧, cevada ⟦mean_ячмень:.2f⟧, aveia ⟦mean_овёс:.2f⟧; EP de cada média ⟦se_пшеница:.3f⟧, EPD ⟦sed:.3f⟧, DMS (5 %) ⟦lsd:.3f⟧; η² = ⟦eta2:.2f⟧, ω² = ⟦omega2:.2f⟧."
+  },
+  "pros": [
+   "**Usa todos os dados de uma vez.** Uma só estimativa de σ² a partir de todos os grupos: N − t graus de liberdade em vez de n − 1 em cada par — mais potência do que uma série de testes t, sem inflacionar o erro de tipo I.",
+   "**Dá mais do que P.** Médias com IC, EPD e DMS para as comparações — tudo com o $MS_W$ comum.",
+   "**Robusta a desvios moderados da normalidade**, sobretudo num ensaio casualizado.",
+   "**Base de todos os modelos lineares.** A mesma decomposição da SQ estende-se a blocos, ensaios fatoriais e parcelas subdivididas.",
+   "**Dois grupos são um caso particular:** F = t² do [teste t de Student para duas amostras](method:two_sample_t)."
+  ],
+  "cons": [
+   "**Sensível a variâncias desiguais quando os n são desiguais.** Se a variância maior estiver no grupo menor, o P sai demasiado pequeno [proposta: Glass et al. 1972].",
+   "**Uma única observação atípica** inflaciona $MS_W$ e desloca a média.",
+   "**Responde apenas se «há diferenças de todo».** Quais os grupos que diferem é o passo seguinte: as comparações.",
+   "**Errada com observações dependentes.** Blocos e pseudorrepetições analisados como independentes dão uma falsa precisão.",
+   "**Não serve para proporções, contagens ou pontuações** — para elas, GLM ou métodos de postos."
+  ],
+  "assumptions": [
+   {
+    "name": "Independência",
+    "meaning": "Cada observação é uma unidade experimental separada: sem blocos, sem medições repetidas, sem várias medições da mesma parcela.",
+    "biostat": "Não se verifica por cálculo — é uma propriedade do delineamento. O mapa pergunta pela estrutura antes deste passo e dá uma sugestão se vir uma coluna que pareça blocos ou sujeitos."
+   },
+   {
+    "name": "Homogeneidade de variâncias",
+    "meaning": "σ² é a mesma em todos os grupos.",
+    "biostat": "Teste de Bartlett e relação entre DP e média — uma só regra para o mapa e para o aviso no resultado do método. Levene — só como referência."
+   },
+   {
+    "name": "Normalidade dos resíduos",
+    "meaning": "Os desvios em relação às médias dos grupos têm distribuição normal.",
+    "biostat": "Shapiro–Wilk nos resíduos do modelo; com n > 30 num grupo, só em conjunto com assimetria > 0.5."
+   },
+   {
+    "name": "Sem erros grosseiros de registo",
+    "meaning": "Um ponto isolado não distorce as médias nem $MS_W$.",
+    "biostat": "Teste de observação atípica nos resíduos Studentizados com correção de Bonferroni; verificado primeiro."
+   }
+  ],
+  "map_intro": [
+   "Primeiro o mapa esclarece a **estrutura do ensaio** (se as medições estão ligadas, se há blocos, quantos fatores) e só depois os **pressupostos**. Uma análise a um fator com blocos ignorados está errada seja qual for a normalidade (Welham, p. 69), por isso esta ordem não muda.",
+   "A ANOVA é o **método por omissão** no seu ramo. Não há um sinal «verde» próprio a seu favor: se nenhuma regra de pressupostos disparar, o mapa deixa a ANOVA sem observações e os vizinhos sem destaque."
+  ],
+  "neighbours": [
+   {
+    "method": "welch_anova",
+    "signals": [
+     "B4.5"
+    ],
+    "when": "variâncias heterogéneas (Bartlett) que não crescem com a média",
+    "advantage": "Não exige variâncias iguais: o P é correto com σ² desiguais e n desiguais",
+    "cost": "Sem $MS_W$ comum — sem EPD e DMS únicos; um pouco menos potente com variâncias iguais"
+   },
+   {
+    "method": "transformed_means",
+    "signals": [
+     "B4.3"
+    ],
+    "when": "os DP dos grupos crescem com as médias (≥ 4 grupos; com 3, só sugestão)",
+    "advantage": "Repõe a igualdade de variâncias e a simetria; os efeitos passam a razões (quantas vezes)",
+    "cost": "Médias na escala log; a retransformação dá médias geométricas com IC assimétricos"
+   },
+   {
+    "method": "anova_permutation_test",
+    "signals": [
+     "B4.6"
+    ],
+    "when": "resíduos não normais com variâncias homogéneas",
+    "advantage": "P sem pressupor normalidade; F, as médias e a tabela são os mesmos",
+    "cost": "Continua a exigir variâncias homogéneas; o P é aleatório (Monte Carlo) e varia ligeiramente de execução para execução"
+   },
+   {
+    "method": "kruskal_wallis",
+    "signals": [
+     "B4.8"
+    ],
+    "when": "a resposta tem poucos valores inteiros (pontuações)",
+    "advantage": "Trabalha com postos: pontuações, assimetria forte, observações atípicas",
+    "cost": "Compara distribuições, não médias; sem IC das médias nem EPD; perde informação sobre as grandezas"
+   },
+   {
+    "method": "rcbd_anova",
+    "signals": [],
+    "when": "ramo «blocos completos»: cada tratamento uma vez em cada bloco",
+    "advantage": "Retira a variação entre blocos do $MS_W$ — comparações mais precisas",
+    "cost": "Precisa de uma coluna de blocos; com blocos incompletos, outro método"
+   },
+   {
+    "method": "two_sample_t",
+    "signals": [],
+    "when": "bifurcação «quantos níveis» = 2",
+    "advantage": "O mesmo resultado (F = t²), mais a variante de Welch e uma hipótese unilateral",
+    "cost": "—"
+   }
+  ],
+  "checks": [
+   {
+    "signals": [
+     "DIAG.1"
+    ],
+    "text": "**Observação atípica primeiro.** Se um ponto se destaca claramente (correção de Bonferroni), os conselhos de Welch, de log e do teste de permutação passam a sugestão: «verifique primeiro o registo na linha N». O método não se muda por causa de uma observação atípica (Welham, p. 109–110)."
+   },
+   {
+    "signals": [
+     "B4.1"
+    ],
+    "text": "Normalidade dos resíduos (Shapiro–Wilk); com n > 30 em cada grupo, só em conjunto com assimetria > 0.5 [BioStat]."
+   },
+   {
+    "signals": [
+     "B4.2",
+     "B4.3"
+    ],
+    "text": "Homogeneidade de variâncias e relação entre DP e média — levam a Welch ou a uma transformação."
+   },
+   {
+    "signals": [
+     "B4.4"
+    ],
+    "text": "Assimetria forte dos resíduos (|g₁| > 1) — motivo para transformar."
+   },
+   {
+    "signals": [
+     "DIAG.3"
+    ],
+    "text": "Menos de 10 gl do resíduo — aviso de potência baixa das comparações."
+   }
+  ],
+  "next": "Um F significativo diz apenas que as médias não são todas iguais. O passo seguinte no mapa é **«Após a ANOVA: que comparações?»**: [contrastes planeados](method:treatment_contrasts), [tendência na dose](method:polynomial_contrasts), [todos os pares por Tukey](method:tukey_hsd), [contra um controlo por Dunnett](method:mean_comparisons), [pares planeados por Holm](method:mean_comparisons). Se o objetivo for mostrar que não há diferenças, trata-se de outra tarefa: **[o teste de equivalência (TOST)](method:equivalence_test)**; um F não significativo não prova a ausência de diferenças (Welham, p. 253).",
+  "sources": {
+   "model": "Welham et al. (2015), p. 74–88; Witte & Witte (2017), p. 310 (η²), p. 311 (ω² — sem fórmula; fórmula [proposta: Hays 1963], o BioStat trunca um valor negativo em 0).",
+   "pros_cons": "Welham et al. (2015), p. 33, 69, 75, 83, 84, 86, 102–107, 127.",
+   "assumptions": "Welham et al. (2015), p. 69–72, 93–110."
+  },
+  "symbols": [
+   "y_ij",
+   "i_group",
+   "j_obs",
+   "mu",
+   "tau_i",
+   "eps_ij",
+   "sigma2",
+   "H0",
+   "ybar_i",
+   "ybar",
+   "N",
+   "SS",
+   "MS",
+   "df_BW",
+   "P",
+   "SE",
+   "SED",
+   "t_quant",
+   "LSD",
+   "eta2",
+   "omega2"
+  ]
  }
 }

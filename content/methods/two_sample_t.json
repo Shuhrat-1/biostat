@@ -12,7 +12,6 @@
  },
  "ru": {
   "description": "Двухвыборочный t-тест Стьюдента и Уэлча: идея, формулы, допущения, сильные и слабые стороны и как карта BioStat выбирает этот метод.",
-  "short": "t-тест",
   "lead": "Различаются ли средние двух групп — например, урожай двух сортов? t-тест делит разность средних на её стандартную ошибку и смотрит, велика ли она для такой случайности.",
   "idea": [
    "Разность средних сама по себе ничего не говорит: 0.5 т/га — много, если делянки одного сорта различаются на 0.1, и мало, если на 2. Поэтому разность делят на её стандартную ошибку SED, которая растёт с разбросом внутри групп и падает с числом наблюдений (Welham, стр. 32–34).",
@@ -166,6 +165,358 @@
    "model": "Welham et al. (2015), стр. 32–35; Witte & Witte (2017), стр. 244–256 (t), 259–264 (ДИ и $d$), 266–267 (Уэлч), 308 ($F = t^2$); $g$ — [предл.: Hedges 1981].",
    "pros_cons": "Welham et al. (2015), стр. 33–35, 41, 74–84, 109–110; Witte & Witte (2017), стр. 195–202, 261–267, 387; правило Уэлча — [BioStat; предл.: Ruxton 2006; Zimmerman 2004].",
    "assumptions": "Welham et al. (2015), стр. 33–34, 93–110; Witte & Witte (2017), стр. 266."
+  },
+  "symbols": [
+   "y_ij",
+   "mu_i",
+   "eps_ij",
+   "sigma2",
+   "H0",
+   "ybar_i",
+   "j_obs",
+   "s2_i",
+   "s2_p",
+   "SED",
+   "t_stat",
+   "t_quant",
+   "P",
+   "d_cohen",
+   "g_hedges",
+   "t_W",
+   "nu_W"
+  ]
+ },
+ "en": {
+  "description": "Student's and Welch's two-sample t-test: idea, formulas, assumptions, strengths and weaknesses, and how the BioStat map chooses this method.",
+  "lead": "Do the means of two groups differ — for example, the yields of two varieties? The t-test divides the difference of means by its standard error and asks whether it is large for chance alone.",
+  "idea": [
+   "A difference of means says nothing by itself: 0.5 t/ha is a lot if plots of one variety differ by 0.1, and little if they differ by 2. So the difference is divided by its standard error SED, which grows with the spread within groups and falls with the number of observations (Welham, p. 32–34).",
+   "The result is **t** — how many standard errors fit into the difference. If the varieties are really the same, large |t| are rare; P is the probability of a |t| at least as large as the observed one. For wheat and barley, a difference of ⟦mean_diff:.2f⟧ t/ha with SED ⟦se_diff:.2f⟧ gives t = ⟦t:.2f⟧."
+  ],
+  "formulas": [
+   {
+    "text_before": "Observation *j* in group *i* (*i* = 1, 2):",
+    "tex": "y_{ij} = \\mu_i + \\varepsilon_{ij},\\qquad \\varepsilon_{ij} \\sim N(0,\\sigma^2)\\ \\text{independently},\\qquad H_0:\\ \\mu_1 = \\mu_2"
+   },
+   {
+    "title": "Pooled variance and SED",
+    "tex": "s_p^2 = \\frac{(n_1-1)\\,s_1^2 + (n_2-1)\\,s_2^2}{n_1+n_2-2},\\qquad \\mathrm{SED} = \\sqrt{s_p^2\\left(\\frac1{n_1}+\\frac1{n_2}\\right)}"
+   },
+   {
+    "title": "The t statistic",
+    "tex": "t = \\frac{\\bar y_{1\\cdot}-\\bar y_{2\\cdot}}{\\mathrm{SED}} = \\frac{⟦mean_a:.2f⟧-⟦mean_b:.2f⟧}{⟦se_diff:.2f⟧} = ⟦t:.2f⟧,\\qquad n_1+n_2-2 = ⟦df:.0f⟧\\ \\text{df},\\qquad P = ⟦p:.4f⟧",
+    "text_after": "If $H_0$ is true and the assumptions hold, t follows the t distribution with $n_1+n_2-2$ degrees of freedom. With two groups, $t^2$ equals the F of one-way ANOVA (Witte, p. 308)."
+   },
+   {
+    "title": "Confidence interval and effect size",
+    "tex": "(\\bar y_{1\\cdot}-\\bar y_{2\\cdot}) \\pm t_{0.975;\\,N-t}\\,\\mathrm{SED} = (⟦ci_lower:.2f⟧;\\ ⟦ci_upper:.2f⟧),\\qquad d = \\frac{\\bar y_{1\\cdot}-\\bar y_{2\\cdot}}{s_p} = ⟦cohens_d:.2f⟧",
+    "text_after": "With two groups, $N-t = n_1+n_2-2$. Hedges' $g$ is the same $d$ corrected for small-sample bias: ⟦hedges_g:.2f⟧ [proposed: Hedges 1981]."
+   },
+   {
+    "title": "Welch version",
+    "text_before": "When the variances are unequal they are not pooled: each group gives its own error, and the degrees of freedom are estimated from the data (Welham, p. 33; Witte, p. 266–267):",
+    "tex": "t_W = \\frac{\\bar y_{1\\cdot}-\\bar y_{2\\cdot}}{\\sqrt{s_1^2/n_1 + s_2^2/n_2}},\\qquad \\nu = \\frac{\\left(s_1^2/n_1 + s_2^2/n_2\\right)^2}{\\dfrac{(s_1^2/n_1)^2}{n_1-1} + \\dfrac{(s_2^2/n_2)^2}{n_2-1}}"
+   }
+  ],
+  "example_table": {
+   "note": "Wheat ⟦mean_a:.2f⟧, barley ⟦mean_b:.2f⟧ t/ha (⟦n_a⟧ plots each); difference ⟦mean_diff:.2f⟧, SED ⟦se_diff:.2f⟧, t = ⟦t:.2f⟧ on ⟦df:.0f⟧ df, P = ⟦p:.4f⟧; 95 % CI of the difference ⟦ci_lower:.2f⟧…⟦ci_upper:.2f⟧; d = ⟦cohens_d:.2f⟧, g = ⟦hedges_g:.2f⟧. The Welch rule did not fire — Student version; Levene (for reference): P = ⟦levene_p:.2f⟧."
+  },
+  "pros": [
+   "**Answers the two-group question directly.** The difference of means with SED and 95 % CI is what the book treats as the main result (Welham, p. 34–35).",
+   "**Robust with equal n.** With equal groups of more than ~10 observations, moderate departures from the assumptions hardly matter (Witte, p. 266).",
+   "**The Welch version** removes the requirement of equal variances (Welham, p. 33; Witte, p. 266–267).",
+   "**Gives an effect size:** Cohen's $d$ and Hedges' $g$ (Witte, p. 261–264; [proposed: Hedges 1981]).",
+   "**Has a directional version:** a one-sided test, if the direction is set before the experiment (Witte, p. 195–202)."
+  ],
+  "cons": [
+   "**Two groups only.** For three or more — [one-way ANOVA](method:one_way_anova) with a single estimate of σ² from all groups (Welham, p. 74–84).",
+   "**Unequal variances with unequal n:** when the larger variance is in the smaller group, Student's P is too small [BioStat; proposed: Ruxton 2006; Zimmerman 2004].",
+   "**A single outlier** shifts the mean and inflates SED (Welham, p. 109–110).",
+   "**Wrong for linked measurements:** two measurements of the same unit call for the [paired t-test](method:paired_t) (Welham, p. 41).",
+   "**With small n (below ~10)** departures from normality are dangerous and almost impossible to detect (Witte, p. 387)."
+  ],
+  "assumptions": [
+   {
+    "name": "Independence",
+    "meaning": "Each observation is a separate unit: the groups contain different units, with no pairs and no repeated measurements.",
+    "biostat": "Not checked by calculation — it is a property of the design. The map asks about the structure before this step and gives a hint (`B0.2`) if two numeric columns look like two measurements of the same units."
+   },
+   {
+    "name": "Normality of residuals",
+    "meaning": "Deviations from their group means are normally distributed.",
+    "biostat": "The map uses Shapiro–Wilk on the residuals of the two-group model; with n > 30 in both groups, only together with skewness > 0.5 [BioStat]. The method also reports the Shapiro–Wilk P for each group — for reference."
+   },
+   {
+    "name": "Equal variances (for the Student version)",
+    "meaning": "σ² is the same in both groups.",
+    "biostat": "Student by default. Welch is advised from the SD ratio and the balance of n: when the n differ by no more than 1.5 times, if the SDs differ by more than twice, otherwise by more than 1.5 times; with n < 8 in a group, for reference only [BioStat; proposed: Ruxton 2006]. Levene — for reference. The rule is shared by the method and the map."
+   },
+   {
+    "name": "No gross recording errors",
+    "meaning": "A single point does not distort the means and SED.",
+    "biostat": "Outlier test on the Studentized residuals with Bonferroni correction; checked first."
+   }
+  ],
+  "map_intro": [
+   "The map leads here when the units are independent and the single factor has two levels. The t-test is the **default method** in the “Two groups” branch: there is no positive signal for it.",
+   "Unequal variances do not move you off this leaf: signal `B4.2` suggests the same t-test in its **Welch version** (the version is chosen in the method form). If the SDs differ because of right skewness with non-normal residuals, `B4.2` stays silent: then `B4.1` and `B4.4` lead to ranks or a transformation."
+  ],
+  "neighbours": [
+   {
+    "method": "mann_whitney",
+    "signals": [
+     "B4.1",
+     "B4.8"
+    ],
+    "when": "residuals are non-normal (Shapiro–Wilk) or the response takes only a few integer values (scores)",
+    "advantage": "Does not need normality; works with scores and ranks",
+    "cost": "Compares distributions, not means; the CI is for the shift (Hodges–Lehmann), not for the difference of means"
+   },
+   {
+    "method": "transformed_means",
+    "signals": [
+     "B4.4"
+    ],
+    "when": "residuals are strongly skewed (|g₁| > 1)",
+    "advantage": "Restores symmetry; the difference becomes a ratio (how many times)",
+    "cost": "The result is on the log scale; back-transformation gives geometric means with an asymmetric CI"
+   },
+   {
+    "method": "paired_t",
+    "signals": [
+     "B0.2"
+    ],
+    "when": "two numeric columns on the same scale are strongly correlated — they look like two measurements of the same units",
+    "advantage": "Removes the differences between units from the error — a more precise comparison",
+    "cost": "Needs pairs: every measurement must have its partner"
+   },
+   {
+    "method": "one_way_anova",
+    "signals": [],
+    "when": "branch point “how many levels” = three or more",
+    "advantage": "One estimate of σ² from all groups instead of a series of t-tests",
+    "cost": "For two groups — the same P (F = t²), but without the Welch version, a one-sided test, the CI of the difference and d"
+   }
+  ],
+  "checks": [
+   {
+    "signals": [
+     "DIAG.1"
+    ],
+    "text": "**Outlier first.** With an outlier candidate, the Welch advice is demoted to a hint “check the record in row N first” (Welham, p. 109–110)."
+   },
+   {
+    "signals": [
+     "B4.1"
+    ],
+    "text": "Normality of the residuals of the two-group model; with n > 30 in both groups, only together with skewness > 0.5 [BioStat]. Leads to Mann–Whitney."
+   },
+   {
+    "signals": [
+     "B4.2"
+    ],
+    "text": "Unequal SDs — the same t-test in the Welch version; with n < 8 in a group, for reference only [BioStat]."
+   },
+   {
+    "signals": [
+     "B4.4"
+    ],
+    "text": "Strong skewness of residuals (|g₁| > 1) — a reason to transform."
+   },
+   {
+    "signals": [
+     "B4.7"
+    ],
+    "text": "All groups have n > 30: a departure from normality is probably harmless (CLT heuristic) [BioStat]."
+   },
+   {
+    "signals": [
+     "DIAG.3"
+    ],
+    "text": "Fewer than 10 residual df — a warning about low power."
+   }
+  ],
+  "next": "A significant t says that the means differ; the size of the difference is shown by the difference itself and its 95 % CI — these are what to report (Welham, p. 34–35). If the goal is to show that there are no differences, that is a different task: **[the equivalence test (TOST)](method:equivalence_test)**; a non-significant t does not prove the absence of differences (Welham, p. 253).",
+  "sources": {
+   "model": "Welham et al. (2015), p. 32–35; Witte & Witte (2017), p. 244–256 (t), 259–264 (CI and $d$), 266–267 (Welch), 308 ($F = t^2$); $g$ — [proposed: Hedges 1981].",
+   "pros_cons": "Welham et al. (2015), p. 33–35, 41, 74–84, 109–110; Witte & Witte (2017), p. 195–202, 261–267, 387; the Welch rule — [BioStat; proposed: Ruxton 2006; Zimmerman 2004].",
+   "assumptions": "Welham et al. (2015), p. 33–34, 93–110; Witte & Witte (2017), p. 266."
+  },
+  "symbols": [
+   "y_ij",
+   "mu_i",
+   "eps_ij",
+   "sigma2",
+   "H0",
+   "ybar_i",
+   "j_obs",
+   "s2_i",
+   "s2_p",
+   "SED",
+   "t_stat",
+   "t_quant",
+   "P",
+   "d_cohen",
+   "g_hedges",
+   "t_W",
+   "nu_W"
+  ]
+ },
+ "pt": {
+  "description": "Teste t de Student e de Welch para duas amostras: ideia, fórmulas, pressupostos, pontos fortes e fracos e como o mapa do BioStat escolhe este método.",
+  "lead": "As médias de dois grupos diferem — por exemplo, a produção de duas variedades? O teste t divide a diferença das médias pelo seu erro padrão e avalia se é grande para o simples acaso.",
+  "idea": [
+   "Uma diferença de médias, por si só, nada diz: 0.5 t/ha é muito se as parcelas da mesma variedade diferem 0.1, e pouco se diferem 2. Por isso a diferença é dividida pelo seu erro padrão, o EPD (nas fórmulas: SED), que cresce com a dispersão dentro dos grupos e diminui com o número de observações (Welham, p. 32–34).",
+   "Obtém-se **t** — quantos erros padrão cabem na diferença. Se as variedades forem realmente iguais, valores grandes de |t| são raros; P (valor de prova) é a probabilidade de obter um |t| pelo menos tão grande como o observado. No exemplo do trigo e da cevada, uma diferença de ⟦mean_diff:.2f⟧ t/ha com EPD ⟦se_diff:.2f⟧ dá t = ⟦t:.2f⟧."
+  ],
+  "formulas": [
+   {
+    "text_before": "Observação *j* no grupo *i* (*i* = 1, 2):",
+    "tex": "y_{ij} = \\mu_i + \\varepsilon_{ij},\\qquad \\varepsilon_{ij} \\sim N(0,\\sigma^2)\\ \\text{independentes},\\qquad H_0:\\ \\mu_1 = \\mu_2"
+   },
+   {
+    "title": "Variância comum e EPD",
+    "tex": "s_p^2 = \\frac{(n_1-1)\\,s_1^2 + (n_2-1)\\,s_2^2}{n_1+n_2-2},\\qquad \\mathrm{SED} = \\sqrt{s_p^2\\left(\\frac1{n_1}+\\frac1{n_2}\\right)}"
+   },
+   {
+    "title": "Estatística t",
+    "tex": "t = \\frac{\\bar y_{1\\cdot}-\\bar y_{2\\cdot}}{\\mathrm{SED}} = \\frac{⟦mean_a:.2f⟧-⟦mean_b:.2f⟧}{⟦se_diff:.2f⟧} = ⟦t:.2f⟧,\\qquad n_1+n_2-2 = ⟦df:.0f⟧\\ \\text{gl},\\qquad P = ⟦p:.4f⟧",
+    "text_after": "Com $H_0$ verdadeira e os pressupostos cumpridos, t segue a distribuição t com $n_1+n_2-2$ graus de liberdade. Com dois grupos, $t^2$ é igual ao F da ANOVA a um fator (Witte, p. 308)."
+   },
+   {
+    "title": "Intervalo de confiança e tamanho do efeito",
+    "tex": "(\\bar y_{1\\cdot}-\\bar y_{2\\cdot}) \\pm t_{0.975;\\,N-t}\\,\\mathrm{SED} = (⟦ci_lower:.2f⟧;\\ ⟦ci_upper:.2f⟧),\\qquad d = \\frac{\\bar y_{1\\cdot}-\\bar y_{2\\cdot}}{s_p} = ⟦cohens_d:.2f⟧",
+    "text_after": "Com dois grupos, $N-t = n_1+n_2-2$. O $g$ de Hedges é o mesmo $d$ corrigido do enviesamento em amostras pequenas: ⟦hedges_g:.2f⟧ [proposta: Hedges 1981]."
+   },
+   {
+    "title": "Variante de Welch",
+    "text_before": "Com variâncias desiguais não se usa uma variância comum: cada grupo dá o seu próprio erro, e os graus de liberdade são estimados a partir dos dados (Welham, p. 33; Witte, p. 266–267):",
+    "tex": "t_W = \\frac{\\bar y_{1\\cdot}-\\bar y_{2\\cdot}}{\\sqrt{s_1^2/n_1 + s_2^2/n_2}},\\qquad \\nu = \\frac{\\left(s_1^2/n_1 + s_2^2/n_2\\right)^2}{\\dfrac{(s_1^2/n_1)^2}{n_1-1} + \\dfrac{(s_2^2/n_2)^2}{n_2-1}}"
+   }
+  ],
+  "example_table": {
+   "note": "Trigo ⟦mean_a:.2f⟧, cevada ⟦mean_b:.2f⟧ t/ha (⟦n_a⟧ parcelas cada); diferença ⟦mean_diff:.2f⟧, EPD ⟦se_diff:.2f⟧, t = ⟦t:.2f⟧ com ⟦df:.0f⟧ gl, P = ⟦p:.4f⟧; IC 95 % da diferença ⟦ci_lower:.2f⟧…⟦ci_upper:.2f⟧; d = ⟦cohens_d:.2f⟧, g = ⟦hedges_g:.2f⟧. A regra de Welch não disparou — variante de Student; Levene (referência): P = ⟦levene_p:.2f⟧."
+  },
+  "pros": [
+   "**Responde diretamente à pergunta sobre dois grupos.** A diferença das médias com EPD e IC 95 % é o que o livro considera o resultado principal (Welham, p. 34–35).",
+   "**Robusto com n iguais.** Com grupos iguais de mais de ~10 observações, desvios moderados dos pressupostos quase não pesam (Witte, p. 266).",
+   "**A variante de Welch** dispensa a exigência de variâncias iguais (Welham, p. 33; Witte, p. 266–267).",
+   "**Dá o tamanho do efeito:** $d$ de Cohen e $g$ de Hedges (Witte, p. 261–264; [proposta: Hedges 1981]).",
+   "**Tem versão direcional:** um teste unilateral, se a direção for fixada antes do ensaio (Witte, p. 195–202)."
+  ],
+  "cons": [
+   "**Só dois grupos.** Para três ou mais — a [ANOVA a um fator](method:one_way_anova), com uma só estimativa de σ² a partir de todos os grupos (Welham, p. 74–84).",
+   "**Variâncias desiguais com n desiguais:** se a variância maior estiver no grupo menor, o P de Student sai demasiado pequeno [BioStat; proposta: Ruxton 2006; Zimmerman 2004].",
+   "**Uma única observação atípica** desloca a média e inflaciona o EPD (Welham, p. 109–110).",
+   "**Errado para medições ligadas:** duas medições da mesma unidade pedem o [teste t emparelhado](method:paired_t) (Welham, p. 41).",
+   "**Com n pequenos (abaixo de ~10)** os desvios da normalidade são perigosos e quase impossíveis de detetar (Witte, p. 387)."
+  ],
+  "assumptions": [
+   {
+    "name": "Independência",
+    "meaning": "Cada observação é uma unidade separada: os grupos têm unidades diferentes, sem pares nem medições repetidas.",
+    "biostat": "Não se verifica por cálculo — é uma propriedade do delineamento. O mapa pergunta pela estrutura antes deste passo e dá uma sugestão (`B0.2`) se duas colunas numéricas parecerem duas medições das mesmas unidades."
+   },
+   {
+    "name": "Normalidade dos resíduos",
+    "meaning": "Os desvios em relação às médias dos respetivos grupos têm distribuição normal.",
+    "biostat": "O mapa usa Shapiro–Wilk nos resíduos do modelo de dois grupos; com n > 30 em ambos os grupos, só em conjunto com assimetria > 0.5 [BioStat]. O método dá ainda o P de Shapiro–Wilk de cada grupo — como referência."
+   },
+   {
+    "name": "Igualdade de variâncias (na variante de Student)",
+    "meaning": "σ² é a mesma nos dois grupos.",
+    "biostat": "Por omissão — Student. Welch é aconselhado pela razão dos DP e pelo equilíbrio dos n: com n que diferem no máximo 1.5 vezes, se os DP diferirem mais do dobro; caso contrário, mais de 1.5 vezes; com n < 8 num grupo, só como referência [BioStat; proposta: Ruxton 2006]. Levene — referência. A regra é comum ao método e ao mapa."
+   },
+   {
+    "name": "Sem erros grosseiros de registo",
+    "meaning": "Um ponto isolado não distorce as médias nem o EPD.",
+    "biostat": "Teste de observação atípica nos resíduos Studentizados com correção de Bonferroni; verificado primeiro."
+   }
+  ],
+  "map_intro": [
+   "O mapa conduz a esta folha quando as unidades são independentes e o único fator tem dois níveis. O teste t é o **método por omissão** no ramo «Dois grupos»: não há sinal positivo a seu favor.",
+   "Variâncias desiguais não tiram desta folha: o sinal `B4.2` propõe o mesmo teste t na **variante de Welch** (a variante escolhe-se no formulário do método). Se os DP diferem por causa de assimetria à direita com resíduos não normais, `B4.2` fica em silêncio: então `B4.1` e `B4.4` levam aos postos ou a uma transformação."
+  ],
+  "neighbours": [
+   {
+    "method": "mann_whitney",
+    "signals": [
+     "B4.1",
+     "B4.8"
+    ],
+    "when": "resíduos não normais (Shapiro–Wilk) ou a resposta tem poucos valores inteiros (pontuações)",
+    "advantage": "Não exige normalidade; trabalha com pontuações e postos",
+    "cost": "Compara distribuições, não médias; o IC é para o deslocamento (Hodges–Lehmann), não para a diferença das médias"
+   },
+   {
+    "method": "transformed_means",
+    "signals": [
+     "B4.4"
+    ],
+    "when": "resíduos fortemente assimétricos (|g₁| > 1)",
+    "advantage": "Repõe a simetria; a diferença passa a razão (quantas vezes)",
+    "cost": "O resultado fica na escala log; a retransformação dá médias geométricas com IC assimétrico"
+   },
+   {
+    "method": "paired_t",
+    "signals": [
+     "B0.2"
+    ],
+    "when": "duas colunas numéricas na mesma escala estão fortemente correlacionadas — parecem duas medições das mesmas unidades",
+    "advantage": "Retira do erro as diferenças entre unidades — comparação mais precisa",
+    "cost": "Precisa de pares: cada medição tem de ter a sua segunda"
+   },
+   {
+    "method": "one_way_anova",
+    "signals": [],
+    "when": "bifurcação «quantos níveis» = três ou mais",
+    "advantage": "Uma só estimativa de σ² a partir de todos os grupos, em vez de uma série de testes t",
+    "cost": "Para dois grupos — o mesmo P (F = t²), mas sem variante de Welch, teste unilateral, IC da diferença e d"
+   }
+  ],
+  "checks": [
+   {
+    "signals": [
+     "DIAG.1"
+    ],
+    "text": "**Observação atípica primeiro.** Com uma candidata a observação atípica, o conselho de Welch passa a sugestão «verifique primeiro o registo na linha N» (Welham, p. 109–110)."
+   },
+   {
+    "signals": [
+     "B4.1"
+    ],
+    "text": "Normalidade dos resíduos do modelo de dois grupos; com n > 30 em ambos os grupos, só em conjunto com assimetria > 0.5 [BioStat]. Leva a Mann–Whitney."
+   },
+   {
+    "signals": [
+     "B4.2"
+    ],
+    "text": "DP desiguais — o mesmo teste t na variante de Welch; com n < 8 num grupo, só como referência [BioStat]."
+   },
+   {
+    "signals": [
+     "B4.4"
+    ],
+    "text": "Assimetria forte dos resíduos (|g₁| > 1) — motivo para transformar."
+   },
+   {
+    "signals": [
+     "B4.7"
+    ],
+    "text": "Todos os grupos com n > 30: um desvio da normalidade provavelmente não é grave (heurística do TLC) [BioStat]."
+   },
+   {
+    "signals": [
+     "DIAG.3"
+    ],
+    "text": "Menos de 10 gl do resíduo — aviso de potência baixa."
+   }
+  ],
+  "next": "Um t significativo diz que as médias diferem; a grandeza da diferença mostram-na a própria diferença e o seu IC 95 % — é isso que se deve apresentar (Welham, p. 34–35). Se o objetivo for mostrar que não há diferenças, trata-se de outra tarefa: **[o teste de equivalência (TOST)](method:equivalence_test)**; um t não significativo não prova a ausência de diferenças (Welham, p. 253).",
+  "sources": {
+   "model": "Welham et al. (2015), p. 32–35; Witte & Witte (2017), p. 244–256 (t), 259–264 (IC e $d$), 266–267 (Welch), 308 ($F = t^2$); $g$ — [proposta: Hedges 1981].",
+   "pros_cons": "Welham et al. (2015), p. 33–35, 41, 74–84, 109–110; Witte & Witte (2017), p. 195–202, 261–267, 387; regra de Welch — [BioStat; proposta: Ruxton 2006; Zimmerman 2004].",
+   "assumptions": "Welham et al. (2015), p. 33–34, 93–110; Witte & Witte (2017), p. 266."
   },
   "symbols": [
    "y_ij",

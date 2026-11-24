@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="pt">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Teste F de permutação (ANOVA) — BioStat</title>
+    <meta name="description" content="Teste F de permutação da ANOVA a um fator: P sem pressupor normalidade — ideia, fórmula, pressupostos e como o mapa do BioStat escolhe este método." />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="canonical" href="https://biostat.app/pt/methods/anova_permutation_test/" />
+    <link rel="alternate" hreflang="en" href="https://biostat.app/methods/anova_permutation_test/" />
+    <link rel="alternate" hreflang="ru" href="https://biostat.app/ru/methods/anova_permutation_test/" />
+    <link rel="alternate" hreflang="pt" href="https://biostat.app/pt/methods/anova_permutation_test/" />
+    <link rel="alternate" hreflang="x-default" href="https://biostat.app/methods/anova_permutation_test/" />
+    <style>body{margin:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:#18181b;background:#fafafa;line-height:1.6}main{max-width:44rem;margin:0 auto;padding:1.5rem 1rem 2rem}h1{font-size:1.6rem;margin:0.6rem 0 0.2rem}h2{font-size:1.1rem;margin:1.6rem 0 0.4rem}p{margin:0.4rem 0}a{color:#0f766e}.muted{color:#63636b;font-size:0.9rem}nav{display:flex;flex-wrap:wrap;gap:0.4rem 1rem;justify-content:space-between;align-items:center}footer{border-top:1px solid #e4e4e7;margin-top:2rem;padding-top:0.8rem;font-size:0.9rem}code{overflow-wrap:anywhere}h3{font-size:1rem;margin:1.4rem 0 0}ul{margin:0.3rem 0;padding-left:1.2rem}li{margin:0.15rem 0;overflow-wrap:anywhere}.tag{font-size:0.75rem;font-weight:400;color:#92400e;border:1px solid #f59e0b;border-radius:4px;padding:0 0.3rem;margin-left:0.4rem;white-space:nowrap}</style>
+    <link rel="stylesheet" href="/methods/assets/method.css" />
+    <script src="/back.js" defer></script>
+  </head>
+  <body>
+    <main class="mp">
+      <nav><a href="/" data-back>← Voltar ao BioStat</a><span><a href="/methods/anova_permutation_test/" hreflang="en" lang="en">English</a> · <a href="/ru/methods/anova_permutation_test/" hreflang="ru" lang="ru">Русский</a> · <a href="/pt/methods/anova_permutation_test/" hreflang="pt" lang="pt" aria-current="page">Português</a></span></nav>
+<div class="wrap">
+<article>
+  <nav class="crumbs" aria-label="Navegação"><a href="/">BioStat</a> › <a href="/pt/methods/">Métodos e verificação</a> › <a href="/pt/methods/#group-several-groups">Comparação de vários grupos</a> › Teste F de permutação (ANOVA)</nav>
+  <h1>Teste F de permutação (ANOVA)</h1>
+  <p class="lead">As médias dos grupos diferem quando os resíduos não são normais? O teste de permutação usa o mesmo F da ANOVA, mas obtém o P (valor de prova) baralhando os rótulos dos grupos, e não a partir da distribuição F.</p>
+  <section id="idea">
+    <h2>Ideia</h2>
+    <p>Se o tratamento não afeta a resposta, o rótulo do grupo de uma unidade nada significa: num ensaio casualizado, qualquer atribuição dos rótulos às unidades era igualmente possível. O teste baralha os rótulos muitas vezes, recalcula <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>F</mi><mo>∗</mo></msup></mrow><annotation encoding="application/x-tex">F^*</annotation></semantics></math></span> de cada vez e vê com que frequência uma atribuição aleatória dá um F pelo menos tão grande como o observado (Welham, p. 102–103).</p>
+    <p>A distribuição F não é necessária — substitui-a a distribuição dos próprios <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>F</mi><mo>∗</mo></msup></mrow><annotation encoding="application/x-tex">F^*</annotation></semantics></math></span>. Por isso não se exige normalidade, mas continua a exigir-se homogeneidade de variâncias: baralhar pressupõe que os grupos diferem apenas por um deslocamento (Welham, p. 102).</p>
+  </section>
+  <section id="model">
+    <h2>Modelo e fórmulas</h2>
+    <details class="glossary" id="symbols">
+      <summary>Todos os símbolos desta página</summary>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Símbolo</th><th>Significado</th></tr></thead>
+      <tbody>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>H</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">H_0</annotation></semantics></math></span></td><td>hipótese nula: todos os grupos têm a mesma média</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mi>S</mi><mo>=</mo><mi>S</mi><mi>S</mi><mi mathvariant="normal">/</mi><mi>d</mi><mi>f</mi></mrow><annotation encoding="application/x-tex">MS = SS/df</annotation></semantics></math></span></td><td>quadrado médio — soma de quadrados dividida pelos seus graus de liberdade</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi><mo>−</mo><mn>1</mn><mo separator="true">,</mo><mtext> </mtext><mi>N</mi><mo>−</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">t-1,\ N-t</annotation></semantics></math></span></td><td>graus de liberdade entre e dentro dos grupos</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>F</mi><mo>∗</mo></msup></mrow><annotation encoding="application/x-tex">F^*</annotation></semantics></math></span></td><td>F nos dados com os rótulos dos grupos baralhados</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi></mrow><annotation encoding="application/x-tex">B</annotation></semantics></math></span></td><td>número de permutações aleatórias</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi></mrow><annotation encoding="application/x-tex">P</annotation></semantics></math></span></td><td>probabilidade de uma estatística (F, t …) pelo menos tão extrema como a observada quando <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>H</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">H_0</annotation></semantics></math></span> é verdadeira</td></tr>
+</tbody>
+    </table></div>
+      <p class="note">A mesma notação em todas as páginas de métodos — <a href="/pt/methods/symbols/">glossário de símbolos</a>.</p>
+    </details>
+    <h3>A estatística — o mesmo F</h3>
+    <div class="math block"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>F</mi><mo>=</mo><mfrac><mrow><mi>M</mi><msub><mi>S</mi><mi>B</mi></msub></mrow><mrow><mi>M</mi><msub><mi>S</mi><mi>W</mi></msub></mrow></mfrac><mo>=</mo><mn>27.8</mn><mo separator="true">,</mo><mspace width="2em"/><mi>d</mi><mi>f</mi><mo>=</mo><mo stretchy="false">(</mo><mn>2</mn><mo separator="true">;</mo><mtext> </mtext><mn>27</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">F = \frac{MS_B}{MS_W} = 27.8,\qquad df = (2;\ 27)</annotation></semantics></math></span></div>
+    <h3>P por permutações aleatórias</h3>
+    <div class="math block"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>P</mi><mo>=</mo><mfrac><mrow><mn>1</mn><mo>+</mo><mi mathvariant="normal">#</mi><mo stretchy="false">{</mo><mtext> </mtext><mi>b</mi><mo>:</mo><mtext> </mtext><msubsup><mi>F</mi><mi>b</mi><mo>∗</mo></msubsup><mo>≥</mo><mi>F</mi><mtext> </mtext><mo stretchy="false">}</mo></mrow><mrow><mi>B</mi><mo>+</mo><mn>1</mn></mrow></mfrac><mo separator="true">,</mo><mspace width="2em"/><mi>B</mi><mo>=</mo><mn>999</mn><mo separator="true">,</mo><mspace width="1em"/><mi>P</mi><mo>=</mo><mn>0.001</mn></mrow><annotation encoding="application/x-tex">P = \frac{1 + \#\{\,b:\ F^*_b \ge F\,\}}{B+1},\qquad B = 999,\quad P = 0.001</annotation></semantics></math></span></div>
+    <p>A unidade somada ao numerador e ao denominador conta os próprios dados observados como uma das atribuições, por isso o P nunca é menor do que <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mi mathvariant="normal">/</mi><mo stretchy="false">(</mo><mi>B</mi><mo>+</mo><mn>1</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">1/(B+1)</annotation></semantics></math></span> [proposta: Phipson &amp; Smyth 2010]. Se não houver mais atribuições distintas do que B, o BioStat percorre-as todas, e o P é a proporção exata de atribuições com <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>F</mi><mo>∗</mo></msup><mo>≥</mo><mi>F</mi></mrow><annotation encoding="application/x-tex">F^* \ge F</annotation></semantics></math></span> (a observada é uma delas), sem somar a unidade (Welham, p. 102–103).</p>
+    <h3>No exemplo</h3>
+    <p class="note">Conjunto ilustrativo (cenário S09 do mapa): três grupos de 10 valores com a mesma forma assimétrica à direita, deslocados de 5, 6 e 8 — as variâncias são iguais (Levene, referência: P = 1.00), os resíduos não são normais e o mapa dá <span class="sig">B4.6</span>. F = 27.8 com (2; 27) gl. Nenhuma das 999 permutações (seed = 1) deu <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>F</mi><mo>∗</mo></msup><mo>≥</mo></mrow><annotation encoding="application/x-tex">F^* \ge</annotation></semantics></math></span> 27.8, por isso P = 0.001 — o menor possível com B = 999; pela distribuição F, P = 2.8·10⁻⁷. Há 5 550 996 791 340 atribuições de 30 valores a três grupos, por isso as permutações são aleatórias. Neste conjunto o mapa sugere também uma transformação (<span class="sig">B4.4</span>, assimetria dos resíduos acima de 1); a sugestão <span class="sig">DIAG.2</span> sobre correlação pela ordem das linhas resulta de os valores do conjunto estarem ordenados.</p>
+    <p class="src">Welham et al. (2015), p. 102–103; fórmula do P — [proposta: Phipson &amp; Smyth 2010].</p>
+  </section>
+  <section id="pros-cons">
+    <h2>Pontos fortes e fracos</h2>
+    <div class="cols">
+      <div class="plus">
+        <h3>Pontos fortes</h3>
+        <ul>
+      <li><b>Não exige normalidade dos resíduos</b> — o P vem da distribuição de <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>F</mi><mo>∗</mo></msup></mrow><annotation encoding="application/x-tex">F^*</annotation></semantics></math></span> (Welham, p. 102).</li>
+      <li><b>A mesma estatística e as mesmas médias</b> que na ANOVA: os resultados comparam-se diretamente [BioStat].</li>
+      <li><b>Exato quando há poucas atribuições:</b> se não forem mais do que B, percorrem-se todas (Welham, p. 102–103).</li>
+      <li><b>Reprodutível:</b> a seed fica guardada no resultado, e um novo cálculo dá o mesmo P [BioStat].</li>
+    </ul>
+      </div>
+      <div class="minus">
+        <h3>Pontos fracos</h3>
+        <ul>
+      <li><b>Exige variâncias homogéneas</b> — com variâncias heterogéneas não substitui Welch (Welham, p. 102).</li>
+      <li><b>Justifica-se pela casualização:</b> em dados observacionais, baralhar os rótulos é só uma aproximação (Welham, p. 103).</li>
+      <li><b>O P nunca é inferior a <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mi mathvariant="normal">/</mi><mo stretchy="false">(</mo><mi>B</mi><mo>+</mo><mn>1</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">1/(B+1)</annotation></semantics></math></span></b> com permutações aleatórias e varia ligeiramente com outra seed; para P muito pequenos são precisas mais permutações (B até 99 999) [BioStat].</li>
+      <li><b>Só um fator, sem blocos.</b> As permutações têm de respeitar a estrutura do ensaio (Welham, p. 102–103); para blocos, o BioStat não tem esta variante.</li>
+      <li><b>Não corrige uma observação atípica:</b> o F continua a basear-se nas médias (Welham, p. 109–110).</li>
+    </ul>
+      </div>
+    </div>
+    <p class="src">Welham et al. (2015), p. 102–103, 109–110; [BioStat].</p>
+  </section>
+  <section id="assumptions">
+    <h2>Pressupostos</h2>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Pressuposto</th><th>O que significa</th><th>Como o BioStat verifica</th></tr></thead>
+      <tbody>
+<tr><td>Permutabilidade (casualização)</td><td>Com <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>H</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">H_0</annotation></semantics></math></span> verdadeira, qualquer atribuição dos rótulos às unidades é igualmente possível — como num ensaio casualizado.</td><td>Não se verifica por cálculo. O mapa mostra uma ressalva conforme a escolha no primeiro passo: «Experiência» — o teste justifica-se pela casualização; «Observacional» — só uma aproximação, conclusões com cautela.</td></tr>
+<tr><td>Homogeneidade de variâncias</td><td>Os grupos diferem por um deslocamento, não pela dispersão.</td><td>A mesma regra que a do mapa: para três ou mais grupos — Bartlett, para dois — a razão dos DP (com n ≥ 8 por grupo); se for violada, o método avisa. Levene — referência.</td></tr>
+<tr><td>Sem erros grosseiros de registo</td><td>Um ponto isolado não distorce as médias nem o quadrado médio residual (QMRE, <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><msub><mi>S</mi><mi>W</mi></msub></mrow><annotation encoding="application/x-tex">MS_W</annotation></semantics></math></span>).</td><td>Teste de observação atípica nos resíduos Studentizados com correção de Bonferroni; verificado primeiro.</td></tr>
+</tbody>
+    </table></div>
+    <p class="src">Welham et al. (2015), p. 102–110.</p>
+  </section>
+  <section id="map">
+    <h2>Como o mapa escolhe este método</h2>
+    <h3>Caminho até à folha</h3>
+    <div class="path" aria-label="Caminho no mapa"><span>Analisar a resposta</span>›<span>Contínua</span>›<span>Diferenças</span>›<span>Unidades independentes</span>›<span>Sem blocos ou blocos completos</span>›<span>Um fator</span>›<span>Três ou mais grupos</span>›<span class="here">Teste de permutação</span></div>
+    <p>O mapa conduz a esta folha com o sinal <span class="sig">B4.6</span>: em três ou mais grupos <b>os resíduos não são normais</b> (<span class="sig">B4.1</span>) e <b>as variâncias são homogéneas</b> (<span class="sig">B4.2</span> fica em silêncio). Se as variâncias forem heterogéneas, <span class="sig">B4.6</span> fica em silêncio, e a escolha é entre Welch e a transformação.</p>
+    <p>Para dois grupos, o mapa não tem folha de teste de permutação: resíduos não normais levam a Mann–Whitney. O próprio método aceita dois grupos. Com uma candidata a observação atípica, <span class="sig">B4.6</span> passa a sugestão: verifique primeiro o registo.</p>
+    <h3>Vizinhos no mapa: quando são preferíveis</h3>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Vizinho</th><th>Quando o mapa leva lá</th><th>Em que o vizinho é melhor aqui</th><th>O que custa</th></tr></thead>
+      <tbody>
+<tr><td><a class="mlink" href="/pt/methods/one_way_anova/" title="Abrir a descrição do método">ANOVA a um fator</a></td><td>resíduos normais — folha por omissão</td><td>P pela distribuição F: sem aleatoriedade e sem limite inferior do P</td><td>Exige resíduos normais</td></tr>
+<tr><td><a class="mlink" href="/pt/methods/welch_anova/" title="Abrir a descrição do método">ANOVA de Welch (variâncias desiguais)</a></td><td><span class="sig">B4.5</span> variâncias heterogéneas que não crescem com as médias</td><td>Correta com variâncias desiguais</td><td>Exige normalidade; sem <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><msub><mi>S</mi><mi>W</mi></msub></mrow><annotation encoding="application/x-tex">MS_W</annotation></semantics></math></span> comum</td></tr>
+<tr><td><a class="mlink" href="/pt/methods/#transformed_means" title="Abrir a descrição do método">ANOVA com resposta transformada</a></td><td><span class="sig">B4.3</span> / <span class="sig">B4.4</span> (sugestão) os DP crescem com as médias ou os resíduos são fortemente assimétricos (|g₁| &gt; 1)</td><td>Corrige a assimetria e a heterogeneidade de uma vez; F habitual e EPD (nas fórmulas: SED) na nova escala</td><td>Médias geométricas, IC assimétricos</td></tr>
+<tr><td><a class="mlink" href="/pt/methods/#kruskal_wallis" title="Abrir a descrição do método">Teste de Kruskal-Wallis (não paramétrico)</a></td><td><span class="sig">B4.8</span> (sugestão) a resposta tem poucos valores inteiros (pontuações)</td><td>Trabalha com postos; resistente a observações atípicas</td><td>Compara distribuições, não médias</td></tr>
+<tr><td><a class="mlink" href="/pt/methods/#rcbd_anova" title="Abrir a descrição do método">ANOVA em blocos casualizados (RCBD)</a></td><td><span class="sig">B1.2</span> / <span class="sig">B1.8</span> (sugestão) cada tratamento uma vez em cada bloco (ou uma coluna que parece blocos)</td><td>Retira do erro as diferenças entre blocos</td><td>Precisa de uma coluna de blocos; volta a exigir resíduos normais</td></tr>
+</tbody>
+    </table></div>
+    <h3>O que o mapa verifica nesta folha</h3>
+    <ul>
+      <li><span class="sig">DIAG.1</span> <b>Observação atípica primeiro.</b> Com uma candidata a observação atípica, o conselho do teste de permutação passa a sugestão «verifique primeiro o registo na linha N» (Welham, p. 109–110).</li>
+      <li><span class="sig">B4.1</span> Normalidade dos resíduos (Shapiro–Wilk); com n &gt; 30 em cada grupo, só em conjunto com assimetria &gt; 0.5 [BioStat].</li>
+      <li><span class="sig">B4.2</span> Homogeneidade de variâncias (Bartlett): se forem heterogéneas — Welch ou uma transformação em vez deste teste.</li>
+      <li><span class="sig">B4.3</span> / <span class="sig">B4.4</span> (sugestão) Relação entre DP e médias e assimetria forte dos resíduos — motivos para transformar.</li>
+      <li><span class="sig">DIAG.3</span> Menos de 10 gl do resíduo — aviso de potência baixa.</li>
+    </ul>
+    <h3>O que vem a seguir</h3>
+    <p>O P de permutação responde se as médias diferem de todo. As comparações após a ANOVA (B5) usam a distribuição t: com resíduos claramente não normais, os seus P são aproximados; o BioStat não tem variante de permutação das comparações. Se o objetivo for mostrar que não há diferenças, trata-se de outra tarefa: <b><a class="mlink" href="/pt/methods/#equivalence_test" title="Abrir a descrição do método">o teste de equivalência (TOST)</a></b>; um F não significativo não prova a ausência de diferenças (Welham, p. 253).</p>
+  </section>
+  <details class="check" id="check">
+    <summary>Verificação do método</summary>
+    <ul>
+      <li>Testes que chamam o método: 8</li>
+      <li>Sem referências aos livros nos testes</li>
+      <li>Verificação independente (auditoria 2): nenhuma — só casos-limite</li>
+    </ul>
+  </details>
+  <div class="pager"><a href="/pt/methods/welch_anova/"><small>← Anterior</small>ANOVA de Welch (variâncias desiguais)</a></div>
+</article>
+<aside class="toc" aria-label="Nesta página">
+  <b>Nesta página</b>
+  <a href="#idea">Ideia</a>
+  <a href="#model">Modelo e fórmulas</a>
+  <a href="#symbols">Notação</a>
+  <a href="#pros-cons">Pontos fortes e fracos</a>
+  <a href="#assumptions">Pressupostos</a>
+  <a href="#map">Como o mapa escolhe</a>
+  <a href="#check">Verificação do método</a>
+  <a class="toc-back" href="/pt/methods/#anova_permutation_test">↑ Voltar à lista de métodos</a>
+</aside>
+<a class="to-list" href="/pt/methods/#anova_permutation_test" aria-label="Voltar à lista de métodos">↑</a>
+</div>
+      <footer><a href="/pt/privacy/">Privacidade</a> · <a href="/pt/terms/">Termos</a> · <a href="/pt/methods/">Métodos e verificação</a> · <a href="/LICENSE.txt">Licença Apache-2.0</a></footer>
+    </main>
+  </body>
+</html>
