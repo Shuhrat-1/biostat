@@ -97,7 +97,7 @@ def test_catalog_translations():
     pt = {m["method"]: m for m in available_methods(profiles, "pt")}
     assert en["one_way_anova"]["label"] == "One-way ANOVA"
     assert en["one_way_anova"]["group"] == "Multi-group comparison"
-    assert pt["one_way_anova"]["label"] == "ANOVA de um fator"
+    assert pt["one_way_anova"]["label"] == "ANOVA a um fator"
     # Русский по умолчанию.
     ru = {m["method"]: m for m in available_methods(profiles)}
     assert ru["one_way_anova"]["label"] == "Однофакторный ANOVA"

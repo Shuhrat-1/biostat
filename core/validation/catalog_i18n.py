@@ -122,7 +122,7 @@ LABELS: dict[str, dict[str, str]] = {
         "Две доли: разность с ДИ": "Duas proporções: diferença com IC",
         "Мак-Немар: парные бинарные исходы": "McNemar: resultados binários emparelhados",
         "Тест Манна-Уитни (непараметрический)": "Teste de Mann-Whitney (não paramétrico)",
-        "Однофакторный ANOVA": "ANOVA de um fator",
+        "Однофакторный ANOVA": "ANOVA a um fator",
         "ANOVA Уэлча (неравные дисперсии)": "ANOVA de Welch (variâncias desiguais)",
         "ANOVA повторных измерений": "ANOVA de medidas repetidas",
         "Критерий Фридмана (ранги, повторные измерения)": "Teste de Friedman (postos, medidas repetidas)",
@@ -153,7 +153,7 @@ LABELS: dict[str, dict[str, str]] = {
         "Простая линейная регрессия": "Regressão linear simples",
         "Регрессия: ANOVA, тесты, предсказания": "Regressão: ANOVA, testes, previsões",
         "Калибровка (обратное предсказание)": "Calibração (previsão inversa)",
-        "Регрессия: выбросы, рычаги, влияние": "Regressão: outliers, alavancagem, influência",
+        "Регрессия: выбросы, рычаги, влияние": "Regressão: valores atípicos, alavancagem, influência",
         "Регрессия: кросс-валидация": "Regressão: validação cruzada",
         "Кривая: регрессия по преобразованному x": "Curva: regressão em x transformado",
         "Кривая: полиномиальная регрессия": "Curva: regressão polinomial",
@@ -353,7 +353,7 @@ DESCRIPTIONS: dict[str, dict[str, str]] = {
             "Verifica se as variâncias dos grupos são iguais antes da ANOVA."
         ),
         "Стандартизованные остатки, графики допущений и кандидаты в выбросы.": (
-            "Resíduos padronizados, gráficos de pressupostos e candidatos a valores atípicos."
+            "Resíduos estandardizados, gráficos de pressupostos e candidatos a valores atípicos."
         ),
         "ANOVA на шкале log, √ или logit; средние и ДИ переведены обратно.": (
             "ANOVA na escala log, √ ou logit; médias e IC retransformados."
@@ -395,7 +395,7 @@ DESCRIPTIONS: dict[str, dict[str, str]] = {
         "Последовательная ANOVA по степеням x, тест старшего члена, VIF, неадекватность.": "ANOVA sequencial por potências de x, teste do termo de maior ordem, VIF, falta de ajustamento.",
         "Синус и косинус с известным периодом: амплитуда, фаза, моменты максимума и минимума.": "Seno e cosseno com período conhecido: amplitude, fase, momentos do máximo e do mínimo.",
         "Гибкая кривая без переподгонки: B-сплайн с F против прямой, сглаживающий сплайн (GCV), loess.": "Curva flexível sem sobreajustamento: B-spline com teste F contra a reta, spline de suavização (GCV), loess.",
-        "Экспоненциальная, обратная линейная, логистическая, Гомперца: асимптоты, приближённые SE.": "Exponencial, linear inversa, logística, Gompertz: assíntotas, erros-padrão aproximados.",
+        "Экспоненциальная, обратная линейная, логистическая, Гомперца: асимптоты, приближённые SE.": "Exponencial, linear inversa, logística, Gompertz: assíntotas, erros padrão aproximados.",
         "ResMS, R²adj, AIC и SBC преобразований, полиномов и нелинейных кривых.": "ResMS, R² ajustado, AIC e SBC de transformações, polinómios e curvas não lineares.",
         "Полиномиальная поверхность по двум x: неадекватность против чистой ошибки, отбор членов.": "Superfície polinomial em duas variáveis x: falta de ajustamento contra erro puro, seleção de termos.",
         "Несколько x: ANOVA типов I и III, параметры, VIF, R², AIC, частные остатки.": "Vários x: ANOVA de tipos I e III, parâmetros, VIF, R², AIC, resíduos parciais.",

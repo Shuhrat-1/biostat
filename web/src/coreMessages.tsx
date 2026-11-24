@@ -214,7 +214,7 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
   nested_no_members: {
     ru: `Ни в одной группе нет двух членов — вложенный член пуст. Для простого сравнения групп выбери однофакторный ANOVA.`,
     en: `No group has two members, so the nested term is empty. To compare groups only, use one-way ANOVA.`,
-    pt: `Nenhum grupo tem dois membros, pelo que o termo hierárquico está vazio. Para comparar apenas grupos, use a ANOVA de um fator.`,
+    pt: `Nenhum grupo tem dois membros, pelo que o termo hierárquico está vazio. Para comparar apenas grupos, use a ANOVA a um fator.`,
   },
   interaction_borderline: {
     ru: `Взаимодействие {term} исключено из предсказания, но P = {p} близко к порогу: сравни его вклад (доля SS) с главными эффектами и реши, можно ли им пренебречь.`,
@@ -349,7 +349,7 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
   nonlinear_approximate: {
     ru: `SE, t и F нелинейной модели приближённые (линеаризация); разные программы могут давать немного разные значения. Проверь кривую на графике.`,
     en: `SEs, t and F for a nonlinear model are approximate (linearization); different software may give slightly different values. Check the curve on the plot.`,
-    pt: `Os erros-padrão, t e F de um modelo não linear são aproximados (linearização); programas diferentes podem dar valores ligeiramente diferentes. Verifique a curva no gráfico.`,
+    pt: `Os erros padrão, t e F de um modelo não linear são aproximados (linearização); programas diferentes podem dar valores ligeiramente diferentes. Verifique a curva no gráfico.`,
   },
   nonlinear_degenerate: {
     ru: `Точка перегиба δ = {delta} вне диапазона x: в данных нет обеих частей S-кривой, асимптоты не оцениваются. Выбери кривую с одной асимптотой.`,
@@ -399,7 +399,7 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
   glm_not_converged: {
     ru: `Итерации IRLS не сошлись: возможно полное разделение (доли 0 или 1 во всей группе). Оценки и SE ненадёжны.`,
     en: `The IRLS iterations did not converge: possibly complete separation (proportions of 0 or 1 in a whole group). Estimates and SEs are unreliable.`,
-    pt: `As iterações IRLS não convergiram: possivelmente separação completa (proporções 0 ou 1 num grupo inteiro). As estimativas e os erros-padrão não são fiáveis.`,
+    pt: `As iterações IRLS não convergiram: possivelmente separação completa (proporções 0 ou 1 num grupo inteiro). As estimativas e os erros padrão não são fiáveis.`,
   },
   glm_binary: {
     ru: `Бинарные данные (m = 1): остаточное отклонение не проверяет сверхдисперсию, φ не оценивается, остатки малоинформативны. По возможности считай успехи на единицу опыта.`,
@@ -409,12 +409,12 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
   glm_overdispersion: {
     ru: `Сверхдисперсия (остаточное отклонение больше χ²): φ = {phi}; члены проверяются отношением отклонений по F, SE умножены на √φ.`,
     en: `Over-dispersion (residual deviance exceeds χ²): φ = {phi}; terms are tested by deviance ratios with F, SEs are multiplied by √φ.`,
-    pt: `Sobredispersão (desvio residual acima de χ²): φ = {phi}; os termos são testados por razões de desvio com F e os erros-padrão são multiplicados por √φ.`,
+    pt: `Sobredispersão (desvio residual acima de χ²): φ = {phi}; os termos são testados por razões de desvio com F e os erros padrão são multiplicados por √φ.`,
   },
   glm_overdispersion_ignored: {
     ru: `Остаточное отклонение велико (P = {p}), а φ зафиксирован = 1: тесты и SE слишком оптимистичны.`,
     en: `The residual deviance is large (P = {p}) but φ is fixed at 1: tests and SEs are too optimistic.`,
-    pt: `O desvio residual é grande (P = {p}) mas φ está fixo em 1: os testes e os erros-padrão são demasiado otimistas.`,
+    pt: `O desvio residual é grande (P = {p}) mas φ está fixo em 1: os testes e os erros padrão são demasiado otimistas.`,
   },
   glm_underdispersion: {
     ru: `Оценка φ < 1 (недодисперсия): φ оставлен равным 1, чтобы не завышать значимость.`,
@@ -509,7 +509,7 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
   loess_descriptive: {
     ru: `Loess — описательная кривая: SE и тесты не вычисляются.`,
     en: `Loess is a descriptive curve: SEs and tests are not computed.`,
-    pt: `O loess é uma curva descritiva: os erros-padrão e testes não são calculados.`,
+    pt: `O loess é uma curva descritiva: os erros padrão e testes não são calculados.`,
   },
   glmm_experimental: {
     ru: `Экспериментальный движок, оценки приближённые (Лаплас/квадратура), для ответственных решений сверяйте с R/GenStat.`,
@@ -904,7 +904,7 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
   potential_outliers: {
     ru: `Наблюдений с |стандартизованным остатком| > 2: {count} (при нормальности ожидается около {expected}). Проверь их по первичным записям; удалять без найденной причины нельзя.`,
     en: `Observations with |standardized residual| > 2: {count} (about {expected} expected under normality). Check them against the original records; do not remove them without a found cause.`,
-    pt: `Observações com |resíduo padronizado| > 2: {count} (cerca de {expected} esperadas sob normalidade). Verifique-as nos registos originais; não as remova sem causa identificada.`,
+    pt: `Observações com |resíduo estandardizado| > 2: {count} (cerca de {expected} esperadas sob normalidade). Verifique-as nos registos originais; não as remova sem causa identificada.`,
   },
   permutation_unequal_variances: {
     ru: `Дисперсии групп неоднородны; перестановочный тест предполагает однородные дисперсии.`,
@@ -914,7 +914,7 @@ const TEMPLATES: Record<string, Record<Lang, string>> = {
   no_residual_variation: {
     ru: `Остаточной вариации нет (внутри групп значения одинаковы или модель описывает данные точно): стандартные ошибки равны нулю, F, t и доверительные интервалы не определены.`,
     en: `There is no residual variation (values within groups are identical, or the model fits the data exactly): standard errors are zero, and F, t and confidence intervals are undefined.`,
-    pt: `Não há variação residual (os valores dentro dos grupos são iguais ou o modelo ajusta os dados exatamente): os erros-padrão são nulos e F, t e os intervalos de confiança ficam indefinidos.`,
+    pt: `Não há variação residual (os valores dentro dos grupos são iguais ou o modelo ajusta os dados exatamente): os erros padrão são nulos e F, t e os intervalos de confiança ficam indefinidos.`,
   },
   unadjusted_comparisons: {
     ru: `Попарные p и интервалы разностей без поправки на множественность. Для всех попарных сравнений используй Tukey HSD.`,

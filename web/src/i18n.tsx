@@ -870,7 +870,7 @@ const PT: Dict = {
   "result.ci": "IC 95%",
   "result.se": "EP",
   "result.download": "Descarregar resultado (JSON)",
-  "result.observational": "Dados observacionais, não uma experiência: o resultado mostra uma associação ou uma diferença, não uma causa. Uma conclusão causal só se justifica numa experiência com tratamentos aleatorizados [livro p. 3].",
+  "result.observational": "Dados observacionais, não uma experiência: o resultado mostra uma associação ou uma diferença, não uma causa. Uma conclusão causal só se justifica numa experiência com tratamentos casualizados [livro p. 3].",
   "extra.truncated": "Mostradas as primeiras {shown} de {total} linhas; a tabela completa está no ficheiro JSON.",
   "welcome.planning": "Planear um ensaio (sem dados)",
   "welcome.planningHint": "Potência e esquemas de amostragem antes de recolher dados — não é preciso ficheiro",
@@ -935,8 +935,8 @@ const PT: Dict = {
   "axis.theoretical": "Quantis teóricos",
   "axis.sample": "Quantis amostrais",
   "axis.fitted": "Ajustados",
-  "plot.outlier": "possível outlier",
-  "plot.outlierHint": "Possível outlier (teste com correção de Bonferroni): verifique primeiro o registo.",
+  "plot.outlier": "possível valor atípico",
+  "plot.outlierHint": "Possível valor atípico (teste com correção de Bonferroni): verifique primeiro o registo.",
   "opt.procedure.tukey": "Tukey — todos os pares",
   "opt.procedure.dunnett": "Dunnett — contra o controlo",
   "opt.procedure.holm": "Holm — comparações planeadas",
@@ -1036,8 +1036,8 @@ const PT: Dict = {
   "m.relative_iqr_pct": "IQR relativo, %",
   "m.zero_count": "Zeros",
   "m.zero_pct": "Zeros, %",
-  "m.outliers_iqr": "Outliers (IQR)",
-  "m.outliers_zscore": "Outliers (|z|>3)",
+  "m.outliers_iqr": "Valores atípicos (IQR)",
+  "m.outliers_zscore": "Valores atípicos (|z|>3)",
 };
 
 const DICTS: Record<Lang, Dict> = { ru: RU, en: EN, pt: PT };

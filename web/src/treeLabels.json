@@ -552,7 +552,7 @@
    "B4a.transform": "Transformar a resposta",
    "B4a.transform.means": "Comparação na escala log / √ / logit",
    "B4b": "Três ou mais grupos",
-   "B4b.anova": "ANOVA de um fator",
+   "B4b.anova": "ANOVA a um fator",
    "B4b.welch": "ANOVA de Welch (variâncias desiguais)",
    "B4b.rcbd": "ANOVA com blocos (RCBD)",
    "B4b.permutation": "Teste de permutação",
@@ -603,7 +603,7 @@
    "A4.diag": "Influência e alavanca",
    "A4.cv": "Validação cruzada",
    "DIAG": "Diagnóstico do modelo",
-   "DIAG.residuals": "Resíduos e outliers",
+   "DIAG.residuals": "Resíduos e valores atípicos",
    "DIAG.bartlett": "Homogeneidade de variâncias",
    "DIAG.serial": "Correlação serial"
   },
@@ -682,8 +682,8 @@
    "A2.4": "A dispersão de y cresce com o valor ajustado (ρ = {r}): transforme a resposta.",
    "A2.5": "x parece tempo e os resíduos andam em ondas ({runs} sequências para {exp} esperadas): possível periodicidade.",
    "G.1": "Desvio residual {d} > χ²₀.₉₅({df}) = {crit}: a dispersão é maior do que o modelo permite (sobredispersão) — estime o parâmetro de dispersão φ a partir dos dados e compare com F.",
-   "DIAG.1": "|Resíduo padronizado| > 2 em {k} {k|observação|observações} (linhas {rows}): verifique os registos.",
-   "DIAG.1#single": "A observação na linha {rows} destaca-se claramente das restantes (teste de outlier com correção de Bonferroni): verifique o registo.",
+   "DIAG.1": "|Resíduo estandardizado| > 2 em {k} {k|observação|observações} (linhas {rows}): verifique os registos.",
+   "DIAG.1#single": "A observação na linha {rows} destaca-se claramente das restantes (teste de observação atípica com correção de Bonferroni): verifique o registo.",
    "DIAG.2": "Os resíduos pela ordem das linhas estão correlacionados (Durbin–Watson {dw}): correlação serial.",
    "DIAG.4": "Pontos com alavanca ou influência elevada (distância de Cook): linhas {rows} — verifique o seu efeito no declive.",
    "B1.8": "Cada tratamento aparece exatamente uma vez em cada nível de «{c}» ({t} × {b}): parecem blocos ou medições repetidas das mesmas unidades — uma análise sem esta coluna fica então errada.",
@@ -707,9 +707,9 @@
     "observation": "Estudo observacional: os resultados descrevem associação; conclusões causais só se justificam numa experiência [livro p. 3]."
    },
    "B4b.permutation": {
-    "experiment": "O teste de permutação justifica-se pela aleatorização da experiência [livro p. 102].",
-    "observation": "Num estudo observacional não há aleatorização: o teste de permutação é só uma aproximação, interpretar com cautela [livro p. 103].",
-    "unknown": "Indique o contexto: o teste de permutação só se justifica pela aleatorização."
+    "experiment": "O teste de permutação justifica-se pela casualização da experiência [livro p. 102].",
+    "observation": "Num estudo observacional não há casualização: o teste de permutação é só uma aproximação, interpretar com cautela [livro p. 103].",
+    "unknown": "Indique o contexto: o teste de permutação só se justifica pela casualização."
    },
    "A1.multi": {
     "experiment": "Numa experiência ortogonal planeada os termos do delineamento não se retiram — não é preciso selecionar x [livro p. 536].",
@@ -728,13 +728,13 @@
    }
   },
   "notes": {
-   "outlier": " Pode dever-se ao valor anómalo na linha {outlier_row} — verifique primeiro o registo."
+   "outlier": " Pode dever-se ao valor atípico na linha {outlier_row} — verifique primeiro o registo."
   },
   "dead": {
    "P.splitpower": "O núcleo do BioStat já calcula a potência para split-plot (EPD e gl de cada comparação, livro p. 252), mas ainda não há formulário. Até lá, faça o cálculo no R ou no GenStat.",
    "R2.censored": "Valores abaixo do limite de deteção são dados censurados: substituir por zero ou por metade do limite enviesa as médias e subestima a dispersão. O BioStat não tem estes modelos; no R use regressão para dados censurados: survival::survreg ou o pacote NADA2.",
    "R2.multivariate": "Várias respostas analisadas em conjunto pedem métodos multivariados (MANOVA, componentes principais). O BioStat não os tem: no R use manova() e prcomp(), no GenStat o menu Multivariate Analysis. Cada resposta pode ser analisada aqui em separado, mas isso ignora as relações entre respostas.",
-   "DIAG.serial": "Observações consecutivas no tempo ou ao longo de uma linha estão correlacionadas: os erros-padrão e os P habituais não são fiáveis. O BioStat não tem modelos com autocorrelação: no R use nlme::gls ou nlme::lme com corAR1, no GenStat REML com um modelo de correlação. Se forem medições repetidas das mesmas unidades, o modelo misto com a unidade como fator aleatório está disponível aqui."
+   "DIAG.serial": "Observações consecutivas no tempo ou ao longo de uma linha estão correlacionadas: os erros padrão e os P habituais não são fiáveis. O BioStat não tem modelos com autocorrelação: no R use nlme::gls ou nlme::lme com corAR1, no GenStat REML com um modelo de correlação. Se forem medições repetidas das mesmas unidades, o modelo misto com a unidade como fator aleatório está disponível aqui."
   }
  }
 }

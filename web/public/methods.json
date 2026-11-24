@@ -516,7 +516,7 @@
    "name": {
     "en": "One-way ANOVA",
     "ru": "Однофакторный ANOVA",
-    "pt": "ANOVA de um fator"
+    "pt": "ANOVA a um fator"
    },
    "sources": [
     "кн. стр. 74–84"
@@ -1794,7 +1794,7 @@
    "name": {
     "en": "Regression: outliers, leverage, influence",
     "ru": "Регрессия: выбросы, рычаги, влияние",
-    "pt": "Regressão: outliers, alavancagem, influência"
+    "pt": "Regressão: valores atípicos, alavancagem, influência"
    },
    "sources": [
     "кн. стр. 325–335"
