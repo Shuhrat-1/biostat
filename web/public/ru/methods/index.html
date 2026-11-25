@@ -11,7 +11,7 @@
     <link rel="alternate" hreflang="ru" href="https://biostat.app/ru/methods/" />
     <link rel="alternate" hreflang="pt" href="https://biostat.app/pt/methods/" />
     <link rel="alternate" hreflang="x-default" href="https://biostat.app/methods/" />
-    <style>body{margin:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:#18181b;background:#fafafa;line-height:1.6}main{max-width:44rem;margin:0 auto;padding:1.5rem 1rem 2rem}h1{font-size:1.6rem;margin:0.6rem 0 0.2rem}h2{font-size:1.1rem;margin:1.6rem 0 0.4rem}p{margin:0.4rem 0}a{color:#0f766e}.muted{color:#63636b;font-size:0.9rem}nav{display:flex;flex-wrap:wrap;gap:0.4rem 1rem;justify-content:space-between;align-items:center}footer{border-top:1px solid #e4e4e7;margin-top:2rem;padding-top:0.8rem;font-size:0.9rem}code{overflow-wrap:anywhere}h3{font-size:1rem;margin:1.4rem 0 0}ul{margin:0.3rem 0;padding-left:1.2rem}li{margin:0.15rem 0;overflow-wrap:anywhere}.tag{font-size:0.75rem;font-weight:400;color:#92400e;border:1px solid #f59e0b;border-radius:4px;padding:0 0.3rem;margin-left:0.4rem;white-space:nowrap}</style>
+    <style>body{margin:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:#18181b;background:#fafafa;line-height:1.6}main{max-width:44rem;margin:0 auto;padding:1.5rem 1rem 2rem}h1{font-size:1.6rem;margin:0.6rem 0 0.2rem}h2{font-size:1.1rem;margin:1.6rem 0 0.4rem}p{margin:0.4rem 0}a{color:#0f766e}.muted{color:#63636b;font-size:0.9rem}nav{display:flex;flex-wrap:wrap;gap:0.4rem 1rem;justify-content:space-between;align-items:center}footer{border-top:1px solid #e4e4e7;margin-top:2rem;padding-top:0.8rem;font-size:0.9rem}code{overflow-wrap:anywhere}h3{font-size:1rem;margin:1.4rem 0 0}h2[id],h3[id]{scroll-margin-top:1rem}ul{margin:0.3rem 0;padding-left:1.2rem}li{margin:0.15rem 0;overflow-wrap:anywhere}.tag{font-size:0.75rem;font-weight:400;color:#92400e;border:1px solid #f59e0b;border-radius:4px;padding:0 0.3rem;margin-left:0.4rem;white-space:nowrap}</style>
     <script src="/back.js" defer></script>
   </head>
   <body>
@@ -30,11 +30,11 @@
         <li><a href="#frequency_table">Таблица частот одной колонки</a></li>
         <li><a href="#one_proportion">Одна доля: ДИ и тест H0: p = p₀</a></li>
         <li><a href="#mcnemar_test">Мак-Немар: парные бинарные исходы</a></li>
-        <li><a href="#anova_permutation_test">Перестановочный F-тест (ANOVA)</a></li>
+        <li><a href="/ru/methods/anova_permutation_test/">Перестановочный F-тест (ANOVA)</a></li>
         <li><a href="#anova_residuals">Остатки ANOVA и выбросы</a></li>
-        <li><a href="#transformed_means">ANOVA с трансформацией отклика</a></li>
+        <li><a href="/ru/methods/transformed_means/">ANOVA с трансформацией отклика</a></li>
         <li><a href="#treatment_contrasts">Контрасты вариантов</a></li>
-        <li><a href="#equivalence_test">Тест эквивалентности (TOST)</a></li>
+        <li><a href="/ru/methods/equivalence_test/">Тест эквивалентности (TOST)</a></li>
         <li><a href="#regression_details">Регрессия: ANOVA, тесты, предсказания</a></li>
         <li><a href="#inverse_prediction">Калибровка (обратное предсказание)</a></li>
         <li><a href="#regression_diagnostics">Регрессия: выбросы, рычаги, влияние</a></li>
@@ -70,7 +70,7 @@
         <li><a href="#one_sample_wilcoxon">Тест Уилкоксона одной выборки (непараметрический)</a></li>
         <li><a href="#rm_anova">ANOVA повторных измерений</a></li>
         <li><a href="#friedman">Критерий Фридмана (ранги, повторные измерения)</a></li>
-        <li><a href="#welch_anova">ANOVA Уэлча (неравные дисперсии)</a></li>
+        <li><a href="/ru/methods/welch_anova/">ANOVA Уэлча (неравные дисперсии)</a></li>
         <li><a href="#scheffe_test">Метод Шеффе (пары и сложные контрасты)</a></li>
         <li><a href="#simple_effects">Простые эффекты (A при каждом B и B при каждом A)</a></li>
         <li><a href="#wilcoxon">Тест Уилкоксона (непараметрический)</a></li>
@@ -173,8 +173,8 @@
         <li>Независимая сверка (аудит 2): нет — только граничные случаи</li>
       </ul>
       <h2 id="group-two-groups">Сравнение двух групп</h2>
-      <h3 id="two_sample_t">Двухвыборочный t-тест</h3>
-      <p class="muted"><code>two_sample_t</code> · <a href="/ru/methods/two_sample_t/">Подробно →</a></p>
+      <h3 id="two_sample_t"><a href="/ru/methods/two_sample_t/">Двухвыборочный t-тест</a></h3>
+      <p class="muted"><code>two_sample_t</code></p>
       <ul>
         <li>Источник: кн. стр. 32–35</li>
         <li>Тестов, вызывающих метод: 23</li>
@@ -216,8 +216,8 @@
         <li>Независимая сверка (аудит 2): P — scipy</li>
       </ul>
       <h2 id="group-several-groups">Сравнение нескольких групп</h2>
-      <h3 id="one_way_anova">Однофакторный ANOVA</h3>
-      <p class="muted"><code>one_way_anova</code> · <a href="/ru/methods/one_way_anova/">Подробно →</a></p>
+      <h3 id="one_way_anova"><a href="/ru/methods/one_way_anova/">Однофакторный ANOVA</a></h3>
+      <p class="muted"><code>one_way_anova</code></p>
       <ul>
         <li>Источник: кн. стр. 74–84</li>
         <li>Тестов, вызывающих метод: 36</li>
@@ -242,8 +242,8 @@
         <li>Witte — сверяют тесты: Progress Check 17.2, Table 17.1</li>
         <li>Независимая сверка (аудит 2): χ², P — scipy</li>
       </ul>
-      <h3 id="welch_anova">ANOVA Уэлча (неравные дисперсии) <span class="tag">предл.</span></h3>
-      <p class="muted"><code>welch_anova</code> · <a href="/ru/methods/welch_anova/">Подробно →</a></p>
+      <h3 id="welch_anova"><a href="/ru/methods/welch_anova/">ANOVA Уэлча (неравные дисперсии)</a> <span class="tag">предл.</span></h3>
+      <p class="muted"><code>welch_anova</code></p>
       <ul>
         <li>Источник: кн. стр. 107; предл.: Welch 1951; Witte стр. 316</li>
         <li>Тестов, вызывающих метод: 12</li>
@@ -252,8 +252,8 @@
         <li>Числа других программ в тестах: SAS</li>
         <li>Независимая сверка (аудит 2): F, df₂, P — statsmodels anova_oneway</li>
       </ul>
-      <h3 id="tukey_hsd">Пост-хок Tukey HSD</h3>
-      <p class="muted"><code>tukey_hsd</code> · <a href="/ru/methods/tukey_hsd/">Подробно →</a></p>
+      <h3 id="tukey_hsd"><a href="/ru/methods/tukey_hsd/">Пост-хок Tukey HSD</a></h3>
+      <p class="muted"><code>tukey_hsd</code></p>
       <ul>
         <li>Источник: кн. стр. 200</li>
         <li>Тестов, вызывающих метод: 11</li>
@@ -270,24 +270,24 @@
         <li>Числа других программ в тестах: Minitab</li>
         <li>Независимая сверка (аудит 2): F, P, ДИ — формулы</li>
       </ul>
-      <h3 id="kruskal_wallis">Тест Краскела-Уоллиса (непараметрический)</h3>
-      <p class="muted"><code>kruskal_wallis</code> · <a href="/ru/methods/kruskal_wallis/">Подробно →</a></p>
+      <h3 id="kruskal_wallis"><a href="/ru/methods/kruskal_wallis/">Тест Краскела-Уоллиса (непараметрический)</a></h3>
+      <p class="muted"><code>kruskal_wallis</code></p>
       <ul>
         <li>Источник: кн. стр. 127</li>
         <li>Тестов, вызывающих метод: 5</li>
         <li>Witte — сверяют тесты: Progress Check 20.4, Table 20.4</li>
         <li>Независимая сверка (аудит 2): H, P — scipy; малые выборки — точный перебор</li>
       </ul>
-      <h3 id="treatment_means">Средние групп с SED и LSD</h3>
-      <p class="muted"><code>treatment_means</code> · <a href="/ru/methods/treatment_means/">Подробно →</a></p>
+      <h3 id="treatment_means"><a href="/ru/methods/treatment_means/">Средние групп с SED и LSD</a></h3>
+      <p class="muted"><code>treatment_means</code></p>
       <ul>
         <li>Источник: кн. стр. 86–87</li>
         <li>Тестов, вызывающих метод: 14</li>
         <li>Welham — сверяют тесты: Example 2.1C, Example 4.1E, Example 4.1F</li>
         <li>Независимая сверка (аудит 2): SED, LSD, ДИ средних — формулы</li>
       </ul>
-      <h3 id="anova_permutation_test">Перестановочный F-тест (ANOVA)</h3>
-      <p class="muted"><code>anova_permutation_test</code> · <a href="/ru/methods/anova_permutation_test/">Подробно →</a></p>
+      <h3 id="anova_permutation_test"><a href="/ru/methods/anova_permutation_test/">Перестановочный F-тест (ANOVA)</a></h3>
+      <p class="muted"><code>anova_permutation_test</code></p>
       <ul>
         <li>Источник: кн. стр. 102</li>
         <li>Тестов, вызывающих метод: 8</li>
@@ -295,8 +295,8 @@
         <li>Независимая сверка (аудит 2): нет — только граничные случаи</li>
       </ul>
       <h2 id="group-assumptions">Проверка допущений</h2>
-      <h3 id="bartlett_test">Тест Бартлетта (равенство дисперсий)</h3>
-      <p class="muted"><code>bartlett_test</code> · <a href="/ru/methods/bartlett_test/">Подробно →</a></p>
+      <h3 id="bartlett_test"><a href="/ru/methods/bartlett_test/">Тест Бартлетта (равенство дисперсий)</a></h3>
+      <p class="muted"><code>bartlett_test</code></p>
       <ul>
         <li>Источник: кн. стр. 104–107</li>
         <li>Тестов, вызывающих метод: 4</li>
@@ -312,16 +312,16 @@
         <li>Независимая сверка (аудит 2): нет — только граничные случаи</li>
       </ul>
       <h2 id="group-several-groups">Сравнение нескольких групп</h2>
-      <h3 id="transformed_means">ANOVA с трансформацией отклика</h3>
-      <p class="muted"><code>transformed_means</code> · <a href="/ru/methods/transformed_means/">Подробно →</a></p>
+      <h3 id="transformed_means"><a href="/ru/methods/transformed_means/">ANOVA с трансформацией отклика</a></h3>
+      <p class="muted"><code>transformed_means</code></p>
       <ul>
         <li>Источник: кн. стр. 113–121</li>
         <li>Тестов, вызывающих метод: 15</li>
         <li>Ссылок на книги в тестах нет</li>
         <li>Независимая сверка (аудит 2): нет — только граничные случаи</li>
       </ul>
-      <h3 id="rcbd_anova">Блочный ANOVA (RCBD)</h3>
-      <p class="muted"><code>rcbd_anova</code> · <a href="/ru/methods/rcbd_anova/">Подробно →</a></p>
+      <h3 id="rcbd_anova"><a href="/ru/methods/rcbd_anova/">Блочный ANOVA (RCBD)</a></h3>
+      <p class="muted"><code>rcbd_anova</code></p>
       <ul>
         <li>Источник: кн. стр. 58</li>
         <li>Тестов, вызывающих метод: 12</li>
@@ -377,8 +377,8 @@
         <li>Welham — сверяют тесты: Example 8.6, Table 8.25</li>
         <li>Независимая сверка (аудит 2): SS линейного тренда при неравных шагах — OLS</li>
       </ul>
-      <h3 id="mean_comparisons">Сравнения средних с поправкой (Тьюки, Даннет, Холм, FDR)</h3>
-      <p class="muted"><code>mean_comparisons</code> · <a href="/ru/methods/mean_comparisons/">Подробно →</a></p>
+      <h3 id="mean_comparisons"><a href="/ru/methods/mean_comparisons/">Сравнения средних с поправкой (Тьюки, Даннет, Холм, FDR)</a></h3>
+      <p class="muted"><code>mean_comparisons</code></p>
       <ul>
         <li>Источник: кн. стр. 201</li>
         <li>Тестов, вызывающих метод: 13</li>
@@ -419,8 +419,8 @@
         <li>Независимая сверка (аудит 2): мощность и n — нецентральное t</li>
       </ul>
       <h2 id="group-several-groups">Сравнение нескольких групп</h2>
-      <h3 id="equivalence_test">Тест эквивалентности (TOST)</h3>
-      <p class="muted"><code>equivalence_test</code> · <a href="/ru/methods/equivalence_test/">Подробно →</a></p>
+      <h3 id="equivalence_test"><a href="/ru/methods/equivalence_test/">Тест эквивалентности (TOST)</a></h3>
+      <p class="muted"><code>equivalence_test</code></p>
       <ul>
         <li>Источник: кн. стр. 253</li>
         <li>Тестов, вызывающих метод: 7</li>

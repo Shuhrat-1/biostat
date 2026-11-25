@@ -53,7 +53,8 @@ def test_audit_reference_covers_catalog_methods_only() -> None:
     assert len(unverified) == len(IDS) - 41
     ru = _html("ru")
     block = ru[ru.index("<h2>Не проверено"):ru.index("<h2>Пометка")]
-    assert re.findall(r'<a href="#([a-z0-9_]+)">', block) == unverified
+    # методы со страницей-объяснением — ссылкой на неё, остальные — на карточку списка
+    assert re.findall(r'<a href="(?:#|/ru/methods/)([a-z0-9_]+)/?">', block) == unverified
 
 
 def test_proposed_mark_follows_the_tree() -> None:

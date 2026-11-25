@@ -102,9 +102,12 @@ export function useMapSync(table: ParsedTable | null) {
   const seq = useRef(0);
 
   // Новый файл (или смена типа колонки) — роли и сигналы прежнего файла не годятся.
+  // Запрос формы тоже: иначе форма, смонтированная заново под другой таблицей,
+  // повторила бы прежний выбор (лист карты или метод из ссылки).
   useEffect(() => {
     setRoles({});
     setRecognition(null);
+    setRequest(null);
     computedCache.current.clear();
   }, [table]);
 
@@ -133,15 +136,20 @@ export function useMapSync(table: ParsedTable | null) {
     setRoles((prev) => mergeRoles(prev, columns));
   };
 
-  const onPickLeaf = (leaf: TreeNode) => {
-    if (!leaf.method) return;
+  /** Открыть метод в форме: тот же запрос, что и клик по листу карты. */
+  const requestMethod = (method: string, preset?: Record<string, string>) => {
     seq.current += 1;
     const known = knownRoles(roles, recognition?.fired ?? []);
-    setRequest({ method: leaf.method, preset: leaf.preset, roles: known, seq: seq.current });
+    setRequest({ method, preset, roles: known, seq: seq.current });
+  };
+
+  const onPickLeaf = (leaf: TreeNode) => {
+    if (leaf.method) requestMethod(leaf.method, leaf.preset);
   };
 
   return {
     context, setContext, selection, recognition, computing, request, onSelection, onPickLeaf,
+    requestMethod,
     hasRoles: Object.keys(roles).length > 0,
     hasBlock: Boolean(roles.block),
     blockHint: blockCandidate(recognition?.fired ?? []),

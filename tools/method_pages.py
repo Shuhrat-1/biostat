@@ -320,13 +320,21 @@ def map_section(c: dict, t: dict, ctx: Ctx, names: dict[str, str]) -> str:
     return _section("map", ch["map"], body)
 
 
-def check_block(entry: dict, ctx: Ctx) -> str:
-    """«Проверка метода» (свёрнуто) — те же факты, что в карточке списка (methods.json)."""
+def calculator_href(mid: str, lang: str) -> str:
+    """Калькулятор с этим методом: приложение читает method и lang из адреса один раз."""
+    return f"/?method={mid}&amp;lang={lang}"
+
+
+def sources_block(mid: str, entry: dict, ctx: Ctx) -> str:
+    """«Источники» (свёрнуто) — те же факты, что в карточке списка (methods.json), и под ними
+    кнопка-ссылка в калькулятор с этим методом."""
     import methods_page
 
+    ch = CHROME[ctx.lang]
     items = "".join(f"      <li>{f}</li>\n" for f in methods_page.check_facts(entry, ctx.lang))
-    return (f'  <details class="check" id="check">\n    <summary>{html.escape(CHROME[ctx.lang]["check"])}</summary>\n'
-            f"    <ul>\n{items}    </ul>\n  </details>\n")
+    return (f'  <details class="check" id="sources">\n    <summary>{html.escape(ch["sources"])}</summary>\n'
+            f"    <ul>\n{items}    </ul>\n  </details>\n"
+            f'  <p><a class="cta" href="{calculator_href(mid, ctx.lang)}">{html.escape(ch["cta"])}</a></p>\n')
 
 
 def pager(mid: str, entry_group: str, data: dict, ctx: Ctx) -> str:
@@ -349,13 +357,14 @@ def toc(mid: str, ctx: Ctx) -> str:
     ch = CHROME[ctx.lang]
     back = sp.page_path("methods", ctx.lang) + "#" + mid
     items = "".join(f'  <a href="#{sid}">{html.escape(ch[key])}</a>\n' for sid, key in TOC)
+    items += f'  <a href="{calculator_href(mid, ctx.lang)}">{html.escape(ch["cta"])}</a>\n'
     return (f'<aside class="toc" aria-label="{html.escape(ch["toc_aria"])}">\n  <b>{html.escape(ch["toc"])}</b>\n'
             f'{items}  <a class="toc-back" href="{back}">{html.escape(ch["to_list"])}</a>\n</aside>\n'
             f'<a class="to-list" href="{back}" aria-label="{html.escape(ch["to_list_aria"])}">↑</a>\n')
 
 
 TOC = [("idea", "idea"), ("model", "model"), ("symbols", "toc_symbols"), ("pros-cons", "pros_cons"),
-       ("assumptions", "assumptions"), ("map", "toc_map"), ("check", "check")]
+       ("assumptions", "assumptions"), ("map", "toc_map"), ("sources", "sources")]
 
 
 # --- страница целиком -----------------------------------------------------------------------
@@ -391,7 +400,7 @@ def method_page(mid: str, c: dict, data: dict, math: Math, lang: str) -> str:
     article = (crumbs(entry, ctx) + f'  <h1>{html.escape(entry["name"][lang])}</h1>\n'
                f'  <p class="lead">{inline(t["lead"], ctx)}</p>\n'
                + idea_section(c, t, ctx, values) + model_section(t, ctx) + pros_cons_section(t, ctx)
-               + assumptions_section(t, ctx) + map_section(c, t, ctx, names) + check_block(entry, ctx)
+               + assumptions_section(t, ctx) + map_section(c, t, ctx, names) + sources_block(mid, entry, ctx)
                + pager(mid, entry["group"]["ru"], data, ctx))
     body = f'<div class="wrap">\n<article>\n{article}</article>\n{toc(mid, ctx)}</div>\n'
     head = CSS + (JS if c.get("widget", {}).get("type") in WIDGETS else "")
@@ -459,7 +468,7 @@ CHROME: dict[str, dict] = {
         "path_aria": "Путь по карте", "neighbours": "Соседи на карте: когда выигрывают они",
         "neighbour": "Сосед", "when": "Когда карта ведёт туда", "better": "Чем сосед лучше здесь",
         "cost": "Чем платит", "checks": "Что карта проверит на этом листе", "next": "Что дальше",
-        "check": "Проверка метода", "prev": "← Предыдущий", "next_page": "Следующий →",
+        "sources": "Источники", "cta": "Проверить метод в калькуляторе →", "prev": "← Предыдущий", "next_page": "Следующий →",
         "toc": "На странице", "toc_aria": "На этой странице", "to_list": "↑ К списку методов",
         "to_list_aria": "К списку методов", "hint": "(подсказка)", "link_title": "Открыть описание метода",
         "symbols_title": "Обозначения на страницах методов — BioStat",
@@ -481,7 +490,7 @@ CHROME: dict[str, dict] = {
         "path_aria": "Path on the map", "neighbours": "Neighbors on the map: when they win",
         "neighbour": "Neighbor", "when": "When the map leads there", "better": "Why the neighbor is better here",
         "cost": "What it costs", "checks": "What the map checks at this leaf", "next": "What next",
-        "check": "Validation of the method", "prev": "← Previous", "next_page": "Next →",
+        "sources": "Sources", "cta": "Try the method in the calculator →", "prev": "← Previous", "next_page": "Next →",
         "toc": "On this page", "toc_aria": "On this page", "to_list": "↑ Back to the method list",
         "to_list_aria": "Back to the method list", "hint": "(hint)", "link_title": "Open the method description",
         "symbols_title": "Notation on the method pages — BioStat",
@@ -503,7 +512,7 @@ CHROME: dict[str, dict] = {
         "path_aria": "Caminho no mapa", "neighbours": "Vizinhos no mapa: quando são preferíveis",
         "neighbour": "Vizinho", "when": "Quando o mapa leva lá", "better": "Em que o vizinho é melhor aqui",
         "cost": "O que custa", "checks": "O que o mapa verifica nesta folha", "next": "O que vem a seguir",
-        "check": "Verificação do método", "prev": "← Anterior", "next_page": "Seguinte →",
+        "sources": "Fontes", "cta": "Experimentar o método na calculadora →", "prev": "← Anterior", "next_page": "Seguinte →",
         "toc": "Nesta página", "toc_aria": "Nesta página", "to_list": "↑ Voltar à lista de métodos",
         "to_list_aria": "Voltar à lista de métodos", "hint": "(sugestão)", "link_title": "Abrir a descrição do método",
         "symbols_title": "Notação nas páginas de métodos — BioStat",

@@ -312,7 +312,7 @@ STYLE = (
     "p{margin:0.4rem 0}a{color:#0f766e}.muted{color:#63636b;font-size:0.9rem}"
     "nav{display:flex;flex-wrap:wrap;gap:0.4rem 1rem;justify-content:space-between;align-items:center}"
     "footer{border-top:1px solid #e4e4e7;margin-top:2rem;padding-top:0.8rem;font-size:0.9rem}"
-    "code{overflow-wrap:anywhere}h3{font-size:1rem;margin:1.4rem 0 0}ul{margin:0.3rem 0;padding-left:1.2rem}"
+    "code{overflow-wrap:anywhere}h3{font-size:1rem;margin:1.4rem 0 0}h2[id],h3[id]{scroll-margin-top:1rem}ul{margin:0.3rem 0;padding-left:1.2rem}"
     "li{margin:0.15rem 0;overflow-wrap:anywhere}.tag{font-size:0.75rem;font-weight:400;color:#92400e;"
     "border:1px solid #f59e0b;border-radius:4px;padding:0 0.3rem;margin-left:0.4rem;white-space:nowrap}"
 )

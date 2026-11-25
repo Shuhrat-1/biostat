@@ -46,6 +46,7 @@ import { I18nContext, LANGUAGES, useLang, useT, type Lang } from "./i18n";
 import { c, s } from "./styles";
 import { SensoryMap } from "./SensoryMap";
 import { useMapSync } from "./useMapSync";
+import { launchParams, LinkedMethodNote, useLinkedMethod } from "./linkedMethod";
 import { explainError } from "./userErrors";
 import { MAX_FILE_BYTES, megabytes } from "./limits";
 
@@ -54,7 +55,8 @@ const Plots = lazy(() => import("./charts").then((m) => ({ default: m.Plots })))
 
 /** Корень: держит выбранный язык и раздаёт его через контекст. */
 export default function App() {
-  const [lang, setLang] = useState<Lang>(() => storedLang() ?? "ru");
+  // Язык из ссылки (?lang=) важнее сохранённого; неизвестное значение игнорируется.
+  const [lang, setLang] = useState<Lang>(() => launchParams().lang ?? storedLang() ?? "ru");
   // Держим <html lang> в синхроне с UI-языком — для SEO и скринридеров.
   useEffect(() => {
     document.documentElement.lang = lang;
@@ -136,6 +138,9 @@ function AppInner({
     previewTouched.current = false;
   };
   const map = useMapSync(table);
+  // Метод из ссылки со страницы-объяснения (?method=): применяется к первой таблице.
+  const fileKey = inputFile ? `${inputFile.name}:${inputFile.sha256}` : null;
+  const linked = useLinkedMethod(table?.suggestions ?? null, fileKey, map.requestMethod);
   // После расчёта результат подводится под верх окна и получает фокус: иначе он
   // остаётся за нижним краем, и о завершении расчёта ничто не говорит (аудит 04-03, 05-05).
   const resultRef = useRef<HTMLDivElement>(null);
@@ -427,6 +432,14 @@ function AppInner({
 
         {ready && (
           <>
+            {!table && !planning && linked.names && linked.phase === "waiting" && (
+              <LinkedMethodNote names={linked.names} text="selected" onCancel={linked.cancel} />
+            )}
+
+            {table && linked.names && linked.phase === "unfit" && (
+              <LinkedMethodNote names={linked.names} text="unfit" onCancel={linked.cancel} />
+            )}
+
             {!table && !planning && (
               <WelcomeScreen
                 onFile={handleFile}

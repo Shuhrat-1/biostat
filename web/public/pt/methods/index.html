@@ -11,7 +11,7 @@
     <link rel="alternate" hreflang="ru" href="https://biostat.app/ru/methods/" />
     <link rel="alternate" hreflang="pt" href="https://biostat.app/pt/methods/" />
     <link rel="alternate" hreflang="x-default" href="https://biostat.app/methods/" />
-    <style>body{margin:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:#18181b;background:#fafafa;line-height:1.6}main{max-width:44rem;margin:0 auto;padding:1.5rem 1rem 2rem}h1{font-size:1.6rem;margin:0.6rem 0 0.2rem}h2{font-size:1.1rem;margin:1.6rem 0 0.4rem}p{margin:0.4rem 0}a{color:#0f766e}.muted{color:#63636b;font-size:0.9rem}nav{display:flex;flex-wrap:wrap;gap:0.4rem 1rem;justify-content:space-between;align-items:center}footer{border-top:1px solid #e4e4e7;margin-top:2rem;padding-top:0.8rem;font-size:0.9rem}code{overflow-wrap:anywhere}h3{font-size:1rem;margin:1.4rem 0 0}ul{margin:0.3rem 0;padding-left:1.2rem}li{margin:0.15rem 0;overflow-wrap:anywhere}.tag{font-size:0.75rem;font-weight:400;color:#92400e;border:1px solid #f59e0b;border-radius:4px;padding:0 0.3rem;margin-left:0.4rem;white-space:nowrap}</style>
+    <style>body{margin:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:#18181b;background:#fafafa;line-height:1.6}main{max-width:44rem;margin:0 auto;padding:1.5rem 1rem 2rem}h1{font-size:1.6rem;margin:0.6rem 0 0.2rem}h2{font-size:1.1rem;margin:1.6rem 0 0.4rem}p{margin:0.4rem 0}a{color:#0f766e}.muted{color:#63636b;font-size:0.9rem}nav{display:flex;flex-wrap:wrap;gap:0.4rem 1rem;justify-content:space-between;align-items:center}footer{border-top:1px solid #e4e4e7;margin-top:2rem;padding-top:0.8rem;font-size:0.9rem}code{overflow-wrap:anywhere}h3{font-size:1rem;margin:1.4rem 0 0}h2[id],h3[id]{scroll-margin-top:1rem}ul{margin:0.3rem 0;padding-left:1.2rem}li{margin:0.15rem 0;overflow-wrap:anywhere}.tag{font-size:0.75rem;font-weight:400;color:#92400e;border:1px solid #f59e0b;border-radius:4px;padding:0 0.3rem;margin-left:0.4rem;white-space:nowrap}</style>
     <script src="/back.js" defer></script>
   </head>
   <body>
@@ -30,7 +30,7 @@
         <li><a href="#frequency_table">Tabela de frequências de uma coluna</a></li>
         <li><a href="#one_proportion">Uma proporção: IC e teste de H0: p = p₀</a></li>
         <li><a href="#mcnemar_test">McNemar: resultados binários emparelhados</a></li>
-        <li><a href="#anova_permutation_test">Teste F de permutação (ANOVA)</a></li>
+        <li><a href="/pt/methods/anova_permutation_test/">Teste F de permutação (ANOVA)</a></li>
         <li><a href="#anova_residuals">Resíduos da ANOVA e valores atípicos</a></li>
         <li><a href="#transformed_means">ANOVA com resposta transformada</a></li>
         <li><a href="#treatment_contrasts">Contrastes de tratamentos</a></li>
@@ -70,7 +70,7 @@
         <li><a href="#one_sample_wilcoxon">Teste de Wilcoxon para uma amostra (não paramétrico)</a></li>
         <li><a href="#rm_anova">ANOVA de medidas repetidas</a></li>
         <li><a href="#friedman">Teste de Friedman (postos, medidas repetidas)</a></li>
-        <li><a href="#welch_anova">ANOVA de Welch (variâncias desiguais)</a></li>
+        <li><a href="/pt/methods/welch_anova/">ANOVA de Welch (variâncias desiguais)</a></li>
         <li><a href="#scheffe_test">Método de Scheffé (pares e contrastes complexos)</a></li>
         <li><a href="#simple_effects">Efeitos simples (A em cada B e B em cada A)</a></li>
         <li><a href="#wilcoxon">Teste de Wilcoxon (não paramétrico)</a></li>
@@ -173,8 +173,8 @@
         <li>Verificação independente (auditoria 2): nenhuma — só casos-limite</li>
       </ul>
       <h2 id="group-two-groups">Comparação de dois grupos</h2>
-      <h3 id="two_sample_t">Teste t para duas amostras</h3>
-      <p class="muted"><code>two_sample_t</code> · <a href="/pt/methods/two_sample_t/">Em detalhe →</a></p>
+      <h3 id="two_sample_t"><a href="/pt/methods/two_sample_t/">Teste t para duas amostras</a></h3>
+      <p class="muted"><code>two_sample_t</code></p>
       <ul>
         <li>Fonte: livro p. 32–35</li>
         <li>Testes que chamam o método: 23</li>
@@ -216,8 +216,8 @@
         <li>Verificação independente (auditoria 2): P — scipy</li>
       </ul>
       <h2 id="group-several-groups">Comparação de vários grupos</h2>
-      <h3 id="one_way_anova">ANOVA a um fator</h3>
-      <p class="muted"><code>one_way_anova</code> · <a href="/pt/methods/one_way_anova/">Em detalhe →</a></p>
+      <h3 id="one_way_anova"><a href="/pt/methods/one_way_anova/">ANOVA a um fator</a></h3>
+      <p class="muted"><code>one_way_anova</code></p>
       <ul>
         <li>Fonte: livro p. 74–84</li>
         <li>Testes que chamam o método: 36</li>
@@ -242,8 +242,8 @@
         <li>Witte — verificado nos testes: Progress Check 17.2, Table 17.1</li>
         <li>Verificação independente (auditoria 2): χ², P — scipy</li>
       </ul>
-      <h3 id="welch_anova">ANOVA de Welch (variâncias desiguais) <span class="tag">proposta</span></h3>
-      <p class="muted"><code>welch_anova</code> · <a href="/pt/methods/welch_anova/">Em detalhe →</a></p>
+      <h3 id="welch_anova"><a href="/pt/methods/welch_anova/">ANOVA de Welch (variâncias desiguais)</a> <span class="tag">proposta</span></h3>
+      <p class="muted"><code>welch_anova</code></p>
       <ul>
         <li>Fonte: livro p. 107; proposta: Welch 1951; Witte p. 316</li>
         <li>Testes que chamam o método: 12</li>
@@ -286,8 +286,8 @@
         <li>Welham — verificado nos testes: Example 2.1C, Example 4.1E, Example 4.1F</li>
         <li>Verificação independente (auditoria 2): SED, LSD, IC das médias — fórmulas</li>
       </ul>
-      <h3 id="anova_permutation_test">Teste F de permutação (ANOVA)</h3>
-      <p class="muted"><code>anova_permutation_test</code> · <a href="/pt/methods/anova_permutation_test/">Em detalhe →</a></p>
+      <h3 id="anova_permutation_test"><a href="/pt/methods/anova_permutation_test/">Teste F de permutação (ANOVA)</a></h3>
+      <p class="muted"><code>anova_permutation_test</code></p>
       <ul>
         <li>Fonte: livro p. 102</li>
         <li>Testes que chamam o método: 8</li>

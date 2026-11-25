@@ -112,7 +112,8 @@ def test_only_the_language_is_stored_and_nothing_is_sent() -> None:
     for api in ("document.cookie", "sessionStorage", "indexedDB", "serviceWorker", "sendBeacon",
                 "XMLHttpRequest"):
         assert api not in src, api
-    assert src.count("fetch(") == 1 and "await fetch(coreUrl)" in src  # только core.zip со своего сайта
+    # только свой сайт: core.zip и — при переходе со страницы метода (?method=, L1) — /methods.json
+    assert src.count("fetch(") == 2 and "await fetch(coreUrl)" in src and 'await fetch("/methods.json")' in src
 
 
 def test_eleven_package_files_come_from_jsdelivr() -> None:

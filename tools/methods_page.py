@@ -374,7 +374,7 @@ TEXTS: dict[str, dict] = {
         "witte": "Witte — сверяют тесты", "external": "Числа других программ в тестах",
         "audit": "Независимая сверка (аудит {audit})", "edge_only": "нет — только граничные случаи",
         "no_refs": "Ссылок на книги в тестах нет", "in_tests": "в тестах — числа {ext}",
-        "tag": "предл.", "more": "Подробно →",
+        "tag": "предл.",
     },
     "en": {
         "title": "Methods and validation — BioStat",
@@ -407,7 +407,7 @@ TEXTS: dict[str, dict] = {
         "witte": "Witte — checked by tests", "external": "Numbers from other software in the tests",
         "audit": "Independent cross-check (audit {audit})", "edge_only": "none — edge cases only",
         "no_refs": "No book references in the tests", "in_tests": "the tests use numbers from {ext}",
-        "tag": "proposed", "more": "In detail →",
+        "tag": "proposed",
     },
     "pt": {
         "title": "Métodos e verificação — BioStat",
@@ -440,7 +440,7 @@ TEXTS: dict[str, dict] = {
         "witte": "Witte — verificado nos testes", "external": "Números de outros programas nos testes",
         "audit": "Verificação independente (auditoria {audit})", "edge_only": "nenhuma — só casos-limite",
         "no_refs": "Sem referências aos livros nos testes", "in_tests": "os testes usam números de {ext}",
-        "tag": "proposta", "more": "Em detalhe →",
+        "tag": "proposta",
     },
 }
 
@@ -483,12 +483,17 @@ def _li(items: list[str]) -> str:
     return "      <ul>\n" + "".join(f"        <li>{i}</li>\n" for i in items) + "      </ul>\n"
 
 
-def _overview(data: dict, t: dict, lang: str) -> str:
+def method_href(mid: str, lang: str, detailed: set[str]) -> str:
+    """Куда ведёт название метода в списке: страница-объяснение, если она есть, иначе карточка."""
+    return sp.page_path("methods/" + mid, lang) if mid in detailed else f"#{mid}"
+
+
+def _overview(data: dict, t: dict, lang: str, detailed: set[str]) -> str:
     """Вводные абзацы и три сводных списка: без эталона, «предл.», пороги [BioStat]."""
     esc, audit, n = html.escape, data["audit"], data["methods_count"]
     fmt = {"n": n, "audit": audit["audit"], "date": _date(audit["date"], lang), "commit": audit["commit"]}
     out = "".join(f"      <p>{_inline(p.format(**fmt))}</p>\n" for p in t["intro"])
-    link = lambda m: f'<a href="#{m["id"]}">{esc(m["name"][lang])}</a>'  # noqa: E731
+    link = lambda m: f'<a href="{method_href(m["id"], lang, detailed)}">{esc(m["name"][lang])}</a>'  # noqa: E731
     bare = [m for m in data["methods"] if not m["audit_reference"]]
     items = [link(m) + (f' — {esc(t["in_tests"].format(ext=", ".join(m["external_reference_in_tests"])))}'
                         if m["external_reference_in_tests"] else "") for m in bare]
@@ -504,7 +509,7 @@ def _overview(data: dict, t: dict, lang: str) -> str:
 def check_facts(m: dict, lang: str) -> list[str]:
     """Факты о проверке метода (HTML-строки): тесты, ссылки на книги, эталоны, аудит 2.
 
-    Тот же список — в карточке списка и в блоке «Проверка метода» страницы метода.
+    Тот же список — в карточке списка и в блоке «Источники» страницы метода.
     """
     esc, t = html.escape, TEXTS[lang]
     facts = [f'{esc(t["tests"])}: {m["tests"]}']
@@ -522,14 +527,16 @@ def check_facts(m: dict, lang: str) -> list[str]:
 
 
 def _method(m: dict, t: dict, lang: str, words: dict, detailed: set[str]) -> str:
-    """Карточка метода: заголовок с якорем, ссылка на страницу-объяснение и список фактов."""
+    """Карточка метода: заголовок с якорем (название — ссылка на страницу-объяснение, если она есть)
+    и список фактов."""
     esc = html.escape
     tag = f' <span class="tag">{esc(t["tag"])}</span>' if m["proposed"] else ""
     source = f'{esc(t["source"])}: {esc("; ".join(format_source(s, lang, words) for s in m["sources"]))}'
-    more = (f' · <a href="{sp.page_path("methods/" + m["id"], lang)}">{esc(t["more"])}</a>'
-            if m["id"] in detailed else "")
-    return (f'      <h3 id="{m["id"]}">{esc(m["name"][lang])}{tag}</h3>\n'
-            f'      <p class="muted"><code>{m["id"]}</code>{more}</p>\n{_li([source] + check_facts(m, lang))}')
+    name = esc(m["name"][lang])
+    if m["id"] in detailed:
+        name = f'<a href="{method_href(m["id"], lang, detailed)}">{name}</a>'
+    return (f'      <h3 id="{m["id"]}">{name}{tag}</h3>\n'
+            f'      <p class="muted"><code>{m["id"]}</code></p>\n{_li([source] + check_facts(m, lang))}')
 
 
 def group_id(group_ru: str) -> str:
@@ -542,7 +549,7 @@ def body(data: dict, lang: str) -> str:
     import method_pages  # здесь: method_pages сам импортирует этот модуль
 
     t, words, detailed = TEXTS[lang], source_words(), set(method_pages.available(lang))
-    out, group = _overview(data, t, lang), None
+    out, group = _overview(data, t, lang, detailed), None
     for m in data["methods"]:
         if m["group"][lang] != group:
             group = m["group"][lang]

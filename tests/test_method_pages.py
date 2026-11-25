@@ -211,14 +211,33 @@ def test_navigation_back_to_the_list() -> None:
 def test_list_page_links_detailed_methods_and_groups() -> None:
     lists = {x: PAGES[static_pages.PUBLIC / static_pages.page_path("methods", x).strip("/") / "index.html"]
              for x in mp.LANGS}
-    for lang, page in lists.items():  # «Подробно →» — только к страницам на языке списка
-        more, written = methods_page.TEXTS[lang]["more"], mp.available(lang)
-        path = static_pages.page_path
-        assert all(f'<a href="{path("methods/" + m, lang)}">{more}</a>' in page for m in written), lang
-        assert page.count(more) == len(written), lang
-    ru = lists["ru"]
+    for lang, page in lists.items():  # название ведёт на страницу на языке списка, иначе — к карточке
+        written = set(mp.available(lang))
+        heads = dict(re.findall(r'<h3 id="([a-z0-9_]+)">(.*?)</h3>', page))
+        assert list(heads) == [m.method for m in CATALOG], lang  # порядок и якоря
+        for mid, head in heads.items():
+            link = f'<a href="{static_pages.page_path("methods/" + mid, lang)}">'
+            assert head.startswith(link) == (mid in written) and ("<a " in head) == (mid in written), (lang, mid)
+        overview = page.split("<h3 ", 1)[0]  # сводные списки до первой карточки
+        for mid in set(re.findall(r'<a href="#([a-z0-9_]+)">', overview)):
+            assert mid not in written, (lang, mid)
+        for mid in re.findall(r'<a href="(?:/[a-z]{2})?/methods/([a-z0-9_]+)/">', overview):
+            assert mid in written, (lang, mid)
+        assert not re.search(r"Подробно →|In detail →|Em detalhe →", page), lang
     assert set(methods_page.GROUP_IDS) == {m.group for m in CATALOG}
-    assert re.findall(r'<h3 id="([a-z0-9_]+)">', ru) == [m.method for m in CATALOG]  # порядок и якоря
+
+
+@pytest.mark.parametrize("mid,lang", WRITTEN)
+def test_method_page_has_sources_block_and_calculator_link(mid: str, lang: str) -> None:
+    page, ch = _html(mid, lang), mp.CHROME[lang]
+    assert mid in {m.method for m in CATALOG}
+    assert 'id="check"' not in page and '<details class="check" id="sources">' in page
+    href = f'/?method={mid}&amp;lang={lang}'
+    assert page.count(f'<a class="cta" href="{href}">{ch["cta"]}</a>') == 1  # кнопка под источниками
+    toc = re.search(r'<aside class="toc".*?</aside>', page, re.S).group(0)
+    links = re.findall(r'<a [^>]*href="([^"]+)"', toc)
+    assert links[-2:] == [href, static_pages.page_path("methods", lang) + "#" + mid]  # перед «↑ К списку»
+    assert page.index('id="sources"') < page.index('class="cta"')
 
 
 def _alternates(slug: str, langs: list[str]) -> list[tuple[str, str]]:

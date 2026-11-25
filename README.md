@@ -58,6 +58,7 @@ python tools/static_pages.py        # ещё раз: страницы с фор�
 
 ```
 node tools/check_method_pages.mjs   # нужен Playwright: npm i -g playwright && npx playwright install chromium
+node tools/check_method_link.mjs    # калькулятор с методом из адреса (?method=&lang=); без сети — PYODIDE_DIR=<pyodide>
 ```
 
 ## Лицензия

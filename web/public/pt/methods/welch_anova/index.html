@@ -11,7 +11,7 @@
     <link rel="alternate" hreflang="ru" href="https://biostat.app/ru/methods/welch_anova/" />
     <link rel="alternate" hreflang="pt" href="https://biostat.app/pt/methods/welch_anova/" />
     <link rel="alternate" hreflang="x-default" href="https://biostat.app/methods/welch_anova/" />
-    <style>body{margin:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:#18181b;background:#fafafa;line-height:1.6}main{max-width:44rem;margin:0 auto;padding:1.5rem 1rem 2rem}h1{font-size:1.6rem;margin:0.6rem 0 0.2rem}h2{font-size:1.1rem;margin:1.6rem 0 0.4rem}p{margin:0.4rem 0}a{color:#0f766e}.muted{color:#63636b;font-size:0.9rem}nav{display:flex;flex-wrap:wrap;gap:0.4rem 1rem;justify-content:space-between;align-items:center}footer{border-top:1px solid #e4e4e7;margin-top:2rem;padding-top:0.8rem;font-size:0.9rem}code{overflow-wrap:anywhere}h3{font-size:1rem;margin:1.4rem 0 0}ul{margin:0.3rem 0;padding-left:1.2rem}li{margin:0.15rem 0;overflow-wrap:anywhere}.tag{font-size:0.75rem;font-weight:400;color:#92400e;border:1px solid #f59e0b;border-radius:4px;padding:0 0.3rem;margin-left:0.4rem;white-space:nowrap}</style>
+    <style>body{margin:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:#18181b;background:#fafafa;line-height:1.6}main{max-width:44rem;margin:0 auto;padding:1.5rem 1rem 2rem}h1{font-size:1.6rem;margin:0.6rem 0 0.2rem}h2{font-size:1.1rem;margin:1.6rem 0 0.4rem}p{margin:0.4rem 0}a{color:#0f766e}.muted{color:#63636b;font-size:0.9rem}nav{display:flex;flex-wrap:wrap;gap:0.4rem 1rem;justify-content:space-between;align-items:center}footer{border-top:1px solid #e4e4e7;margin-top:2rem;padding-top:0.8rem;font-size:0.9rem}code{overflow-wrap:anywhere}h3{font-size:1rem;margin:1.4rem 0 0}h2[id],h3[id]{scroll-margin-top:1rem}ul{margin:0.3rem 0;padding-left:1.2rem}li{margin:0.15rem 0;overflow-wrap:anywhere}.tag{font-size:0.75rem;font-weight:400;color:#92400e;border:1px solid #f59e0b;border-radius:4px;padding:0 0.3rem;margin-left:0.4rem;white-space:nowrap}</style>
     <link rel="stylesheet" href="/methods/assets/method.css" />
     <script src="/methods/assets/groups-split.js" defer></script>
     <script src="/back.js" defer></script>
@@ -137,8 +137,8 @@
     <h3>O que vem a seguir</h3>
     <p>Um <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>F</mi><mi>W</mi></msub></mrow><annotation encoding="application/x-tex">F_W</annotation></semantics></math></span> significativo diz apenas que as médias não são todas iguais. Quais os pares que diferem mostra-o o próprio método — comparações de Games–Howell: cada par tem o seu EP e os gl de Welch–Satterthwaite, P e IC 95 % da diferença [proposta: Games &amp; Howell 1976]. As comparações após a ANOVA (B5) usam o <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><msub><mi>S</mi><mi>W</mi></msub></mrow><annotation encoding="application/x-tex">MS_W</annotation></semantics></math></span> comum e não servem com variâncias desiguais. Se o objetivo for mostrar que não há diferenças, trata-se de outra tarefa: <b><a class="mlink" href="/pt/methods/#equivalence_test" title="Abrir a descrição do método">o teste de equivalência (TOST)</a></b>; um F não significativo não prova a ausência de diferenças (Welham, p. 253).</p>
   </section>
-  <details class="check" id="check">
-    <summary>Verificação do método</summary>
+  <details class="check" id="sources">
+    <summary>Fontes</summary>
     <ul>
       <li>Testes que chamam o método: 12</li>
       <li>Welham — verificado nos testes: p. 107</li>
@@ -147,6 +147,7 @@
       <li>Verificação independente (auditoria 2): F, gl₂, P — statsmodels anova_oneway</li>
     </ul>
   </details>
+  <p><a class="cta" href="/?method=welch_anova&amp;lang=pt">Experimentar o método na calculadora →</a></p>
   <div class="pager"><a href="/pt/methods/one_way_anova/"><small>← Anterior</small>ANOVA a um fator</a><a class="next" href="/pt/methods/anova_permutation_test/"><small>Seguinte →</small>Teste F de permutação (ANOVA)</a></div>
 </article>
 <aside class="toc" aria-label="Nesta página">
@@ -157,7 +158,8 @@
   <a href="#pros-cons">Pontos fortes e fracos</a>
   <a href="#assumptions">Pressupostos</a>
   <a href="#map">Como o mapa escolhe</a>
-  <a href="#check">Verificação do método</a>
+  <a href="#sources">Fontes</a>
+  <a href="/?method=welch_anova&amp;lang=pt">Experimentar o método na calculadora →</a>
   <a class="toc-back" href="/pt/methods/#welch_anova">↑ Voltar à lista de métodos</a>
 </aside>
 <a class="to-list" href="/pt/methods/#welch_anova" aria-label="Voltar à lista de métodos">↑</a>

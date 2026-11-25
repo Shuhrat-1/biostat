@@ -11,7 +11,7 @@
     <link rel="alternate" hreflang="ru" href="https://biostat.app/ru/methods/one_way_anova/" />
     <link rel="alternate" hreflang="pt" href="https://biostat.app/pt/methods/one_way_anova/" />
     <link rel="alternate" hreflang="x-default" href="https://biostat.app/methods/one_way_anova/" />
-    <style>body{margin:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:#18181b;background:#fafafa;line-height:1.6}main{max-width:44rem;margin:0 auto;padding:1.5rem 1rem 2rem}h1{font-size:1.6rem;margin:0.6rem 0 0.2rem}h2{font-size:1.1rem;margin:1.6rem 0 0.4rem}p{margin:0.4rem 0}a{color:#0f766e}.muted{color:#63636b;font-size:0.9rem}nav{display:flex;flex-wrap:wrap;gap:0.4rem 1rem;justify-content:space-between;align-items:center}footer{border-top:1px solid #e4e4e7;margin-top:2rem;padding-top:0.8rem;font-size:0.9rem}code{overflow-wrap:anywhere}h3{font-size:1rem;margin:1.4rem 0 0}ul{margin:0.3rem 0;padding-left:1.2rem}li{margin:0.15rem 0;overflow-wrap:anywhere}.tag{font-size:0.75rem;font-weight:400;color:#92400e;border:1px solid #f59e0b;border-radius:4px;padding:0 0.3rem;margin-left:0.4rem;white-space:nowrap}</style>
+    <style>body{margin:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:#18181b;background:#fafafa;line-height:1.6}main{max-width:44rem;margin:0 auto;padding:1.5rem 1rem 2rem}h1{font-size:1.6rem;margin:0.6rem 0 0.2rem}h2{font-size:1.1rem;margin:1.6rem 0 0.4rem}p{margin:0.4rem 0}a{color:#0f766e}.muted{color:#63636b;font-size:0.9rem}nav{display:flex;flex-wrap:wrap;gap:0.4rem 1rem;justify-content:space-between;align-items:center}footer{border-top:1px solid #e4e4e7;margin-top:2rem;padding-top:0.8rem;font-size:0.9rem}code{overflow-wrap:anywhere}h3{font-size:1rem;margin:1.4rem 0 0}h2[id],h3[id]{scroll-margin-top:1rem}ul{margin:0.3rem 0;padding-left:1.2rem}li{margin:0.15rem 0;overflow-wrap:anywhere}.tag{font-size:0.75rem;font-weight:400;color:#92400e;border:1px solid #f59e0b;border-radius:4px;padding:0 0.3rem;margin-left:0.4rem;white-space:nowrap}</style>
     <link rel="stylesheet" href="/methods/assets/method.css" />
     <script src="/methods/assets/groups-split.js" defer></script>
     <script src="/back.js" defer></script>
@@ -159,8 +159,8 @@
     <h3>Что дальше</h3>
     <p>Значимый F говорит только, что средние не все равны. Следующий шаг на карте — <b>«После ANOVA: какие сравнения?»</b>: <a class="mlink" href="/ru/methods/#treatment_contrasts" title="Открыть описание метода">заранее заданные контрасты</a>, <a class="mlink" href="/ru/methods/#polynomial_contrasts" title="Открыть описание метода">тренд по дозе</a>, <a class="mlink" href="/ru/methods/tukey_hsd/" title="Открыть описание метода">все пары по Тьюки</a>, <a class="mlink" href="/ru/methods/mean_comparisons/" title="Открыть описание метода">против контроля по Даннету</a>, <a class="mlink" href="/ru/methods/mean_comparisons/" title="Открыть описание метода">запланированные пары по Холму</a>. Если цель — показать, что различий нет, это другая задача: <b><a class="mlink" href="/ru/methods/equivalence_test/" title="Открыть описание метода">тест эквивалентности (TOST)</a></b>; незначимый F отсутствия различий не доказывает (Welham, стр. 253).</p>
   </section>
-  <details class="check" id="check">
-    <summary>Проверка метода</summary>
+  <details class="check" id="sources">
+    <summary>Источники</summary>
     <ul>
       <li>Тестов, вызывающих метод: 36</li>
       <li>Welham — сверяют тесты: Table 4.5</li>
@@ -169,6 +169,7 @@
       <li>Независимая сверка (аудит 2): F, P, η², ω² — scipy и формулы</li>
     </ul>
   </details>
+  <p><a class="cta" href="/?method=one_way_anova&amp;lang=ru">Проверить метод в калькуляторе →</a></p>
   <div class="pager"><a class="next" href="/ru/methods/welch_anova/"><small>Следующий →</small>ANOVA Уэлча (неравные дисперсии)</a></div>
 </article>
 <aside class="toc" aria-label="На этой странице">
@@ -179,7 +180,8 @@
   <a href="#pros-cons">Сильные и слабые стороны</a>
   <a href="#assumptions">Допущения</a>
   <a href="#map">Как выбирает карта</a>
-  <a href="#check">Проверка метода</a>
+  <a href="#sources">Источники</a>
+  <a href="/?method=one_way_anova&amp;lang=ru">Проверить метод в калькуляторе →</a>
   <a class="toc-back" href="/ru/methods/#one_way_anova">↑ К списку методов</a>
 </aside>
 <a class="to-list" href="/ru/methods/#one_way_anova" aria-label="К списку методов">↑</a>

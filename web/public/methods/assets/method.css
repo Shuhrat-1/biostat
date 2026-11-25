@@ -41,6 +41,11 @@ main.mp { max-width: 1120px; font-size: 16px; }
 .mp a.mlink { color: inherit; text-decoration: none; }
 .mp a.mlink:hover, .mp a.mlink:focus-visible { color: var(--accent); text-decoration: underline; }
 .mp a.mlink:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+.mp a.cta { display: inline-flex; align-items: center; min-height: 44px; box-sizing: border-box; padding: 0.5rem 1.1rem;
+  border-radius: 6px; background: var(--accent); color: #fff; font-weight: 500; text-decoration: none; }
+.mp a.cta:hover { background: #0d6660; }
+.mp a.cta:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (max-width: 480px) { .mp a.cta { display: flex; justify-content: center; text-align: center; } }
 /* интерактив */
 .mp .viz { display: grid; grid-template-columns: minmax(0, 1fr) 230px; gap: 18px; align-items: start; }
 .mp .viz svg { width: 100%; height: auto; display: block; }

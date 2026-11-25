@@ -11,7 +11,7 @@
     <link rel="alternate" hreflang="ru" href="https://biostat.app/ru/methods/one_way_anova/" />
     <link rel="alternate" hreflang="pt" href="https://biostat.app/pt/methods/one_way_anova/" />
     <link rel="alternate" hreflang="x-default" href="https://biostat.app/methods/one_way_anova/" />
-    <style>body{margin:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:#18181b;background:#fafafa;line-height:1.6}main{max-width:44rem;margin:0 auto;padding:1.5rem 1rem 2rem}h1{font-size:1.6rem;margin:0.6rem 0 0.2rem}h2{font-size:1.1rem;margin:1.6rem 0 0.4rem}p{margin:0.4rem 0}a{color:#0f766e}.muted{color:#63636b;font-size:0.9rem}nav{display:flex;flex-wrap:wrap;gap:0.4rem 1rem;justify-content:space-between;align-items:center}footer{border-top:1px solid #e4e4e7;margin-top:2rem;padding-top:0.8rem;font-size:0.9rem}code{overflow-wrap:anywhere}h3{font-size:1rem;margin:1.4rem 0 0}ul{margin:0.3rem 0;padding-left:1.2rem}li{margin:0.15rem 0;overflow-wrap:anywhere}.tag{font-size:0.75rem;font-weight:400;color:#92400e;border:1px solid #f59e0b;border-radius:4px;padding:0 0.3rem;margin-left:0.4rem;white-space:nowrap}</style>
+    <style>body{margin:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:#18181b;background:#fafafa;line-height:1.6}main{max-width:44rem;margin:0 auto;padding:1.5rem 1rem 2rem}h1{font-size:1.6rem;margin:0.6rem 0 0.2rem}h2{font-size:1.1rem;margin:1.6rem 0 0.4rem}p{margin:0.4rem 0}a{color:#0f766e}.muted{color:#63636b;font-size:0.9rem}nav{display:flex;flex-wrap:wrap;gap:0.4rem 1rem;justify-content:space-between;align-items:center}footer{border-top:1px solid #e4e4e7;margin-top:2rem;padding-top:0.8rem;font-size:0.9rem}code{overflow-wrap:anywhere}h3{font-size:1rem;margin:1.4rem 0 0}h2[id],h3[id]{scroll-margin-top:1rem}ul{margin:0.3rem 0;padding-left:1.2rem}li{margin:0.15rem 0;overflow-wrap:anywhere}.tag{font-size:0.75rem;font-weight:400;color:#92400e;border:1px solid #f59e0b;border-radius:4px;padding:0 0.3rem;margin-left:0.4rem;white-space:nowrap}</style>
     <link rel="stylesheet" href="/methods/assets/method.css" />
     <script src="/methods/assets/groups-split.js" defer></script>
     <script src="/back.js" defer></script>
@@ -159,8 +159,8 @@
     <h3>What next</h3>
     <p>A significant F says only that the means are not all equal. The next step on the map is <b>“After ANOVA: which comparisons?”</b>: <a class="mlink" href="/methods/#treatment_contrasts" title="Open the method description">pre-planned contrasts</a>, <a class="mlink" href="/methods/#polynomial_contrasts" title="Open the method description">a dose trend</a>, <a class="mlink" href="/methods/#tukey_hsd" title="Open the method description">all pairs by Tukey</a>, <a class="mlink" href="/methods/#mean_comparisons" title="Open the method description">against a control by Dunnett</a>, <a class="mlink" href="/methods/#mean_comparisons" title="Open the method description">planned pairs by Holm</a>. If the goal is to show that there are no differences, that is a different task: <b><a class="mlink" href="/methods/#equivalence_test" title="Open the method description">the equivalence test (TOST)</a></b>; a non-significant F does not prove the absence of differences (Welham, p. 253).</p>
   </section>
-  <details class="check" id="check">
-    <summary>Validation of the method</summary>
+  <details class="check" id="sources">
+    <summary>Sources</summary>
     <ul>
       <li>Tests that call the method: 36</li>
       <li>Welham — checked by tests: Table 4.5</li>
@@ -169,6 +169,7 @@
       <li>Independent cross-check (audit 2): F, P, η², ω² — scipy and formulas</li>
     </ul>
   </details>
+  <p><a class="cta" href="/?method=one_way_anova&amp;lang=en">Try the method in the calculator →</a></p>
   <div class="pager"><a class="next" href="/methods/welch_anova/"><small>Next →</small>Welch&#x27;s ANOVA (unequal variances)</a></div>
 </article>
 <aside class="toc" aria-label="On this page">
@@ -179,7 +180,8 @@
   <a href="#pros-cons">Strengths and weaknesses</a>
   <a href="#assumptions">Assumptions</a>
   <a href="#map">How the map chooses</a>
-  <a href="#check">Validation of the method</a>
+  <a href="#sources">Sources</a>
+  <a href="/?method=one_way_anova&amp;lang=en">Try the method in the calculator →</a>
   <a class="toc-back" href="/methods/#one_way_anova">↑ Back to the method list</a>
 </aside>
 <a class="to-list" href="/methods/#one_way_anova" aria-label="Back to the method list">↑</a>

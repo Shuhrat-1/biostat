@@ -11,44 +11,14 @@
  * страницы /…/methods/<id>/ и словаря проверяет: на 375 px scrollWidth == clientWidth;
  * в консоли нет ошибок (в т. ч. CSP); на 375 px видна кнопка «↑ К списку» 44 × 44, на 1280 —
  * оглавление; у виджета «между / внутри» ползунок меняет F, у виджета Уэлча ползунок средних меняет
- * P Уэлча, ползунок n — подпись. Код выхода 1 — есть ошибки.
+ * P Уэлча, ползунок n — подпись. Кнопка «Проверить метод в калькуляторе →» (задание L1): адрес
+ * /?method=<id>&lang=<язык>, высота ≥ 44 px, на 375 px — во всю ширину, на 1280 — по тексту.
+ * Код выхода 1 — есть ошибки.
  */
 
-import { createServer } from "node:http";
-import { readFileSync, existsSync, readdirSync, statSync } from "node:fs";
-import { extname, join, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
-
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-const DIST = join(ROOT, "web", "dist");
-const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".mjs": "text/javascript",
-  ".css": "text/css", ".json": "application/json", ".svg": "image/svg+xml", ".wasm": "application/wasm",
-  ".txt": "text/plain; charset=utf-8", ".zip": "application/zip" };
-
-/** Заголовки блока «/*» из _headers (как на Cloudflare Pages для всех путей). */
-function siteHeaders() {
-  const lines = readFileSync(join(DIST, "_headers"), "utf8").split("\n");
-  const start = lines.findIndex((l) => l.trim() === "/*");
-  const out = {};
-  for (const line of lines.slice(start + 1)) {
-    if (!/^\s+\S/.test(line)) break;
-    const i = line.indexOf(":");
-    out[line.slice(0, i).trim()] = line.slice(i + 1).trim();
-  }
-  return out;
-}
-
-function serve() {
-  const headers = siteHeaders();
-  const server = createServer((req, res) => {
-    let path = join(DIST, decodeURIComponent(new URL(req.url, "http://x").pathname));
-    if (existsSync(path) && statSync(path).isDirectory()) path = join(path, "index.html");
-    if (!existsSync(path)) { res.writeHead(404); res.end(); return; }
-    res.writeHead(200, { ...headers, "Content-Type": TYPES[extname(path)] ?? "application/octet-stream" });
-    res.end(readFileSync(path));
-  });
-  return new Promise((resolve) => server.listen(0, () => resolve(server)));
-}
+import { readdirSync, statSync, existsSync } from "node:fs";
+import { join } from "node:path";
+import { DIST, playwright, serve } from "./static_server.mjs";
 
 /** Пути страниц методов в dist: /ru/methods/one_way_anova/ и т. п. */
 function methodPages(dir = DIST, base = "") {
@@ -79,6 +49,7 @@ async function checkPage(page, url, errors) {
     const isMethod = !url.endsWith("/symbols/");
     if (isMethod && width === 375 && JSON.stringify(m.button) !== "[44,44]") out.push(`375px: кнопка «↑» ${m.button}`);
     if (isMethod && width === 1280 && (m.button || !m.toc)) out.push("1280px: нет оглавления или видна кнопка");
+    if (isMethod) out.push(...await checkCalculatorLink(page, url, width));
   }
   if (await page.locator(".gw-kb").count()) {
     const before = await page.locator(".gw-w-p").innerText();
@@ -95,12 +66,29 @@ async function checkPage(page, url, errors) {
   return out.concat(errors.splice(0));
 }
 
+/** Кнопка в калькулятор под «Источниками»: адрес, высота, ширина по экрану. */
+async function checkCalculatorLink(page, url, width) {
+  const path = new URL(url).pathname;
+  const lang = path.startsWith("/ru/") ? "ru" : path.startsWith("/pt/") ? "pt" : "en";
+  const mid = path.split("/").filter(Boolean).pop();
+  const m = await page.evaluate(() => {
+    const a = document.querySelector("a.cta");
+    if (!a) return null;
+    const box = a.getBoundingClientRect(), line = a.parentElement.getBoundingClientRect();
+    return { href: a.getAttribute("href"), h: box.height, w: box.width, line: line.width,
+      after: Boolean(document.querySelector("#sources")?.compareDocumentPosition(a) & Node.DOCUMENT_POSITION_FOLLOWING) };
+  });
+  if (!m) return [`${width}px: нет кнопки в калькулятор`];
+  const out = [];
+  if (m.href !== `/?method=${mid}&lang=${lang}`) out.push(`кнопка ведёт на ${m.href}`);
+  if (!m.after) out.push("кнопка не под «Источниками»");
+  if (m.h < 44) out.push(`${width}px: высота кнопки ${m.h}`);
+  if (width < 480 ? Math.abs(m.w - m.line) > 1 : m.w > m.line - 100) out.push(`${width}px: ширина кнопки ${m.w} из ${m.line}`);
+  return out;
+}
+
 async function main() {
-  let chromium;
-  try { ({ chromium } = await import(process.env.PLAYWRIGHT ?? "playwright")); } catch {
-    console.error("Нужен Playwright: npm i -g playwright && npx playwright install chromium (или PLAYWRIGHT=путь)");
-    process.exit(2);
-  }
+  const { chromium } = await playwright();
   const server = await serve();
   const origin = `http://localhost:${server.address().port}`;
   const browser = await chromium.launch(process.env.PW_CHANNEL ? { channel: process.env.PW_CHANNEL } : {});

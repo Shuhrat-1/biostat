@@ -113,7 +113,8 @@ def test_05_06_language_is_remembered_safely() -> None:
     stored = APP[APP.index("function storedLang()"):APP.index("function AppInner(")]
     assert stored.count("try {") == 2 and stored.count("} catch {") == 2
     assert "LANGUAGES.some((l) => l.code === v)" in stored
-    assert 'useState<Lang>(() => storedLang() ?? "ru")' in APP and "saveLang(lang);" in APP
+    # язык из ссылки (?lang=, задание L1) важнее сохранённого, иначе — сохранённый
+    assert 'useState<Lang>(() => launchParams().lang ?? storedLang() ?? "ru")' in APP and "saveLang(lang);" in APP
 
 
 def test_05_08_run_turns_into_stop_after_one_second() -> None:
