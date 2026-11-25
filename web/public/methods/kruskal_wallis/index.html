@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kruskal-Wallis test (nonparametric) — BioStat</title>
+    <meta name="description" content="The Kruskal–Wallis test: comparing three or more groups by ranks — idea, formula, assumptions, and how the BioStat map chooses this method." />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="canonical" href="https://biostat.app/methods/kruskal_wallis/" />
+    <link rel="alternate" hreflang="en" href="https://biostat.app/methods/kruskal_wallis/" />
+    <link rel="alternate" hreflang="ru" href="https://biostat.app/ru/methods/kruskal_wallis/" />
+    <link rel="alternate" hreflang="pt" href="https://biostat.app/pt/methods/kruskal_wallis/" />
+    <link rel="alternate" hreflang="x-default" href="https://biostat.app/methods/kruskal_wallis/" />
+    <style>body{margin:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:#18181b;background:#fafafa;line-height:1.6}main{max-width:44rem;margin:0 auto;padding:1.5rem 1rem 2rem}h1{font-size:1.6rem;margin:0.6rem 0 0.2rem}h2{font-size:1.1rem;margin:1.6rem 0 0.4rem}p{margin:0.4rem 0}a{color:#0f766e}.muted{color:#63636b;font-size:0.9rem}nav{display:flex;flex-wrap:wrap;gap:0.4rem 1rem;justify-content:space-between;align-items:center}footer{border-top:1px solid #e4e4e7;margin-top:2rem;padding-top:0.8rem;font-size:0.9rem}code{overflow-wrap:anywhere}h3{font-size:1rem;margin:1.4rem 0 0}h2[id],h3[id]{scroll-margin-top:1rem}ul{margin:0.3rem 0;padding-left:1.2rem}li{margin:0.15rem 0;overflow-wrap:anywhere}.tag{font-size:0.75rem;font-weight:400;color:#92400e;border:1px solid #f59e0b;border-radius:4px;padding:0 0.3rem;margin-left:0.4rem;white-space:nowrap}</style>
+    <link rel="stylesheet" href="/methods/assets/method.css" />
+    <script src="/back.js" defer></script>
+  </head>
+  <body>
+    <main class="mp">
+      <nav><a href="/" data-back>← Back to BioStat</a><span><a href="/methods/kruskal_wallis/" hreflang="en" lang="en" aria-current="page">English</a> · <a href="/ru/methods/kruskal_wallis/" hreflang="ru" lang="ru">Русский</a> · <a href="/pt/methods/kruskal_wallis/" hreflang="pt" lang="pt">Português</a></span></nav>
+<div class="wrap">
+<article>
+  <nav class="crumbs" aria-label="Breadcrumbs"><a href="/">BioStat</a> › <a href="/methods/">Methods and validation</a> › <a href="/methods/#group-several-groups">Multi-group comparison</a> › Kruskal-Wallis test (nonparametric)</nav>
+  <h1>Kruskal-Wallis test (nonparametric)</h1>
+  <p class="lead">Do three or more groups differ when the response is a score or its distribution is far from normal? The Kruskal–Wallis test replaces the values with ranks and compares the rank sums of the groups.</p>
+  <section id="idea">
+    <h2>Idea</h2>
+    <p>All observations are ranked together: the smallest gets rank 1, the largest rank N, and tied values get the mean of their ranks (Witte, p. 390, 396–397). If the groups do not differ, their mean ranks are close; H grows as they move apart.</p>
+    <p>Means are not what is compared: a rejected <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>H</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">H_0</annotation></semantics></math></span> only means “the group distributions differ” (Witte, p. 396–399). One can speak of a difference in medians if the distributions in the groups have the same shape and differ only by a shift [proposed: Hollander &amp; Wolfe 1999].</p>
+  </section>
+  <section id="model">
+    <h2>Model and formulas</h2>
+    <details class="glossary" id="symbols">
+      <summary>All symbols on this page</summary>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Symbol</th><th>Meaning</th></tr></thead>
+      <tbody>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi><mo>=</mo><mn>1</mn><mo separator="true">,</mo><mo>…</mo><mo separator="true">,</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">i = 1,\dots,t</annotation></semantics></math></span></td><td>group (treatment) index, <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi></mrow><annotation encoding="application/x-tex">t</annotation></semantics></math></span> — number of groups</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>j</mi><mo>=</mo><mn>1</mn><mo separator="true">,</mo><mo>…</mo><mo separator="true">,</mo><msub><mi>n</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">j = 1,\dots,n_i</annotation></semantics></math></span></td><td>observation index within a group, <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>n</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">n_i</annotation></semantics></math></span> — size of group <i>i</i></td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>=</mo><mstyle scriptlevel="0" displaystyle="false"><mo>∑</mo><msub><mi>n</mi><mi>i</mi></msub></mstyle></mrow><annotation encoding="application/x-tex">N = \textstyle\sum n_i</annotation></semantics></math></span></td><td>total number of observations</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>H</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">H_0</annotation></semantics></math></span></td><td>null hypothesis: all groups have the same mean</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>R</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">R_i</annotation></semantics></math></span></td><td>rank sum of group <i>i</i> (ranks over all observations together)</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>τ</mi></mrow><annotation encoding="application/x-tex">\tau</annotation></semantics></math></span></td><td>number of equal values in a group of ties</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>H</mi></mrow><annotation encoding="application/x-tex">H</annotation></semantics></math></span></td><td>Kruskal–Wallis statistic</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi></mrow><annotation encoding="application/x-tex">C</annotation></semantics></math></span></td><td>correction for tied ranks (<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">C = 1</annotation></semantics></math></span> without ties)</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi></mrow><annotation encoding="application/x-tex">P</annotation></semantics></math></span></td><td>probability of a test statistic (F, t …) at least as extreme as the observed one when <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>H</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">H_0</annotation></semantics></math></span> is true</td></tr>
+</tbody>
+    </table></div>
+      <p class="note">The same notation is used on every method page — <a href="/methods/symbols/">symbol glossary</a>.</p>
+    </details>
+    <p>The hypothesis tested:</p>
+    <div class="math block"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>H</mi><mn>0</mn></msub><mo>:</mo><mtext> the response distributions in all </mtext><mi>t</mi><mtext> groups are the same</mtext></mrow><annotation encoding="application/x-tex">H_0:\ \text{the response distributions in all } t \text{ groups are the same}</annotation></semantics></math></span></div>
+    <h3>The H statistic</h3>
+    <div class="math block"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>H</mi><mo>=</mo><mfrac><mn>12</mn><mrow><mi>N</mi><mo stretchy="false">(</mo><mi>N</mi><mo>+</mo><mn>1</mn><mo stretchy="false">)</mo></mrow></mfrac><munder><mo>∑</mo><mi>i</mi></munder><mfrac><msubsup><mi>R</mi><mi>i</mi><mn>2</mn></msubsup><msub><mi>n</mi><mi>i</mi></msub></mfrac><mo>−</mo><mn>3</mn><mo stretchy="false">(</mo><mi>N</mi><mo>+</mo><mn>1</mn><mo stretchy="false">)</mo><mo>=</mo><mn>13.88</mn></mrow><annotation encoding="application/x-tex">H = \frac{12}{N(N+1)} \sum_i \frac{R_i^2}{n_i} - 3(N+1) = 13.88</annotation></semantics></math></span></div>
+    <p>The book&#x27;s formula (Witte, p. 396–397): <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>R</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">R_i</annotation></semantics></math></span> is the rank sum of group <i>i</i>, <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>n</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">n_i</annotation></semantics></math></span> its size.</p>
+    <h3>Correction for ties and P</h3>
+    <div class="math block"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>C</mi><mo>=</mo><mn>1</mn><mo>−</mo><mfrac><mrow><mo>∑</mo><mo stretchy="false">(</mo><msup><mi>τ</mi><mn>3</mn></msup><mo>−</mo><mi>τ</mi><mo stretchy="false">)</mo></mrow><mrow><msup><mi>N</mi><mn>3</mn></msup><mo>−</mo><mi>N</mi></mrow></mfrac><mo>=</mo><mn>0.949</mn><mo separator="true">,</mo><mspace width="2em"/><mfrac><mi>H</mi><mi>C</mi></mfrac><mo>=</mo><mn>14.62</mn><mo separator="true">,</mo><mspace width="2em"/><mi>d</mi><mi>f</mi><mo>=</mo><mi>t</mi><mo>−</mo><mn>1</mn><mo>=</mo><mn>2</mn><mo separator="true">,</mo><mspace width="2em"/><mi>P</mi><mo>&lt;</mo><mn>0.001</mn></mrow><annotation encoding="application/x-tex">C = 1 - \frac{\sum(\tau^3-\tau)}{N^3-N} = 0.949,\qquad \frac{H}{C} = 14.62,\qquad df = t-1 = 2,\qquad P &lt; 0.001</annotation></semantics></math></span></div>
+    <p>BioStat always divides H by C [proposed: Kruskal &amp; Wallis 1952]; Witte does not introduce the correction and advises thinking about ties only if the test is barely significant (p. 400). P comes from χ² with <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">t-1</annotation></semantics></math></span> df: the approximation is accurate enough when each group has at least 4 observations (Witte, p. 398).</p>
+    <h3>On the example</h3>
+    <p class="note">Illustrative data set (map scenario S12): scores 1–5, three groups of 8. Rank sums: a 45, b 105, c 150; medians 2, 3 and 4.5. With only five scores there are many ties, so the correction is noticeable: H = 13.88 without it and 14.62 with it on 2 df, P &lt; 0.001. The map gives the hint <span class="sig">B4.8</span>; the hint <span class="sig">R2.2</span> (non-negative integers look like counts) fires on the same numbers, and the choice between them depends on what the response means.</p>
+    <p class="src">Witte &amp; Witte (2017), p. 386–387, 390, 396–400; Welham et al. (2015), p. 127; correction C — [proposed: Kruskal &amp; Wallis 1952]; interpretation via medians — [proposed: Hollander &amp; Wolfe 1999].</p>
+  </section>
+  <section id="pros-cons">
+    <h2>Strengths and weaknesses</h2>
+    <div class="cols">
+      <div class="plus">
+        <h3>Strengths</h3>
+        <ul>
+      <li><b>Does not need normality</b> — works with ranks (Witte, p. 386–387).</li>
+      <li><b>Suits scores and ranks</b>, where the mean is poorly defined (Witte, p. 386; Welham, p. 127).</li>
+      <li><b>An extreme value is just an extreme rank:</b> an outlier affects H less than F [proposed: Hollander &amp; Wolfe 1999].</li>
+      <li><b>The report has the rank sums, the uncorrected H and the group medians</b>, as in the book (Witte, p. 396–399) [BioStat].</li>
+    </ul>
+      </div>
+      <div class="minus">
+        <h3>Weaknesses</h3>
+        <ul>
+      <li><b>Less powerful than ANOVA when the ANOVA assumptions hold</b> (Witte, p. 387).</li>
+      <li><b>Answers about distributions, not means:</b> no SED, LSD or CIs of differences of means (Witte, p. 396–399).</li>
+      <li><b>P is approximate</b> (χ²): accurate enough when each group has at least 4 observations (Witte, p. 398); with smaller groups BioStat adds a note — the approximation usually overstates P (with 3 groups of 3: 0.027 against the exact 0.0036) [BioStat: audit 02-02].</li>
+      <li><b>H does not say which groups differ.</b> The standard pairwise comparisons after H are Dunn&#x27;s test [proposed: Dunn 1964]; BioStat does not have it.</li>
+      <li><b>One factor without blocks.</b> For scores in blocks (each treatment once in every block) — the <a class="mlink" href="/methods/#friedman" title="Open the method description">Friedman test</a>; for scores in an experiment with several factors — <a class="mlink" href="/methods/#ordinal_regression" title="Open the method description">ordinal regression</a> (Welham, p. 513).</li>
+    </ul>
+      </div>
+    </div>
+    <p class="src">Witte &amp; Witte (2017), p. 386–387, 396–399; Welham et al. (2015), p. 127, 513; [BioStat]; [proposed: Dunn 1964].</p>
+  </section>
+  <section id="assumptions">
+    <h2>Assumptions</h2>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Assumption</th><th>What it means</th><th>How BioStat checks it</th></tr></thead>
+      <tbody>
+<tr><td>Independence</td><td>Each observation is a separate unit, with no repeated measurements and no blocks.</td><td>Not checked by calculation — it is a property of the design; the map asks about the structure before this step.</td></tr>
+<tr><td>Ordinal response scale</td><td>The values can be ordered: scores, ranks, quantitative measurements.</td><td>Category labels without an order lead to frequency tables earlier (<span class="sig">R2.5</span>).</td></tr>
+<tr><td>Few ties (for the χ² approximation)</td><td>The test was derived for a continuous response without ties (Witte, p. 400).</td><td>The tie correction C is always applied; with groups of fewer than 4 observations — a note about the approximate P.</td></tr>
+</tbody>
+    </table></div>
+    <p class="src">Witte &amp; Witte (2017), p. 386–387, 398, 400.</p>
+  </section>
+  <section id="map">
+    <h2>How the map chooses this method</h2>
+    <h3>Path to the leaf</h3>
+    <div class="path" aria-label="Path on the map"><span>Analyse a response</span>›<span>Continuous</span>›<span>Differences</span>›<span>Independent units</span>›<span>No blocks or complete blocks</span>›<span>One factor</span>›<span>Three or more groups</span>›<span class="here">Kruskal–Wallis</span></div>
+    <p>The map leads here only with the <b>hint</b> <span class="sig">B4.8</span>: the response takes a few integer values in a narrow range (3 to 10 distinct values, range at most 10) — it looks like scores [BioStat]. With two groups the same hint leads to Mann–Whitney, and in a complete block experiment (role “block”) — to the Friedman test.</p>
+    <p>Non-normal residuals alone do not lead here: in three or more groups with homogeneous variances the map suggests the permutation test (<span class="sig">B4.6</span>), and with skewness — a transformation (<span class="sig">B4.4</span>).</p>
+    <h3>Neighbors on the map: when they win</h3>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Neighbor</th><th>When the map leads there</th><th>Why the neighbor is better here</th><th>What it costs</th></tr></thead>
+      <tbody>
+<tr><td><a class="mlink" href="/methods/one_way_anova/" title="Open the method description">One-way ANOVA</a></td><td>the response is continuous and residuals are normal — the default leaf</td><td>Means, SED and LSD; more powerful when the assumptions hold</td><td>For scores the mean is poorly defined</td></tr>
+<tr><td><a class="mlink" href="/methods/anova_permutation_test/" title="Open the method description">Permutation F-test (ANOVA)</a></td><td><span class="sig">B4.6</span> residuals are non-normal with homogeneous variances</td><td>Compares means without requiring normality</td><td>Needs homogeneous variances; P is random with B permutations</td></tr>
+<tr><td><a class="mlink" href="/methods/transformed_means/" title="Open the method description">ANOVA on a transformed response</a></td><td><span class="sig">B4.3</span> / <span class="sig">B4.4</span> (hint) SDs grow with the means or residuals are strongly skewed (|g₁| &gt; 1)</td><td>ANOVA, SED and LSD on the new scale; for log — ratios of means</td><td>The result is on the transformed scale; for scores a transformation helps little</td></tr>
+<tr><td><a class="mlink" href="/methods/welch_anova/" title="Open the method description">Welch&#x27;s ANOVA (unequal variances)</a></td><td><span class="sig">B4.5</span> variances are heterogeneous and do not grow with the means</td><td>Compares means with unequal variances</td><td>Needs normality within groups</td></tr>
+<tr><td><a class="mlink" href="/methods/rcbd_anova/" title="Open the method description">Randomized block ANOVA (RCBD)</a></td><td><span class="sig">B1.2</span> / <span class="sig">B1.8</span> (hint) each treatment once in every block (or a column that looks like blocks)</td><td>Removes the differences between blocks from the error</td><td>Normal residuals are required again; for scores in blocks the map leads to Friedman</td></tr>
+<tr><td><a class="mlink" href="/methods/#mann_whitney" title="Open the method description">Mann-Whitney test (nonparametric)</a></td><td>branch point “how many levels” = 2</td><td>A two-group rank test with the Hodges–Lehmann shift estimate and CI</td><td>—</td></tr>
+</tbody>
+    </table></div>
+    <h3>What the map checks at this leaf</h3>
+    <ul>
+      <li><span class="sig">B4.8</span> (hint) The response looks like scores: 3 to 10 distinct integer values, range at most 10 [BioStat].</li>
+      <li><span class="sig">R2.2</span> (hint) Non-negative integers also look like counts: if the response is a number of objects rather than a score, a count model (GLM) is needed.</li>
+      <li><span class="sig">B4.1</span> Non-normality of residuals is checked but does not lead to this leaf: with three or more groups it is a note.</li>
+    </ul>
+    <h3>What next</h3>
+    <p>A significant H says that the group distributions are not all the same, but not which ones differ. The standard pairwise comparisons after H are Dunn&#x27;s test [proposed: Dunn 1964]; BioStat does not have it. The comparisons after ANOVA (B5) are based on means and the common <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><msub><mi>S</mi><mi>W</mi></msub></mrow><annotation encoding="application/x-tex">MS_W</annotation></semantics></math></span> — they do not apply to a rank analysis.</p>
+  </section>
+  <details class="check" id="sources">
+    <summary>Sources</summary>
+    <ul>
+      <li>Tests that call the method: 5</li>
+      <li>Witte — checked by tests: Progress Check 20.4, Table 20.4</li>
+      <li>Independent cross-check (audit 2): H, P — scipy; small samples — exact enumeration</li>
+    </ul>
+  </details>
+  <p><a class="cta" href="/?method=kruskal_wallis&amp;lang=en">Try the method in the calculator →</a></p>
+  <div class="pager"><a href="/methods/welch_anova/"><small>← Previous</small>Welch&#x27;s ANOVA (unequal variances)</a><a class="next" href="/methods/treatment_means/"><small>Next →</small>Group means with SED and LSD</a></div>
+</article>
+<aside class="toc" aria-label="On this page">
+  <b>On this page</b>
+  <a href="#idea">Idea</a>
+  <a href="#model">Model and formulas</a>
+  <a href="#symbols">Notation</a>
+  <a href="#pros-cons">Strengths and weaknesses</a>
+  <a href="#assumptions">Assumptions</a>
+  <a href="#map">How the map chooses</a>
+  <a href="#sources">Sources</a>
+  <a href="/?method=kruskal_wallis&amp;lang=en">Try the method in the calculator →</a>
+  <a class="toc-back" href="/methods/#kruskal_wallis">↑ Back to the method list</a>
+</aside>
+<a class="to-list" href="/methods/#kruskal_wallis" aria-label="Back to the method list">↑</a>
+</div>
+      <footer><a href="/privacy/">Privacy</a> · <a href="/terms/">Terms</a> · <a href="/methods/">Methods and validation</a> · <a href="/LICENSE.txt">Apache-2.0 License</a></footer>
+    </main>
+  </body>
+</html>

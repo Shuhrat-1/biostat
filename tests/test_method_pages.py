@@ -597,7 +597,9 @@ def _source_refs(text: str) -> list[tuple[str, str]]:
 def _markers(text: str) -> tuple:
     """То, что перевод не меняет: подстановки, ссылки на методы, сигналы, формулы, источники."""
     tex = sorted(TEX_TEXT.sub(r"\\text{}", t) for t in INLINE_TEX.findall(text))
-    return (sorted(PLACEHOLDER.findall(text)), METHOD_LINK.findall(text), sorted(SIGNAL.findall(text)),
+    # слово для нуля (⟦n:0=нет⟧) переводится вместе с текстом — сравнивается только имя и формат
+    holders = sorted(re.sub(r":0=[^⟧]*", ":0=", h) for h in PLACEHOLDER.findall(text))
+    return (holders, METHOD_LINK.findall(text), sorted(SIGNAL.findall(text)),
             tex, _source_refs(text))
 
 

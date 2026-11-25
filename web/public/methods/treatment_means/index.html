@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Group means with SED and LSD — BioStat</title>
+    <meta name="description" content="Treatment means with SEM, SED and LSD after ANOVA: idea, formulas, assumptions, and how the BioStat map offers this step." />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="canonical" href="https://biostat.app/methods/treatment_means/" />
+    <link rel="alternate" hreflang="en" href="https://biostat.app/methods/treatment_means/" />
+    <link rel="alternate" hreflang="ru" href="https://biostat.app/ru/methods/treatment_means/" />
+    <link rel="alternate" hreflang="pt" href="https://biostat.app/pt/methods/treatment_means/" />
+    <link rel="alternate" hreflang="x-default" href="https://biostat.app/methods/treatment_means/" />
+    <style>body{margin:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:#18181b;background:#fafafa;line-height:1.6}main{max-width:44rem;margin:0 auto;padding:1.5rem 1rem 2rem}h1{font-size:1.6rem;margin:0.6rem 0 0.2rem}h2{font-size:1.1rem;margin:1.6rem 0 0.4rem}p{margin:0.4rem 0}a{color:#0f766e}.muted{color:#63636b;font-size:0.9rem}nav{display:flex;flex-wrap:wrap;gap:0.4rem 1rem;justify-content:space-between;align-items:center}footer{border-top:1px solid #e4e4e7;margin-top:2rem;padding-top:0.8rem;font-size:0.9rem}code{overflow-wrap:anywhere}h3{font-size:1rem;margin:1.4rem 0 0}h2[id],h3[id]{scroll-margin-top:1rem}ul{margin:0.3rem 0;padding-left:1.2rem}li{margin:0.15rem 0;overflow-wrap:anywhere}.tag{font-size:0.75rem;font-weight:400;color:#92400e;border:1px solid #f59e0b;border-radius:4px;padding:0 0.3rem;margin-left:0.4rem;white-space:nowrap}</style>
+    <link rel="stylesheet" href="/methods/assets/method.css" />
+    <script src="/back.js" defer></script>
+  </head>
+  <body>
+    <main class="mp">
+      <nav><a href="/" data-back>← Back to BioStat</a><span><a href="/methods/treatment_means/" hreflang="en" lang="en" aria-current="page">English</a> · <a href="/ru/methods/treatment_means/" hreflang="ru" lang="ru">Русский</a> · <a href="/pt/methods/treatment_means/" hreflang="pt" lang="pt">Português</a></span></nav>
+<div class="wrap">
+<article>
+  <nav class="crumbs" aria-label="Breadcrumbs"><a href="/">BioStat</a> › <a href="/methods/">Methods and validation</a> › <a href="/methods/#group-several-groups">Multi-group comparison</a> › Group means with SED and LSD</nav>
+  <h1>Group means with SED and LSD</h1>
+  <p class="lead">What are the treatment means, and how precisely is the difference between any two of them estimated? The method gives the means with SEM and CIs from the common ANOVA variance, the SED and the LSD — the least significant difference.</p>
+  <section id="idea">
+    <h2>Idea</h2>
+    <p>After ANOVA the variance within groups is estimated from all the data at once — this is <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><msub><mi>S</mi><mi>W</mi></msub></mrow><annotation encoding="application/x-tex">MS_W</annotation></semantics></math></span> (in the book <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>s</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">s^2</annotation></semantics></math></span>) on N − t df. It is used for every mean: SEM = √(s²/n), not the SD of its own group. The estimate is more stable, and its df are larger than those of a single group (Welham, p. 84–85).</p>
+    <p>For a difference of two means the error is SED; it is always larger than SEM. SED multiplied by the t quantile is LSD: a difference larger than LSD is significant at 5 % <b>if it is a single comparison chosen in advance</b> (Welham, p. 85–88). For many pairs in a row, LSD without an adjustment gives too many false findings (Welham, p. 195–199).</p>
+  </section>
+  <section id="model">
+    <h2>Model and formulas</h2>
+    <details class="glossary" id="symbols">
+      <summary>All symbols on this page</summary>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Symbol</th><th>Meaning</th></tr></thead>
+      <tbody>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>j</mi><mo>=</mo><mn>1</mn><mo separator="true">,</mo><mo>…</mo><mo separator="true">,</mo><msub><mi>n</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">j = 1,\dots,n_i</annotation></semantics></math></span></td><td>observation index within a group, <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>n</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">n_i</annotation></semantics></math></span> — size of group <i>i</i></td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>=</mo><mstyle scriptlevel="0" displaystyle="false"><mo>∑</mo><msub><mi>n</mi><mi>i</mi></msub></mstyle></mrow><annotation encoding="application/x-tex">N = \textstyle\sum n_i</annotation></semantics></math></span></td><td>total number of observations</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mi>S</mi><mo>=</mo><mi>S</mi><mi>S</mi><mi mathvariant="normal">/</mi><mi>d</mi><mi>f</mi></mrow><annotation encoding="application/x-tex">MS = SS/df</annotation></semantics></math></span></td><td>mean square — a sum of squares divided by its degrees of freedom</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">S</mi><mi mathvariant="normal">E</mi></mrow><annotation encoding="application/x-tex">\mathrm{SE}</annotation></semantics></math></span></td><td>standard error of a mean</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">S</mi><mi mathvariant="normal">E</mi><mi mathvariant="normal">D</mi></mrow><annotation encoding="application/x-tex">\mathrm{SED}</annotation></semantics></math></span></td><td>standard error of the difference between two means (<i>i</i> and <i>k</i>)</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">L</mi><mi mathvariant="normal">S</mi><mi mathvariant="normal">D</mi></mrow><annotation encoding="application/x-tex">\mathrm{LSD}</annotation></semantics></math></span></td><td>least significant difference at the 5 % level</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>t</mi><mrow><mn>0.975</mn><mo separator="true">;</mo><mtext> </mtext><mi>N</mi><mo>−</mo><mi>t</mi></mrow></msub></mrow><annotation encoding="application/x-tex">t_{0.975;\,N-t}</annotation></semantics></math></span></td><td>quantile of the t distribution: 2.5 % to the right, <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>−</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">N-t</annotation></semantics></math></span> degrees of freedom</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi></mrow><annotation encoding="application/x-tex">P</annotation></semantics></math></span></td><td>probability of a test statistic (F, t …) at least as extreme as the observed one when <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>H</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">H_0</annotation></semantics></math></span> is true</td></tr>
+</tbody>
+    </table></div>
+      <p class="note">The same notation is used on every method page — <a href="/methods/symbols/">symbol glossary</a>.</p>
+    </details>
+    <h3>Means and their CIs</h3>
+    <div class="math block"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mrow><mi mathvariant="normal">S</mi><mi mathvariant="normal">E</mi><mi mathvariant="normal">M</mi></mrow><mi>j</mi></msub><mo>=</mo><msqrt><mrow><msup><mi>s</mi><mn>2</mn></msup><mi mathvariant="normal">/</mi><msub><mi>n</mi><mi>j</mi></msub></mrow></msqrt><mo>=</mo><mn>3.91</mn><mo separator="true">,</mo><mspace width="2em"/><msub><mover accent="true"><mi>y</mi><mo>ˉ</mo></mover><mrow><mi>j</mi><mo>⋅</mo></mrow></msub><mo>±</mo><msub><mi>t</mi><mrow><mi>N</mi><mo>−</mo><mi>t</mi></mrow></msub><mo stretchy="false">[</mo><mn>0.025</mn><mo stretchy="false">]</mo><mo>⋅</mo><msub><mrow><mi mathvariant="normal">S</mi><mi mathvariant="normal">E</mi><mi mathvariant="normal">M</mi></mrow><mi>j</mi></msub><mo separator="true">,</mo><mspace width="2em"/><msub><mi>t</mi><mn>16</mn></msub><mo stretchy="false">[</mo><mn>0.025</mn><mo stretchy="false">]</mo><mo>=</mo><mn>2.120</mn></mrow><annotation encoding="application/x-tex">\mathrm{SEM}_j = \sqrt{s^2/n_j} = 3.91,\qquad \bar y_{j\cdot} \pm t_{N-t}[0.025]\cdot\mathrm{SEM}_j,\qquad t_{16}[0.025] = 2.120</annotation></semantics></math></span></div>
+    <p><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>s</mi><mn>2</mn></msup><mo>=</mo><mi>M</mi><msub><mi>S</mi><mi>W</mi></msub></mrow><annotation encoding="application/x-tex">s^2 = MS_W</annotation></semantics></math></span> = 76.35 on N − t = 16 df (Welham, p. 84–85).</p>
+    <h3>SED and LSD</h3>
+    <div class="math block"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mrow><mi mathvariant="normal">S</mi><mi mathvariant="normal">E</mi><mi mathvariant="normal">D</mi></mrow><mrow><mi>j</mi><mi>k</mi></mrow></msub><mo>=</mo><msqrt><mrow><msup><mi>s</mi><mn>2</mn></msup><mrow><mo fence="true">(</mo><mfrac><mn>1</mn><msub><mi>n</mi><mi>j</mi></msub></mfrac><mo>+</mo><mfrac><mn>1</mn><msub><mi>n</mi><mi>k</mi></msub></mfrac><mo fence="true">)</mo></mrow></mrow></msqrt><mo>=</mo><mn>5.53</mn><mo separator="true">,</mo><mspace width="2em"/><mrow><mi mathvariant="normal">L</mi><mi mathvariant="normal">S</mi><mi mathvariant="normal">D</mi></mrow><mo>=</mo><msub><mi>t</mi><mrow><mi>N</mi><mo>−</mo><mi>t</mi></mrow></msub><mo stretchy="false">[</mo><mn>0.025</mn><mo stretchy="false">]</mo><mo>⋅</mo><mrow><mi mathvariant="normal">S</mi><mi mathvariant="normal">E</mi><mi mathvariant="normal">D</mi></mrow><mo>=</mo><mn>11.72</mn></mrow><annotation encoding="application/x-tex">\mathrm{SED}_{jk} = \sqrt{s^2\left(\frac1{n_j}+\frac1{n_k}\right)} = 5.53,\qquad \mathrm{LSD} = t_{N-t}[0.025]\cdot\mathrm{SED} = 11.72</annotation></semantics></math></span></div>
+    <p>With equal replication, SED and LSD are the same for all pairs. CI of a difference: <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false">(</mo><msub><mover accent="true"><mi>y</mi><mo>ˉ</mo></mover><mrow><mi>j</mi><mo>⋅</mo></mrow></msub><mo>−</mo><msub><mover accent="true"><mi>y</mi><mo>ˉ</mo></mover><mrow><mi>k</mi><mo>⋅</mo></mrow></msub><mo stretchy="false">)</mo><mo>±</mo><mrow><mi mathvariant="normal">L</mi><mi mathvariant="normal">S</mi><mi mathvariant="normal">D</mi></mrow></mrow><annotation encoding="application/x-tex">(\bar y_{j\cdot} - \bar y_{k\cdot}) \pm \mathrm{LSD}</annotation></semantics></math></span> (Welham, p. 85–88).</p>
+    <h3>On the example</h3>
+    <p class="note">Welham, Table 4.1: root length (cm) at four calcium concentrations, 5 pots each. Means: A 64.2, B 75.8, C 67.2, D 45.4; SEM 3.91, 95 % CI for A — 55.9…72.5. SED 5.53, LSD 11.72. The difference B − A = 11.6 is just below LSD: the CI -0.1…23.3 touches zero, P = 0.052 — as in the book. D differs from A, B and C (P: 0.004, &lt; 0.001 and 0.001) — without a multiplicity adjustment; Tukey on the same data is on the page of <a class="mlink" href="/methods/#tukey_hsd" title="Open the method description">Tukey&#x27;s method</a>.</p>
+    <p class="src">Welham et al. (2015), p. 84–88.</p>
+  </section>
+  <section id="pros-cons">
+    <h2>Strengths and weaknesses</h2>
+    <div class="cols">
+      <div class="plus">
+        <h3>Strengths</h3>
+        <ul>
+      <li><b>More precise than the SD of each group:</b> one <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>s</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">s^2</annotation></semantics></math></span> from all the data, more df (Welham, p. 84–85).</li>
+      <li><b>A direct measure for comparison:</b> one LSD bar next to the means says more than ± SD of each group (Welham, p. 87–88).</li>
+      <li><b>A CI of the difference, not just P</b> (Welham, p. 85–88).</li>
+      <li><b>Unequal replication is allowed:</b> each pair has its own SED (Welham, p. 85–86).</li>
+    </ul>
+      </div>
+      <div class="minus">
+        <h3>Weaknesses</h3>
+        <ul>
+      <li><b>No multiplicity adjustment:</b> 15 independent tests at 5 % give at least one false finding with probability 0.54 (Welham, p. 195–196). With three or more groups the method warns about this [BioStat].</li>
+      <li><b>“Protection” by a significant F does not help:</b> both a significant F without significant pairs and significant pairs with a non-significant F are possible (Welham, p. 198–199).</li>
+      <li><b>Requires homogeneous variances:</b> the common <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>s</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">s^2</annotation></semantics></math></span> is wrong if the spread of the groups differs (Welham, p. 84–85).</li>
+      <li><b>Without blocks only:</b> for an experiment with blocks — the <a class="mlink" href="/methods/#mean_comparisons" title="Open the method description">comparisons of means</a> with a block column [BioStat].</li>
+    </ul>
+      </div>
+    </div>
+    <p class="src">Welham et al. (2015), p. 84–88, 195–199; [BioStat].</p>
+  </section>
+  <section id="assumptions">
+    <h2>Assumptions</h2>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Assumption</th><th>What it means</th><th>How BioStat checks it</th></tr></thead>
+      <tbody>
+<tr><td>The comparison is chosen in advance</td><td>LSD keeps the 5 % error for one comparison planned before the analysis (Welham, p. 86).</td><td>Not checked. With three or more groups the method adds a note: all pairs — without an adjustment.</td></tr>
+<tr><td>Homogeneity of variances and normality</td><td>As for ANOVA: one <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>s</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">s^2</annotation></semantics></math></span> fits all groups, and the residuals are normal.</td><td>The method checks the same as one-way ANOVA: Bartlett and the link between SD and mean, Shapiro–Wilk on the residuals.</td></tr>
+<tr><td>Independence</td><td>Each observation is a separate unit, without blocks or repeated measurements.</td><td>Not checked by calculation — it is a property of the design.</td></tr>
+</tbody>
+    </table></div>
+    <p class="src">Welham et al. (2015), p. 84–86.</p>
+  </section>
+  <section id="map">
+    <h2>How the map chooses this method</h2>
+    <h3>Path to the leaf</h3>
+    <div class="path" aria-label="Path on the map"><span>Analyse a response</span>›<span>Continuous</span>›<span>Differences</span>›<span>Independent units</span>›<span>No blocks or complete blocks</span>›<span>One factor</span>›<span>Three or more groups</span>›<span>After ANOVA</span>›<span class="here">Means, SED, LSD</span></div>
+    <p>The map offers the “After ANOVA” step (B5) after the leaves comparing several groups. Which comparisons to make is <b>the user&#x27;s choice</b>: it depends on the question of the experiment, not on the data (Welham, p. 201–205). This leaf is for the table of means and one or two comparisons chosen in advance. With the role “block”, the map marks this leaf “no blocks” and gives the hint <span class="sig">B5.4</span>: the means, SED and LSD of the model with blocks are already given by ANOVA with blocks, and comparisons follow the model with blocks.</p>
+    <p>Hints of the step: <span class="sig">B5.1</span> — the factor levels are numbers (doses): a trend instead of pairwise comparisons; <span class="sig">B5.2</span> — the factor has a level named “control”: comparisons with the control by Dunnett.</p>
+    <h3>Neighbors on the map: when they win</h3>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Neighbor</th><th>When the map leads there</th><th>Why the neighbor is better here</th><th>What it costs</th></tr></thead>
+      <tbody>
+<tr><td><a class="mlink" href="/methods/#tukey_hsd" title="Open the method description">Post-hoc Tukey HSD</a></td><td>all pairs are of interest</td><td>Error ≤ 5 % for the whole set of pairs</td><td>Intervals wider than LSD</td></tr>
+<tr><td><a class="mlink" href="/methods/#mean_comparisons" title="Open the method description">Adjusted mean comparisons (Tukey, Dunnett, Holm, FDR)</a></td><td><span class="sig">B5.2</span> (hint) comparisons with a control, or an experiment with blocks</td><td>Dunnett, Holm, Bonferroni, FDR; accounts for blocks</td><td>The procedure must be chosen before the analysis</td></tr>
+<tr><td><a class="mlink" href="/methods/#polynomial_contrasts" title="Open the method description">Polynomial trend across levels</a></td><td><span class="sig">B5.1</span> (hint) the levels are doses, concentrations, times</td><td>The shape of the dose response instead of many pairs</td><td>Needs numeric levels</td></tr>
+<tr><td><a class="mlink" href="/methods/#treatment_contrasts" title="Open the method description">Treatment contrasts</a></td><td>pre-specified contrasts (group against group)</td><td>Tests exactly the question of the experiment</td><td>Contrasts must be set before the analysis</td></tr>
+<tr><td><a class="mlink" href="/methods/#scheffe_test" title="Open the method description">Scheffé method (pairs and complex contrasts)</a></td><td>complex contrasts are needed besides pairs</td><td>Error ≤ 5 % for all contrasts, not only pairs</td><td>More conservative than Tukey for pairs (Witte, p. 314)</td></tr>
+</tbody>
+    </table></div>
+    <h3>What the map checks at this leaf</h3>
+    <ul>
+      <li><span class="sig">B5.1</span> (hint) The factor levels are numbers, not codes 1…k: they may be doses.</li>
+      <li><span class="sig">B5.2</span> (hint) There is a level named “control” (and at least three levels).</li>
+      <li><span class="sig">B5.4</span> (hint) A column has the role “block”: comparisons follow the model with blocks.</li>
+    </ul>
+    <h3>What next</h3>
+    <p>If all pairs are needed — <a class="mlink" href="/methods/#tukey_hsd" title="Open the method description">Tukey&#x27;s method</a>; against a control — Dunnett in the <a class="mlink" href="/methods/#mean_comparisons" title="Open the method description">comparisons of means</a>. If the goal is to show that there are no differences, that is a different task: <b><a class="mlink" href="/methods/#equivalence_test" title="Open the method description">the equivalence test (TOST)</a></b>; a non-significant difference does not prove the absence of differences (Welham, p. 253).</p>
+  </section>
+  <details class="check" id="sources">
+    <summary>Sources</summary>
+    <ul>
+      <li>Tests that call the method: 14</li>
+      <li>Welham — checked by tests: Example 2.1C, Example 4.1E, Example 4.1F</li>
+      <li>Independent cross-check (audit 2): SED, LSD, CIs of means — formulas</li>
+    </ul>
+  </details>
+  <p><a class="cta" href="/?method=treatment_means&amp;lang=en">Try the method in the calculator →</a></p>
+  <div class="pager"><a href="/methods/kruskal_wallis/"><small>← Previous</small>Kruskal-Wallis test (nonparametric)</a><a class="next" href="/methods/anova_permutation_test/"><small>Next →</small>Permutation F-test (ANOVA)</a></div>
+</article>
+<aside class="toc" aria-label="On this page">
+  <b>On this page</b>
+  <a href="#idea">Idea</a>
+  <a href="#model">Model and formulas</a>
+  <a href="#symbols">Notation</a>
+  <a href="#pros-cons">Strengths and weaknesses</a>
+  <a href="#assumptions">Assumptions</a>
+  <a href="#map">How the map chooses</a>
+  <a href="#sources">Sources</a>
+  <a href="/?method=treatment_means&amp;lang=en">Try the method in the calculator →</a>
+  <a class="toc-back" href="/methods/#treatment_means">↑ Back to the method list</a>
+</aside>
+<a class="to-list" href="/methods/#treatment_means" aria-label="Back to the method list">↑</a>
+</div>
+      <footer><a href="/privacy/">Privacy</a> · <a href="/terms/">Terms</a> · <a href="/methods/">Methods and validation</a> · <a href="/LICENSE.txt">Apache-2.0 License</a></footer>
+    </main>
+  </body>
+</html>

@@ -423,7 +423,7 @@
   "assumptions": [
    {
     "name": "Independência",
-    "meaning": "Cada observação é uma unidade experimental separada: sem blocos, sem medições repetidas, sem várias medições da mesma parcela.",
+    "meaning": "Cada observação é uma unidade experimental separada: sem blocos, sem medidas repetidas, sem várias medições da mesma parcela.",
     "biostat": "Não se verifica por cálculo — é uma propriedade do delineamento. O mapa pergunta pela estrutura antes deste passo e dá uma sugestão se vir uma coluna que pareça blocos ou sujeitos."
    },
    {
@@ -531,7 +531,7 @@
     "text": "Menos de 10 gl do resíduo — aviso de potência baixa das comparações."
    }
   ],
-  "next": "Um F significativo diz apenas que as médias não são todas iguais. O passo seguinte no mapa é **«Após a ANOVA: que comparações?»**: [contrastes planeados](method:treatment_contrasts), [tendência na dose](method:polynomial_contrasts), [todos os pares por Tukey](method:tukey_hsd), [contra um controlo por Dunnett](method:mean_comparisons), [pares planeados por Holm](method:mean_comparisons). Se o objetivo for mostrar que não há diferenças, trata-se de outra tarefa: **[o teste de equivalência (TOST)](method:equivalence_test)**; um F não significativo não prova a ausência de diferenças (Welham, p. 253).",
+  "next": "Um F significativo diz apenas que as médias não são todas iguais. O passo seguinte no mapa é **«Após a ANOVA: que comparações?»**: [contrastes planeados](method:treatment_contrasts), [tendência na dose](method:polynomial_contrasts), [todos os pares por Tukey](method:tukey_hsd), [contra um controlo (testemunha) por Dunnett](method:mean_comparisons), [pares planeados por Holm](method:mean_comparisons). Se o objetivo for mostrar que não há diferenças, trata-se de outra tarefa: **[o teste de equivalência (TOST)](method:equivalence_test)**; um F não significativo não prova a ausência de diferenças (Welham, p. 253).",
   "sources": {
    "model": "Welham et al. (2015), p. 74–88; Witte & Witte (2017), p. 310 (η²), p. 311 (ω² — sem fórmula; fórmula [proposta: Hays 1963], o BioStat trunca um valor negativo em 0).",
    "pros_cons": "Welham et al. (2015), p. 33, 69, 75, 83, 84, 86, 102–107, 127.",

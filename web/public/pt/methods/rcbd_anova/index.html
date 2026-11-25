@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="pt">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ANOVA em blocos casualizados (RCBD) — BioStat</title>
+    <meta name="description" content="ANOVA com blocos (RCBD): blocos completos casualizados — ideia, fórmulas, pressupostos e como o mapa do BioStat escolhe este método." />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="canonical" href="https://biostat.app/pt/methods/rcbd_anova/" />
+    <link rel="alternate" hreflang="en" href="https://biostat.app/methods/rcbd_anova/" />
+    <link rel="alternate" hreflang="ru" href="https://biostat.app/ru/methods/rcbd_anova/" />
+    <link rel="alternate" hreflang="pt" href="https://biostat.app/pt/methods/rcbd_anova/" />
+    <link rel="alternate" hreflang="x-default" href="https://biostat.app/methods/rcbd_anova/" />
+    <style>body{margin:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:#18181b;background:#fafafa;line-height:1.6}main{max-width:44rem;margin:0 auto;padding:1.5rem 1rem 2rem}h1{font-size:1.6rem;margin:0.6rem 0 0.2rem}h2{font-size:1.1rem;margin:1.6rem 0 0.4rem}p{margin:0.4rem 0}a{color:#0f766e}.muted{color:#63636b;font-size:0.9rem}nav{display:flex;flex-wrap:wrap;gap:0.4rem 1rem;justify-content:space-between;align-items:center}footer{border-top:1px solid #e4e4e7;margin-top:2rem;padding-top:0.8rem;font-size:0.9rem}code{overflow-wrap:anywhere}h3{font-size:1rem;margin:1.4rem 0 0}h2[id],h3[id]{scroll-margin-top:1rem}ul{margin:0.3rem 0;padding-left:1.2rem}li{margin:0.15rem 0;overflow-wrap:anywhere}.tag{font-size:0.75rem;font-weight:400;color:#92400e;border:1px solid #f59e0b;border-radius:4px;padding:0 0.3rem;margin-left:0.4rem;white-space:nowrap}</style>
+    <link rel="stylesheet" href="/methods/assets/method.css" />
+    <script src="/back.js" defer></script>
+  </head>
+  <body>
+    <main class="mp">
+      <nav><a href="/" data-back>← Voltar ao BioStat</a><span><a href="/methods/rcbd_anova/" hreflang="en" lang="en">English</a> · <a href="/ru/methods/rcbd_anova/" hreflang="ru" lang="ru">Русский</a> · <a href="/pt/methods/rcbd_anova/" hreflang="pt" lang="pt" aria-current="page">Português</a></span></nav>
+<div class="wrap">
+<article>
+  <nav class="crumbs" aria-label="Navegação"><a href="/">BioStat</a> › <a href="/pt/methods/">Métodos e verificação</a> › <a href="/pt/methods/#group-several-groups">Comparação de vários grupos</a> › ANOVA em blocos casualizados (RCBD)</nav>
+  <h1>ANOVA em blocos casualizados (RCBD)</h1>
+  <p class="lead">Os tratamentos diferem quando o ensaio está dividido em blocos — zonas do campo, dias, lotes — e cada tratamento aparece exatamente uma vez em cada bloco? A ANOVA com blocos retira do erro as diferenças entre blocos, e a comparação dos tratamentos fica mais precisa.</p>
+  <section id="idea">
+    <h2>Ideia</h2>
+    <p>Num campo heterogéneo, a produção de uma parcela depende do tratamento e do sítio onde a parcela está. No delineamento em blocos completos casualizados, as parcelas agrupam-se em blocos homogéneos por dentro, e em cada bloco cada tratamento recebe uma parcela escolhida ao acaso (Welham, p. 58). O efeito de bloco pode então ser estimado e retirado (Welham, p. 129–132).</p>
+    <p>A soma de quadrados divide-se em três partes: blocos, tratamentos e resíduo. Tratamentos e blocos são ortogonais, por isso as médias dos tratamentos não dependem dos efeitos de bloco (Welham, p. 134–139). O bloco é um fator estrutural: o seu F mostra quanto os blocos diferiam, enquanto a pergunta do ensaio é sobre os tratamentos.</p>
+  </section>
+  <section id="model">
+    <h2>Modelo e fórmulas</h2>
+    <details class="glossary" id="symbols">
+      <summary>Todos os símbolos desta página</summary>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Símbolo</th><th>Significado</th></tr></thead>
+      <tbody>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub></mrow><annotation encoding="application/x-tex">y_{ij}</annotation></semantics></math></span></td><td>valor da resposta do tratamento <i>i</i> no bloco <i>j</i></td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi><mo>=</mo><mn>1</mn><mo separator="true">,</mo><mo>…</mo><mo separator="true">,</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">i = 1,\dots,t</annotation></semantics></math></span></td><td>índice do grupo (tratamento), <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi></mrow><annotation encoding="application/x-tex">t</annotation></semantics></math></span> — número de grupos</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>j</mi><mo>=</mo><mn>1</mn><mo separator="true">,</mo><mo>…</mo><mo separator="true">,</mo><mi>b</mi></mrow><annotation encoding="application/x-tex">j = 1,\dots,b</annotation></semantics></math></span></td><td>índice do bloco, <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi></mrow><annotation encoding="application/x-tex">b</annotation></semantics></math></span> — número de blocos</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi></mrow><annotation encoding="application/x-tex">\mu</annotation></semantics></math></span></td><td>média geral (na população)</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>τ</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">\tau_i</annotation></semantics></math></span></td><td>efeito do grupo <i>i</i>: desvio da sua média em relação a <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi></mrow><annotation encoding="application/x-tex">\mu</annotation></semantics></math></span></td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>β</mi><mi>j</mi></msub></mrow><annotation encoding="application/x-tex">\beta_j</annotation></semantics></math></span></td><td>efeito do bloco <i>j</i></td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ε</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub></mrow><annotation encoding="application/x-tex">\varepsilon_{ij}</annotation></semantics></math></span></td><td>erro aleatório da observação</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>σ</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">\sigma^2</annotation></semantics></math></span></td><td>variância do erro, a mesma para todos os grupos</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi><msub><mi>S</mi><mi>T</mi></msub><mo separator="true">,</mo><mtext> </mtext><mi>S</mi><msub><mi>S</mi><mi>B</mi></msub><mo separator="true">,</mo><mtext> </mtext><mi>S</mi><msub><mi>S</mi><mi>W</mi></msub></mrow><annotation encoding="application/x-tex">SS_T,\ SS_B,\ SS_W</annotation></semantics></math></span></td><td>somas de quadrados: total, entre grupos (between), dentro dos grupos (within)</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mi>S</mi><mo>=</mo><mi>S</mi><mi>S</mi><mi mathvariant="normal">/</mi><mi>d</mi><mi>f</mi></mrow><annotation encoding="application/x-tex">MS = SS/df</annotation></semantics></math></span></td><td>quadrado médio — soma de quadrados dividida pelos seus graus de liberdade</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">S</mi><mi mathvariant="normal">E</mi><mi mathvariant="normal">D</mi></mrow><annotation encoding="application/x-tex">\mathrm{SED}</annotation></semantics></math></span></td><td>erro padrão da diferença entre duas médias (<i>i</i> e <i>k</i>)</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">L</mi><mi mathvariant="normal">S</mi><mi mathvariant="normal">D</mi></mrow><annotation encoding="application/x-tex">\mathrm{LSD}</annotation></semantics></math></span></td><td>diferença mínima significativa ao nível de 5 %</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>t</mi><mrow><mn>0.975</mn><mo separator="true">;</mo><mtext> </mtext><mi>N</mi><mo>−</mo><mi>t</mi></mrow></msub></mrow><annotation encoding="application/x-tex">t_{0.975;\,N-t}</annotation></semantics></math></span></td><td>quantil da distribuição t: 2.5 % à direita, <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>−</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">N-t</annotation></semantics></math></span> graus de liberdade</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi></mrow><annotation encoding="application/x-tex">P</annotation></semantics></math></span></td><td>probabilidade de uma estatística (F, t …) pelo menos tão extrema como a observada quando <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>H</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">H_0</annotation></semantics></math></span> é verdadeira</td></tr>
+</tbody>
+    </table></div>
+      <p class="note">A mesma notação em todas as páginas de métodos — <a href="/pt/methods/symbols/">glossário de símbolos</a>.</p>
+    </details>
+    <p>Tratamento <i>i</i> no bloco <i>j</i> (cada par é uma parcela; <i>t</i> tratamentos, <i>b</i> blocos):</p>
+    <div class="math block"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>y</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>=</mo><mi>μ</mi><mo>+</mo><msub><mi>τ</mi><mi>i</mi></msub><mo>+</mo><msub><mi>β</mi><mi>j</mi></msub><mo>+</mo><msub><mi>ε</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo separator="true">,</mo><mspace width="2em"/><msub><mi>ε</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>∼</mo><mi>N</mi><mo stretchy="false">(</mo><mn>0</mn><mo separator="true">,</mo><msup><mi>σ</mi><mn>2</mn></msup><mo stretchy="false">)</mo><mtext> independentes</mtext></mrow><annotation encoding="application/x-tex">y_{ij} = \mu + \tau_i + \beta_j + \varepsilon_{ij},\qquad \varepsilon_{ij} \sim N(0,\sigma^2)\ \text{independentes}</annotation></semantics></math></span></div>
+    <h3>Decomposição e F dos tratamentos</h3>
+    <div class="math block"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>S</mi><msub><mi>S</mi><mtext>total</mtext></msub><mo>=</mo><mi>S</mi><msub><mi>S</mi><mtext>blocos</mtext></msub><mo>+</mo><mi>S</mi><msub><mi>S</mi><mtext>tratamentos</mtext></msub><mo>+</mo><mi>S</mi><msub><mi>S</mi><mrow><mtext>res</mtext><mover accent="true"><mtext>ı</mtext><mo>ˊ</mo></mover><mtext>duo</mtext></mrow></msub><mo separator="true">,</mo><mspace width="2em"/><mi>F</mi><mo>=</mo><mfrac><mrow><mi>M</mi><msub><mi>S</mi><mtext>tratamentos</mtext></msub></mrow><mrow><mi>M</mi><msub><mi>S</mi><mrow><mtext>res</mtext><mover accent="true"><mtext>ı</mtext><mo>ˊ</mo></mover><mtext>duo</mtext></mrow></msub></mrow></mfrac><mo>=</mo><mn>9.58</mn><mo separator="true">,</mo><mspace width="2em"/><mi>d</mi><mi>f</mi><mo>=</mo><mo stretchy="false">(</mo><mn>4</mn><mo separator="true">;</mo><mtext> </mtext><mn>12</mn><mo stretchy="false">)</mo><mo separator="true">,</mo><mspace width="2em"/><mi>P</mi><mo>=</mo><mn>0.001</mn></mrow><annotation encoding="application/x-tex">SS_{\text{total}} = SS_{\text{blocos}} + SS_{\text{tratamentos}} + SS_{\text{resíduo}},\qquad F = \frac{MS_{\text{tratamentos}}}{MS_{\text{resíduo}}} = 9.58,\qquad df = (4;\ 12),\qquad P = 0.001</annotation></semantics></math></span></div>
+    <p>Graus de liberdade: <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi><mi>t</mi><mo>−</mo><mn>1</mn><mo>=</mo><mo stretchy="false">(</mo><mi>b</mi><mo>−</mo><mn>1</mn><mo stretchy="false">)</mo><mo>+</mo><mo stretchy="false">(</mo><mi>t</mi><mo>−</mo><mn>1</mn><mo stretchy="false">)</mo><mo>+</mo><mo stretchy="false">(</mo><mi>b</mi><mo>−</mo><mn>1</mn><mo stretchy="false">)</mo><mo stretchy="false">(</mo><mi>t</mi><mo>−</mo><mn>1</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">bt-1 = (b-1) + (t-1) + (b-1)(t-1)</annotation></semantics></math></span> (Welham, p. 134–139).</p>
+    <h3>EPD e DMS</h3>
+    <div class="math block"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mrow><mi mathvariant="normal">S</mi><mi mathvariant="normal">E</mi><mi mathvariant="normal">D</mi></mrow><mo>=</mo><msqrt><mrow><mn>2</mn><mtext> </mtext><mi>M</mi><msub><mi>S</mi><mrow><mtext>res</mtext><mover accent="true"><mtext>ı</mtext><mo>ˊ</mo></mover><mtext>duo</mtext></mrow></msub><mi mathvariant="normal">/</mi><mi>b</mi></mrow></msqrt><mo>=</mo><mn>41.73</mn><mo separator="true">,</mo><mspace width="2em"/><mrow><mi mathvariant="normal">L</mi><mi mathvariant="normal">S</mi><mi mathvariant="normal">D</mi></mrow><mo>=</mo><msub><mi>t</mi><mrow><mo stretchy="false">(</mo><mi>b</mi><mo>−</mo><mn>1</mn><mo stretchy="false">)</mo><mo stretchy="false">(</mo><mi>t</mi><mo>−</mo><mn>1</mn><mo stretchy="false">)</mo></mrow></msub><mo stretchy="false">[</mo><mn>0.025</mn><mo stretchy="false">]</mo><mo>⋅</mo><mrow><mi mathvariant="normal">S</mi><mi mathvariant="normal">E</mi><mi mathvariant="normal">D</mi></mrow><mo>=</mo><mn>90.93</mn></mrow><annotation encoding="application/x-tex">\mathrm{SED} = \sqrt{2\,MS_{\text{resíduo}}/b} = 41.73,\qquad \mathrm{LSD} = t_{(b-1)(t-1)}[0.025]\cdot \mathrm{SED} = 90.93</annotation></semantics></math></span></div>
+    <p>Cada média de tratamento assenta em <i>b</i> parcelas; nas fórmulas, o EPD e a DMS escrevem-se SED e LSD (Welham, p. 140–141).</p>
+    <h3>No exemplo</h3>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Fonte</th><th>gl</th><th>SQ</th><th>QM</th><th>F</th><th>P</th></tr></thead>
+      <tbody>
+<tr><td>Blocos</td><td>3</td><td>14987.2</td><td>4995.7</td><td>1.434</td><td>0.281</td></tr>
+<tr><td>Tratamentos (fungicida)</td><td>4</td><td>133419.2</td><td>33354.8</td><td>9.576</td><td>0.001</td></tr>
+<tr><td>Resíduo</td><td>12</td><td>41796.8</td><td>3483.1</td><td></td><td></td></tr>
+<tr><td>Total</td><td>19</td><td>190203.2</td><td></td><td></td><td></td></tr>
+</tbody>
+    </table></div>
+    <p class="note">Welham, Table 7.1: produção de batata, 5 tratamentos — controlo (testemunha) e 4 fungicidas — em 4 blocos (cenário S13 do mapa). Médias: controlo 404.5, F1 567.5, F2 612.5, F3 629.0, F4 600.5; EPD 41.73, DMS (5 %) 90.93. Os blocos deste campo diferiam pouco: F = 1.43, P (valor de prova) = 0.281 (o livro imprime 0.283). Uma parcela em 20 tem |resíduo estandardizado| &gt; 2 — uma nota do método; com resíduos normais isso espera-se em 5 % das parcelas. O mapa dá <span class="sig">B1.2</span> e ainda as sugestões <span class="sig">B2.4</span> (há um controlo) e <span class="sig">B5.2</span> (comparações com o controlo por Dunnett).</p>
+    <p class="src">Welham et al. (2015), p. 58, 129–141; Witte &amp; Witte (2017), p. 331–332 (o mesmo princípio para medidas repetidas).</p>
+  </section>
+  <section id="pros-cons">
+    <h2>Pontos fortes e fracos</h2>
+    <div class="cols">
+      <div class="plus">
+        <h3>Pontos fortes</h3>
+        <ul>
+      <li><b>Mais preciso com unidades heterogéneas:</b> as diferenças entre blocos saem do erro (Welham, p. 57–58, 134–139). Witte mostra o mesmo princípio para medidas repetidas: ter em conta os sujeitos subiu o F de 7.36 para 27 com os mesmos números (p. 331–332). Mas trata-se de medidas repetidas, não de blocos, com condições próprias: a ordem das condições e o efeito residual (p. 325), a esfericidade (p. 336).</li>
+      <li><b>As médias dos tratamentos não dependem dos blocos:</b> o delineamento é ortogonal, e a tabela da ANOVA não depende da ordem dos termos (Welham, p. 134–139).</li>
+      <li><b>Tudo para as comparações:</b> médias com IC, EP, EPD, DMS (Welham, p. 140–141).</li>
+      <li><b>Transformação da resposta — no mesmo formulário</b> (log, √, logit): médias e IC na escala original, para log — razões [BioStat].</li>
+      <li><b>Os blocos servem também em estudos observacionais</b> — por exemplo, pares de campos em várias explorações (Welham, p. 129–132).</li>
+    </ul>
+      </div>
+      <div class="minus">
+        <h3>Pontos fracos</h3>
+        <ul>
+      <li><b>Exige um delineamento completo:</b> cada tratamento exatamente uma vez em cada bloco. Uma falta, uma repetição a mais ou um bloco incompleto — o BioStat para com um erro (Welham, p. 58) [BioStat].</li>
+      <li><b>A interação bloco × tratamento não se separa do erro:</b> se os tratamentos reagem de forma diferente àquilo que distingue os blocos, o RCBD não é adequado (Welham, p. 131, 139).</li>
+      <li><b>Várias medições da mesma parcela não são repetições:</b> analisa-as a <a class="mlink" href="/pt/methods/#rcbd_subsampling_anova" title="Abrir a descrição do método">ANOVA com subamostras</a>; caso contrário o resíduo fica subestimado e os gl inflacionados (Welham, p. 141–146).</li>
+      <li><b>As comparações par a par do método não têm correção para multiplicidade</b> (DMS) [BioStat].</li>
+    </ul>
+      </div>
+    </div>
+    <p class="src">Welham et al. (2015), p. 57–58, 129–146; Witte &amp; Witte (2017), p. 325, 331–332, 336; [BioStat].</p>
+  </section>
+  <section id="assumptions">
+    <h2>Pressupostos</h2>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Pressuposto</th><th>O que significa</th><th>Como o BioStat verifica</th></tr></thead>
+      <tbody>
+<tr><td>Casualização dentro dos blocos</td><td>Em cada bloco os tratamentos são atribuídos às parcelas ao acaso, independentemente dos outros blocos (Welham, p. 58).</td><td>Não se verifica por cálculo — é uma propriedade do delineamento.</td></tr>
+<tr><td>Aditividade de blocos e tratamentos</td><td>As diferenças entre tratamentos são iguais em todos os blocos (Welham, p. 131).</td><td>Não se verifica: com uma parcela por tratamento em cada bloco, a interação não se separa do resíduo.</td></tr>
+<tr><td>Normalidade e homogeneidade dos resíduos</td><td>Os resíduos do modelo «tratamento + bloco» são normais e têm a mesma dispersão em todos os tratamentos.</td><td>O método desenha gráficos dos resíduos (Welham, p. 137). O mapa verifica a normalidade e a homogeneidade de variâncias nos resíduos do mesmo modelo «tratamento + bloco» [BioStat].</td></tr>
+<tr><td>Sem erros grosseiros de registo</td><td>Uma parcela isolada não distorce as médias nem o resíduo.</td><td>Parcelas com |resíduo estandardizado| &gt; 2 — uma nota: verificar nos registos originais, não retirar sem causa encontrada (Welham, p. 109).</td></tr>
+</tbody>
+    </table></div>
+    <p class="src">Welham et al. (2015), p. 58, 109, 131, 137.</p>
+  </section>
+  <section id="map">
+    <h2>Como o mapa escolhe este método</h2>
+    <h3>Caminho até à folha</h3>
+    <div class="path" aria-label="Caminho no mapa"><span>Analisar a resposta</span>›<span>Contínua</span>›<span>Diferenças</span>›<span>Unidades independentes</span>›<span>Sem blocos ou blocos completos</span>›<span>Um fator</span>›<span>Três ou mais grupos</span>›<span class="here">ANOVA com blocos (RCBD)</span></div>
+    <p>O mapa conduz a esta folha com o sinal <span class="sig">B1.2</span>: uma coluna tem o papel «bloco», e cada tratamento aparece em cada bloco exatamente uma vez (Welham, p. 58). Se o ficheiro tiver uma coluna que parece blocos mas sem papel, surge a sugestão <span class="sig">B1.8</span>: uma análise sem essa coluna está errada.</p>
+    <p>Outras estruturas de blocos levam a folhas vizinhas: várias linhas numa célula bloco × tratamento — <span class="sig">B1.3</span>, blocos incompletos — <span class="sig">B1.4</span>, linhas e colunas — <span class="sig">B1.5</span>, repetição desigual ou células vazias — <span class="sig">B1.7</span>.</p>
+    <p>Num ensaio em blocos completos, as verificações dos pressupostos levam aqui ou a Friedman: os DP crescem com as médias ou os resíduos são assimétricos (<span class="sig">B4.3</span>, <span class="sig">B4.4</span>) — esta mesma ANOVA com o parâmetro «Transformação»; variâncias heterogéneas sem relação com as médias (<span class="sig">B4.5</span>) — uma sugestão nesta folha: não há análogo de Welch com blocos; resíduos não normais com variâncias homogéneas, ou resposta em pontuações (<span class="sig">B4.6</span>, <span class="sig">B4.8</span>) — uma sugestão para o teste de Friedman. Com blocos de outra estrutura estas verificações ficam em silêncio — conduzem os sinais <span class="sig">B1</span>.</p>
+    <h3>Vizinhos no mapa: quando são preferíveis</h3>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Vizinho</th><th>Quando o mapa leva lá</th><th>Em que o vizinho é melhor aqui</th><th>O que custa</th></tr></thead>
+      <tbody>
+<tr><td><a class="mlink" href="/pt/methods/one_way_anova/" title="Abrir a descrição do método">ANOVA a um fator</a></td><td>sem blocos — ensaio totalmente casualizado</td><td>Mais gl do resíduo: N − t em vez de (b − 1)(t − 1)</td><td>As diferenças entre blocos ficam no erro</td></tr>
+<tr><td><a class="mlink" href="/pt/methods/#rcbd_subsampling_anova" title="Abrir a descrição do método">ANOVA em blocos com medições repetidas por parcela</a></td><td><span class="sig">B1.3</span> cada célula bloco × tratamento tem várias linhas — medições da mesma parcela</td><td>Os tratamentos testam-se contra a variação entre parcelas, como deve ser</td><td>Precisa de uma coluna de parcela e do mesmo número de medições</td></tr>
+<tr><td><a class="mlink" href="/pt/methods/#bibd_anova" title="Abrir a descrição do método">Blocos incompletos (BIBD)</a></td><td><span class="sig">B1.4</span> o bloco é menor do que o número de tratamentos, e cada par de tratamentos aparece junto igual número de vezes</td><td>Muitos tratamentos com blocos pequenos e homogéneos</td><td>As médias ajustam-se aos blocos; a precisão é menor</td></tr>
+<tr><td><a class="mlink" href="/pt/methods/#latin_square_anova" title="Abrir a descrição do método">Quadrado latino</a></td><td><span class="sig">B1.5</span> cada tratamento exatamente uma vez em cada linha e em cada coluna</td><td>Retira a heterogeneidade em duas direções</td><td>Linhas, colunas e tratamentos têm de ser em igual número</td></tr>
+<tr><td><a class="mlink" href="/pt/methods/#mixed_model" title="Abrir a descrição do método">Modelo misto (REML)</a></td><td><span class="sig">B1.7</span> repetição desigual ou células bloco × tratamento vazias</td><td>Funciona com dados incompletos</td><td>Estimativas REML, gl aproximados</td></tr>
+<tr><td><a class="mlink" href="/pt/methods/#friedman" title="Abrir a descrição do método">Teste de Friedman (postos, medidas repetidas)</a></td><td><span class="sig">B4.6</span> (sugestão) / <span class="sig">B4.8</span> (sugestão) resíduos não normais com variâncias homogéneas, ou resposta em pontuações</td><td>Teste de postos que tem em conta os blocos: o bloco é o «sujeito»</td><td>Compara distribuições, não médias; sem EPD e DMS</td></tr>
+</tbody>
+    </table></div>
+    <h3>O que o mapa verifica nesta folha</h3>
+    <ul>
+      <li><span class="sig">B1.2</span> Cada tratamento exatamente uma vez em cada bloco — delineamento completo.</li>
+      <li><span class="sig">B1.8</span> (sugestão) Coluna sem papel em cujos níveis cada tratamento aparece no máximo uma vez — parece blocos.</li>
+      <li><span class="sig">B1.3</span> / <span class="sig">B1.7</span> Várias linhas numa célula bloco × tratamento (subamostras) ou repetição desigual — outra folha.</li>
+      <li><span class="sig">B4.1</span> / <span class="sig">B4.2</span> Normalidade e homogeneidade de variâncias — nos resíduos do modelo «tratamento + bloco» [BioStat].</li>
+      <li><span class="sig">B4.3</span> / <span class="sig">B4.4</span> (sugestão) / <span class="sig">B4.5</span> (sugestão) Os DP crescem com as médias ou os resíduos são assimétricos — a mesma ANOVA com blocos com o parâmetro «Transformação»; variâncias heterogéneas sem relação com as médias — uma sugestão: não há análogo de Welch com blocos, o P e o EPD são aproximados.</li>
+      <li><span class="sig">DIAG.1</span> <b>Observação atípica primeiro</b> (Welham, p. 109–110).</li>
+    </ul>
+    <h3>O que vem a seguir</h3>
+    <p>Um F significativo diz que os tratamentos diferem; o próprio método dá todos os pares sem correção (DMS). Para comparações com correção — Tukey, ou Dunnett contra o controlo — as <a class="mlink" href="/pt/methods/#mean_comparisons" title="Abrir a descrição do método">comparações de médias</a> do passo «Após a ANOVA», com a mesma coluna de blocos [BioStat].</p>
+  </section>
+  <details class="check" id="sources">
+    <summary>Fontes</summary>
+    <ul>
+      <li>Testes que chamam o método: 12</li>
+      <li>Welham — verificado nos testes: Table 7.4</li>
+      <li>Verificação independente (auditoria 2): F, P, F dos blocos, SED — statsmodels OLS</li>
+    </ul>
+  </details>
+  <p><a class="cta" href="/?method=rcbd_anova&amp;lang=pt">Experimentar o método na calculadora →</a></p>
+  <div class="pager"><a href="/pt/methods/transformed_means/"><small>← Anterior</small>ANOVA com resposta transformada</a></div>
+</article>
+<aside class="toc" aria-label="Nesta página">
+  <b>Nesta página</b>
+  <a href="#idea">Ideia</a>
+  <a href="#model">Modelo e fórmulas</a>
+  <a href="#symbols">Notação</a>
+  <a href="#pros-cons">Pontos fortes e fracos</a>
+  <a href="#assumptions">Pressupostos</a>
+  <a href="#map">Como o mapa escolhe</a>
+  <a href="#sources">Fontes</a>
+  <a href="/?method=rcbd_anova&amp;lang=pt">Experimentar o método na calculadora →</a>
+  <a class="toc-back" href="/pt/methods/#rcbd_anova">↑ Voltar à lista de métodos</a>
+</aside>
+<a class="to-list" href="/pt/methods/#rcbd_anova" aria-label="Voltar à lista de métodos">↑</a>
+</div>
+      <footer><a href="/pt/privacy/">Privacidade</a> · <a href="/pt/terms/">Termos</a> · <a href="/pt/methods/">Métodos e verificação</a> · <a href="/LICENSE.txt">Licença Apache-2.0</a></footer>
+    </main>
+  </body>
+</html>

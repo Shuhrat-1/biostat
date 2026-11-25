@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ANOVA on a transformed response — BioStat</title>
+    <meta name="description" content="ANOVA on the log, √ or logit scale: transforming the response, geometric means and ratios — idea, formulas, assumptions, and how the BioStat map chooses this method." />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="canonical" href="https://biostat.app/methods/transformed_means/" />
+    <link rel="alternate" hreflang="en" href="https://biostat.app/methods/transformed_means/" />
+    <link rel="alternate" hreflang="ru" href="https://biostat.app/ru/methods/transformed_means/" />
+    <link rel="alternate" hreflang="pt" href="https://biostat.app/pt/methods/transformed_means/" />
+    <link rel="alternate" hreflang="x-default" href="https://biostat.app/methods/transformed_means/" />
+    <style>body{margin:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:#18181b;background:#fafafa;line-height:1.6}main{max-width:44rem;margin:0 auto;padding:1.5rem 1rem 2rem}h1{font-size:1.6rem;margin:0.6rem 0 0.2rem}h2{font-size:1.1rem;margin:1.6rem 0 0.4rem}p{margin:0.4rem 0}a{color:#0f766e}.muted{color:#63636b;font-size:0.9rem}nav{display:flex;flex-wrap:wrap;gap:0.4rem 1rem;justify-content:space-between;align-items:center}footer{border-top:1px solid #e4e4e7;margin-top:2rem;padding-top:0.8rem;font-size:0.9rem}code{overflow-wrap:anywhere}h3{font-size:1rem;margin:1.4rem 0 0}h2[id],h3[id]{scroll-margin-top:1rem}ul{margin:0.3rem 0;padding-left:1.2rem}li{margin:0.15rem 0;overflow-wrap:anywhere}.tag{font-size:0.75rem;font-weight:400;color:#92400e;border:1px solid #f59e0b;border-radius:4px;padding:0 0.3rem;margin-left:0.4rem;white-space:nowrap}</style>
+    <link rel="stylesheet" href="/methods/assets/method.css" />
+    <script src="/back.js" defer></script>
+  </head>
+  <body>
+    <main class="mp">
+      <nav><a href="/" data-back>← Back to BioStat</a><span><a href="/methods/transformed_means/" hreflang="en" lang="en" aria-current="page">English</a> · <a href="/ru/methods/transformed_means/" hreflang="ru" lang="ru">Русский</a> · <a href="/pt/methods/transformed_means/" hreflang="pt" lang="pt">Português</a></span></nav>
+<div class="wrap">
+<article>
+  <nav class="crumbs" aria-label="Breadcrumbs"><a href="/">BioStat</a> › <a href="/methods/">Methods and validation</a> › <a href="/methods/#group-several-groups">Multi-group comparison</a> › ANOVA on a transformed response</nav>
+  <h1>ANOVA on a transformed response</h1>
+  <p class="lead">Do the group means differ when the spread grows with the mean or the distribution is skewed to the right? The response is moved to another scale (most often log), ANOVA is done there, and the means and CIs are brought back to the original scale.</p>
+  <section id="idea">
+    <h2>Idea</h2>
+    <p>Mass, height and abundance often change by factors rather than by a fixed number of units: a group with mean 100 spreads more than a group with mean 30. The logarithm pulls large values together and stretches small ones — the variances even out, the right skewness goes away, and a multiplicative model becomes additive (Welham, p. 113–118).</p>
+    <p>F, SED and LSD are computed on the log scale. Only the means and the CI limits are brought back to the original scale: a mean on the log scale becomes the <b>geometric mean</b> of the group, a difference of means becomes a <b>ratio</b> (“how many times”), and LSD becomes a factor. SE and SED are not back-transformed: the transformation is nonlinear (Welham, p. 122–126).</p>
+  </section>
+  <section id="model">
+    <h2>Model and formulas</h2>
+    <details class="glossary" id="symbols">
+      <summary>All symbols on this page</summary>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Symbol</th><th>Meaning</th></tr></thead>
+      <tbody>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub></mrow><annotation encoding="application/x-tex">y_{ij}</annotation></semantics></math></span></td><td>response value of observation <i>j</i> in group <i>i</i></td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi><mo>=</mo><mn>1</mn><mo separator="true">,</mo><mo>…</mo><mo separator="true">,</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">i = 1,\dots,t</annotation></semantics></math></span></td><td>group (treatment) index, <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi></mrow><annotation encoding="application/x-tex">t</annotation></semantics></math></span> — number of groups</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>j</mi><mo>=</mo><mn>1</mn><mo separator="true">,</mo><mo>…</mo><mo separator="true">,</mo><msub><mi>n</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">j = 1,\dots,n_i</annotation></semantics></math></span></td><td>observation index within a group, <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>n</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">n_i</annotation></semantics></math></span> — size of group <i>i</i></td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>z</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub></mrow><annotation encoding="application/x-tex">z_{ij}</annotation></semantics></math></span></td><td>response on the transformed scale (e.g. <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mrow><mi>log</mi><mo>⁡</mo></mrow><mn>10</mn></msub></mrow><annotation encoding="application/x-tex">\log_{10}</annotation></semantics></math></span>)</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>c</mi></mrow><annotation encoding="application/x-tex">c</annotation></semantics></math></span></td><td>offset added before the transformation when the data contain zeros</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover accent="true"><mi>z</mi><mo>ˉ</mo></mover><mrow><mi>i</mi><mo>⋅</mo></mrow></msub></mrow><annotation encoding="application/x-tex">\bar z_{i\cdot}</annotation></semantics></math></span></td><td>mean of group <i>i</i> on the transformed scale</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mrow><mi mathvariant="normal">G</mi><mi mathvariant="normal">M</mi></mrow><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">\mathrm{GM}_i</annotation></semantics></math></span></td><td>geometric mean of group <i>i</i>: the back-transformed mean on the log scale</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mi>S</mi><mo>=</mo><mi>S</mi><mi>S</mi><mi mathvariant="normal">/</mi><mi>d</mi><mi>f</mi></mrow><annotation encoding="application/x-tex">MS = SS/df</annotation></semantics></math></span></td><td>mean square — a sum of squares divided by its degrees of freedom</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi><mo>−</mo><mn>1</mn><mo separator="true">,</mo><mtext> </mtext><mi>N</mi><mo>−</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">t-1,\ N-t</annotation></semantics></math></span></td><td>degrees of freedom between and within groups</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">S</mi><mi mathvariant="normal">E</mi><mi mathvariant="normal">D</mi></mrow><annotation encoding="application/x-tex">\mathrm{SED}</annotation></semantics></math></span></td><td>standard error of the difference between two means (<i>i</i> and <i>k</i>)</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">L</mi><mi mathvariant="normal">S</mi><mi mathvariant="normal">D</mi></mrow><annotation encoding="application/x-tex">\mathrm{LSD}</annotation></semantics></math></span></td><td>least significant difference at the 5 % level</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi></mrow><annotation encoding="application/x-tex">P</annotation></semantics></math></span></td><td>probability of a test statistic (F, t …) at least as extreme as the observed one when <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>H</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">H_0</annotation></semantics></math></span> is true</td></tr>
+</tbody>
+    </table></div>
+      <p class="note">The same notation is used on every method page — <a href="/methods/symbols/">symbol glossary</a>.</p>
+    </details>
+    <p>Transformation of the response (c is the offset for zeros; in the example c = 0):</p>
+    <div class="math block"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>z</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>=</mo><msub><mrow><mi>log</mi><mo>⁡</mo></mrow><mn>10</mn></msub><mo stretchy="false">(</mo><msub><mi>y</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>+</mo><mi>c</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">z_{ij} = \log_{10}(y_{ij} + c)</annotation></semantics></math></span></div>
+    <p>Other options: ln; √ — milder than the logarithm; logit — for proportions and percentages (Welham, p. 119–121). Offset for zeros: c = 1 for integer counts, otherwise half the smallest positive value (p. 116).</p>
+    <h3>ANOVA on the z scale</h3>
+    <div class="math block"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>F</mi><mo>=</mo><mfrac><mrow><mi>M</mi><msub><mi>S</mi><mi>B</mi></msub></mrow><mrow><mi>M</mi><msub><mi>S</mi><mi>W</mi></msub></mrow></mfrac><mo>=</mo><mn>19.25</mn><mo separator="true">,</mo><mspace width="2em"/><mi>d</mi><mi>f</mi><mo>=</mo><mo stretchy="false">(</mo><mn>3</mn><mo separator="true">;</mo><mtext> </mtext><mn>36</mn><mo stretchy="false">)</mo><mo separator="true">,</mo><mspace width="2em"/><mi>P</mi><mo>&lt;</mo><mn>0.001</mn><mo separator="true">,</mo><mspace width="2em"/><msub><mrow><mi mathvariant="normal">S</mi><mi mathvariant="normal">E</mi><mi mathvariant="normal">D</mi></mrow><mi>z</mi></msub><mo>=</mo><mn>0.0690</mn></mrow><annotation encoding="application/x-tex">F = \frac{MS_B}{MS_W} = 19.25,\qquad df = (3;\ 36),\qquad P &lt; 0.001,\qquad \mathrm{SED}_z = 0.0690</annotation></semantics></math></span></div>
+    <h3>Back to the original scale</h3>
+    <div class="math block"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mrow><mi mathvariant="normal">G</mi><mi mathvariant="normal">M</mi></mrow><mi>i</mi></msub><mo>=</mo><mn>1</mn><msup><mn>0</mn><msub><mover accent="true"><mi>z</mi><mo>ˉ</mo></mover><mrow><mi>i</mi><mo>⋅</mo></mrow></msub></msup><mo separator="true">,</mo><mspace width="2em"/><mfrac><msub><mrow><mi mathvariant="normal">G</mi><mi mathvariant="normal">M</mi></mrow><mi>k</mi></msub><msub><mrow><mi mathvariant="normal">G</mi><mi mathvariant="normal">M</mi></mrow><mi>i</mi></msub></mfrac><mo>=</mo><mn>1</mn><msup><mn>0</mn><mrow><mtext> </mtext><msub><mover accent="true"><mi>z</mi><mo>ˉ</mo></mover><mrow><mi>k</mi><mo>⋅</mo></mrow></msub><mo>−</mo><msub><mover accent="true"><mi>z</mi><mo>ˉ</mo></mover><mrow><mi>i</mi><mo>⋅</mo></mrow></msub></mrow></msup><mo separator="true">,</mo><mspace width="2em"/><mo>×</mo><mi mathvariant="normal">/</mi><mo>÷</mo><mtext> </mtext><mn>1</mn><msup><mn>0</mn><msub><mrow><mi mathvariant="normal">L</mi><mi mathvariant="normal">S</mi><mi mathvariant="normal">D</mi></mrow><mi>z</mi></msub></msup><mo>=</mo><mn>1.38</mn></mrow><annotation encoding="application/x-tex">\mathrm{GM}_i = 10^{\bar z_{i\cdot}},\qquad \frac{\mathrm{GM}_k}{\mathrm{GM}_i} = 10^{\,\bar z_{k\cdot}-\bar z_{i\cdot}},\qquad \times/\div\ 10^{\mathrm{LSD}_z} = 1.38</annotation></semantics></math></span></div>
+    <p>A back-transformed mean is a geometric mean: it is no larger than the arithmetic mean, and the gap grows with skewness. The CI limits are back-transformed the same way, so CIs on the original scale are asymmetric (Welham, p. 122–126).</p>
+    <h3>On the example</h3>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Source</th><th>df</th><th>SS</th><th>MS</th><th>F</th><th>P</th></tr></thead>
+      <tbody>
+<tr><td>Between treatments (log₁₀)</td><td>3</td><td>1.3751</td><td>0.4584</td><td>19.25</td><td>&lt; 0.001</td></tr>
+<tr><td>Within treatments</td><td>36</td><td>0.8571</td><td>0.0238</td><td></td><td></td></tr>
+<tr><td>Total</td><td>39</td><td>2.2322</td><td></td><td></td><td></td></tr>
+</tbody>
+    </table></div>
+    <p class="note">Welham, Table 6.1: egg counts of beetles, 4 mating treatments with 10 females each (map scenario S07). Geometric means 32.6, 63.6, 81.1, 102.0 against arithmetic 34.9, 66.2, 84.3, 108.6. Treatment 4 is 3.13 times treatment 1, 95 % CI 2.27…4.32; the CI of the mean of treatment 1 is 25.9…40.9, asymmetric around 32.6. Warnings about variances on the log scale: none; Shapiro–Wilk on the residuals P = 0.16. The map gives <span class="sig">B4.3</span> (SDs grow with the means) and <span class="sig">B4.2</span> (variances are heterogeneous).</p>
+    <p class="src">Welham et al. (2015), p. 113–126 (transformations, back-transformation, the log scale).</p>
+  </section>
+  <section id="pros-cons">
+    <h2>Strengths and weaknesses</h2>
+    <div class="cols">
+      <div class="plus">
+        <h3>Strengths</h3>
+        <ul>
+      <li><b>Treats the cause, not the symptom:</b> when the variance grows with the mean, a single transformation evens out the variances and removes the skewness (Welham, p. 113–118).</li>
+      <li><b>Ratios instead of differences:</b> for log the result reads as “how many times”, with CIs (Welham, p. 123–126).</li>
+      <li><b>The whole ANOVA toolkit remains:</b> F, SED, LSD and comparisons — on the new scale (Welham, p. 122).</li>
+      <li><b>The same transformation is available in RCBD and in the comparisons of means</b> — a parameter in the method form [BioStat].</li>
+    </ul>
+      </div>
+      <div class="minus">
+        <h3>Weaknesses</h3>
+        <ul>
+      <li><b>The result is on another scale:</b> geometric means are not arithmetic means, and SE and SED are not carried back to the original scale (Welham, p. 122–126).</li>
+      <li><b>The offset c for zeros affects the result</b> (Welham, p. 116).</li>
+      <li><b>Sometimes no transformation fits:</b> counts with many zeros, proportions from small samples or near 0 and 1 — a <a class="mlink" href="/methods/#glm_analysis" title="Open the method description">GLM</a> is needed (Welham, p. 126–127).</li>
+      <li><b>Back-transformation with an offset can leave the scale</b> (negative counts, proportions above 1) — BioStat warns (Welham, p. 122).</li>
+      <li><b>The method&#x27;s pairwise ratios have no multiplicity adjustment</b> (LSD) [BioStat].</li>
+    </ul>
+      </div>
+    </div>
+    <p class="src">Welham et al. (2015), p. 113–127; [BioStat].</p>
+  </section>
+  <section id="assumptions">
+    <h2>Assumptions</h2>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Assumption</th><th>What it means</th><th>How BioStat checks it</th></tr></thead>
+      <tbody>
+<tr><td>Independence</td><td>Each observation is a separate experimental unit.</td><td>Not checked by calculation — it is a property of the design; the map asks about the structure before this step.</td></tr>
+<tr><td>ANOVA assumptions — on the new scale</td><td>After the transformation the residuals are normal and the variances homogeneous.</td><td>On the analysis scale the method checks the same as one-way ANOVA: homogeneity of variances (Bartlett, link between SD and mean) and normality of residuals (Shapiro–Wilk). Sometimes another transformation is needed, sometimes none fits (Welham, p. 113–114).</td></tr>
+<tr><td>Values within the domain of the transformation</td><td>log — only for y + c &gt; 0, logit — for 0 &lt; y &lt; 1 (or 100 %), √ — for y + c ≥ 0.</td><td>Values outside the domain are an error; for log BioStat suggests an offset c by the book&#x27;s rule (p. 116).</td></tr>
+<tr><td>No gross recording errors</td><td>A single point does not distort the means and <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><msub><mi>S</mi><mi>W</mi></msub></mrow><annotation encoding="application/x-tex">MS_W</annotation></semantics></math></span>.</td><td>Outlier test on the Studentized residuals with Bonferroni correction; checked first.</td></tr>
+</tbody>
+    </table></div>
+    <p class="src">Welham et al. (2015), p. 109–110, 113–116, 119–122.</p>
+  </section>
+  <section id="map">
+    <h2>How the map chooses this method</h2>
+    <h3>Path to the leaf</h3>
+    <div class="path" aria-label="Path on the map"><span>Analyse a response</span>›<span>Continuous</span>›<span>Differences</span>›<span>Independent units</span>›<span>No blocks or complete blocks</span>›<span>One factor</span>›<span>Three or more groups</span>›<span>Transform the response</span>›<span class="here">ANOVA on log / √ / logit scale</span></div>
+    <p>The map leads here with signal <span class="sig">B4.3</span>: the group SDs grow with the means — the extreme SDs differ at least twofold, and the correlation of log SD with log mean is r ≥ 0.8 [BioStat]. From four groups this is a strong signal; with three, a hint: over three points such a link is often accidental [BioStat: audit 01-07]. With an outlier candidate, <span class="sig">B4.3</span> becomes a hint.</p>
+    <p>Hints: <span class="sig">B4.4</span> — residuals are strongly skewed (|g₁| &gt; 1); <span class="sig">R2.7</span> — all values are greater than 0 and the skewness of the response is above 1 [BioStat]. For two groups the same signals lead to the leaf “Comparison on the log / √ / logit scale” — it is the same method. In a complete block experiment (role “block”), <span class="sig">B4.3</span> and <span class="sig">B4.4</span> lead not here but to ANOVA with blocks: there the transformation is a parameter of the method.</p>
+    <h3>Neighbors on the map: when they win</h3>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Neighbor</th><th>When the map leads there</th><th>Why the neighbor is better here</th><th>What it costs</th></tr></thead>
+      <tbody>
+<tr><td><a class="mlink" href="/methods/one_way_anova/" title="Open the method description">One-way ANOVA</a></td><td>variances are homogeneous and residuals normal — the default leaf</td><td>Means, SED and LSD on the original scale</td><td>When the variance grows with the mean, P and SED are wrong</td></tr>
+<tr><td><a class="mlink" href="/methods/welch_anova/" title="Open the method description">Welch&#x27;s ANOVA (unequal variances)</a></td><td><span class="sig">B4.5</span> variances are heterogeneous but do <b>not</b> grow with the means</td><td>Means on the original scale, no transformation</td><td>Does not fix skewness; no common <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><msub><mi>S</mi><mi>W</mi></msub></mrow><annotation encoding="application/x-tex">MS_W</annotation></semantics></math></span></td></tr>
+<tr><td><a class="mlink" href="/methods/anova_permutation_test/" title="Open the method description">Permutation F-test (ANOVA)</a></td><td><span class="sig">B4.6</span> residuals are non-normal with homogeneous variances</td><td>Means on the original scale; normality is not needed</td><td>Needs homogeneous variances</td></tr>
+<tr><td><a class="mlink" href="/methods/kruskal_wallis/" title="Open the method description">Kruskal-Wallis test (nonparametric)</a></td><td><span class="sig">B4.8</span> (hint) the response takes a few integer values (scores)</td><td>Ranks: the scale of the response does not matter</td><td>Compares distributions, not means; no CIs</td></tr>
+<tr><td><a class="mlink" href="/methods/rcbd_anova/" title="Open the method description">Randomized block ANOVA (RCBD)</a></td><td><span class="sig">B1.2</span> / <span class="sig">B1.8</span> (hint) each treatment once in every block (or a column that looks like blocks)</td><td>Accounts for blocks; the transformation can be set there too</td><td>Needs a block column</td></tr>
+</tbody>
+    </table></div>
+    <h3>What the map checks at this leaf</h3>
+    <ul>
+      <li><span class="sig">DIAG.1</span> <b>Outlier first.</b> With an outlier candidate, <span class="sig">B4.3</span> is demoted to a hint “check the record in row N first” (Welham, p. 109–110).</li>
+      <li><span class="sig">B4.3</span> SDs grow with the means (four groups or more) — a strong signal [BioStat].</li>
+      <li><span class="sig">B4.3</span> (hint) The same with three groups — only a hint: over three points such a link is often accidental [BioStat: audit 01-07].</li>
+      <li><span class="sig">B4.4</span> (hint) / <span class="sig">R2.7</span> (hint) Strong skewness of residuals or of a positive response — a reason to try log.</li>
+      <li><span class="sig">B4.2</span> / <span class="sig">B4.5</span> Heterogeneous variances (Bartlett) <b>without</b> a link between SD and the means lead not here but to Welch (<span class="sig">B4.5</span>).</li>
+    </ul>
+    <h3>What next</h3>
+    <p>The method itself gives all pairs: ratios with CIs without a multiplicity adjustment. For comparisons with an adjustment (Tukey, Dunnett) — the <a class="mlink" href="/methods/#mean_comparisons" title="Open the method description">comparisons of means</a> of the “After ANOVA” step with the same transformation in the method form [BioStat]. If the goal is to show that there are no differences, that is a different task: <b><a class="mlink" href="/methods/#equivalence_test" title="Open the method description">the equivalence test (TOST)</a></b> (Welham, p. 253).</p>
+  </section>
+  <details class="check" id="sources">
+    <summary>Sources</summary>
+    <ul>
+      <li>Tests that call the method: 15</li>
+      <li>No book references in the tests</li>
+      <li>Independent cross-check (audit 2): none — edge cases only</li>
+    </ul>
+  </details>
+  <p><a class="cta" href="/?method=transformed_means&amp;lang=en">Try the method in the calculator →</a></p>
+  <div class="pager"><a href="/methods/anova_permutation_test/"><small>← Previous</small>Permutation F-test (ANOVA)</a><a class="next" href="/methods/rcbd_anova/"><small>Next →</small>Randomized block ANOVA (RCBD)</a></div>
+</article>
+<aside class="toc" aria-label="On this page">
+  <b>On this page</b>
+  <a href="#idea">Idea</a>
+  <a href="#model">Model and formulas</a>
+  <a href="#symbols">Notation</a>
+  <a href="#pros-cons">Strengths and weaknesses</a>
+  <a href="#assumptions">Assumptions</a>
+  <a href="#map">How the map chooses</a>
+  <a href="#sources">Sources</a>
+  <a href="/?method=transformed_means&amp;lang=en">Try the method in the calculator →</a>
+  <a class="toc-back" href="/methods/#transformed_means">↑ Back to the method list</a>
+</aside>
+<a class="to-list" href="/methods/#transformed_means" aria-label="Back to the method list">↑</a>
+</div>
+      <footer><a href="/privacy/">Privacy</a> · <a href="/terms/">Terms</a> · <a href="/methods/">Methods and validation</a> · <a href="/LICENSE.txt">Apache-2.0 License</a></footer>
+    </main>
+  </body>
+</html>

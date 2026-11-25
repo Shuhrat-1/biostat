@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="pt">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Teste de Kruskal-Wallis (não paramétrico) — BioStat</title>
+    <meta name="description" content="Teste de Kruskal–Wallis: comparação de três ou mais grupos por postos — ideia, fórmula, pressupostos e como o mapa do BioStat escolhe este método." />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="canonical" href="https://biostat.app/pt/methods/kruskal_wallis/" />
+    <link rel="alternate" hreflang="en" href="https://biostat.app/methods/kruskal_wallis/" />
+    <link rel="alternate" hreflang="ru" href="https://biostat.app/ru/methods/kruskal_wallis/" />
+    <link rel="alternate" hreflang="pt" href="https://biostat.app/pt/methods/kruskal_wallis/" />
+    <link rel="alternate" hreflang="x-default" href="https://biostat.app/methods/kruskal_wallis/" />
+    <style>body{margin:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:#18181b;background:#fafafa;line-height:1.6}main{max-width:44rem;margin:0 auto;padding:1.5rem 1rem 2rem}h1{font-size:1.6rem;margin:0.6rem 0 0.2rem}h2{font-size:1.1rem;margin:1.6rem 0 0.4rem}p{margin:0.4rem 0}a{color:#0f766e}.muted{color:#63636b;font-size:0.9rem}nav{display:flex;flex-wrap:wrap;gap:0.4rem 1rem;justify-content:space-between;align-items:center}footer{border-top:1px solid #e4e4e7;margin-top:2rem;padding-top:0.8rem;font-size:0.9rem}code{overflow-wrap:anywhere}h3{font-size:1rem;margin:1.4rem 0 0}h2[id],h3[id]{scroll-margin-top:1rem}ul{margin:0.3rem 0;padding-left:1.2rem}li{margin:0.15rem 0;overflow-wrap:anywhere}.tag{font-size:0.75rem;font-weight:400;color:#92400e;border:1px solid #f59e0b;border-radius:4px;padding:0 0.3rem;margin-left:0.4rem;white-space:nowrap}</style>
+    <link rel="stylesheet" href="/methods/assets/method.css" />
+    <script src="/back.js" defer></script>
+  </head>
+  <body>
+    <main class="mp">
+      <nav><a href="/" data-back>← Voltar ao BioStat</a><span><a href="/methods/kruskal_wallis/" hreflang="en" lang="en">English</a> · <a href="/ru/methods/kruskal_wallis/" hreflang="ru" lang="ru">Русский</a> · <a href="/pt/methods/kruskal_wallis/" hreflang="pt" lang="pt" aria-current="page">Português</a></span></nav>
+<div class="wrap">
+<article>
+  <nav class="crumbs" aria-label="Navegação"><a href="/">BioStat</a> › <a href="/pt/methods/">Métodos e verificação</a> › <a href="/pt/methods/#group-several-groups">Comparação de vários grupos</a> › Teste de Kruskal-Wallis (não paramétrico)</nav>
+  <h1>Teste de Kruskal-Wallis (não paramétrico)</h1>
+  <p class="lead">Três ou mais grupos diferem quando a resposta é uma pontuação ou a sua distribuição está longe da normal? O teste de Kruskal–Wallis substitui os valores por postos e compara as somas dos postos dos grupos.</p>
+  <section id="idea">
+    <h2>Ideia</h2>
+    <p>Todas as observações são ordenadas em conjunto: a menor recebe o posto 1, a maior o posto N, e os valores empatados recebem a média dos seus postos (Witte, p. 390, 396–397). Se os grupos não diferem, os postos médios dos grupos são próximos; H cresce à medida que se afastam.</p>
+    <p>Não se comparam médias: rejeitar <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>H</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">H_0</annotation></semantics></math></span> significa apenas «as distribuições dos grupos diferem» (Witte, p. 396–399). Pode falar-se de diferença de medianas se as distribuições nos grupos tiverem a mesma forma e diferirem apenas por um deslocamento [proposta: Hollander &amp; Wolfe 1999].</p>
+  </section>
+  <section id="model">
+    <h2>Modelo e fórmulas</h2>
+    <details class="glossary" id="symbols">
+      <summary>Todos os símbolos desta página</summary>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Símbolo</th><th>Significado</th></tr></thead>
+      <tbody>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi><mo>=</mo><mn>1</mn><mo separator="true">,</mo><mo>…</mo><mo separator="true">,</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">i = 1,\dots,t</annotation></semantics></math></span></td><td>índice do grupo (tratamento), <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi></mrow><annotation encoding="application/x-tex">t</annotation></semantics></math></span> — número de grupos</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>j</mi><mo>=</mo><mn>1</mn><mo separator="true">,</mo><mo>…</mo><mo separator="true">,</mo><msub><mi>n</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">j = 1,\dots,n_i</annotation></semantics></math></span></td><td>índice da observação no grupo, <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>n</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">n_i</annotation></semantics></math></span> — dimensão do grupo <i>i</i></td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>=</mo><mstyle scriptlevel="0" displaystyle="false"><mo>∑</mo><msub><mi>n</mi><mi>i</mi></msub></mstyle></mrow><annotation encoding="application/x-tex">N = \textstyle\sum n_i</annotation></semantics></math></span></td><td>número total de observações</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>H</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">H_0</annotation></semantics></math></span></td><td>hipótese nula: todos os grupos têm a mesma média</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>R</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">R_i</annotation></semantics></math></span></td><td>soma dos postos do grupo <i>i</i> (postos sobre todas as observações em conjunto)</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>τ</mi></mrow><annotation encoding="application/x-tex">\tau</annotation></semantics></math></span></td><td>número de valores iguais num grupo de empates</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>H</mi></mrow><annotation encoding="application/x-tex">H</annotation></semantics></math></span></td><td>estatística de Kruskal–Wallis</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi></mrow><annotation encoding="application/x-tex">C</annotation></semantics></math></span></td><td>correção para empates nos postos (<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">C = 1</annotation></semantics></math></span> sem empates)</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi></mrow><annotation encoding="application/x-tex">P</annotation></semantics></math></span></td><td>probabilidade de uma estatística (F, t …) pelo menos tão extrema como a observada quando <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>H</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">H_0</annotation></semantics></math></span> é verdadeira</td></tr>
+</tbody>
+    </table></div>
+      <p class="note">A mesma notação em todas as páginas de métodos — <a href="/pt/methods/symbols/">glossário de símbolos</a>.</p>
+    </details>
+    <p>Testa-se a hipótese:</p>
+    <div class="math block"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>H</mi><mn>0</mn></msub><mo>:</mo><mtext> </mtext><mrow><mtext>as distribui</mtext><mover accent="true"><mtext>c</mtext><mo>¸</mo></mover><mover accent="true"><mtext>o</mtext><mo>˜</mo></mover><mtext>es da resposta nos </mtext></mrow><mi>t</mi><mrow><mtext> grupos s</mtext><mover accent="true"><mtext>a</mtext><mo>˜</mo></mover><mtext>o iguais</mtext></mrow></mrow><annotation encoding="application/x-tex">H_0:\ \text{as distribuições da resposta nos } t \text{ grupos são iguais}</annotation></semantics></math></span></div>
+    <h3>Estatística H</h3>
+    <div class="math block"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>H</mi><mo>=</mo><mfrac><mn>12</mn><mrow><mi>N</mi><mo stretchy="false">(</mo><mi>N</mi><mo>+</mo><mn>1</mn><mo stretchy="false">)</mo></mrow></mfrac><munder><mo>∑</mo><mi>i</mi></munder><mfrac><msubsup><mi>R</mi><mi>i</mi><mn>2</mn></msubsup><msub><mi>n</mi><mi>i</mi></msub></mfrac><mo>−</mo><mn>3</mn><mo stretchy="false">(</mo><mi>N</mi><mo>+</mo><mn>1</mn><mo stretchy="false">)</mo><mo>=</mo><mn>13.88</mn></mrow><annotation encoding="application/x-tex">H = \frac{12}{N(N+1)} \sum_i \frac{R_i^2}{n_i} - 3(N+1) = 13.88</annotation></semantics></math></span></div>
+    <p>Fórmula do livro (Witte, p. 396–397): <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>R</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">R_i</annotation></semantics></math></span> é a soma dos postos do grupo <i>i</i>, <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>n</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">n_i</annotation></semantics></math></span> a sua dimensão.</p>
+    <h3>Correção para empates e P</h3>
+    <div class="math block"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>C</mi><mo>=</mo><mn>1</mn><mo>−</mo><mfrac><mrow><mo>∑</mo><mo stretchy="false">(</mo><msup><mi>τ</mi><mn>3</mn></msup><mo>−</mo><mi>τ</mi><mo stretchy="false">)</mo></mrow><mrow><msup><mi>N</mi><mn>3</mn></msup><mo>−</mo><mi>N</mi></mrow></mfrac><mo>=</mo><mn>0.949</mn><mo separator="true">,</mo><mspace width="2em"/><mfrac><mi>H</mi><mi>C</mi></mfrac><mo>=</mo><mn>14.62</mn><mo separator="true">,</mo><mspace width="2em"/><mi>d</mi><mi>f</mi><mo>=</mo><mi>t</mi><mo>−</mo><mn>1</mn><mo>=</mo><mn>2</mn><mo separator="true">,</mo><mspace width="2em"/><mi>P</mi><mo>&lt;</mo><mn>0.001</mn></mrow><annotation encoding="application/x-tex">C = 1 - \frac{\sum(\tau^3-\tau)}{N^3-N} = 0.949,\qquad \frac{H}{C} = 14.62,\qquad df = t-1 = 2,\qquad P &lt; 0.001</annotation></semantics></math></span></div>
+    <p>O BioStat divide sempre H por C [proposta: Kruskal &amp; Wallis 1952]; Witte não introduz a correção e aconselha a pensar nos empates só se o teste for quase significativo (p. 400). O P (valor de prova) obtém-se pela χ² com <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">t-1</annotation></semantics></math></span> gl: a aproximação é suficientemente precisa quando cada grupo tem pelo menos 4 observações (Witte, p. 398).</p>
+    <h3>No exemplo</h3>
+    <p class="note">Conjunto ilustrativo (cenário S12 do mapa): pontuações de 1 a 5, três grupos de 8. Somas dos postos: a 45, b 105, c 150; medianas 2, 3 e 4.5. Com apenas cinco pontuações há muitos empates, por isso a correção é visível: H = 13.88 sem ela e 14.62 com ela, com 2 gl, P &lt; 0.001. O mapa dá a sugestão <span class="sig">B4.8</span>; a sugestão <span class="sig">R2.2</span> (inteiros não negativos parecem contagens) dispara com os mesmos números, e a escolha entre elas depende do significado da resposta.</p>
+    <p class="src">Witte &amp; Witte (2017), p. 386–387, 390, 396–400; Welham et al. (2015), p. 127; correção C — [proposta: Kruskal &amp; Wallis 1952]; interpretação pelas medianas — [proposta: Hollander &amp; Wolfe 1999].</p>
+  </section>
+  <section id="pros-cons">
+    <h2>Pontos fortes e fracos</h2>
+    <div class="cols">
+      <div class="plus">
+        <h3>Pontos fortes</h3>
+        <ul>
+      <li><b>Não exige normalidade</b> — trabalha com postos (Witte, p. 386–387).</li>
+      <li><b>Serve para pontuações e postos</b>, onde a média está mal definida (Witte, p. 386; Welham, p. 127).</li>
+      <li><b>Um valor extremo é só um posto extremo:</b> uma observação atípica afeta H menos do que F [proposta: Hollander &amp; Wolfe 1999].</li>
+      <li><b>O relatório tem as somas dos postos, o H sem correção e as medianas dos grupos</b>, como no livro (Witte, p. 396–399) [BioStat].</li>
+    </ul>
+      </div>
+      <div class="minus">
+        <h3>Pontos fracos</h3>
+        <ul>
+      <li><b>Menos potente do que a ANOVA quando os pressupostos da ANOVA se cumprem</b> (Witte, p. 387).</li>
+      <li><b>Responde sobre distribuições, não sobre médias:</b> sem EPD, DMS nem IC das diferenças de médias (Witte, p. 396–399).</li>
+      <li><b>O P é aproximado</b> (χ²): suficientemente preciso quando cada grupo tem pelo menos 4 observações (Witte, p. 398); com grupos menores o BioStat acrescenta uma nota — a aproximação costuma sobrestimar o P (com 3 grupos de 3: 0.027 contra o valor exato 0.0036) [BioStat: auditoria 02-02].</li>
+      <li><b>H não diz quais os grupos que diferem.</b> As comparações par a par habituais após H são o teste de Dunn [proposta: Dunn 1964]; o BioStat não o tem.</li>
+      <li><b>Um fator sem blocos.</b> Para pontuações em blocos (cada tratamento uma vez em cada bloco) — o <a class="mlink" href="/pt/methods/#friedman" title="Abrir a descrição do método">teste de Friedman</a>; para pontuações num ensaio com vários fatores — a <a class="mlink" href="/pt/methods/#ordinal_regression" title="Abrir a descrição do método">regressão ordinal</a> (Welham, p. 513).</li>
+    </ul>
+      </div>
+    </div>
+    <p class="src">Witte &amp; Witte (2017), p. 386–387, 396–399; Welham et al. (2015), p. 127, 513; [BioStat]; [proposta: Dunn 1964].</p>
+  </section>
+  <section id="assumptions">
+    <h2>Pressupostos</h2>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Pressuposto</th><th>O que significa</th><th>Como o BioStat verifica</th></tr></thead>
+      <tbody>
+<tr><td>Independência</td><td>Cada observação é uma unidade separada, sem medidas repetidas nem blocos.</td><td>Não se verifica por cálculo — é uma propriedade do delineamento; o mapa pergunta pela estrutura antes deste passo.</td></tr>
+<tr><td>Escala ordinal da resposta</td><td>Os valores podem ser ordenados: pontuações, postos, medições quantitativas.</td><td>Rótulos de categorias sem ordem levam antes às tabelas de frequências (<span class="sig">R2.5</span>).</td></tr>
+<tr><td>Poucos empates (para a aproximação χ²)</td><td>O teste foi deduzido para uma resposta contínua sem empates (Witte, p. 400).</td><td>A correção C para empates aplica-se sempre; com grupos de menos de 4 observações — uma nota sobre o P aproximado.</td></tr>
+</tbody>
+    </table></div>
+    <p class="src">Witte &amp; Witte (2017), p. 386–387, 398, 400.</p>
+  </section>
+  <section id="map">
+    <h2>Como o mapa escolhe este método</h2>
+    <h3>Caminho até à folha</h3>
+    <div class="path" aria-label="Caminho no mapa"><span>Analisar a resposta</span>›<span>Contínua</span>›<span>Diferenças</span>›<span>Unidades independentes</span>›<span>Sem blocos ou blocos completos</span>›<span>Um fator</span>›<span>Três ou mais grupos</span>›<span class="here">Kruskal–Wallis</span></div>
+    <p>O mapa conduz a esta folha apenas com a <b>sugestão</b> <span class="sig">B4.8</span>: a resposta tem poucos valores inteiros numa gama estreita (de 3 a 10 valores distintos, amplitude no máximo 10) — parece uma pontuação [BioStat]. Com dois grupos a mesma sugestão leva a Mann–Whitney, e num ensaio em blocos completos (papel «bloco») — ao teste de Friedman.</p>
+    <p>Resíduos não normais, por si só, não levam aqui: em três ou mais grupos com variâncias homogéneas o mapa propõe o teste de permutação (<span class="sig">B4.6</span>), e com assimetria — uma transformação (<span class="sig">B4.4</span>).</p>
+    <h3>Vizinhos no mapa: quando são preferíveis</h3>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Vizinho</th><th>Quando o mapa leva lá</th><th>Em que o vizinho é melhor aqui</th><th>O que custa</th></tr></thead>
+      <tbody>
+<tr><td><a class="mlink" href="/pt/methods/one_way_anova/" title="Abrir a descrição do método">ANOVA a um fator</a></td><td>resposta contínua e resíduos normais — folha por omissão</td><td>Médias, EPD e DMS; mais potente com os pressupostos cumpridos</td><td>Para pontuações a média está mal definida</td></tr>
+<tr><td><a class="mlink" href="/pt/methods/anova_permutation_test/" title="Abrir a descrição do método">Teste F de permutação (ANOVA)</a></td><td><span class="sig">B4.6</span> resíduos não normais com variâncias homogéneas</td><td>Compara médias sem exigir normalidade</td><td>Exige variâncias homogéneas; o P é aleatório com B permutações</td></tr>
+<tr><td><a class="mlink" href="/pt/methods/transformed_means/" title="Abrir a descrição do método">ANOVA com resposta transformada</a></td><td><span class="sig">B4.3</span> / <span class="sig">B4.4</span> (sugestão) os DP crescem com as médias ou os resíduos são fortemente assimétricos (|g₁| &gt; 1)</td><td>ANOVA, EPD e DMS na nova escala; para log — razões de médias</td><td>O resultado fica na escala transformada; para pontuações a transformação ajuda pouco</td></tr>
+<tr><td><a class="mlink" href="/pt/methods/welch_anova/" title="Abrir a descrição do método">ANOVA de Welch (variâncias desiguais)</a></td><td><span class="sig">B4.5</span> variâncias heterogéneas que não crescem com as médias</td><td>Compara médias com variâncias desiguais</td><td>Exige normalidade dentro dos grupos</td></tr>
+<tr><td><a class="mlink" href="/pt/methods/rcbd_anova/" title="Abrir a descrição do método">ANOVA em blocos casualizados (RCBD)</a></td><td><span class="sig">B1.2</span> / <span class="sig">B1.8</span> (sugestão) cada tratamento uma vez em cada bloco (ou uma coluna que parece blocos)</td><td>Retira do erro as diferenças entre blocos</td><td>Volta a exigir resíduos normais; para pontuações em blocos o mapa leva a Friedman</td></tr>
+<tr><td><a class="mlink" href="/pt/methods/#mann_whitney" title="Abrir a descrição do método">Teste de Mann-Whitney (não paramétrico)</a></td><td>bifurcação «quantos níveis» = 2</td><td>Teste de postos para dois grupos, com a estimativa do deslocamento de Hodges–Lehmann e IC</td><td>—</td></tr>
+</tbody>
+    </table></div>
+    <h3>O que o mapa verifica nesta folha</h3>
+    <ul>
+      <li><span class="sig">B4.8</span> (sugestão) A resposta parece uma pontuação: de 3 a 10 valores inteiros distintos, amplitude no máximo 10 [BioStat].</li>
+      <li><span class="sig">R2.2</span> (sugestão) Inteiros não negativos também parecem contagens: se a resposta for um número de objetos e não uma pontuação, é preciso um modelo de contagens (GLM).</li>
+      <li><span class="sig">B4.1</span> A não normalidade dos resíduos verifica-se, mas não leva a esta folha: com três ou mais grupos é uma nota.</li>
+    </ul>
+    <h3>O que vem a seguir</h3>
+    <p>Um H significativo diz que as distribuições dos grupos não são todas iguais, mas não quais diferem. As comparações par a par habituais após H são o teste de Dunn [proposta: Dunn 1964]; o BioStat não o tem. As comparações após a ANOVA (B5) baseiam-se nas médias e no quadrado médio residual comum (QMRE, <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><msub><mi>S</mi><mi>W</mi></msub></mrow><annotation encoding="application/x-tex">MS_W</annotation></semantics></math></span>) — não se aplicam a uma análise por postos.</p>
+  </section>
+  <details class="check" id="sources">
+    <summary>Fontes</summary>
+    <ul>
+      <li>Testes que chamam o método: 5</li>
+      <li>Witte — verificado nos testes: Progress Check 20.4, Table 20.4</li>
+      <li>Verificação independente (auditoria 2): H, P — scipy; amostras pequenas — enumeração exata</li>
+    </ul>
+  </details>
+  <p><a class="cta" href="/?method=kruskal_wallis&amp;lang=pt">Experimentar o método na calculadora →</a></p>
+  <div class="pager"><a href="/pt/methods/welch_anova/"><small>← Anterior</small>ANOVA de Welch (variâncias desiguais)</a><a class="next" href="/pt/methods/treatment_means/"><small>Seguinte →</small>Médias dos grupos com SED e LSD</a></div>
+</article>
+<aside class="toc" aria-label="Nesta página">
+  <b>Nesta página</b>
+  <a href="#idea">Ideia</a>
+  <a href="#model">Modelo e fórmulas</a>
+  <a href="#symbols">Notação</a>
+  <a href="#pros-cons">Pontos fortes e fracos</a>
+  <a href="#assumptions">Pressupostos</a>
+  <a href="#map">Como o mapa escolhe</a>
+  <a href="#sources">Fontes</a>
+  <a href="/?method=kruskal_wallis&amp;lang=pt">Experimentar o método na calculadora →</a>
+  <a class="toc-back" href="/pt/methods/#kruskal_wallis">↑ Voltar à lista de métodos</a>
+</aside>
+<a class="to-list" href="/pt/methods/#kruskal_wallis" aria-label="Voltar à lista de métodos">↑</a>
+</div>
+      <footer><a href="/pt/privacy/">Privacidade</a> · <a href="/pt/terms/">Termos</a> · <a href="/pt/methods/">Métodos e verificação</a> · <a href="/LICENSE.txt">Licença Apache-2.0</a></footer>
+    </main>
+  </body>
+</html>

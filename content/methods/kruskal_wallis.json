@@ -157,5 +157,309 @@
    "C_ties",
    "P"
   ]
+ },
+ "en": {
+  "description": "The Kruskal–Wallis test: comparing three or more groups by ranks — idea, formula, assumptions, and how the BioStat map chooses this method.",
+  "lead": "Do three or more groups differ when the response is a score or its distribution is far from normal? The Kruskal–Wallis test replaces the values with ranks and compares the rank sums of the groups.",
+  "idea": [
+   "All observations are ranked together: the smallest gets rank 1, the largest rank N, and tied values get the mean of their ranks (Witte, p. 390, 396–397). If the groups do not differ, their mean ranks are close; H grows as they move apart.",
+   "Means are not what is compared: a rejected $H_0$ only means “the group distributions differ” (Witte, p. 396–399). One can speak of a difference in medians if the distributions in the groups have the same shape and differ only by a shift [proposed: Hollander & Wolfe 1999]."
+  ],
+  "formulas": [
+   {
+    "text_before": "The hypothesis tested:",
+    "tex": "H_0:\\ \\text{the response distributions in all } t \\text{ groups are the same}"
+   },
+   {
+    "title": "The H statistic",
+    "tex": "H = \\frac{12}{N(N+1)} \\sum_i \\frac{R_i^2}{n_i} - 3(N+1) = ⟦H_uncorrected:.2f⟧",
+    "text_after": "The book's formula (Witte, p. 396–397): $R_i$ is the rank sum of group *i*, $n_i$ its size."
+   },
+   {
+    "title": "Correction for ties and P",
+    "tex": "C = 1 - \\frac{\\sum(\\tau^3-\\tau)}{N^3-N} = ⟦tie_correction:.3f⟧,\\qquad \\frac{H}{C} = ⟦H:.2f⟧,\\qquad df = t-1 = ⟦df⟧,\\qquad P ⟦p:rel⟧",
+    "text_after": "BioStat always divides H by C [proposed: Kruskal & Wallis 1952]; Witte does not introduce the correction and advises thinking about ties only if the test is barely significant (p. 400). P comes from χ² with $t-1$ df: the approximation is accurate enough when each group has at least 4 observations (Witte, p. 398)."
+   }
+  ],
+  "example_table": {
+   "note": "Illustrative data set (map scenario S12): scores 1–5, three groups of ⟦n_group⟧. Rank sums: a ⟦rank_sum_a:.0f⟧, b ⟦rank_sum_b:.0f⟧, c ⟦rank_sum_c:.0f⟧; medians ⟦median_a:g⟧, ⟦median_b:g⟧ and ⟦median_c:g⟧. With only five scores there are many ties, so the correction is noticeable: H = ⟦H_uncorrected:.2f⟧ without it and ⟦H:.2f⟧ with it on ⟦df⟧ df, P ⟦p:rel⟧. The map gives the hint `B4.8`; the hint `R2.2` (non-negative integers look like counts) fires on the same numbers, and the choice between them depends on what the response means."
+  },
+  "pros": [
+   "**Does not need normality** — works with ranks (Witte, p. 386–387).",
+   "**Suits scores and ranks**, where the mean is poorly defined (Witte, p. 386; Welham, p. 127).",
+   "**An extreme value is just an extreme rank:** an outlier affects H less than F [proposed: Hollander & Wolfe 1999].",
+   "**The report has the rank sums, the uncorrected H and the group medians**, as in the book (Witte, p. 396–399) [BioStat]."
+  ],
+  "cons": [
+   "**Less powerful than ANOVA when the ANOVA assumptions hold** (Witte, p. 387).",
+   "**Answers about distributions, not means:** no SED, LSD or CIs of differences of means (Witte, p. 396–399).",
+   "**P is approximate** (χ²): accurate enough when each group has at least 4 observations (Witte, p. 398); with smaller groups BioStat adds a note — the approximation usually overstates P (with 3 groups of 3: 0.027 against the exact 0.0036) [BioStat: audit 02-02].",
+   "**H does not say which groups differ.** The standard pairwise comparisons after H are Dunn's test [proposed: Dunn 1964]; BioStat does not have it.",
+   "**One factor without blocks.** For scores in blocks (each treatment once in every block) — the [Friedman test](method:friedman); for scores in an experiment with several factors — [ordinal regression](method:ordinal_regression) (Welham, p. 513)."
+  ],
+  "assumptions": [
+   {
+    "name": "Independence",
+    "meaning": "Each observation is a separate unit, with no repeated measurements and no blocks.",
+    "biostat": "Not checked by calculation — it is a property of the design; the map asks about the structure before this step."
+   },
+   {
+    "name": "Ordinal response scale",
+    "meaning": "The values can be ordered: scores, ranks, quantitative measurements.",
+    "biostat": "Category labels without an order lead to frequency tables earlier (`R2.5`)."
+   },
+   {
+    "name": "Few ties (for the χ² approximation)",
+    "meaning": "The test was derived for a continuous response without ties (Witte, p. 400).",
+    "biostat": "The tie correction C is always applied; with groups of fewer than 4 observations — a note about the approximate P."
+   }
+  ],
+  "map_intro": [
+   "The map leads here only with the **hint** `B4.8`: the response takes a few integer values in a narrow range (3 to 10 distinct values, range at most 10) — it looks like scores [BioStat]. With two groups the same hint leads to Mann–Whitney, and in a complete block experiment (role “block”) — to the Friedman test.",
+   "Non-normal residuals alone do not lead here: in three or more groups with homogeneous variances the map suggests the permutation test (`B4.6`), and with skewness — a transformation (`B4.4`)."
+  ],
+  "neighbours": [
+   {
+    "method": "one_way_anova",
+    "signals": [],
+    "when": "the response is continuous and residuals are normal — the default leaf",
+    "advantage": "Means, SED and LSD; more powerful when the assumptions hold",
+    "cost": "For scores the mean is poorly defined"
+   },
+   {
+    "method": "anova_permutation_test",
+    "signals": [
+     "B4.6"
+    ],
+    "when": "residuals are non-normal with homogeneous variances",
+    "advantage": "Compares means without requiring normality",
+    "cost": "Needs homogeneous variances; P is random with B permutations"
+   },
+   {
+    "method": "transformed_means",
+    "signals": [
+     "B4.3",
+     "B4.4"
+    ],
+    "when": "SDs grow with the means or residuals are strongly skewed (|g₁| > 1)",
+    "advantage": "ANOVA, SED and LSD on the new scale; for log — ratios of means",
+    "cost": "The result is on the transformed scale; for scores a transformation helps little"
+   },
+   {
+    "method": "welch_anova",
+    "signals": [
+     "B4.5"
+    ],
+    "when": "variances are heterogeneous and do not grow with the means",
+    "advantage": "Compares means with unequal variances",
+    "cost": "Needs normality within groups"
+   },
+   {
+    "method": "rcbd_anova",
+    "signals": [
+     "B1.2",
+     "B1.8"
+    ],
+    "when": "each treatment once in every block (or a column that looks like blocks)",
+    "advantage": "Removes the differences between blocks from the error",
+    "cost": "Normal residuals are required again; for scores in blocks the map leads to Friedman"
+   },
+   {
+    "method": "mann_whitney",
+    "signals": [],
+    "when": "branch point “how many levels” = 2",
+    "advantage": "A two-group rank test with the Hodges–Lehmann shift estimate and CI",
+    "cost": "—"
+   }
+  ],
+  "checks": [
+   {
+    "signals": [
+     "B4.8"
+    ],
+    "text": "The response looks like scores: 3 to 10 distinct integer values, range at most 10 [BioStat]."
+   },
+   {
+    "signals": [
+     "R2.2"
+    ],
+    "text": "Non-negative integers also look like counts: if the response is a number of objects rather than a score, a count model (GLM) is needed."
+   },
+   {
+    "signals": [
+     "B4.1"
+    ],
+    "text": "Non-normality of residuals is checked but does not lead to this leaf: with three or more groups it is a note."
+   }
+  ],
+  "next": "A significant H says that the group distributions are not all the same, but not which ones differ. The standard pairwise comparisons after H are Dunn's test [proposed: Dunn 1964]; BioStat does not have it. The comparisons after ANOVA (B5) are based on means and the common $MS_W$ — they do not apply to a rank analysis.",
+  "sources": {
+   "model": "Witte & Witte (2017), p. 386–387, 390, 396–400; Welham et al. (2015), p. 127; correction C — [proposed: Kruskal & Wallis 1952]; interpretation via medians — [proposed: Hollander & Wolfe 1999].",
+   "pros_cons": "Witte & Witte (2017), p. 386–387, 396–399; Welham et al. (2015), p. 127, 513; [BioStat]; [proposed: Dunn 1964].",
+   "assumptions": "Witte & Witte (2017), p. 386–387, 398, 400."
+  },
+  "symbols": [
+   "i_group",
+   "j_obs",
+   "N",
+   "H0",
+   "R_i",
+   "tau_ties",
+   "H_KW",
+   "C_ties",
+   "P"
+  ]
+ },
+ "pt": {
+  "description": "Teste de Kruskal–Wallis: comparação de três ou mais grupos por postos — ideia, fórmula, pressupostos e como o mapa do BioStat escolhe este método.",
+  "lead": "Três ou mais grupos diferem quando a resposta é uma pontuação ou a sua distribuição está longe da normal? O teste de Kruskal–Wallis substitui os valores por postos e compara as somas dos postos dos grupos.",
+  "idea": [
+   "Todas as observações são ordenadas em conjunto: a menor recebe o posto 1, a maior o posto N, e os valores empatados recebem a média dos seus postos (Witte, p. 390, 396–397). Se os grupos não diferem, os postos médios dos grupos são próximos; H cresce à medida que se afastam.",
+   "Não se comparam médias: rejeitar $H_0$ significa apenas «as distribuições dos grupos diferem» (Witte, p. 396–399). Pode falar-se de diferença de medianas se as distribuições nos grupos tiverem a mesma forma e diferirem apenas por um deslocamento [proposta: Hollander & Wolfe 1999]."
+  ],
+  "formulas": [
+   {
+    "text_before": "Testa-se a hipótese:",
+    "tex": "H_0:\\ \\text{as distribuições da resposta nos } t \\text{ grupos são iguais}"
+   },
+   {
+    "title": "Estatística H",
+    "tex": "H = \\frac{12}{N(N+1)} \\sum_i \\frac{R_i^2}{n_i} - 3(N+1) = ⟦H_uncorrected:.2f⟧",
+    "text_after": "Fórmula do livro (Witte, p. 396–397): $R_i$ é a soma dos postos do grupo *i*, $n_i$ a sua dimensão."
+   },
+   {
+    "title": "Correção para empates e P",
+    "tex": "C = 1 - \\frac{\\sum(\\tau^3-\\tau)}{N^3-N} = ⟦tie_correction:.3f⟧,\\qquad \\frac{H}{C} = ⟦H:.2f⟧,\\qquad df = t-1 = ⟦df⟧,\\qquad P ⟦p:rel⟧",
+    "text_after": "O BioStat divide sempre H por C [proposta: Kruskal & Wallis 1952]; Witte não introduz a correção e aconselha a pensar nos empates só se o teste for quase significativo (p. 400). O P (valor de prova) obtém-se pela χ² com $t-1$ gl: a aproximação é suficientemente precisa quando cada grupo tem pelo menos 4 observações (Witte, p. 398)."
+   }
+  ],
+  "example_table": {
+   "note": "Conjunto ilustrativo (cenário S12 do mapa): pontuações de 1 a 5, três grupos de ⟦n_group⟧. Somas dos postos: a ⟦rank_sum_a:.0f⟧, b ⟦rank_sum_b:.0f⟧, c ⟦rank_sum_c:.0f⟧; medianas ⟦median_a:g⟧, ⟦median_b:g⟧ e ⟦median_c:g⟧. Com apenas cinco pontuações há muitos empates, por isso a correção é visível: H = ⟦H_uncorrected:.2f⟧ sem ela e ⟦H:.2f⟧ com ela, com ⟦df⟧ gl, P ⟦p:rel⟧. O mapa dá a sugestão `B4.8`; a sugestão `R2.2` (inteiros não negativos parecem contagens) dispara com os mesmos números, e a escolha entre elas depende do significado da resposta."
+  },
+  "pros": [
+   "**Não exige normalidade** — trabalha com postos (Witte, p. 386–387).",
+   "**Serve para pontuações e postos**, onde a média está mal definida (Witte, p. 386; Welham, p. 127).",
+   "**Um valor extremo é só um posto extremo:** uma observação atípica afeta H menos do que F [proposta: Hollander & Wolfe 1999].",
+   "**O relatório tem as somas dos postos, o H sem correção e as medianas dos grupos**, como no livro (Witte, p. 396–399) [BioStat]."
+  ],
+  "cons": [
+   "**Menos potente do que a ANOVA quando os pressupostos da ANOVA se cumprem** (Witte, p. 387).",
+   "**Responde sobre distribuições, não sobre médias:** sem EPD, DMS nem IC das diferenças de médias (Witte, p. 396–399).",
+   "**O P é aproximado** (χ²): suficientemente preciso quando cada grupo tem pelo menos 4 observações (Witte, p. 398); com grupos menores o BioStat acrescenta uma nota — a aproximação costuma sobrestimar o P (com 3 grupos de 3: 0.027 contra o valor exato 0.0036) [BioStat: auditoria 02-02].",
+   "**H não diz quais os grupos que diferem.** As comparações par a par habituais após H são o teste de Dunn [proposta: Dunn 1964]; o BioStat não o tem.",
+   "**Um fator sem blocos.** Para pontuações em blocos (cada tratamento uma vez em cada bloco) — o [teste de Friedman](method:friedman); para pontuações num ensaio com vários fatores — a [regressão ordinal](method:ordinal_regression) (Welham, p. 513)."
+  ],
+  "assumptions": [
+   {
+    "name": "Independência",
+    "meaning": "Cada observação é uma unidade separada, sem medidas repetidas nem blocos.",
+    "biostat": "Não se verifica por cálculo — é uma propriedade do delineamento; o mapa pergunta pela estrutura antes deste passo."
+   },
+   {
+    "name": "Escala ordinal da resposta",
+    "meaning": "Os valores podem ser ordenados: pontuações, postos, medições quantitativas.",
+    "biostat": "Rótulos de categorias sem ordem levam antes às tabelas de frequências (`R2.5`)."
+   },
+   {
+    "name": "Poucos empates (para a aproximação χ²)",
+    "meaning": "O teste foi deduzido para uma resposta contínua sem empates (Witte, p. 400).",
+    "biostat": "A correção C para empates aplica-se sempre; com grupos de menos de 4 observações — uma nota sobre o P aproximado."
+   }
+  ],
+  "map_intro": [
+   "O mapa conduz a esta folha apenas com a **sugestão** `B4.8`: a resposta tem poucos valores inteiros numa gama estreita (de 3 a 10 valores distintos, amplitude no máximo 10) — parece uma pontuação [BioStat]. Com dois grupos a mesma sugestão leva a Mann–Whitney, e num ensaio em blocos completos (papel «bloco») — ao teste de Friedman.",
+   "Resíduos não normais, por si só, não levam aqui: em três ou mais grupos com variâncias homogéneas o mapa propõe o teste de permutação (`B4.6`), e com assimetria — uma transformação (`B4.4`)."
+  ],
+  "neighbours": [
+   {
+    "method": "one_way_anova",
+    "signals": [],
+    "when": "resposta contínua e resíduos normais — folha por omissão",
+    "advantage": "Médias, EPD e DMS; mais potente com os pressupostos cumpridos",
+    "cost": "Para pontuações a média está mal definida"
+   },
+   {
+    "method": "anova_permutation_test",
+    "signals": [
+     "B4.6"
+    ],
+    "when": "resíduos não normais com variâncias homogéneas",
+    "advantage": "Compara médias sem exigir normalidade",
+    "cost": "Exige variâncias homogéneas; o P é aleatório com B permutações"
+   },
+   {
+    "method": "transformed_means",
+    "signals": [
+     "B4.3",
+     "B4.4"
+    ],
+    "when": "os DP crescem com as médias ou os resíduos são fortemente assimétricos (|g₁| > 1)",
+    "advantage": "ANOVA, EPD e DMS na nova escala; para log — razões de médias",
+    "cost": "O resultado fica na escala transformada; para pontuações a transformação ajuda pouco"
+   },
+   {
+    "method": "welch_anova",
+    "signals": [
+     "B4.5"
+    ],
+    "when": "variâncias heterogéneas que não crescem com as médias",
+    "advantage": "Compara médias com variâncias desiguais",
+    "cost": "Exige normalidade dentro dos grupos"
+   },
+   {
+    "method": "rcbd_anova",
+    "signals": [
+     "B1.2",
+     "B1.8"
+    ],
+    "when": "cada tratamento uma vez em cada bloco (ou uma coluna que parece blocos)",
+    "advantage": "Retira do erro as diferenças entre blocos",
+    "cost": "Volta a exigir resíduos normais; para pontuações em blocos o mapa leva a Friedman"
+   },
+   {
+    "method": "mann_whitney",
+    "signals": [],
+    "when": "bifurcação «quantos níveis» = 2",
+    "advantage": "Teste de postos para dois grupos, com a estimativa do deslocamento de Hodges–Lehmann e IC",
+    "cost": "—"
+   }
+  ],
+  "checks": [
+   {
+    "signals": [
+     "B4.8"
+    ],
+    "text": "A resposta parece uma pontuação: de 3 a 10 valores inteiros distintos, amplitude no máximo 10 [BioStat]."
+   },
+   {
+    "signals": [
+     "R2.2"
+    ],
+    "text": "Inteiros não negativos também parecem contagens: se a resposta for um número de objetos e não uma pontuação, é preciso um modelo de contagens (GLM)."
+   },
+   {
+    "signals": [
+     "B4.1"
+    ],
+    "text": "A não normalidade dos resíduos verifica-se, mas não leva a esta folha: com três ou mais grupos é uma nota."
+   }
+  ],
+  "next": "Um H significativo diz que as distribuições dos grupos não são todas iguais, mas não quais diferem. As comparações par a par habituais após H são o teste de Dunn [proposta: Dunn 1964]; o BioStat não o tem. As comparações após a ANOVA (B5) baseiam-se nas médias e no quadrado médio residual comum (QMRE, $MS_W$) — não se aplicam a uma análise por postos.",
+  "sources": {
+   "model": "Witte & Witte (2017), p. 386–387, 390, 396–400; Welham et al. (2015), p. 127; correção C — [proposta: Kruskal & Wallis 1952]; interpretação pelas medianas — [proposta: Hollander & Wolfe 1999].",
+   "pros_cons": "Witte & Witte (2017), p. 386–387, 396–399; Welham et al. (2015), p. 127, 513; [BioStat]; [proposta: Dunn 1964].",
+   "assumptions": "Witte & Witte (2017), p. 386–387, 398, 400."
+  },
+  "symbols": [
+   "i_group",
+   "j_obs",
+   "N",
+   "H0",
+   "R_i",
+   "tau_ties",
+   "H_KW",
+   "C_ties",
+   "P"
+  ]
  }
 }

@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="pt">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Médias dos grupos com SED e LSD — BioStat</title>
+    <meta name="description" content="Médias dos tratamentos com EP, EPD e DMS após a ANOVA: ideia, fórmulas, pressupostos e como o mapa do BioStat propõe este passo." />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="canonical" href="https://biostat.app/pt/methods/treatment_means/" />
+    <link rel="alternate" hreflang="en" href="https://biostat.app/methods/treatment_means/" />
+    <link rel="alternate" hreflang="ru" href="https://biostat.app/ru/methods/treatment_means/" />
+    <link rel="alternate" hreflang="pt" href="https://biostat.app/pt/methods/treatment_means/" />
+    <link rel="alternate" hreflang="x-default" href="https://biostat.app/methods/treatment_means/" />
+    <style>body{margin:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:#18181b;background:#fafafa;line-height:1.6}main{max-width:44rem;margin:0 auto;padding:1.5rem 1rem 2rem}h1{font-size:1.6rem;margin:0.6rem 0 0.2rem}h2{font-size:1.1rem;margin:1.6rem 0 0.4rem}p{margin:0.4rem 0}a{color:#0f766e}.muted{color:#63636b;font-size:0.9rem}nav{display:flex;flex-wrap:wrap;gap:0.4rem 1rem;justify-content:space-between;align-items:center}footer{border-top:1px solid #e4e4e7;margin-top:2rem;padding-top:0.8rem;font-size:0.9rem}code{overflow-wrap:anywhere}h3{font-size:1rem;margin:1.4rem 0 0}h2[id],h3[id]{scroll-margin-top:1rem}ul{margin:0.3rem 0;padding-left:1.2rem}li{margin:0.15rem 0;overflow-wrap:anywhere}.tag{font-size:0.75rem;font-weight:400;color:#92400e;border:1px solid #f59e0b;border-radius:4px;padding:0 0.3rem;margin-left:0.4rem;white-space:nowrap}</style>
+    <link rel="stylesheet" href="/methods/assets/method.css" />
+    <script src="/back.js" defer></script>
+  </head>
+  <body>
+    <main class="mp">
+      <nav><a href="/" data-back>← Voltar ao BioStat</a><span><a href="/methods/treatment_means/" hreflang="en" lang="en">English</a> · <a href="/ru/methods/treatment_means/" hreflang="ru" lang="ru">Русский</a> · <a href="/pt/methods/treatment_means/" hreflang="pt" lang="pt" aria-current="page">Português</a></span></nav>
+<div class="wrap">
+<article>
+  <nav class="crumbs" aria-label="Navegação"><a href="/">BioStat</a> › <a href="/pt/methods/">Métodos e verificação</a> › <a href="/pt/methods/#group-several-groups">Comparação de vários grupos</a> › Médias dos grupos com SED e LSD</nav>
+  <h1>Médias dos grupos com SED e LSD</h1>
+  <p class="lead">Quais são as médias dos tratamentos e com que precisão se estima a diferença entre duas delas? O método dá as médias com EP e IC a partir da variância comum da ANOVA, o erro padrão da diferença (EPD) e a diferença mínima significativa (DMS); nas fórmulas: SED e LSD.</p>
+  <section id="idea">
+    <h2>Ideia</h2>
+    <p>Após a ANOVA, a variância dentro dos grupos é estimada com todos os dados de uma vez — é o quadrado médio residual (QMRE, <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><msub><mi>S</mi><mi>W</mi></msub></mrow><annotation encoding="application/x-tex">MS_W</annotation></semantics></math></span>; no livro, <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>s</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">s^2</annotation></semantics></math></span>) com N − t gl. É ele que se usa para cada média: EP = √(s²/n), e não o DP do próprio grupo. A estimativa é mais estável e tem mais gl do que a de um grupo isolado (Welham, p. 84–85).</p>
+    <p>Para a diferença de duas médias o erro é o EPD; é sempre maior do que o EP. O EPD multiplicado pelo quantil t é a DMS: uma diferença maior do que a DMS é significativa a 5 % <b>se for uma única comparação escolhida de antemão</b> (Welham, p. 85–88). Para muitos pares seguidos, a DMS sem correção dá demasiadas falsas descobertas (Welham, p. 195–199).</p>
+  </section>
+  <section id="model">
+    <h2>Modelo e fórmulas</h2>
+    <details class="glossary" id="symbols">
+      <summary>Todos os símbolos desta página</summary>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Símbolo</th><th>Significado</th></tr></thead>
+      <tbody>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>j</mi><mo>=</mo><mn>1</mn><mo separator="true">,</mo><mo>…</mo><mo separator="true">,</mo><msub><mi>n</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">j = 1,\dots,n_i</annotation></semantics></math></span></td><td>índice da observação no grupo, <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>n</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">n_i</annotation></semantics></math></span> — dimensão do grupo <i>i</i></td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>=</mo><mstyle scriptlevel="0" displaystyle="false"><mo>∑</mo><msub><mi>n</mi><mi>i</mi></msub></mstyle></mrow><annotation encoding="application/x-tex">N = \textstyle\sum n_i</annotation></semantics></math></span></td><td>número total de observações</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mi>S</mi><mo>=</mo><mi>S</mi><mi>S</mi><mi mathvariant="normal">/</mi><mi>d</mi><mi>f</mi></mrow><annotation encoding="application/x-tex">MS = SS/df</annotation></semantics></math></span></td><td>quadrado médio — soma de quadrados dividida pelos seus graus de liberdade</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">S</mi><mi mathvariant="normal">E</mi></mrow><annotation encoding="application/x-tex">\mathrm{SE}</annotation></semantics></math></span></td><td>erro padrão da média</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">S</mi><mi mathvariant="normal">E</mi><mi mathvariant="normal">D</mi></mrow><annotation encoding="application/x-tex">\mathrm{SED}</annotation></semantics></math></span></td><td>erro padrão da diferença entre duas médias (<i>i</i> e <i>k</i>)</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">L</mi><mi mathvariant="normal">S</mi><mi mathvariant="normal">D</mi></mrow><annotation encoding="application/x-tex">\mathrm{LSD}</annotation></semantics></math></span></td><td>diferença mínima significativa ao nível de 5 %</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>t</mi><mrow><mn>0.975</mn><mo separator="true">;</mo><mtext> </mtext><mi>N</mi><mo>−</mo><mi>t</mi></mrow></msub></mrow><annotation encoding="application/x-tex">t_{0.975;\,N-t}</annotation></semantics></math></span></td><td>quantil da distribuição t: 2.5 % à direita, <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>−</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">N-t</annotation></semantics></math></span> graus de liberdade</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi></mrow><annotation encoding="application/x-tex">P</annotation></semantics></math></span></td><td>probabilidade de uma estatística (F, t …) pelo menos tão extrema como a observada quando <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>H</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">H_0</annotation></semantics></math></span> é verdadeira</td></tr>
+</tbody>
+    </table></div>
+      <p class="note">A mesma notação em todas as páginas de métodos — <a href="/pt/methods/symbols/">glossário de símbolos</a>.</p>
+    </details>
+    <h3>Médias e os seus IC</h3>
+    <div class="math block"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mrow><mi mathvariant="normal">S</mi><mi mathvariant="normal">E</mi><mi mathvariant="normal">M</mi></mrow><mi>j</mi></msub><mo>=</mo><msqrt><mrow><msup><mi>s</mi><mn>2</mn></msup><mi mathvariant="normal">/</mi><msub><mi>n</mi><mi>j</mi></msub></mrow></msqrt><mo>=</mo><mn>3.91</mn><mo separator="true">,</mo><mspace width="2em"/><msub><mover accent="true"><mi>y</mi><mo>ˉ</mo></mover><mrow><mi>j</mi><mo>⋅</mo></mrow></msub><mo>±</mo><msub><mi>t</mi><mrow><mi>N</mi><mo>−</mo><mi>t</mi></mrow></msub><mo stretchy="false">[</mo><mn>0.025</mn><mo stretchy="false">]</mo><mo>⋅</mo><msub><mrow><mi mathvariant="normal">S</mi><mi mathvariant="normal">E</mi><mi mathvariant="normal">M</mi></mrow><mi>j</mi></msub><mo separator="true">,</mo><mspace width="2em"/><msub><mi>t</mi><mn>16</mn></msub><mo stretchy="false">[</mo><mn>0.025</mn><mo stretchy="false">]</mo><mo>=</mo><mn>2.120</mn></mrow><annotation encoding="application/x-tex">\mathrm{SEM}_j = \sqrt{s^2/n_j} = 3.91,\qquad \bar y_{j\cdot} \pm t_{N-t}[0.025]\cdot\mathrm{SEM}_j,\qquad t_{16}[0.025] = 2.120</annotation></semantics></math></span></div>
+    <p><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>s</mi><mn>2</mn></msup><mo>=</mo><mi>M</mi><msub><mi>S</mi><mi>W</mi></msub></mrow><annotation encoding="application/x-tex">s^2 = MS_W</annotation></semantics></math></span> = 76.35 com N − t = 16 gl (Welham, p. 84–85).</p>
+    <h3>EPD e DMS</h3>
+    <div class="math block"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mrow><mi mathvariant="normal">S</mi><mi mathvariant="normal">E</mi><mi mathvariant="normal">D</mi></mrow><mrow><mi>j</mi><mi>k</mi></mrow></msub><mo>=</mo><msqrt><mrow><msup><mi>s</mi><mn>2</mn></msup><mrow><mo fence="true">(</mo><mfrac><mn>1</mn><msub><mi>n</mi><mi>j</mi></msub></mfrac><mo>+</mo><mfrac><mn>1</mn><msub><mi>n</mi><mi>k</mi></msub></mfrac><mo fence="true">)</mo></mrow></mrow></msqrt><mo>=</mo><mn>5.53</mn><mo separator="true">,</mo><mspace width="2em"/><mrow><mi mathvariant="normal">L</mi><mi mathvariant="normal">S</mi><mi mathvariant="normal">D</mi></mrow><mo>=</mo><msub><mi>t</mi><mrow><mi>N</mi><mo>−</mo><mi>t</mi></mrow></msub><mo stretchy="false">[</mo><mn>0.025</mn><mo stretchy="false">]</mo><mo>⋅</mo><mrow><mi mathvariant="normal">S</mi><mi mathvariant="normal">E</mi><mi mathvariant="normal">D</mi></mrow><mo>=</mo><mn>11.72</mn></mrow><annotation encoding="application/x-tex">\mathrm{SED}_{jk} = \sqrt{s^2\left(\frac1{n_j}+\frac1{n_k}\right)} = 5.53,\qquad \mathrm{LSD} = t_{N-t}[0.025]\cdot\mathrm{SED} = 11.72</annotation></semantics></math></span></div>
+    <p>Com repetição igual, o EPD e a DMS são os mesmos para todos os pares. IC de uma diferença: <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false">(</mo><msub><mover accent="true"><mi>y</mi><mo>ˉ</mo></mover><mrow><mi>j</mi><mo>⋅</mo></mrow></msub><mo>−</mo><msub><mover accent="true"><mi>y</mi><mo>ˉ</mo></mover><mrow><mi>k</mi><mo>⋅</mo></mrow></msub><mo stretchy="false">)</mo><mo>±</mo><mrow><mi mathvariant="normal">L</mi><mi mathvariant="normal">S</mi><mi mathvariant="normal">D</mi></mrow></mrow><annotation encoding="application/x-tex">(\bar y_{j\cdot} - \bar y_{k\cdot}) \pm \mathrm{LSD}</annotation></semantics></math></span> (Welham, p. 85–88).</p>
+    <h3>No exemplo</h3>
+    <p class="note">Welham, Table 4.1: comprimento das raízes (cm) com quatro concentrações de cálcio, 5 vasos cada. Médias: A 64.2, B 75.8, C 67.2, D 45.4; EP 3.91, IC 95 % para A — 55.9…72.5. EPD 5.53, DMS 11.72. A diferença B − A = 11.6 fica ligeiramente abaixo da DMS: o IC -0.1…23.3 toca o zero, P (valor de prova) = 0.052 — como no livro. D difere de A, B e C (P: 0.004, &lt; 0.001 e 0.001) — sem correção para multiplicidade; o Tukey com os mesmos dados está na página do <a class="mlink" href="/pt/methods/#tukey_hsd" title="Abrir a descrição do método">método de Tukey</a>.</p>
+    <p class="src">Welham et al. (2015), p. 84–88.</p>
+  </section>
+  <section id="pros-cons">
+    <h2>Pontos fortes e fracos</h2>
+    <div class="cols">
+      <div class="plus">
+        <h3>Pontos fortes</h3>
+        <ul>
+      <li><b>Mais preciso do que o DP de cada grupo:</b> um só <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>s</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">s^2</annotation></semantics></math></span> com todos os dados, mais gl (Welham, p. 84–85).</li>
+      <li><b>Uma medida direta para comparar:</b> uma barra da DMS junto às médias diz mais do que ± DP de cada grupo (Welham, p. 87–88).</li>
+      <li><b>IC da diferença, não apenas P</b> (Welham, p. 85–88).</li>
+      <li><b>Admite repetição desigual:</b> cada par tem o seu EPD (Welham, p. 85–86).</li>
+    </ul>
+      </div>
+      <div class="minus">
+        <h3>Pontos fracos</h3>
+        <ul>
+      <li><b>Sem correção para multiplicidade:</b> 15 testes independentes a 5 % dão pelo menos uma falsa descoberta com probabilidade 0.54 (Welham, p. 195–196). Com três ou mais grupos o método avisa disso [BioStat].</li>
+      <li><b>A «proteção» por um F significativo não ajuda:</b> são possíveis tanto um F significativo sem pares significativos como pares significativos com um F não significativo (Welham, p. 198–199).</li>
+      <li><b>Exige variâncias homogéneas:</b> o <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>s</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">s^2</annotation></semantics></math></span> comum está errado se a dispersão dos grupos for diferente (Welham, p. 84–85).</li>
+      <li><b>Só sem blocos:</b> para um ensaio com blocos — as <a class="mlink" href="/pt/methods/#mean_comparisons" title="Abrir a descrição do método">comparações de médias</a> com coluna de blocos [BioStat].</li>
+    </ul>
+      </div>
+    </div>
+    <p class="src">Welham et al. (2015), p. 84–88, 195–199; [BioStat].</p>
+  </section>
+  <section id="assumptions">
+    <h2>Pressupostos</h2>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Pressuposto</th><th>O que significa</th><th>Como o BioStat verifica</th></tr></thead>
+      <tbody>
+<tr><td>Comparação escolhida de antemão</td><td>A DMS mantém o erro de 5 % para uma comparação planeada antes da análise (Welham, p. 86).</td><td>Não se verifica. Com três ou mais grupos o método acrescenta uma nota: todos os pares — sem correção.</td></tr>
+<tr><td>Homogeneidade de variâncias e normalidade</td><td>Como na ANOVA: um só <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>s</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">s^2</annotation></semantics></math></span> serve para todos os grupos, e os resíduos são normais.</td><td>O método verifica o mesmo que a ANOVA a um fator: Bartlett e relação entre DP e média, Shapiro–Wilk nos resíduos.</td></tr>
+<tr><td>Independência</td><td>Cada observação é uma unidade separada, sem blocos nem medidas repetidas.</td><td>Não se verifica por cálculo — é uma propriedade do delineamento.</td></tr>
+</tbody>
+    </table></div>
+    <p class="src">Welham et al. (2015), p. 84–86.</p>
+  </section>
+  <section id="map">
+    <h2>Como o mapa escolhe este método</h2>
+    <h3>Caminho até à folha</h3>
+    <div class="path" aria-label="Caminho no mapa"><span>Analisar a resposta</span>›<span>Contínua</span>›<span>Diferenças</span>›<span>Unidades independentes</span>›<span>Sem blocos ou blocos completos</span>›<span>Um fator</span>›<span>Três ou mais grupos</span>›<span>Após a ANOVA</span>›<span class="here">Médias, EPD, DMS</span></div>
+    <p>O mapa propõe o passo «Após a ANOVA» (B5) depois das folhas de comparação de vários grupos. Que comparações fazer é <b>escolha do utilizador</b>: depende da pergunta do ensaio, não dos dados (Welham, p. 201–205). Esta folha serve para a tabela de médias e uma ou duas comparações escolhidas de antemão. Com o papel «bloco», o mapa marca esta folha «sem blocos» e dá a sugestão <span class="sig">B5.4</span>: as médias, o EPD e a DMS do modelo com blocos já os dá a ANOVA com blocos, e as comparações seguem o modelo com blocos.</p>
+    <p>Sugestões do passo: <span class="sig">B5.1</span> — os níveis do fator são números (doses): uma tendência em vez de comparações par a par; <span class="sig">B5.2</span> — o fator tem um nível chamado «controlo» (ou «testemunha»): comparações com o controlo por Dunnett.</p>
+    <h3>Vizinhos no mapa: quando são preferíveis</h3>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Vizinho</th><th>Quando o mapa leva lá</th><th>Em que o vizinho é melhor aqui</th><th>O que custa</th></tr></thead>
+      <tbody>
+<tr><td><a class="mlink" href="/pt/methods/#tukey_hsd" title="Abrir a descrição do método">Pós-hoc Tukey HSD</a></td><td>interessam todos os pares</td><td>Erro ≤ 5 % para todo o conjunto de pares</td><td>Intervalos mais largos do que a DMS</td></tr>
+<tr><td><a class="mlink" href="/pt/methods/#mean_comparisons" title="Abrir a descrição do método">Comparações de médias com correção (Tukey, Dunnett, Holm, FDR)</a></td><td><span class="sig">B5.2</span> (sugestão) comparações com um controlo, ou um ensaio com blocos</td><td>Dunnett, Holm, Bonferroni, FDR; tem em conta os blocos</td><td>O procedimento tem de ser escolhido antes da análise</td></tr>
+<tr><td><a class="mlink" href="/pt/methods/#polynomial_contrasts" title="Abrir a descrição do método">Tendência polinomial entre níveis</a></td><td><span class="sig">B5.1</span> (sugestão) os níveis são doses, concentrações, datas</td><td>A forma da resposta à dose em vez de muitos pares</td><td>Precisa de níveis numéricos</td></tr>
+<tr><td><a class="mlink" href="/pt/methods/#treatment_contrasts" title="Abrir a descrição do método">Contrastes de tratamentos</a></td><td>contrastes definidos de antemão (grupo contra grupo)</td><td>Testa exatamente a pergunta do ensaio</td><td>Os contrastes têm de ser definidos antes da análise</td></tr>
+<tr><td><a class="mlink" href="/pt/methods/#scheffe_test" title="Abrir a descrição do método">Método de Scheffé (pares e contrastes complexos)</a></td><td>além dos pares, são precisos contrastes complexos</td><td>Erro ≤ 5 % para todos os contrastes, não só para os pares</td><td>Mais conservador do que Tukey para os pares (Witte, p. 314)</td></tr>
+</tbody>
+    </table></div>
+    <h3>O que o mapa verifica nesta folha</h3>
+    <ul>
+      <li><span class="sig">B5.1</span> (sugestão) Os níveis do fator são números, não códigos 1…k: podem ser doses.</li>
+      <li><span class="sig">B5.2</span> (sugestão) Há um nível chamado «controlo» (e pelo menos três níveis).</li>
+      <li><span class="sig">B5.4</span> (sugestão) Uma coluna tem o papel «bloco»: as comparações seguem o modelo com blocos.</li>
+    </ul>
+    <h3>O que vem a seguir</h3>
+    <p>Se forem precisos todos os pares — o <a class="mlink" href="/pt/methods/#tukey_hsd" title="Abrir a descrição do método">método de Tukey</a>; contra um controlo — Dunnett nas <a class="mlink" href="/pt/methods/#mean_comparisons" title="Abrir a descrição do método">comparações de médias</a>. Se o objetivo for mostrar que não há diferenças, trata-se de outra tarefa: <b><a class="mlink" href="/pt/methods/#equivalence_test" title="Abrir a descrição do método">o teste de equivalência (TOST)</a></b>; uma diferença não significativa não prova a ausência de diferenças (Welham, p. 253).</p>
+  </section>
+  <details class="check" id="sources">
+    <summary>Fontes</summary>
+    <ul>
+      <li>Testes que chamam o método: 14</li>
+      <li>Welham — verificado nos testes: Example 2.1C, Example 4.1E, Example 4.1F</li>
+      <li>Verificação independente (auditoria 2): SED, LSD, IC das médias — fórmulas</li>
+    </ul>
+  </details>
+  <p><a class="cta" href="/?method=treatment_means&amp;lang=pt">Experimentar o método na calculadora →</a></p>
+  <div class="pager"><a href="/pt/methods/kruskal_wallis/"><small>← Anterior</small>Teste de Kruskal-Wallis (não paramétrico)</a><a class="next" href="/pt/methods/anova_permutation_test/"><small>Seguinte →</small>Teste F de permutação (ANOVA)</a></div>
+</article>
+<aside class="toc" aria-label="Nesta página">
+  <b>Nesta página</b>
+  <a href="#idea">Ideia</a>
+  <a href="#model">Modelo e fórmulas</a>
+  <a href="#symbols">Notação</a>
+  <a href="#pros-cons">Pontos fortes e fracos</a>
+  <a href="#assumptions">Pressupostos</a>
+  <a href="#map">Como o mapa escolhe</a>
+  <a href="#sources">Fontes</a>
+  <a href="/?method=treatment_means&amp;lang=pt">Experimentar o método na calculadora →</a>
+  <a class="toc-back" href="/pt/methods/#treatment_means">↑ Voltar à lista de métodos</a>
+</aside>
+<a class="to-list" href="/pt/methods/#treatment_means" aria-label="Voltar à lista de métodos">↑</a>
+</div>
+      <footer><a href="/pt/privacy/">Privacidade</a> · <a href="/pt/terms/">Termos</a> · <a href="/pt/methods/">Métodos e verificação</a> · <a href="/LICENSE.txt">Licença Apache-2.0</a></footer>
+    </main>
+  </body>
+</html>

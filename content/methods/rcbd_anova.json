@@ -203,5 +203,399 @@
    "t_quant",
    "P"
   ]
+ },
+ "en": {
+  "description": "ANOVA with blocks (RCBD): randomized complete blocks — idea, formulas, assumptions, and how the BioStat map chooses this method.",
+  "lead": "Do the treatments differ when the experiment is divided into blocks — parts of a field, days, batches — and each treatment appears exactly once in every block? ANOVA with blocks removes the differences between blocks from the error, and the comparison of treatments becomes more precise.",
+  "idea": [
+   "In a heterogeneous field, the yield of a plot depends both on the treatment and on where the plot lies. In an RCBD the plots are grouped into blocks that are alike inside, and in each block every treatment gets one randomly chosen plot (Welham, p. 58). The block effect can then be estimated and removed (Welham, p. 129–132).",
+   "The sum of squares splits into three parts: blocks, treatments and residual. Treatments and blocks are orthogonal, so the treatment means do not depend on the block effects (Welham, p. 134–139). The block is a structural factor: its F shows how much the blocks differed, while the question of the experiment is about the treatments."
+  ],
+  "formulas": [
+   {
+    "text_before": "Treatment *i* in block *j* (each pair is one plot; *t* treatments, *b* blocks):",
+    "tex": "y_{ij} = \\mu + \\tau_i + \\beta_j + \\varepsilon_{ij},\\qquad \\varepsilon_{ij} \\sim N(0,\\sigma^2)\\ \\text{independently}"
+   },
+   {
+    "title": "Partition and the treatment F",
+    "tex": "SS_{\\text{total}} = SS_{\\text{blocks}} + SS_{\\text{treatments}} + SS_{\\text{residual}},\\qquad F = \\frac{MS_{\\text{treatments}}}{MS_{\\text{residual}}} = ⟦F:.2f⟧,\\qquad df = (⟦df_treatment⟧;\\ ⟦df_resid⟧),\\qquad P ⟦p:rel⟧",
+    "text_after": "Degrees of freedom: $bt-1 = (b-1) + (t-1) + (b-1)(t-1)$ (Welham, p. 134–139)."
+   },
+   {
+    "title": "SED and LSD",
+    "tex": "\\mathrm{SED} = \\sqrt{2\\,MS_{\\text{residual}}/b} = ⟦sed:.2f⟧,\\qquad \\mathrm{LSD} = t_{(b-1)(t-1)}[0.025]\\cdot \\mathrm{SED} = ⟦lsd:.2f⟧",
+    "text_after": "Each treatment mean is based on *b* plots (Welham, p. 140–141)."
+   }
+  ],
+  "example_table": {
+   "labels": {
+    "Block": "Blocks",
+    "Treatment": "Treatments (fungicide)",
+    "Residual": "Residual",
+    "Total": "Total"
+   },
+   "format": {
+    "ss": ".1f",
+    "ms": ".1f",
+    "F": ".3f"
+   },
+   "note": "Welham, Table 7.1: potato yield, ⟦t⟧ treatments (control and 4 fungicides) in ⟦n_blocks⟧ blocks (map scenario S13). Means: control ⟦mean_Control:.1f⟧, F1 ⟦mean_F1:.1f⟧, F2 ⟦mean_F2:.1f⟧, F3 ⟦mean_F3:.1f⟧, F4 ⟦mean_F4:.1f⟧; SED ⟦sed:.2f⟧, LSD (5 %) ⟦lsd:.2f⟧. The blocks in this field differed little: F = ⟦F_block:.2f⟧, P = ⟦p_block:.3f⟧ (the book prints 0.283). One plot out of ⟦N⟧ has |standardized residual| > 2 — a note from the method; with normal residuals this is expected for 5 % of plots. The map gives `B1.2`, and also the hints `B2.4` (there is a control) and `B5.2` (comparisons with the control by Dunnett)."
+  },
+  "pros": [
+   "**More precise with heterogeneous units:** the differences between blocks leave the error (Welham, p. 57–58, 134–139). Witte shows the same principle for repeated measures: accounting for subjects raised F from 7.36 to 27 on the same numbers (p. 331–332). But those are repeated measures, not blocks, with their own conditions: the order of conditions and carry-over (p. 325), sphericity (p. 336).",
+   "**Treatment means do not depend on the blocks:** the design is orthogonal, and the ANOVA table does not depend on the order of the terms (Welham, p. 134–139).",
+   "**Everything for comparisons:** means with CIs, SEM, SED, LSD (Welham, p. 140–141).",
+   "**Transforming the response — in the same form** (log, √, logit): means and CIs on the original scale, for log — ratios [BioStat].",
+   "**Blocks also work in observational studies** — for example, pairs of fields on several farms (Welham, p. 129–132)."
+  ],
+  "cons": [
+   "**A complete design is required:** each treatment exactly once in every block. A missing value, a duplicate or an incomplete block — BioStat stops with an error (Welham, p. 58) [BioStat].",
+   "**The block × treatment interaction cannot be separated from the error:** if the treatments respond differently to whatever distinguishes the blocks, an RCBD is inappropriate (Welham, p. 131, 139).",
+   "**Several measurements of one plot are not replicates:** they are analyzed by [ANOVA with subsampling](method:rcbd_subsampling_anova); otherwise the residual is too small and the df are inflated (Welham, p. 141–146).",
+   "**The method's pairwise comparisons have no multiplicity adjustment** (LSD) [BioStat]."
+  ],
+  "assumptions": [
+   {
+    "name": "Randomization within blocks",
+    "meaning": "In each block the treatments are assigned to plots at random, independently of the other blocks (Welham, p. 58).",
+    "biostat": "Not checked by calculation — it is a property of the design."
+   },
+   {
+    "name": "Additivity of blocks and treatments",
+    "meaning": "The differences between treatments are the same in all blocks (Welham, p. 131).",
+    "biostat": "Not checked: with one plot per treatment in a block, the interaction cannot be separated from the residual."
+   },
+   {
+    "name": "Normality and homogeneity of residuals",
+    "meaning": "The residuals of the model “treatment + block” are normal, and their spread is the same for all treatments.",
+    "biostat": "The method draws residual plots (Welham, p. 137). The map checks normality and homogeneity of variances on the residuals of the same model “treatment + block” [BioStat]."
+   },
+   {
+    "name": "No gross recording errors",
+    "meaning": "A single plot does not distort the means and the residual.",
+    "biostat": "Plots with |standardized residual| > 2 — a note: check against the original records, do not remove without a found cause (Welham, p. 109)."
+   }
+  ],
+  "map_intro": [
+   "The map leads here with signal `B1.2`: a column has the role “block”, and each treatment occurs in each block exactly once (Welham, p. 58). If the file has a column that looks like blocks but has no role, the hint `B1.8` appears: an analysis without that column is wrong.",
+   "Other block structures lead to neighboring leaves: several rows in a block × treatment cell — `B1.3`, incomplete blocks — `B1.4`, rows and columns — `B1.5`, unequal replication or empty cells — `B1.7`.",
+   "In a complete block experiment the assumption checks lead here or to Friedman: SDs grow with the means or residuals are skewed (`B4.3`, `B4.4`) — this same ANOVA with the “Transformation” parameter; variances are heterogeneous without a link to the means (`B4.5`) — a hint on this leaf: there is no Welch analogue with blocks; residuals are non-normal with homogeneous variances, or the response is a score (`B4.6`, `B4.8`) — a hint towards the Friedman test. With blocks of another structure these checks stay silent — the `B1` signals lead."
+  ],
+  "neighbours": [
+   {
+    "method": "one_way_anova",
+    "signals": [],
+    "when": "no blocks — a completely randomized experiment",
+    "advantage": "More residual df: N − t instead of (b − 1)(t − 1)",
+    "cost": "The differences between blocks remain in the error"
+   },
+   {
+    "method": "rcbd_subsampling_anova",
+    "signals": [
+     "B1.3"
+    ],
+    "when": "each block × treatment cell has several rows — measurements of one plot",
+    "advantage": "Treatments are tested against the variation between plots, as they should be",
+    "cost": "Needs a plot column and the same number of measurements"
+   },
+   {
+    "method": "bibd_anova",
+    "signals": [
+     "B1.4"
+    ],
+    "when": "a block is smaller than the number of treatments, and each pair of treatments occurs together equally often",
+    "advantage": "Many treatments with small homogeneous blocks",
+    "cost": "Means are adjusted for blocks; precision is lower"
+   },
+   {
+    "method": "latin_square_anova",
+    "signals": [
+     "B1.5"
+    ],
+    "when": "each treatment exactly once in every row and every column",
+    "advantage": "Removes heterogeneity in two directions",
+    "cost": "Rows, columns and treatments must be equal in number"
+   },
+   {
+    "method": "mixed_model",
+    "signals": [
+     "B1.7"
+    ],
+    "when": "unequal replication or empty block × treatment cells",
+    "advantage": "Works with incomplete data",
+    "cost": "REML estimates, approximate df"
+   },
+   {
+    "method": "friedman",
+    "signals": [
+     "B4.6#blocks",
+     "B4.8#blocks"
+    ],
+    "when": "residuals are non-normal with homogeneous variances, or the response is a score",
+    "advantage": "A rank test that accounts for blocks: the block is the “subject”",
+    "cost": "Compares distributions, not means; no SED and LSD"
+   }
+  ],
+  "checks": [
+   {
+    "signals": [
+     "B1.2"
+    ],
+    "text": "Each treatment exactly once in every block — a complete design."
+   },
+   {
+    "signals": [
+     "B1.8"
+    ],
+    "text": "A column without a role, in each level of which every treatment occurs at most once — it looks like blocks."
+   },
+   {
+    "signals": [
+     "B1.3",
+     "B1.7"
+    ],
+    "text": "Several rows in a block × treatment cell (subsamples) or unequal replication — another leaf."
+   },
+   {
+    "signals": [
+     "B4.1",
+     "B4.2"
+    ],
+    "text": "Normality and homogeneity of variances — on the residuals of the model “treatment + block” [BioStat]."
+   },
+   {
+    "signals": [
+     "B4.3",
+     "B4.4",
+     "B4.5#blocks"
+    ],
+    "text": "SDs grow with the means or residuals are skewed — the same ANOVA with blocks with the “Transformation” parameter; variances are heterogeneous without a link to the means — a hint: there is no Welch analogue with blocks, P and SED are approximate."
+   },
+   {
+    "signals": [
+     "DIAG.1"
+    ],
+    "text": "**Outlier first** (Welham, p. 109–110)."
+   }
+  ],
+  "next": "A significant F says that the treatments differ; the method itself gives all pairs without an adjustment (LSD). For comparisons with an adjustment — Tukey, or Dunnett against a control — the [comparisons of means](method:mean_comparisons) of the “After ANOVA” step with the same block column [BioStat].",
+  "sources": {
+   "model": "Welham et al. (2015), p. 58, 129–141; Witte & Witte (2017), p. 331–332 (the same principle for repeated measures).",
+   "pros_cons": "Welham et al. (2015), p. 57–58, 129–146; Witte & Witte (2017), p. 325, 331–332, 336; [BioStat].",
+   "assumptions": "Welham et al. (2015), p. 58, 109, 131, 137."
+  },
+  "symbols": [
+   "y_ij_block",
+   "i_group",
+   "j_block",
+   "mu",
+   "tau_i",
+   "beta_j",
+   "eps_ij",
+   "sigma2",
+   "SS",
+   "MS",
+   "SED",
+   "LSD",
+   "t_quant",
+   "P"
+  ]
+ },
+ "pt": {
+  "description": "ANOVA com blocos (RCBD): blocos completos casualizados — ideia, fórmulas, pressupostos e como o mapa do BioStat escolhe este método.",
+  "lead": "Os tratamentos diferem quando o ensaio está dividido em blocos — zonas do campo, dias, lotes — e cada tratamento aparece exatamente uma vez em cada bloco? A ANOVA com blocos retira do erro as diferenças entre blocos, e a comparação dos tratamentos fica mais precisa.",
+  "idea": [
+   "Num campo heterogéneo, a produção de uma parcela depende do tratamento e do sítio onde a parcela está. No delineamento em blocos completos casualizados, as parcelas agrupam-se em blocos homogéneos por dentro, e em cada bloco cada tratamento recebe uma parcela escolhida ao acaso (Welham, p. 58). O efeito de bloco pode então ser estimado e retirado (Welham, p. 129–132).",
+   "A soma de quadrados divide-se em três partes: blocos, tratamentos e resíduo. Tratamentos e blocos são ortogonais, por isso as médias dos tratamentos não dependem dos efeitos de bloco (Welham, p. 134–139). O bloco é um fator estrutural: o seu F mostra quanto os blocos diferiam, enquanto a pergunta do ensaio é sobre os tratamentos."
+  ],
+  "formulas": [
+   {
+    "text_before": "Tratamento *i* no bloco *j* (cada par é uma parcela; *t* tratamentos, *b* blocos):",
+    "tex": "y_{ij} = \\mu + \\tau_i + \\beta_j + \\varepsilon_{ij},\\qquad \\varepsilon_{ij} \\sim N(0,\\sigma^2)\\ \\text{independentes}"
+   },
+   {
+    "title": "Decomposição e F dos tratamentos",
+    "tex": "SS_{\\text{total}} = SS_{\\text{blocos}} + SS_{\\text{tratamentos}} + SS_{\\text{resíduo}},\\qquad F = \\frac{MS_{\\text{tratamentos}}}{MS_{\\text{resíduo}}} = ⟦F:.2f⟧,\\qquad df = (⟦df_treatment⟧;\\ ⟦df_resid⟧),\\qquad P ⟦p:rel⟧",
+    "text_after": "Graus de liberdade: $bt-1 = (b-1) + (t-1) + (b-1)(t-1)$ (Welham, p. 134–139)."
+   },
+   {
+    "title": "EPD e DMS",
+    "tex": "\\mathrm{SED} = \\sqrt{2\\,MS_{\\text{resíduo}}/b} = ⟦sed:.2f⟧,\\qquad \\mathrm{LSD} = t_{(b-1)(t-1)}[0.025]\\cdot \\mathrm{SED} = ⟦lsd:.2f⟧",
+    "text_after": "Cada média de tratamento assenta em *b* parcelas; nas fórmulas, o EPD e a DMS escrevem-se SED e LSD (Welham, p. 140–141)."
+   }
+  ],
+  "example_table": {
+   "labels": {
+    "Block": "Blocos",
+    "Treatment": "Tratamentos (fungicida)",
+    "Residual": "Resíduo",
+    "Total": "Total"
+   },
+   "format": {
+    "ss": ".1f",
+    "ms": ".1f",
+    "F": ".3f"
+   },
+   "note": "Welham, Table 7.1: produção de batata, ⟦t⟧ tratamentos — controlo (testemunha) e 4 fungicidas — em ⟦n_blocks⟧ blocos (cenário S13 do mapa). Médias: controlo ⟦mean_Control:.1f⟧, F1 ⟦mean_F1:.1f⟧, F2 ⟦mean_F2:.1f⟧, F3 ⟦mean_F3:.1f⟧, F4 ⟦mean_F4:.1f⟧; EPD ⟦sed:.2f⟧, DMS (5 %) ⟦lsd:.2f⟧. Os blocos deste campo diferiam pouco: F = ⟦F_block:.2f⟧, P (valor de prova) = ⟦p_block:.3f⟧ (o livro imprime 0.283). Uma parcela em ⟦N⟧ tem |resíduo estandardizado| > 2 — uma nota do método; com resíduos normais isso espera-se em 5 % das parcelas. O mapa dá `B1.2` e ainda as sugestões `B2.4` (há um controlo) e `B5.2` (comparações com o controlo por Dunnett)."
+  },
+  "pros": [
+   "**Mais preciso com unidades heterogéneas:** as diferenças entre blocos saem do erro (Welham, p. 57–58, 134–139). Witte mostra o mesmo princípio para medidas repetidas: ter em conta os sujeitos subiu o F de 7.36 para 27 com os mesmos números (p. 331–332). Mas trata-se de medidas repetidas, não de blocos, com condições próprias: a ordem das condições e o efeito residual (p. 325), a esfericidade (p. 336).",
+   "**As médias dos tratamentos não dependem dos blocos:** o delineamento é ortogonal, e a tabela da ANOVA não depende da ordem dos termos (Welham, p. 134–139).",
+   "**Tudo para as comparações:** médias com IC, EP, EPD, DMS (Welham, p. 140–141).",
+   "**Transformação da resposta — no mesmo formulário** (log, √, logit): médias e IC na escala original, para log — razões [BioStat].",
+   "**Os blocos servem também em estudos observacionais** — por exemplo, pares de campos em várias explorações (Welham, p. 129–132)."
+  ],
+  "cons": [
+   "**Exige um delineamento completo:** cada tratamento exatamente uma vez em cada bloco. Uma falta, uma repetição a mais ou um bloco incompleto — o BioStat para com um erro (Welham, p. 58) [BioStat].",
+   "**A interação bloco × tratamento não se separa do erro:** se os tratamentos reagem de forma diferente àquilo que distingue os blocos, o RCBD não é adequado (Welham, p. 131, 139).",
+   "**Várias medições da mesma parcela não são repetições:** analisa-as a [ANOVA com subamostras](method:rcbd_subsampling_anova); caso contrário o resíduo fica subestimado e os gl inflacionados (Welham, p. 141–146).",
+   "**As comparações par a par do método não têm correção para multiplicidade** (DMS) [BioStat]."
+  ],
+  "assumptions": [
+   {
+    "name": "Casualização dentro dos blocos",
+    "meaning": "Em cada bloco os tratamentos são atribuídos às parcelas ao acaso, independentemente dos outros blocos (Welham, p. 58).",
+    "biostat": "Não se verifica por cálculo — é uma propriedade do delineamento."
+   },
+   {
+    "name": "Aditividade de blocos e tratamentos",
+    "meaning": "As diferenças entre tratamentos são iguais em todos os blocos (Welham, p. 131).",
+    "biostat": "Não se verifica: com uma parcela por tratamento em cada bloco, a interação não se separa do resíduo."
+   },
+   {
+    "name": "Normalidade e homogeneidade dos resíduos",
+    "meaning": "Os resíduos do modelo «tratamento + bloco» são normais e têm a mesma dispersão em todos os tratamentos.",
+    "biostat": "O método desenha gráficos dos resíduos (Welham, p. 137). O mapa verifica a normalidade e a homogeneidade de variâncias nos resíduos do mesmo modelo «tratamento + bloco» [BioStat]."
+   },
+   {
+    "name": "Sem erros grosseiros de registo",
+    "meaning": "Uma parcela isolada não distorce as médias nem o resíduo.",
+    "biostat": "Parcelas com |resíduo estandardizado| > 2 — uma nota: verificar nos registos originais, não retirar sem causa encontrada (Welham, p. 109)."
+   }
+  ],
+  "map_intro": [
+   "O mapa conduz a esta folha com o sinal `B1.2`: uma coluna tem o papel «bloco», e cada tratamento aparece em cada bloco exatamente uma vez (Welham, p. 58). Se o ficheiro tiver uma coluna que parece blocos mas sem papel, surge a sugestão `B1.8`: uma análise sem essa coluna está errada.",
+   "Outras estruturas de blocos levam a folhas vizinhas: várias linhas numa célula bloco × tratamento — `B1.3`, blocos incompletos — `B1.4`, linhas e colunas — `B1.5`, repetição desigual ou células vazias — `B1.7`.",
+   "Num ensaio em blocos completos, as verificações dos pressupostos levam aqui ou a Friedman: os DP crescem com as médias ou os resíduos são assimétricos (`B4.3`, `B4.4`) — esta mesma ANOVA com o parâmetro «Transformação»; variâncias heterogéneas sem relação com as médias (`B4.5`) — uma sugestão nesta folha: não há análogo de Welch com blocos; resíduos não normais com variâncias homogéneas, ou resposta em pontuações (`B4.6`, `B4.8`) — uma sugestão para o teste de Friedman. Com blocos de outra estrutura estas verificações ficam em silêncio — conduzem os sinais `B1`."
+  ],
+  "neighbours": [
+   {
+    "method": "one_way_anova",
+    "signals": [],
+    "when": "sem blocos — ensaio totalmente casualizado",
+    "advantage": "Mais gl do resíduo: N − t em vez de (b − 1)(t − 1)",
+    "cost": "As diferenças entre blocos ficam no erro"
+   },
+   {
+    "method": "rcbd_subsampling_anova",
+    "signals": [
+     "B1.3"
+    ],
+    "when": "cada célula bloco × tratamento tem várias linhas — medições da mesma parcela",
+    "advantage": "Os tratamentos testam-se contra a variação entre parcelas, como deve ser",
+    "cost": "Precisa de uma coluna de parcela e do mesmo número de medições"
+   },
+   {
+    "method": "bibd_anova",
+    "signals": [
+     "B1.4"
+    ],
+    "when": "o bloco é menor do que o número de tratamentos, e cada par de tratamentos aparece junto igual número de vezes",
+    "advantage": "Muitos tratamentos com blocos pequenos e homogéneos",
+    "cost": "As médias ajustam-se aos blocos; a precisão é menor"
+   },
+   {
+    "method": "latin_square_anova",
+    "signals": [
+     "B1.5"
+    ],
+    "when": "cada tratamento exatamente uma vez em cada linha e em cada coluna",
+    "advantage": "Retira a heterogeneidade em duas direções",
+    "cost": "Linhas, colunas e tratamentos têm de ser em igual número"
+   },
+   {
+    "method": "mixed_model",
+    "signals": [
+     "B1.7"
+    ],
+    "when": "repetição desigual ou células bloco × tratamento vazias",
+    "advantage": "Funciona com dados incompletos",
+    "cost": "Estimativas REML, gl aproximados"
+   },
+   {
+    "method": "friedman",
+    "signals": [
+     "B4.6#blocks",
+     "B4.8#blocks"
+    ],
+    "when": "resíduos não normais com variâncias homogéneas, ou resposta em pontuações",
+    "advantage": "Teste de postos que tem em conta os blocos: o bloco é o «sujeito»",
+    "cost": "Compara distribuições, não médias; sem EPD e DMS"
+   }
+  ],
+  "checks": [
+   {
+    "signals": [
+     "B1.2"
+    ],
+    "text": "Cada tratamento exatamente uma vez em cada bloco — delineamento completo."
+   },
+   {
+    "signals": [
+     "B1.8"
+    ],
+    "text": "Coluna sem papel em cujos níveis cada tratamento aparece no máximo uma vez — parece blocos."
+   },
+   {
+    "signals": [
+     "B1.3",
+     "B1.7"
+    ],
+    "text": "Várias linhas numa célula bloco × tratamento (subamostras) ou repetição desigual — outra folha."
+   },
+   {
+    "signals": [
+     "B4.1",
+     "B4.2"
+    ],
+    "text": "Normalidade e homogeneidade de variâncias — nos resíduos do modelo «tratamento + bloco» [BioStat]."
+   },
+   {
+    "signals": [
+     "B4.3",
+     "B4.4",
+     "B4.5#blocks"
+    ],
+    "text": "Os DP crescem com as médias ou os resíduos são assimétricos — a mesma ANOVA com blocos com o parâmetro «Transformação»; variâncias heterogéneas sem relação com as médias — uma sugestão: não há análogo de Welch com blocos, o P e o EPD são aproximados."
+   },
+   {
+    "signals": [
+     "DIAG.1"
+    ],
+    "text": "**Observação atípica primeiro** (Welham, p. 109–110)."
+   }
+  ],
+  "next": "Um F significativo diz que os tratamentos diferem; o próprio método dá todos os pares sem correção (DMS). Para comparações com correção — Tukey, ou Dunnett contra o controlo — as [comparações de médias](method:mean_comparisons) do passo «Após a ANOVA», com a mesma coluna de blocos [BioStat].",
+  "sources": {
+   "model": "Welham et al. (2015), p. 58, 129–141; Witte & Witte (2017), p. 331–332 (o mesmo princípio para medidas repetidas).",
+   "pros_cons": "Welham et al. (2015), p. 57–58, 129–146; Witte & Witte (2017), p. 325, 331–332, 336; [BioStat].",
+   "assumptions": "Welham et al. (2015), p. 58, 109, 131, 137."
+  },
+  "symbols": [
+   "y_ij_block",
+   "i_group",
+   "j_block",
+   "mu",
+   "tau_i",
+   "beta_j",
+   "eps_ij",
+   "sigma2",
+   "SS",
+   "MS",
+   "SED",
+   "LSD",
+   "t_quant",
+   "P"
+  ]
  }
 }

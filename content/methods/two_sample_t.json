@@ -414,7 +414,7 @@
   "assumptions": [
    {
     "name": "Independência",
-    "meaning": "Cada observação é uma unidade separada: os grupos têm unidades diferentes, sem pares nem medições repetidas.",
+    "meaning": "Cada observação é uma unidade separada: os grupos têm unidades diferentes, sem pares nem medidas repetidas.",
     "biostat": "Não se verifica por cálculo — é uma propriedade do delineamento. O mapa pergunta pela estrutura antes deste passo e dá uma sugestão (`B0.2`) se duas colunas numéricas parecerem duas medições das mesmas unidades."
    },
    {

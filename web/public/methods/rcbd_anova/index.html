@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Randomized block ANOVA (RCBD) — BioStat</title>
+    <meta name="description" content="ANOVA with blocks (RCBD): randomized complete blocks — idea, formulas, assumptions, and how the BioStat map chooses this method." />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="canonical" href="https://biostat.app/methods/rcbd_anova/" />
+    <link rel="alternate" hreflang="en" href="https://biostat.app/methods/rcbd_anova/" />
+    <link rel="alternate" hreflang="ru" href="https://biostat.app/ru/methods/rcbd_anova/" />
+    <link rel="alternate" hreflang="pt" href="https://biostat.app/pt/methods/rcbd_anova/" />
+    <link rel="alternate" hreflang="x-default" href="https://biostat.app/methods/rcbd_anova/" />
+    <style>body{margin:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:#18181b;background:#fafafa;line-height:1.6}main{max-width:44rem;margin:0 auto;padding:1.5rem 1rem 2rem}h1{font-size:1.6rem;margin:0.6rem 0 0.2rem}h2{font-size:1.1rem;margin:1.6rem 0 0.4rem}p{margin:0.4rem 0}a{color:#0f766e}.muted{color:#63636b;font-size:0.9rem}nav{display:flex;flex-wrap:wrap;gap:0.4rem 1rem;justify-content:space-between;align-items:center}footer{border-top:1px solid #e4e4e7;margin-top:2rem;padding-top:0.8rem;font-size:0.9rem}code{overflow-wrap:anywhere}h3{font-size:1rem;margin:1.4rem 0 0}h2[id],h3[id]{scroll-margin-top:1rem}ul{margin:0.3rem 0;padding-left:1.2rem}li{margin:0.15rem 0;overflow-wrap:anywhere}.tag{font-size:0.75rem;font-weight:400;color:#92400e;border:1px solid #f59e0b;border-radius:4px;padding:0 0.3rem;margin-left:0.4rem;white-space:nowrap}</style>
+    <link rel="stylesheet" href="/methods/assets/method.css" />
+    <script src="/back.js" defer></script>
+  </head>
+  <body>
+    <main class="mp">
+      <nav><a href="/" data-back>← Back to BioStat</a><span><a href="/methods/rcbd_anova/" hreflang="en" lang="en" aria-current="page">English</a> · <a href="/ru/methods/rcbd_anova/" hreflang="ru" lang="ru">Русский</a> · <a href="/pt/methods/rcbd_anova/" hreflang="pt" lang="pt">Português</a></span></nav>
+<div class="wrap">
+<article>
+  <nav class="crumbs" aria-label="Breadcrumbs"><a href="/">BioStat</a> › <a href="/methods/">Methods and validation</a> › <a href="/methods/#group-several-groups">Multi-group comparison</a> › Randomized block ANOVA (RCBD)</nav>
+  <h1>Randomized block ANOVA (RCBD)</h1>
+  <p class="lead">Do the treatments differ when the experiment is divided into blocks — parts of a field, days, batches — and each treatment appears exactly once in every block? ANOVA with blocks removes the differences between blocks from the error, and the comparison of treatments becomes more precise.</p>
+  <section id="idea">
+    <h2>Idea</h2>
+    <p>In a heterogeneous field, the yield of a plot depends both on the treatment and on where the plot lies. In an RCBD the plots are grouped into blocks that are alike inside, and in each block every treatment gets one randomly chosen plot (Welham, p. 58). The block effect can then be estimated and removed (Welham, p. 129–132).</p>
+    <p>The sum of squares splits into three parts: blocks, treatments and residual. Treatments and blocks are orthogonal, so the treatment means do not depend on the block effects (Welham, p. 134–139). The block is a structural factor: its F shows how much the blocks differed, while the question of the experiment is about the treatments.</p>
+  </section>
+  <section id="model">
+    <h2>Model and formulas</h2>
+    <details class="glossary" id="symbols">
+      <summary>All symbols on this page</summary>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Symbol</th><th>Meaning</th></tr></thead>
+      <tbody>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub></mrow><annotation encoding="application/x-tex">y_{ij}</annotation></semantics></math></span></td><td>response value of treatment <i>i</i> in block <i>j</i></td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi><mo>=</mo><mn>1</mn><mo separator="true">,</mo><mo>…</mo><mo separator="true">,</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">i = 1,\dots,t</annotation></semantics></math></span></td><td>group (treatment) index, <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi></mrow><annotation encoding="application/x-tex">t</annotation></semantics></math></span> — number of groups</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>j</mi><mo>=</mo><mn>1</mn><mo separator="true">,</mo><mo>…</mo><mo separator="true">,</mo><mi>b</mi></mrow><annotation encoding="application/x-tex">j = 1,\dots,b</annotation></semantics></math></span></td><td>block index, <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi></mrow><annotation encoding="application/x-tex">b</annotation></semantics></math></span> — number of blocks</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi></mrow><annotation encoding="application/x-tex">\mu</annotation></semantics></math></span></td><td>overall mean (in the population)</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>τ</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">\tau_i</annotation></semantics></math></span></td><td>effect of group <i>i</i>: deviation of its mean from <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi></mrow><annotation encoding="application/x-tex">\mu</annotation></semantics></math></span></td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>β</mi><mi>j</mi></msub></mrow><annotation encoding="application/x-tex">\beta_j</annotation></semantics></math></span></td><td>effect of block <i>j</i></td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ε</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub></mrow><annotation encoding="application/x-tex">\varepsilon_{ij}</annotation></semantics></math></span></td><td>random error of the observation</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>σ</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">\sigma^2</annotation></semantics></math></span></td><td>error variance, the same for all groups</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi><msub><mi>S</mi><mi>T</mi></msub><mo separator="true">,</mo><mtext> </mtext><mi>S</mi><msub><mi>S</mi><mi>B</mi></msub><mo separator="true">,</mo><mtext> </mtext><mi>S</mi><msub><mi>S</mi><mi>W</mi></msub></mrow><annotation encoding="application/x-tex">SS_T,\ SS_B,\ SS_W</annotation></semantics></math></span></td><td>sums of squares: total, between groups, within groups</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mi>S</mi><mo>=</mo><mi>S</mi><mi>S</mi><mi mathvariant="normal">/</mi><mi>d</mi><mi>f</mi></mrow><annotation encoding="application/x-tex">MS = SS/df</annotation></semantics></math></span></td><td>mean square — a sum of squares divided by its degrees of freedom</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">S</mi><mi mathvariant="normal">E</mi><mi mathvariant="normal">D</mi></mrow><annotation encoding="application/x-tex">\mathrm{SED}</annotation></semantics></math></span></td><td>standard error of the difference between two means (<i>i</i> and <i>k</i>)</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">L</mi><mi mathvariant="normal">S</mi><mi mathvariant="normal">D</mi></mrow><annotation encoding="application/x-tex">\mathrm{LSD}</annotation></semantics></math></span></td><td>least significant difference at the 5 % level</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>t</mi><mrow><mn>0.975</mn><mo separator="true">;</mo><mtext> </mtext><mi>N</mi><mo>−</mo><mi>t</mi></mrow></msub></mrow><annotation encoding="application/x-tex">t_{0.975;\,N-t}</annotation></semantics></math></span></td><td>quantile of the t distribution: 2.5 % to the right, <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>−</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">N-t</annotation></semantics></math></span> degrees of freedom</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi></mrow><annotation encoding="application/x-tex">P</annotation></semantics></math></span></td><td>probability of a test statistic (F, t …) at least as extreme as the observed one when <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>H</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">H_0</annotation></semantics></math></span> is true</td></tr>
+</tbody>
+    </table></div>
+      <p class="note">The same notation is used on every method page — <a href="/methods/symbols/">symbol glossary</a>.</p>
+    </details>
+    <p>Treatment <i>i</i> in block <i>j</i> (each pair is one plot; <i>t</i> treatments, <i>b</i> blocks):</p>
+    <div class="math block"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>y</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>=</mo><mi>μ</mi><mo>+</mo><msub><mi>τ</mi><mi>i</mi></msub><mo>+</mo><msub><mi>β</mi><mi>j</mi></msub><mo>+</mo><msub><mi>ε</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo separator="true">,</mo><mspace width="2em"/><msub><mi>ε</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>∼</mo><mi>N</mi><mo stretchy="false">(</mo><mn>0</mn><mo separator="true">,</mo><msup><mi>σ</mi><mn>2</mn></msup><mo stretchy="false">)</mo><mtext> independently</mtext></mrow><annotation encoding="application/x-tex">y_{ij} = \mu + \tau_i + \beta_j + \varepsilon_{ij},\qquad \varepsilon_{ij} \sim N(0,\sigma^2)\ \text{independently}</annotation></semantics></math></span></div>
+    <h3>Partition and the treatment F</h3>
+    <div class="math block"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>S</mi><msub><mi>S</mi><mtext>total</mtext></msub><mo>=</mo><mi>S</mi><msub><mi>S</mi><mtext>blocks</mtext></msub><mo>+</mo><mi>S</mi><msub><mi>S</mi><mtext>treatments</mtext></msub><mo>+</mo><mi>S</mi><msub><mi>S</mi><mtext>residual</mtext></msub><mo separator="true">,</mo><mspace width="2em"/><mi>F</mi><mo>=</mo><mfrac><mrow><mi>M</mi><msub><mi>S</mi><mtext>treatments</mtext></msub></mrow><mrow><mi>M</mi><msub><mi>S</mi><mtext>residual</mtext></msub></mrow></mfrac><mo>=</mo><mn>9.58</mn><mo separator="true">,</mo><mspace width="2em"/><mi>d</mi><mi>f</mi><mo>=</mo><mo stretchy="false">(</mo><mn>4</mn><mo separator="true">;</mo><mtext> </mtext><mn>12</mn><mo stretchy="false">)</mo><mo separator="true">,</mo><mspace width="2em"/><mi>P</mi><mo>=</mo><mn>0.001</mn></mrow><annotation encoding="application/x-tex">SS_{\text{total}} = SS_{\text{blocks}} + SS_{\text{treatments}} + SS_{\text{residual}},\qquad F = \frac{MS_{\text{treatments}}}{MS_{\text{residual}}} = 9.58,\qquad df = (4;\ 12),\qquad P = 0.001</annotation></semantics></math></span></div>
+    <p>Degrees of freedom: <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi><mi>t</mi><mo>−</mo><mn>1</mn><mo>=</mo><mo stretchy="false">(</mo><mi>b</mi><mo>−</mo><mn>1</mn><mo stretchy="false">)</mo><mo>+</mo><mo stretchy="false">(</mo><mi>t</mi><mo>−</mo><mn>1</mn><mo stretchy="false">)</mo><mo>+</mo><mo stretchy="false">(</mo><mi>b</mi><mo>−</mo><mn>1</mn><mo stretchy="false">)</mo><mo stretchy="false">(</mo><mi>t</mi><mo>−</mo><mn>1</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">bt-1 = (b-1) + (t-1) + (b-1)(t-1)</annotation></semantics></math></span> (Welham, p. 134–139).</p>
+    <h3>SED and LSD</h3>
+    <div class="math block"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mrow><mi mathvariant="normal">S</mi><mi mathvariant="normal">E</mi><mi mathvariant="normal">D</mi></mrow><mo>=</mo><msqrt><mrow><mn>2</mn><mtext> </mtext><mi>M</mi><msub><mi>S</mi><mtext>residual</mtext></msub><mi mathvariant="normal">/</mi><mi>b</mi></mrow></msqrt><mo>=</mo><mn>41.73</mn><mo separator="true">,</mo><mspace width="2em"/><mrow><mi mathvariant="normal">L</mi><mi mathvariant="normal">S</mi><mi mathvariant="normal">D</mi></mrow><mo>=</mo><msub><mi>t</mi><mrow><mo stretchy="false">(</mo><mi>b</mi><mo>−</mo><mn>1</mn><mo stretchy="false">)</mo><mo stretchy="false">(</mo><mi>t</mi><mo>−</mo><mn>1</mn><mo stretchy="false">)</mo></mrow></msub><mo stretchy="false">[</mo><mn>0.025</mn><mo stretchy="false">]</mo><mo>⋅</mo><mrow><mi mathvariant="normal">S</mi><mi mathvariant="normal">E</mi><mi mathvariant="normal">D</mi></mrow><mo>=</mo><mn>90.93</mn></mrow><annotation encoding="application/x-tex">\mathrm{SED} = \sqrt{2\,MS_{\text{residual}}/b} = 41.73,\qquad \mathrm{LSD} = t_{(b-1)(t-1)}[0.025]\cdot \mathrm{SED} = 90.93</annotation></semantics></math></span></div>
+    <p>Each treatment mean is based on <i>b</i> plots (Welham, p. 140–141).</p>
+    <h3>On the example</h3>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Source</th><th>df</th><th>SS</th><th>MS</th><th>F</th><th>P</th></tr></thead>
+      <tbody>
+<tr><td>Blocks</td><td>3</td><td>14987.2</td><td>4995.7</td><td>1.434</td><td>0.281</td></tr>
+<tr><td>Treatments (fungicide)</td><td>4</td><td>133419.2</td><td>33354.8</td><td>9.576</td><td>0.001</td></tr>
+<tr><td>Residual</td><td>12</td><td>41796.8</td><td>3483.1</td><td></td><td></td></tr>
+<tr><td>Total</td><td>19</td><td>190203.2</td><td></td><td></td><td></td></tr>
+</tbody>
+    </table></div>
+    <p class="note">Welham, Table 7.1: potato yield, 5 treatments (control and 4 fungicides) in 4 blocks (map scenario S13). Means: control 404.5, F1 567.5, F2 612.5, F3 629.0, F4 600.5; SED 41.73, LSD (5 %) 90.93. The blocks in this field differed little: F = 1.43, P = 0.281 (the book prints 0.283). One plot out of 20 has |standardized residual| &gt; 2 — a note from the method; with normal residuals this is expected for 5 % of plots. The map gives <span class="sig">B1.2</span>, and also the hints <span class="sig">B2.4</span> (there is a control) and <span class="sig">B5.2</span> (comparisons with the control by Dunnett).</p>
+    <p class="src">Welham et al. (2015), p. 58, 129–141; Witte &amp; Witte (2017), p. 331–332 (the same principle for repeated measures).</p>
+  </section>
+  <section id="pros-cons">
+    <h2>Strengths and weaknesses</h2>
+    <div class="cols">
+      <div class="plus">
+        <h3>Strengths</h3>
+        <ul>
+      <li><b>More precise with heterogeneous units:</b> the differences between blocks leave the error (Welham, p. 57–58, 134–139). Witte shows the same principle for repeated measures: accounting for subjects raised F from 7.36 to 27 on the same numbers (p. 331–332). But those are repeated measures, not blocks, with their own conditions: the order of conditions and carry-over (p. 325), sphericity (p. 336).</li>
+      <li><b>Treatment means do not depend on the blocks:</b> the design is orthogonal, and the ANOVA table does not depend on the order of the terms (Welham, p. 134–139).</li>
+      <li><b>Everything for comparisons:</b> means with CIs, SEM, SED, LSD (Welham, p. 140–141).</li>
+      <li><b>Transforming the response — in the same form</b> (log, √, logit): means and CIs on the original scale, for log — ratios [BioStat].</li>
+      <li><b>Blocks also work in observational studies</b> — for example, pairs of fields on several farms (Welham, p. 129–132).</li>
+    </ul>
+      </div>
+      <div class="minus">
+        <h3>Weaknesses</h3>
+        <ul>
+      <li><b>A complete design is required:</b> each treatment exactly once in every block. A missing value, a duplicate or an incomplete block — BioStat stops with an error (Welham, p. 58) [BioStat].</li>
+      <li><b>The block × treatment interaction cannot be separated from the error:</b> if the treatments respond differently to whatever distinguishes the blocks, an RCBD is inappropriate (Welham, p. 131, 139).</li>
+      <li><b>Several measurements of one plot are not replicates:</b> they are analyzed by <a class="mlink" href="/methods/#rcbd_subsampling_anova" title="Open the method description">ANOVA with subsampling</a>; otherwise the residual is too small and the df are inflated (Welham, p. 141–146).</li>
+      <li><b>The method&#x27;s pairwise comparisons have no multiplicity adjustment</b> (LSD) [BioStat].</li>
+    </ul>
+      </div>
+    </div>
+    <p class="src">Welham et al. (2015), p. 57–58, 129–146; Witte &amp; Witte (2017), p. 325, 331–332, 336; [BioStat].</p>
+  </section>
+  <section id="assumptions">
+    <h2>Assumptions</h2>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Assumption</th><th>What it means</th><th>How BioStat checks it</th></tr></thead>
+      <tbody>
+<tr><td>Randomization within blocks</td><td>In each block the treatments are assigned to plots at random, independently of the other blocks (Welham, p. 58).</td><td>Not checked by calculation — it is a property of the design.</td></tr>
+<tr><td>Additivity of blocks and treatments</td><td>The differences between treatments are the same in all blocks (Welham, p. 131).</td><td>Not checked: with one plot per treatment in a block, the interaction cannot be separated from the residual.</td></tr>
+<tr><td>Normality and homogeneity of residuals</td><td>The residuals of the model “treatment + block” are normal, and their spread is the same for all treatments.</td><td>The method draws residual plots (Welham, p. 137). The map checks normality and homogeneity of variances on the residuals of the same model “treatment + block” [BioStat].</td></tr>
+<tr><td>No gross recording errors</td><td>A single plot does not distort the means and the residual.</td><td>Plots with |standardized residual| &gt; 2 — a note: check against the original records, do not remove without a found cause (Welham, p. 109).</td></tr>
+</tbody>
+    </table></div>
+    <p class="src">Welham et al. (2015), p. 58, 109, 131, 137.</p>
+  </section>
+  <section id="map">
+    <h2>How the map chooses this method</h2>
+    <h3>Path to the leaf</h3>
+    <div class="path" aria-label="Path on the map"><span>Analyse a response</span>›<span>Continuous</span>›<span>Differences</span>›<span>Independent units</span>›<span>No blocks or complete blocks</span>›<span>One factor</span>›<span>Three or more groups</span>›<span class="here">ANOVA with blocks (RCBD)</span></div>
+    <p>The map leads here with signal <span class="sig">B1.2</span>: a column has the role “block”, and each treatment occurs in each block exactly once (Welham, p. 58). If the file has a column that looks like blocks but has no role, the hint <span class="sig">B1.8</span> appears: an analysis without that column is wrong.</p>
+    <p>Other block structures lead to neighboring leaves: several rows in a block × treatment cell — <span class="sig">B1.3</span>, incomplete blocks — <span class="sig">B1.4</span>, rows and columns — <span class="sig">B1.5</span>, unequal replication or empty cells — <span class="sig">B1.7</span>.</p>
+    <p>In a complete block experiment the assumption checks lead here or to Friedman: SDs grow with the means or residuals are skewed (<span class="sig">B4.3</span>, <span class="sig">B4.4</span>) — this same ANOVA with the “Transformation” parameter; variances are heterogeneous without a link to the means (<span class="sig">B4.5</span>) — a hint on this leaf: there is no Welch analogue with blocks; residuals are non-normal with homogeneous variances, or the response is a score (<span class="sig">B4.6</span>, <span class="sig">B4.8</span>) — a hint towards the Friedman test. With blocks of another structure these checks stay silent — the <span class="sig">B1</span> signals lead.</p>
+    <h3>Neighbors on the map: when they win</h3>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Neighbor</th><th>When the map leads there</th><th>Why the neighbor is better here</th><th>What it costs</th></tr></thead>
+      <tbody>
+<tr><td><a class="mlink" href="/methods/one_way_anova/" title="Open the method description">One-way ANOVA</a></td><td>no blocks — a completely randomized experiment</td><td>More residual df: N − t instead of (b − 1)(t − 1)</td><td>The differences between blocks remain in the error</td></tr>
+<tr><td><a class="mlink" href="/methods/#rcbd_subsampling_anova" title="Open the method description">Block ANOVA with repeated measurements per plot</a></td><td><span class="sig">B1.3</span> each block × treatment cell has several rows — measurements of one plot</td><td>Treatments are tested against the variation between plots, as they should be</td><td>Needs a plot column and the same number of measurements</td></tr>
+<tr><td><a class="mlink" href="/methods/#bibd_anova" title="Open the method description">Incomplete blocks (BIBD)</a></td><td><span class="sig">B1.4</span> a block is smaller than the number of treatments, and each pair of treatments occurs together equally often</td><td>Many treatments with small homogeneous blocks</td><td>Means are adjusted for blocks; precision is lower</td></tr>
+<tr><td><a class="mlink" href="/methods/#latin_square_anova" title="Open the method description">Latin square</a></td><td><span class="sig">B1.5</span> each treatment exactly once in every row and every column</td><td>Removes heterogeneity in two directions</td><td>Rows, columns and treatments must be equal in number</td></tr>
+<tr><td><a class="mlink" href="/methods/#mixed_model" title="Open the method description">Mixed model (REML)</a></td><td><span class="sig">B1.7</span> unequal replication or empty block × treatment cells</td><td>Works with incomplete data</td><td>REML estimates, approximate df</td></tr>
+<tr><td><a class="mlink" href="/methods/#friedman" title="Open the method description">Friedman test (ranks, repeated measures)</a></td><td><span class="sig">B4.6</span> (hint) / <span class="sig">B4.8</span> (hint) residuals are non-normal with homogeneous variances, or the response is a score</td><td>A rank test that accounts for blocks: the block is the “subject”</td><td>Compares distributions, not means; no SED and LSD</td></tr>
+</tbody>
+    </table></div>
+    <h3>What the map checks at this leaf</h3>
+    <ul>
+      <li><span class="sig">B1.2</span> Each treatment exactly once in every block — a complete design.</li>
+      <li><span class="sig">B1.8</span> (hint) A column without a role, in each level of which every treatment occurs at most once — it looks like blocks.</li>
+      <li><span class="sig">B1.3</span> / <span class="sig">B1.7</span> Several rows in a block × treatment cell (subsamples) or unequal replication — another leaf.</li>
+      <li><span class="sig">B4.1</span> / <span class="sig">B4.2</span> Normality and homogeneity of variances — on the residuals of the model “treatment + block” [BioStat].</li>
+      <li><span class="sig">B4.3</span> / <span class="sig">B4.4</span> (hint) / <span class="sig">B4.5</span> (hint) SDs grow with the means or residuals are skewed — the same ANOVA with blocks with the “Transformation” parameter; variances are heterogeneous without a link to the means — a hint: there is no Welch analogue with blocks, P and SED are approximate.</li>
+      <li><span class="sig">DIAG.1</span> <b>Outlier first</b> (Welham, p. 109–110).</li>
+    </ul>
+    <h3>What next</h3>
+    <p>A significant F says that the treatments differ; the method itself gives all pairs without an adjustment (LSD). For comparisons with an adjustment — Tukey, or Dunnett against a control — the <a class="mlink" href="/methods/#mean_comparisons" title="Open the method description">comparisons of means</a> of the “After ANOVA” step with the same block column [BioStat].</p>
+  </section>
+  <details class="check" id="sources">
+    <summary>Sources</summary>
+    <ul>
+      <li>Tests that call the method: 12</li>
+      <li>Welham — checked by tests: Table 7.4</li>
+      <li>Independent cross-check (audit 2): F, P, block F, SED — statsmodels OLS</li>
+    </ul>
+  </details>
+  <p><a class="cta" href="/?method=rcbd_anova&amp;lang=en">Try the method in the calculator →</a></p>
+  <div class="pager"><a href="/methods/transformed_means/"><small>← Previous</small>ANOVA on a transformed response</a></div>
+</article>
+<aside class="toc" aria-label="On this page">
+  <b>On this page</b>
+  <a href="#idea">Idea</a>
+  <a href="#model">Model and formulas</a>
+  <a href="#symbols">Notation</a>
+  <a href="#pros-cons">Strengths and weaknesses</a>
+  <a href="#assumptions">Assumptions</a>
+  <a href="#map">How the map chooses</a>
+  <a href="#sources">Sources</a>
+  <a href="/?method=rcbd_anova&amp;lang=en">Try the method in the calculator →</a>
+  <a class="toc-back" href="/methods/#rcbd_anova">↑ Back to the method list</a>
+</aside>
+<a class="to-list" href="/methods/#rcbd_anova" aria-label="Back to the method list">↑</a>
+</div>
+      <footer><a href="/privacy/">Privacy</a> · <a href="/terms/">Terms</a> · <a href="/methods/">Methods and validation</a> · <a href="/LICENSE.txt">Apache-2.0 License</a></footer>
+    </main>
+  </body>
+</html>

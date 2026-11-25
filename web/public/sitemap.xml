@@ -216,33 +216,121 @@
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://biostat.app/ru/methods/kruskal_wallis/</loc>
+    <loc>https://biostat.app/methods/kruskal_wallis/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://biostat.app/methods/kruskal_wallis/" />
     <xhtml:link rel="alternate" hreflang="ru" href="https://biostat.app/ru/methods/kruskal_wallis/" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://biostat.app/ru/methods/kruskal_wallis/" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://biostat.app/pt/methods/kruskal_wallis/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://biostat.app/methods/kruskal_wallis/" />
+    <lastmod>2026-11-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://biostat.app/ru/methods/kruskal_wallis/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://biostat.app/methods/kruskal_wallis/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://biostat.app/ru/methods/kruskal_wallis/" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://biostat.app/pt/methods/kruskal_wallis/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://biostat.app/methods/kruskal_wallis/" />
+    <lastmod>2026-11-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://biostat.app/pt/methods/kruskal_wallis/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://biostat.app/methods/kruskal_wallis/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://biostat.app/ru/methods/kruskal_wallis/" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://biostat.app/pt/methods/kruskal_wallis/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://biostat.app/methods/kruskal_wallis/" />
+    <lastmod>2026-11-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://biostat.app/methods/transformed_means/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://biostat.app/methods/transformed_means/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://biostat.app/ru/methods/transformed_means/" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://biostat.app/pt/methods/transformed_means/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://biostat.app/methods/transformed_means/" />
     <lastmod>2026-11-25</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://biostat.app/ru/methods/transformed_means/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://biostat.app/methods/transformed_means/" />
     <xhtml:link rel="alternate" hreflang="ru" href="https://biostat.app/ru/methods/transformed_means/" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://biostat.app/ru/methods/transformed_means/" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://biostat.app/pt/methods/transformed_means/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://biostat.app/methods/transformed_means/" />
+    <lastmod>2026-11-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://biostat.app/pt/methods/transformed_means/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://biostat.app/methods/transformed_means/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://biostat.app/ru/methods/transformed_means/" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://biostat.app/pt/methods/transformed_means/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://biostat.app/methods/transformed_means/" />
+    <lastmod>2026-11-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://biostat.app/methods/rcbd_anova/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://biostat.app/methods/rcbd_anova/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://biostat.app/ru/methods/rcbd_anova/" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://biostat.app/pt/methods/rcbd_anova/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://biostat.app/methods/rcbd_anova/" />
     <lastmod>2026-11-25</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://biostat.app/ru/methods/rcbd_anova/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://biostat.app/methods/rcbd_anova/" />
     <xhtml:link rel="alternate" hreflang="ru" href="https://biostat.app/ru/methods/rcbd_anova/" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://biostat.app/ru/methods/rcbd_anova/" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://biostat.app/pt/methods/rcbd_anova/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://biostat.app/methods/rcbd_anova/" />
+    <lastmod>2026-11-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://biostat.app/pt/methods/rcbd_anova/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://biostat.app/methods/rcbd_anova/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://biostat.app/ru/methods/rcbd_anova/" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://biostat.app/pt/methods/rcbd_anova/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://biostat.app/methods/rcbd_anova/" />
+    <lastmod>2026-11-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://biostat.app/methods/treatment_means/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://biostat.app/methods/treatment_means/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://biostat.app/ru/methods/treatment_means/" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://biostat.app/pt/methods/treatment_means/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://biostat.app/methods/treatment_means/" />
     <lastmod>2026-11-25</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://biostat.app/ru/methods/treatment_means/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://biostat.app/methods/treatment_means/" />
     <xhtml:link rel="alternate" hreflang="ru" href="https://biostat.app/ru/methods/treatment_means/" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://biostat.app/ru/methods/treatment_means/" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://biostat.app/pt/methods/treatment_means/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://biostat.app/methods/treatment_means/" />
+    <lastmod>2026-11-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://biostat.app/pt/methods/treatment_means/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://biostat.app/methods/treatment_means/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://biostat.app/ru/methods/treatment_means/" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://biostat.app/pt/methods/treatment_means/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://biostat.app/methods/treatment_means/" />
     <lastmod>2026-11-25</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>

@@ -138,5 +138,271 @@
    "t_quant",
    "P"
   ]
+ },
+ "en": {
+  "description": "Treatment means with SEM, SED and LSD after ANOVA: idea, formulas, assumptions, and how the BioStat map offers this step.",
+  "lead": "What are the treatment means, and how precisely is the difference between any two of them estimated? The method gives the means with SEM and CIs from the common ANOVA variance, the SED and the LSD — the least significant difference.",
+  "idea": [
+   "After ANOVA the variance within groups is estimated from all the data at once — this is $MS_W$ (in the book $s^2$) on N − t df. It is used for every mean: SEM = √(s²/n), not the SD of its own group. The estimate is more stable, and its df are larger than those of a single group (Welham, p. 84–85).",
+   "For a difference of two means the error is SED; it is always larger than SEM. SED multiplied by the t quantile is LSD: a difference larger than LSD is significant at 5 % **if it is a single comparison chosen in advance** (Welham, p. 85–88). For many pairs in a row, LSD without an adjustment gives too many false findings (Welham, p. 195–199)."
+  ],
+  "formulas": [
+   {
+    "title": "Means and their CIs",
+    "tex": "\\mathrm{SEM}_j = \\sqrt{s^2/n_j} = ⟦se_A:.2f⟧,\\qquad \\bar y_{j\\cdot} \\pm t_{N-t}[0.025]\\cdot\\mathrm{SEM}_j,\\qquad t_{⟦df_resid⟧}[0.025] = ⟦t_crit:.3f⟧",
+    "text_after": "$s^2 = MS_W$ = ⟦residual_ms:.2f⟧ on N − t = ⟦df_resid⟧ df (Welham, p. 84–85)."
+   },
+   {
+    "title": "SED and LSD",
+    "tex": "\\mathrm{SED}_{jk} = \\sqrt{s^2\\left(\\frac1{n_j}+\\frac1{n_k}\\right)} = ⟦sed:.2f⟧,\\qquad \\mathrm{LSD} = t_{N-t}[0.025]\\cdot\\mathrm{SED} = ⟦lsd:.2f⟧",
+    "text_after": "With equal replication, SED and LSD are the same for all pairs. CI of a difference: $(\\bar y_{j\\cdot} - \\bar y_{k\\cdot}) \\pm \\mathrm{LSD}$ (Welham, p. 85–88)."
+   }
+  ],
+  "example_table": {
+   "note": "Welham, Table 4.1: root length (cm) at four calcium concentrations, ⟦n_group⟧ pots each. Means: A ⟦mean_A:.1f⟧, B ⟦mean_B:.1f⟧, C ⟦mean_C:.1f⟧, D ⟦mean_D:.1f⟧; SEM ⟦se_A:.2f⟧, 95 % CI for A — ⟦mean_A_lo:.1f⟧…⟦mean_A_hi:.1f⟧. SED ⟦sed:.2f⟧, LSD ⟦lsd:.2f⟧. The difference B − A = ⟦diff_A_B:.1f⟧ is just below LSD: the CI ⟦lo_A_B:.1f⟧…⟦hi_A_B:.1f⟧ touches zero, P ⟦p_A_B:rel⟧ — as in the book. D differs from A, B and C (P: ⟦p_A_D:p⟧, ⟦p_B_D:p⟧ and ⟦p_C_D:p⟧) — without a multiplicity adjustment; Tukey on the same data is on the page of [Tukey's method](method:tukey_hsd)."
+  },
+  "pros": [
+   "**More precise than the SD of each group:** one $s^2$ from all the data, more df (Welham, p. 84–85).",
+   "**A direct measure for comparison:** one LSD bar next to the means says more than ± SD of each group (Welham, p. 87–88).",
+   "**A CI of the difference, not just P** (Welham, p. 85–88).",
+   "**Unequal replication is allowed:** each pair has its own SED (Welham, p. 85–86)."
+  ],
+  "cons": [
+   "**No multiplicity adjustment:** 15 independent tests at 5 % give at least one false finding with probability 0.54 (Welham, p. 195–196). With three or more groups the method warns about this [BioStat].",
+   "**“Protection” by a significant F does not help:** both a significant F without significant pairs and significant pairs with a non-significant F are possible (Welham, p. 198–199).",
+   "**Requires homogeneous variances:** the common $s^2$ is wrong if the spread of the groups differs (Welham, p. 84–85).",
+   "**Without blocks only:** for an experiment with blocks — the [comparisons of means](method:mean_comparisons) with a block column [BioStat]."
+  ],
+  "assumptions": [
+   {
+    "name": "The comparison is chosen in advance",
+    "meaning": "LSD keeps the 5 % error for one comparison planned before the analysis (Welham, p. 86).",
+    "biostat": "Not checked. With three or more groups the method adds a note: all pairs — without an adjustment."
+   },
+   {
+    "name": "Homogeneity of variances and normality",
+    "meaning": "As for ANOVA: one $s^2$ fits all groups, and the residuals are normal.",
+    "biostat": "The method checks the same as one-way ANOVA: Bartlett and the link between SD and mean, Shapiro–Wilk on the residuals."
+   },
+   {
+    "name": "Independence",
+    "meaning": "Each observation is a separate unit, without blocks or repeated measurements.",
+    "biostat": "Not checked by calculation — it is a property of the design."
+   }
+  ],
+  "map_intro": [
+   "The map offers the “After ANOVA” step (B5) after the leaves comparing several groups. Which comparisons to make is **the user's choice**: it depends on the question of the experiment, not on the data (Welham, p. 201–205). This leaf is for the table of means and one or two comparisons chosen in advance. With the role “block”, the map marks this leaf “no blocks” and gives the hint `B5.4`: the means, SED and LSD of the model with blocks are already given by ANOVA with blocks, and comparisons follow the model with blocks.",
+   "Hints of the step: `B5.1` — the factor levels are numbers (doses): a trend instead of pairwise comparisons; `B5.2` — the factor has a level named “control”: comparisons with the control by Dunnett."
+  ],
+  "neighbours": [
+   {
+    "method": "tukey_hsd",
+    "signals": [],
+    "when": "all pairs are of interest",
+    "advantage": "Error ≤ 5 % for the whole set of pairs",
+    "cost": "Intervals wider than LSD"
+   },
+   {
+    "method": "mean_comparisons",
+    "signals": [
+     "B5.2"
+    ],
+    "when": "comparisons with a control, or an experiment with blocks",
+    "advantage": "Dunnett, Holm, Bonferroni, FDR; accounts for blocks",
+    "cost": "The procedure must be chosen before the analysis"
+   },
+   {
+    "method": "polynomial_contrasts",
+    "signals": [
+     "B5.1"
+    ],
+    "when": "the levels are doses, concentrations, times",
+    "advantage": "The shape of the dose response instead of many pairs",
+    "cost": "Needs numeric levels"
+   },
+   {
+    "method": "treatment_contrasts",
+    "signals": [],
+    "when": "pre-specified contrasts (group against group)",
+    "advantage": "Tests exactly the question of the experiment",
+    "cost": "Contrasts must be set before the analysis"
+   },
+   {
+    "method": "scheffe_test",
+    "signals": [],
+    "when": "complex contrasts are needed besides pairs",
+    "advantage": "Error ≤ 5 % for all contrasts, not only pairs",
+    "cost": "More conservative than Tukey for pairs (Witte, p. 314)"
+   }
+  ],
+  "checks": [
+   {
+    "signals": [
+     "B5.1"
+    ],
+    "text": "The factor levels are numbers, not codes 1…k: they may be doses."
+   },
+   {
+    "signals": [
+     "B5.2"
+    ],
+    "text": "There is a level named “control” (and at least three levels)."
+   },
+   {
+    "signals": [
+     "B5.4"
+    ],
+    "text": "A column has the role “block”: comparisons follow the model with blocks."
+   }
+  ],
+  "next": "If all pairs are needed — [Tukey's method](method:tukey_hsd); against a control — Dunnett in the [comparisons of means](method:mean_comparisons). If the goal is to show that there are no differences, that is a different task: **[the equivalence test (TOST)](method:equivalence_test)**; a non-significant difference does not prove the absence of differences (Welham, p. 253).",
+  "sources": {
+   "model": "Welham et al. (2015), p. 84–88.",
+   "pros_cons": "Welham et al. (2015), p. 84–88, 195–199; [BioStat].",
+   "assumptions": "Welham et al. (2015), p. 84–86."
+  },
+  "symbols": [
+   "j_obs",
+   "N",
+   "MS",
+   "SE",
+   "SED",
+   "LSD",
+   "t_quant",
+   "P"
+  ]
+ },
+ "pt": {
+  "description": "Médias dos tratamentos com EP, EPD e DMS após a ANOVA: ideia, fórmulas, pressupostos e como o mapa do BioStat propõe este passo.",
+  "lead": "Quais são as médias dos tratamentos e com que precisão se estima a diferença entre duas delas? O método dá as médias com EP e IC a partir da variância comum da ANOVA, o erro padrão da diferença (EPD) e a diferença mínima significativa (DMS); nas fórmulas: SED e LSD.",
+  "idea": [
+   "Após a ANOVA, a variância dentro dos grupos é estimada com todos os dados de uma vez — é o quadrado médio residual (QMRE, $MS_W$; no livro, $s^2$) com N − t gl. É ele que se usa para cada média: EP = √(s²/n), e não o DP do próprio grupo. A estimativa é mais estável e tem mais gl do que a de um grupo isolado (Welham, p. 84–85).",
+   "Para a diferença de duas médias o erro é o EPD; é sempre maior do que o EP. O EPD multiplicado pelo quantil t é a DMS: uma diferença maior do que a DMS é significativa a 5 % **se for uma única comparação escolhida de antemão** (Welham, p. 85–88). Para muitos pares seguidos, a DMS sem correção dá demasiadas falsas descobertas (Welham, p. 195–199)."
+  ],
+  "formulas": [
+   {
+    "title": "Médias e os seus IC",
+    "tex": "\\mathrm{SEM}_j = \\sqrt{s^2/n_j} = ⟦se_A:.2f⟧,\\qquad \\bar y_{j\\cdot} \\pm t_{N-t}[0.025]\\cdot\\mathrm{SEM}_j,\\qquad t_{⟦df_resid⟧}[0.025] = ⟦t_crit:.3f⟧",
+    "text_after": "$s^2 = MS_W$ = ⟦residual_ms:.2f⟧ com N − t = ⟦df_resid⟧ gl (Welham, p. 84–85)."
+   },
+   {
+    "title": "EPD e DMS",
+    "tex": "\\mathrm{SED}_{jk} = \\sqrt{s^2\\left(\\frac1{n_j}+\\frac1{n_k}\\right)} = ⟦sed:.2f⟧,\\qquad \\mathrm{LSD} = t_{N-t}[0.025]\\cdot\\mathrm{SED} = ⟦lsd:.2f⟧",
+    "text_after": "Com repetição igual, o EPD e a DMS são os mesmos para todos os pares. IC de uma diferença: $(\\bar y_{j\\cdot} - \\bar y_{k\\cdot}) \\pm \\mathrm{LSD}$ (Welham, p. 85–88)."
+   }
+  ],
+  "example_table": {
+   "note": "Welham, Table 4.1: comprimento das raízes (cm) com quatro concentrações de cálcio, ⟦n_group⟧ vasos cada. Médias: A ⟦mean_A:.1f⟧, B ⟦mean_B:.1f⟧, C ⟦mean_C:.1f⟧, D ⟦mean_D:.1f⟧; EP ⟦se_A:.2f⟧, IC 95 % para A — ⟦mean_A_lo:.1f⟧…⟦mean_A_hi:.1f⟧. EPD ⟦sed:.2f⟧, DMS ⟦lsd:.2f⟧. A diferença B − A = ⟦diff_A_B:.1f⟧ fica ligeiramente abaixo da DMS: o IC ⟦lo_A_B:.1f⟧…⟦hi_A_B:.1f⟧ toca o zero, P (valor de prova) ⟦p_A_B:rel⟧ — como no livro. D difere de A, B e C (P: ⟦p_A_D:p⟧, ⟦p_B_D:p⟧ e ⟦p_C_D:p⟧) — sem correção para multiplicidade; o Tukey com os mesmos dados está na página do [método de Tukey](method:tukey_hsd)."
+  },
+  "pros": [
+   "**Mais preciso do que o DP de cada grupo:** um só $s^2$ com todos os dados, mais gl (Welham, p. 84–85).",
+   "**Uma medida direta para comparar:** uma barra da DMS junto às médias diz mais do que ± DP de cada grupo (Welham, p. 87–88).",
+   "**IC da diferença, não apenas P** (Welham, p. 85–88).",
+   "**Admite repetição desigual:** cada par tem o seu EPD (Welham, p. 85–86)."
+  ],
+  "cons": [
+   "**Sem correção para multiplicidade:** 15 testes independentes a 5 % dão pelo menos uma falsa descoberta com probabilidade 0.54 (Welham, p. 195–196). Com três ou mais grupos o método avisa disso [BioStat].",
+   "**A «proteção» por um F significativo não ajuda:** são possíveis tanto um F significativo sem pares significativos como pares significativos com um F não significativo (Welham, p. 198–199).",
+   "**Exige variâncias homogéneas:** o $s^2$ comum está errado se a dispersão dos grupos for diferente (Welham, p. 84–85).",
+   "**Só sem blocos:** para um ensaio com blocos — as [comparações de médias](method:mean_comparisons) com coluna de blocos [BioStat]."
+  ],
+  "assumptions": [
+   {
+    "name": "Comparação escolhida de antemão",
+    "meaning": "A DMS mantém o erro de 5 % para uma comparação planeada antes da análise (Welham, p. 86).",
+    "biostat": "Não se verifica. Com três ou mais grupos o método acrescenta uma nota: todos os pares — sem correção."
+   },
+   {
+    "name": "Homogeneidade de variâncias e normalidade",
+    "meaning": "Como na ANOVA: um só $s^2$ serve para todos os grupos, e os resíduos são normais.",
+    "biostat": "O método verifica o mesmo que a ANOVA a um fator: Bartlett e relação entre DP e média, Shapiro–Wilk nos resíduos."
+   },
+   {
+    "name": "Independência",
+    "meaning": "Cada observação é uma unidade separada, sem blocos nem medidas repetidas.",
+    "biostat": "Não se verifica por cálculo — é uma propriedade do delineamento."
+   }
+  ],
+  "map_intro": [
+   "O mapa propõe o passo «Após a ANOVA» (B5) depois das folhas de comparação de vários grupos. Que comparações fazer é **escolha do utilizador**: depende da pergunta do ensaio, não dos dados (Welham, p. 201–205). Esta folha serve para a tabela de médias e uma ou duas comparações escolhidas de antemão. Com o papel «bloco», o mapa marca esta folha «sem blocos» e dá a sugestão `B5.4`: as médias, o EPD e a DMS do modelo com blocos já os dá a ANOVA com blocos, e as comparações seguem o modelo com blocos.",
+   "Sugestões do passo: `B5.1` — os níveis do fator são números (doses): uma tendência em vez de comparações par a par; `B5.2` — o fator tem um nível chamado «controlo» (ou «testemunha»): comparações com o controlo por Dunnett."
+  ],
+  "neighbours": [
+   {
+    "method": "tukey_hsd",
+    "signals": [],
+    "when": "interessam todos os pares",
+    "advantage": "Erro ≤ 5 % para todo o conjunto de pares",
+    "cost": "Intervalos mais largos do que a DMS"
+   },
+   {
+    "method": "mean_comparisons",
+    "signals": [
+     "B5.2"
+    ],
+    "when": "comparações com um controlo, ou um ensaio com blocos",
+    "advantage": "Dunnett, Holm, Bonferroni, FDR; tem em conta os blocos",
+    "cost": "O procedimento tem de ser escolhido antes da análise"
+   },
+   {
+    "method": "polynomial_contrasts",
+    "signals": [
+     "B5.1"
+    ],
+    "when": "os níveis são doses, concentrações, datas",
+    "advantage": "A forma da resposta à dose em vez de muitos pares",
+    "cost": "Precisa de níveis numéricos"
+   },
+   {
+    "method": "treatment_contrasts",
+    "signals": [],
+    "when": "contrastes definidos de antemão (grupo contra grupo)",
+    "advantage": "Testa exatamente a pergunta do ensaio",
+    "cost": "Os contrastes têm de ser definidos antes da análise"
+   },
+   {
+    "method": "scheffe_test",
+    "signals": [],
+    "when": "além dos pares, são precisos contrastes complexos",
+    "advantage": "Erro ≤ 5 % para todos os contrastes, não só para os pares",
+    "cost": "Mais conservador do que Tukey para os pares (Witte, p. 314)"
+   }
+  ],
+  "checks": [
+   {
+    "signals": [
+     "B5.1"
+    ],
+    "text": "Os níveis do fator são números, não códigos 1…k: podem ser doses."
+   },
+   {
+    "signals": [
+     "B5.2"
+    ],
+    "text": "Há um nível chamado «controlo» (e pelo menos três níveis)."
+   },
+   {
+    "signals": [
+     "B5.4"
+    ],
+    "text": "Uma coluna tem o papel «bloco»: as comparações seguem o modelo com blocos."
+   }
+  ],
+  "next": "Se forem precisos todos os pares — o [método de Tukey](method:tukey_hsd); contra um controlo — Dunnett nas [comparações de médias](method:mean_comparisons). Se o objetivo for mostrar que não há diferenças, trata-se de outra tarefa: **[o teste de equivalência (TOST)](method:equivalence_test)**; uma diferença não significativa não prova a ausência de diferenças (Welham, p. 253).",
+  "sources": {
+   "model": "Welham et al. (2015), p. 84–88.",
+   "pros_cons": "Welham et al. (2015), p. 84–88, 195–199; [BioStat].",
+   "assumptions": "Welham et al. (2015), p. 84–86."
+  },
+  "symbols": [
+   "j_obs",
+   "N",
+   "MS",
+   "SE",
+   "SED",
+   "LSD",
+   "t_quant",
+   "P"
+  ]
  }
 }

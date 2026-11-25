@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="pt">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ANOVA com resposta transformada — BioStat</title>
+    <meta name="description" content="ANOVA na escala log, √ ou logit: transformação da resposta, médias geométricas e razões — ideia, fórmulas, pressupostos e como o mapa do BioStat escolhe este método." />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="canonical" href="https://biostat.app/pt/methods/transformed_means/" />
+    <link rel="alternate" hreflang="en" href="https://biostat.app/methods/transformed_means/" />
+    <link rel="alternate" hreflang="ru" href="https://biostat.app/ru/methods/transformed_means/" />
+    <link rel="alternate" hreflang="pt" href="https://biostat.app/pt/methods/transformed_means/" />
+    <link rel="alternate" hreflang="x-default" href="https://biostat.app/methods/transformed_means/" />
+    <style>body{margin:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:#18181b;background:#fafafa;line-height:1.6}main{max-width:44rem;margin:0 auto;padding:1.5rem 1rem 2rem}h1{font-size:1.6rem;margin:0.6rem 0 0.2rem}h2{font-size:1.1rem;margin:1.6rem 0 0.4rem}p{margin:0.4rem 0}a{color:#0f766e}.muted{color:#63636b;font-size:0.9rem}nav{display:flex;flex-wrap:wrap;gap:0.4rem 1rem;justify-content:space-between;align-items:center}footer{border-top:1px solid #e4e4e7;margin-top:2rem;padding-top:0.8rem;font-size:0.9rem}code{overflow-wrap:anywhere}h3{font-size:1rem;margin:1.4rem 0 0}h2[id],h3[id]{scroll-margin-top:1rem}ul{margin:0.3rem 0;padding-left:1.2rem}li{margin:0.15rem 0;overflow-wrap:anywhere}.tag{font-size:0.75rem;font-weight:400;color:#92400e;border:1px solid #f59e0b;border-radius:4px;padding:0 0.3rem;margin-left:0.4rem;white-space:nowrap}</style>
+    <link rel="stylesheet" href="/methods/assets/method.css" />
+    <script src="/back.js" defer></script>
+  </head>
+  <body>
+    <main class="mp">
+      <nav><a href="/" data-back>← Voltar ao BioStat</a><span><a href="/methods/transformed_means/" hreflang="en" lang="en">English</a> · <a href="/ru/methods/transformed_means/" hreflang="ru" lang="ru">Русский</a> · <a href="/pt/methods/transformed_means/" hreflang="pt" lang="pt" aria-current="page">Português</a></span></nav>
+<div class="wrap">
+<article>
+  <nav class="crumbs" aria-label="Navegação"><a href="/">BioStat</a> › <a href="/pt/methods/">Métodos e verificação</a> › <a href="/pt/methods/#group-several-groups">Comparação de vários grupos</a> › ANOVA com resposta transformada</nav>
+  <h1>ANOVA com resposta transformada</h1>
+  <p class="lead">As médias dos grupos diferem quando a dispersão cresce com a média ou a distribuição é assimétrica à direita? A resposta passa para outra escala (quase sempre log), aí faz-se a ANOVA, e as médias e os IC voltam à escala original.</p>
+  <section id="idea">
+    <h2>Ideia</h2>
+    <p>Massa, altura e abundância variam muitas vezes em proporção, e não num número fixo de unidades: um grupo com média 100 dispersa-se mais do que um grupo com média 30. O logaritmo aproxima os valores grandes e afasta os pequenos — as variâncias igualam-se, a assimetria à direita desaparece e um modelo multiplicativo torna-se aditivo (Welham, p. 113–118).</p>
+    <p>F, EPD e DMS calculam-se na escala log (nas fórmulas: SED e LSD). À escala original voltam só as médias e os limites dos IC: uma média na escala log passa a <b>média geométrica</b> do grupo, uma diferença de médias passa a <b>razão</b> («quantas vezes») e a DMS passa a um fator. O EP e o EPD não se retransformam: a transformação não é linear (Welham, p. 122–126).</p>
+  </section>
+  <section id="model">
+    <h2>Modelo e fórmulas</h2>
+    <details class="glossary" id="symbols">
+      <summary>Todos os símbolos desta página</summary>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Símbolo</th><th>Significado</th></tr></thead>
+      <tbody>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub></mrow><annotation encoding="application/x-tex">y_{ij}</annotation></semantics></math></span></td><td>valor da resposta da observação <i>j</i> no grupo <i>i</i></td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi><mo>=</mo><mn>1</mn><mo separator="true">,</mo><mo>…</mo><mo separator="true">,</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">i = 1,\dots,t</annotation></semantics></math></span></td><td>índice do grupo (tratamento), <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi></mrow><annotation encoding="application/x-tex">t</annotation></semantics></math></span> — número de grupos</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>j</mi><mo>=</mo><mn>1</mn><mo separator="true">,</mo><mo>…</mo><mo separator="true">,</mo><msub><mi>n</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">j = 1,\dots,n_i</annotation></semantics></math></span></td><td>índice da observação no grupo, <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>n</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">n_i</annotation></semantics></math></span> — dimensão do grupo <i>i</i></td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>z</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub></mrow><annotation encoding="application/x-tex">z_{ij}</annotation></semantics></math></span></td><td>resposta na escala transformada (por exemplo, <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mrow><mi>log</mi><mo>⁡</mo></mrow><mn>10</mn></msub></mrow><annotation encoding="application/x-tex">\log_{10}</annotation></semantics></math></span>)</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>c</mi></mrow><annotation encoding="application/x-tex">c</annotation></semantics></math></span></td><td>desvio somado antes da transformação quando há zeros nos dados</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover accent="true"><mi>z</mi><mo>ˉ</mo></mover><mrow><mi>i</mi><mo>⋅</mo></mrow></msub></mrow><annotation encoding="application/x-tex">\bar z_{i\cdot}</annotation></semantics></math></span></td><td>média do grupo <i>i</i> na escala transformada</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mrow><mi mathvariant="normal">G</mi><mi mathvariant="normal">M</mi></mrow><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">\mathrm{GM}_i</annotation></semantics></math></span></td><td>média geométrica do grupo <i>i</i>: a média na escala log transformada de volta</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mi>S</mi><mo>=</mo><mi>S</mi><mi>S</mi><mi mathvariant="normal">/</mi><mi>d</mi><mi>f</mi></mrow><annotation encoding="application/x-tex">MS = SS/df</annotation></semantics></math></span></td><td>quadrado médio — soma de quadrados dividida pelos seus graus de liberdade</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi><mo>−</mo><mn>1</mn><mo separator="true">,</mo><mtext> </mtext><mi>N</mi><mo>−</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">t-1,\ N-t</annotation></semantics></math></span></td><td>graus de liberdade entre e dentro dos grupos</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">S</mi><mi mathvariant="normal">E</mi><mi mathvariant="normal">D</mi></mrow><annotation encoding="application/x-tex">\mathrm{SED}</annotation></semantics></math></span></td><td>erro padrão da diferença entre duas médias (<i>i</i> e <i>k</i>)</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">L</mi><mi mathvariant="normal">S</mi><mi mathvariant="normal">D</mi></mrow><annotation encoding="application/x-tex">\mathrm{LSD}</annotation></semantics></math></span></td><td>diferença mínima significativa ao nível de 5 %</td></tr>
+<tr><td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi></mrow><annotation encoding="application/x-tex">P</annotation></semantics></math></span></td><td>probabilidade de uma estatística (F, t …) pelo menos tão extrema como a observada quando <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>H</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">H_0</annotation></semantics></math></span> é verdadeira</td></tr>
+</tbody>
+    </table></div>
+      <p class="note">A mesma notação em todas as páginas de métodos — <a href="/pt/methods/symbols/">glossário de símbolos</a>.</p>
+    </details>
+    <p>Transformação da resposta (c é o desvio para os zeros; no exemplo c = 0):</p>
+    <div class="math block"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>z</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>=</mo><msub><mrow><mi>log</mi><mo>⁡</mo></mrow><mn>10</mn></msub><mo stretchy="false">(</mo><msub><mi>y</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>+</mo><mi>c</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">z_{ij} = \log_{10}(y_{ij} + c)</annotation></semantics></math></span></div>
+    <p>Outras opções: ln; √ — mais suave do que o logaritmo; logit — para proporções e percentagens (Welham, p. 119–121). Desvio para os zeros: c = 1 para contagens inteiras; caso contrário, metade do menor valor positivo (p. 116).</p>
+    <h3>ANOVA na escala z</h3>
+    <div class="math block"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>F</mi><mo>=</mo><mfrac><mrow><mi>M</mi><msub><mi>S</mi><mi>B</mi></msub></mrow><mrow><mi>M</mi><msub><mi>S</mi><mi>W</mi></msub></mrow></mfrac><mo>=</mo><mn>19.25</mn><mo separator="true">,</mo><mspace width="2em"/><mi>d</mi><mi>f</mi><mo>=</mo><mo stretchy="false">(</mo><mn>3</mn><mo separator="true">;</mo><mtext> </mtext><mn>36</mn><mo stretchy="false">)</mo><mo separator="true">,</mo><mspace width="2em"/><mi>P</mi><mo>&lt;</mo><mn>0.001</mn><mo separator="true">,</mo><mspace width="2em"/><msub><mrow><mi mathvariant="normal">S</mi><mi mathvariant="normal">E</mi><mi mathvariant="normal">D</mi></mrow><mi>z</mi></msub><mo>=</mo><mn>0.0690</mn></mrow><annotation encoding="application/x-tex">F = \frac{MS_B}{MS_W} = 19.25,\qquad df = (3;\ 36),\qquad P &lt; 0.001,\qquad \mathrm{SED}_z = 0.0690</annotation></semantics></math></span></div>
+    <h3>De volta à escala original</h3>
+    <div class="math block"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mrow><mi mathvariant="normal">G</mi><mi mathvariant="normal">M</mi></mrow><mi>i</mi></msub><mo>=</mo><mn>1</mn><msup><mn>0</mn><msub><mover accent="true"><mi>z</mi><mo>ˉ</mo></mover><mrow><mi>i</mi><mo>⋅</mo></mrow></msub></msup><mo separator="true">,</mo><mspace width="2em"/><mfrac><msub><mrow><mi mathvariant="normal">G</mi><mi mathvariant="normal">M</mi></mrow><mi>k</mi></msub><msub><mrow><mi mathvariant="normal">G</mi><mi mathvariant="normal">M</mi></mrow><mi>i</mi></msub></mfrac><mo>=</mo><mn>1</mn><msup><mn>0</mn><mrow><mtext> </mtext><msub><mover accent="true"><mi>z</mi><mo>ˉ</mo></mover><mrow><mi>k</mi><mo>⋅</mo></mrow></msub><mo>−</mo><msub><mover accent="true"><mi>z</mi><mo>ˉ</mo></mover><mrow><mi>i</mi><mo>⋅</mo></mrow></msub></mrow></msup><mo separator="true">,</mo><mspace width="2em"/><mo>×</mo><mi mathvariant="normal">/</mi><mo>÷</mo><mtext> </mtext><mn>1</mn><msup><mn>0</mn><msub><mrow><mi mathvariant="normal">L</mi><mi mathvariant="normal">S</mi><mi mathvariant="normal">D</mi></mrow><mi>z</mi></msub></msup><mo>=</mo><mn>1.38</mn></mrow><annotation encoding="application/x-tex">\mathrm{GM}_i = 10^{\bar z_{i\cdot}},\qquad \frac{\mathrm{GM}_k}{\mathrm{GM}_i} = 10^{\,\bar z_{k\cdot}-\bar z_{i\cdot}},\qquad \times/\div\ 10^{\mathrm{LSD}_z} = 1.38</annotation></semantics></math></span></div>
+    <p>Uma média retransformada é uma média geométrica: não é maior do que a média aritmética, e a diferença cresce com a assimetria. Os limites dos IC retransformam-se da mesma forma, por isso os IC na escala original são assimétricos (Welham, p. 122–126).</p>
+    <h3>No exemplo</h3>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Fonte</th><th>gl</th><th>SQ</th><th>QM</th><th>F</th><th>P</th></tr></thead>
+      <tbody>
+<tr><td>Entre tratamentos (log₁₀)</td><td>3</td><td>1.3751</td><td>0.4584</td><td>19.25</td><td>&lt; 0.001</td></tr>
+<tr><td>Dentro dos tratamentos</td><td>36</td><td>0.8571</td><td>0.0238</td><td></td><td></td></tr>
+<tr><td>Total</td><td>39</td><td>2.2322</td><td></td><td></td><td></td></tr>
+</tbody>
+    </table></div>
+    <p class="note">Welham, Table 6.1: número de ovos de escaravelhos, 4 tratamentos de acasalamento com 10 fêmeas cada (cenário S07 do mapa). Médias geométricas 32.6, 63.6, 81.1, 102.0 contra as aritméticas 34.9, 66.2, 84.3, 108.6. O tratamento 4 é 3.13 vezes o tratamento 1, IC 95 % 2.27…4.32; o IC da média do tratamento 1 é 25.9…40.9, assimétrico em torno de 32.6. Avisos sobre variâncias na escala log: nenhum; Shapiro–Wilk nos resíduos, P (valor de prova) = 0.16. O mapa dá <span class="sig">B4.3</span> (os DP crescem com as médias) e <span class="sig">B4.2</span> (variâncias heterogéneas).</p>
+    <p class="src">Welham et al. (2015), p. 113–126 (transformações, retransformação, escala log).</p>
+  </section>
+  <section id="pros-cons">
+    <h2>Pontos fortes e fracos</h2>
+    <div class="cols">
+      <div class="plus">
+        <h3>Pontos fortes</h3>
+        <ul>
+      <li><b>Trata a causa e não o sintoma:</b> quando a variância cresce com a média, uma única transformação iguala as variâncias e elimina a assimetria (Welham, p. 113–118).</li>
+      <li><b>Razões em vez de diferenças:</b> para log o resultado lê-se como «quantas vezes», com IC (Welham, p. 123–126).</li>
+      <li><b>Fica todo o aparato da ANOVA:</b> F, EPD, DMS e comparações — na nova escala (Welham, p. 122).</li>
+      <li><b>A mesma transformação existe na ANOVA com blocos (RCBD) e nas comparações de médias</b> — um parâmetro no formulário do método [BioStat].</li>
+    </ul>
+      </div>
+      <div class="minus">
+        <h3>Pontos fracos</h3>
+        <ul>
+      <li><b>O resultado fica noutra escala:</b> as médias geométricas não são as aritméticas, e o EP e o EPD não passam para a escala original (Welham, p. 122–126).</li>
+      <li><b>O desvio c para os zeros afeta o resultado</b> (Welham, p. 116).</li>
+      <li><b>Por vezes nenhuma transformação serve:</b> contagens com muitos zeros, proporções de amostras pequenas ou junto a 0 e 1 — é preciso um <a class="mlink" href="/pt/methods/#glm_analysis" title="Abrir a descrição do método">GLM</a> (Welham, p. 126–127).</li>
+      <li><b>A retransformação com desvio pode sair da escala</b> (contagens negativas, proporções acima de 1) — o BioStat avisa (Welham, p. 122).</li>
+      <li><b>As razões par a par do método não têm correção para multiplicidade</b> (DMS) [BioStat].</li>
+    </ul>
+      </div>
+    </div>
+    <p class="src">Welham et al. (2015), p. 113–127; [BioStat].</p>
+  </section>
+  <section id="assumptions">
+    <h2>Pressupostos</h2>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Pressuposto</th><th>O que significa</th><th>Como o BioStat verifica</th></tr></thead>
+      <tbody>
+<tr><td>Independência</td><td>Cada observação é uma unidade experimental separada.</td><td>Não se verifica por cálculo — é uma propriedade do delineamento; o mapa pergunta pela estrutura antes deste passo.</td></tr>
+<tr><td>Pressupostos da ANOVA — na nova escala</td><td>Após a transformação, os resíduos são normais e as variâncias homogéneas.</td><td>Na escala de análise o método verifica o mesmo que a ANOVA a um fator: homogeneidade de variâncias (Bartlett, relação entre DP e média) e normalidade dos resíduos (Shapiro–Wilk). Por vezes é precisa outra transformação, por vezes nenhuma serve (Welham, p. 113–114).</td></tr>
+<tr><td>Valores no domínio da transformação</td><td>log — só para y + c &gt; 0, logit — para 0 &lt; y &lt; 1 (ou 100 %), √ — para y + c ≥ 0.</td><td>Valores fora do domínio dão erro; para log o BioStat propõe um desvio c pela regra do livro (p. 116).</td></tr>
+<tr><td>Sem erros grosseiros de registo</td><td>Um ponto isolado não distorce as médias nem o quadrado médio residual (QMRE, <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><msub><mi>S</mi><mi>W</mi></msub></mrow><annotation encoding="application/x-tex">MS_W</annotation></semantics></math></span>).</td><td>Teste de observação atípica nos resíduos Studentizados com correção de Bonferroni; verificado primeiro.</td></tr>
+</tbody>
+    </table></div>
+    <p class="src">Welham et al. (2015), p. 109–110, 113–116, 119–122.</p>
+  </section>
+  <section id="map">
+    <h2>Como o mapa escolhe este método</h2>
+    <h3>Caminho até à folha</h3>
+    <div class="path" aria-label="Caminho no mapa"><span>Analisar a resposta</span>›<span>Contínua</span>›<span>Diferenças</span>›<span>Unidades independentes</span>›<span>Sem blocos ou blocos completos</span>›<span>Um fator</span>›<span>Três ou mais grupos</span>›<span>Transformar a resposta</span>›<span class="here">ANOVA na escala log / √ / logit</span></div>
+    <p>O mapa conduz a esta folha com o sinal <span class="sig">B4.3</span>: os DP dos grupos crescem com as médias — os DP extremos diferem pelo menos para o dobro, e a correlação do log DP com o log da média é r ≥ 0.8 [BioStat]. A partir de quatro grupos é um sinal fiável; com três, uma sugestão: com três pontos uma relação assim é muitas vezes casual [BioStat: auditoria 01-07]. Com uma candidata a observação atípica, <span class="sig">B4.3</span> passa a sugestão.</p>
+    <p>Sugestões: <span class="sig">B4.4</span> — resíduos fortemente assimétricos (|g₁| &gt; 1); <span class="sig">R2.7</span> — todos os valores maiores do que 0 e assimetria da resposta acima de 1 [BioStat]. Para dois grupos os mesmos sinais levam à folha «Comparação na escala log / √ / logit» — é o mesmo método. Num ensaio em blocos completos (papel «bloco»), <span class="sig">B4.3</span> e <span class="sig">B4.4</span> não levam aqui, mas à ANOVA com blocos: aí a transformação é um parâmetro do método.</p>
+    <h3>Vizinhos no mapa: quando são preferíveis</h3>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Vizinho</th><th>Quando o mapa leva lá</th><th>Em que o vizinho é melhor aqui</th><th>O que custa</th></tr></thead>
+      <tbody>
+<tr><td><a class="mlink" href="/pt/methods/one_way_anova/" title="Abrir a descrição do método">ANOVA a um fator</a></td><td>variâncias homogéneas e resíduos normais — folha por omissão</td><td>Médias, EPD e DMS na escala original</td><td>Quando a variância cresce com a média, o P e o EPD estão errados</td></tr>
+<tr><td><a class="mlink" href="/pt/methods/welch_anova/" title="Abrir a descrição do método">ANOVA de Welch (variâncias desiguais)</a></td><td><span class="sig">B4.5</span> variâncias heterogéneas que <b>não</b> crescem com as médias</td><td>Médias na escala original, sem transformação</td><td>Não corrige a assimetria; sem <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><msub><mi>S</mi><mi>W</mi></msub></mrow><annotation encoding="application/x-tex">MS_W</annotation></semantics></math></span> comum</td></tr>
+<tr><td><a class="mlink" href="/pt/methods/anova_permutation_test/" title="Abrir a descrição do método">Teste F de permutação (ANOVA)</a></td><td><span class="sig">B4.6</span> resíduos não normais com variâncias homogéneas</td><td>Médias na escala original; não é precisa normalidade</td><td>Exige variâncias homogéneas</td></tr>
+<tr><td><a class="mlink" href="/pt/methods/kruskal_wallis/" title="Abrir a descrição do método">Teste de Kruskal-Wallis (não paramétrico)</a></td><td><span class="sig">B4.8</span> (sugestão) a resposta tem poucos valores inteiros (pontuações)</td><td>Postos: a escala da resposta não importa</td><td>Compara distribuições, não médias; sem IC</td></tr>
+<tr><td><a class="mlink" href="/pt/methods/rcbd_anova/" title="Abrir a descrição do método">ANOVA em blocos casualizados (RCBD)</a></td><td><span class="sig">B1.2</span> / <span class="sig">B1.8</span> (sugestão) cada tratamento uma vez em cada bloco (ou uma coluna que parece blocos)</td><td>Tem em conta os blocos; a transformação também se define aí</td><td>Precisa de uma coluna de blocos</td></tr>
+</tbody>
+    </table></div>
+    <h3>O que o mapa verifica nesta folha</h3>
+    <ul>
+      <li><span class="sig">DIAG.1</span> <b>Observação atípica primeiro.</b> Com uma candidata a observação atípica, <span class="sig">B4.3</span> passa a sugestão «verifique primeiro o registo na linha N» (Welham, p. 109–110).</li>
+      <li><span class="sig">B4.3</span> Os DP crescem com as médias (quatro grupos ou mais) — sinal fiável [BioStat].</li>
+      <li><span class="sig">B4.3</span> (sugestão) O mesmo com três grupos — só sugestão: com três pontos uma relação assim é muitas vezes casual [BioStat: auditoria 01-07].</li>
+      <li><span class="sig">B4.4</span> (sugestão) / <span class="sig">R2.7</span> (sugestão) Assimetria forte dos resíduos ou de uma resposta positiva — motivo para experimentar log.</li>
+      <li><span class="sig">B4.2</span> / <span class="sig">B4.5</span> Variâncias heterogéneas (Bartlett) <b>sem</b> relação entre DP e médias não levam aqui, mas a Welch (<span class="sig">B4.5</span>).</li>
+    </ul>
+    <h3>O que vem a seguir</h3>
+    <p>O próprio método dá todos os pares: razões com IC sem correção para multiplicidade. Para comparações com correção (Tukey, Dunnett) — as <a class="mlink" href="/pt/methods/#mean_comparisons" title="Abrir a descrição do método">comparações de médias</a> do passo «Após a ANOVA», com a mesma transformação no formulário do método [BioStat]. Se o objetivo for mostrar que não há diferenças, trata-se de outra tarefa: <b><a class="mlink" href="/pt/methods/#equivalence_test" title="Abrir a descrição do método">o teste de equivalência (TOST)</a></b> (Welham, p. 253).</p>
+  </section>
+  <details class="check" id="sources">
+    <summary>Fontes</summary>
+    <ul>
+      <li>Testes que chamam o método: 15</li>
+      <li>Sem referências aos livros nos testes</li>
+      <li>Verificação independente (auditoria 2): nenhuma — só casos-limite</li>
+    </ul>
+  </details>
+  <p><a class="cta" href="/?method=transformed_means&amp;lang=pt">Experimentar o método na calculadora →</a></p>
+  <div class="pager"><a href="/pt/methods/anova_permutation_test/"><small>← Anterior</small>Teste F de permutação (ANOVA)</a><a class="next" href="/pt/methods/rcbd_anova/"><small>Seguinte →</small>ANOVA em blocos casualizados (RCBD)</a></div>
+</article>
+<aside class="toc" aria-label="Nesta página">
+  <b>Nesta página</b>
+  <a href="#idea">Ideia</a>
+  <a href="#model">Modelo e fórmulas</a>
+  <a href="#symbols">Notação</a>
+  <a href="#pros-cons">Pontos fortes e fracos</a>
+  <a href="#assumptions">Pressupostos</a>
+  <a href="#map">Como o mapa escolhe</a>
+  <a href="#sources">Fontes</a>
+  <a href="/?method=transformed_means&amp;lang=pt">Experimentar o método na calculadora →</a>
+  <a class="toc-back" href="/pt/methods/#transformed_means">↑ Voltar à lista de métodos</a>
+</aside>
+<a class="to-list" href="/pt/methods/#transformed_means" aria-label="Voltar à lista de métodos">↑</a>
+</div>
+      <footer><a href="/pt/privacy/">Privacidade</a> · <a href="/pt/terms/">Termos</a> · <a href="/pt/methods/">Métodos e verificação</a> · <a href="/LICENSE.txt">Licença Apache-2.0</a></footer>
+    </main>
+  </body>
+</html>

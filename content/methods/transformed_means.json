@@ -182,5 +182,357 @@
    "LSD",
    "P"
   ]
+ },
+ "en": {
+  "description": "ANOVA on the log, √ or logit scale: transforming the response, geometric means and ratios — idea, formulas, assumptions, and how the BioStat map chooses this method.",
+  "lead": "Do the group means differ when the spread grows with the mean or the distribution is skewed to the right? The response is moved to another scale (most often log), ANOVA is done there, and the means and CIs are brought back to the original scale.",
+  "idea": [
+   "Mass, height and abundance often change by factors rather than by a fixed number of units: a group with mean 100 spreads more than a group with mean 30. The logarithm pulls large values together and stretches small ones — the variances even out, the right skewness goes away, and a multiplicative model becomes additive (Welham, p. 113–118).",
+   "F, SED and LSD are computed on the log scale. Only the means and the CI limits are brought back to the original scale: a mean on the log scale becomes the **geometric mean** of the group, a difference of means becomes a **ratio** (“how many times”), and LSD becomes a factor. SE and SED are not back-transformed: the transformation is nonlinear (Welham, p. 122–126)."
+  ],
+  "formulas": [
+   {
+    "text_before": "Transformation of the response (c is the offset for zeros; in the example c = 0):",
+    "tex": "z_{ij} = \\log_{10}(y_{ij} + c)",
+    "text_after": "Other options: ln; √ — milder than the logarithm; logit — for proportions and percentages (Welham, p. 119–121). Offset for zeros: c = 1 for integer counts, otherwise half the smallest positive value (p. 116)."
+   },
+   {
+    "title": "ANOVA on the z scale",
+    "tex": "F = \\frac{MS_B}{MS_W} = ⟦F:.2f⟧,\\qquad df = (⟦df_between⟧;\\ ⟦df_within⟧),\\qquad P ⟦p:rel⟧,\\qquad \\mathrm{SED}_z = ⟦log_sed:.4f⟧"
+   },
+   {
+    "title": "Back to the original scale",
+    "tex": "\\mathrm{GM}_i = 10^{\\bar z_{i\\cdot}},\\qquad \\frac{\\mathrm{GM}_k}{\\mathrm{GM}_i} = 10^{\\,\\bar z_{k\\cdot}-\\bar z_{i\\cdot}},\\qquad \\times/\\div\\ 10^{\\mathrm{LSD}_z} = ⟦lsd_factor:.2f⟧",
+    "text_after": "A back-transformed mean is a geometric mean: it is no larger than the arithmetic mean, and the gap grows with skewness. The CI limits are back-transformed the same way, so CIs on the original scale are asymmetric (Welham, p. 122–126)."
+   }
+  ],
+  "example_table": {
+   "labels": {
+    "Between": "Between treatments (log₁₀)",
+    "Within": "Within treatments",
+    "Total": "Total"
+   },
+   "format": {
+    "ss": ".4f",
+    "ms": ".4f",
+    "F": ".2f"
+   },
+   "note": "Welham, Table 6.1: egg counts of beetles, 4 mating treatments with ⟦n_group⟧ females each (map scenario S07). Geometric means ⟦mean_1:.1f⟧, ⟦mean_2:.1f⟧, ⟦mean_3:.1f⟧, ⟦mean_4:.1f⟧ against arithmetic ⟦arith_mean_1:.1f⟧, ⟦arith_mean_2:.1f⟧, ⟦arith_mean_3:.1f⟧, ⟦arith_mean_4:.1f⟧. Treatment 4 is ⟦ratio_4_1:.2f⟧ times treatment 1, 95 % CI ⟦ratio_4_1_lo:.2f⟧…⟦ratio_4_1_hi:.2f⟧; the CI of the mean of treatment 1 is ⟦mean_1_lo:.1f⟧…⟦mean_1_hi:.1f⟧, asymmetric around ⟦mean_1:.1f⟧. Warnings about variances on the log scale: ⟦n_variance_warnings:0=none⟧; Shapiro–Wilk on the residuals P = ⟦log_shapiro_p_residuals:.2f⟧. The map gives `B4.3` (SDs grow with the means) and `B4.2` (variances are heterogeneous)."
+  },
+  "pros": [
+   "**Treats the cause, not the symptom:** when the variance grows with the mean, a single transformation evens out the variances and removes the skewness (Welham, p. 113–118).",
+   "**Ratios instead of differences:** for log the result reads as “how many times”, with CIs (Welham, p. 123–126).",
+   "**The whole ANOVA toolkit remains:** F, SED, LSD and comparisons — on the new scale (Welham, p. 122).",
+   "**The same transformation is available in RCBD and in the comparisons of means** — a parameter in the method form [BioStat]."
+  ],
+  "cons": [
+   "**The result is on another scale:** geometric means are not arithmetic means, and SE and SED are not carried back to the original scale (Welham, p. 122–126).",
+   "**The offset c for zeros affects the result** (Welham, p. 116).",
+   "**Sometimes no transformation fits:** counts with many zeros, proportions from small samples or near 0 and 1 — a [GLM](method:glm_analysis) is needed (Welham, p. 126–127).",
+   "**Back-transformation with an offset can leave the scale** (negative counts, proportions above 1) — BioStat warns (Welham, p. 122).",
+   "**The method's pairwise ratios have no multiplicity adjustment** (LSD) [BioStat]."
+  ],
+  "assumptions": [
+   {
+    "name": "Independence",
+    "meaning": "Each observation is a separate experimental unit.",
+    "biostat": "Not checked by calculation — it is a property of the design; the map asks about the structure before this step."
+   },
+   {
+    "name": "ANOVA assumptions — on the new scale",
+    "meaning": "After the transformation the residuals are normal and the variances homogeneous.",
+    "biostat": "On the analysis scale the method checks the same as one-way ANOVA: homogeneity of variances (Bartlett, link between SD and mean) and normality of residuals (Shapiro–Wilk). Sometimes another transformation is needed, sometimes none fits (Welham, p. 113–114)."
+   },
+   {
+    "name": "Values within the domain of the transformation",
+    "meaning": "log — only for y + c > 0, logit — for 0 < y < 1 (or 100 %), √ — for y + c ≥ 0.",
+    "biostat": "Values outside the domain are an error; for log BioStat suggests an offset c by the book's rule (p. 116)."
+   },
+   {
+    "name": "No gross recording errors",
+    "meaning": "A single point does not distort the means and $MS_W$.",
+    "biostat": "Outlier test on the Studentized residuals with Bonferroni correction; checked first."
+   }
+  ],
+  "map_intro": [
+   "The map leads here with signal `B4.3`: the group SDs grow with the means — the extreme SDs differ at least twofold, and the correlation of log SD with log mean is r ≥ 0.8 [BioStat]. From four groups this is a strong signal; with three, a hint: over three points such a link is often accidental [BioStat: audit 01-07]. With an outlier candidate, `B4.3` becomes a hint.",
+   "Hints: `B4.4` — residuals are strongly skewed (|g₁| > 1); `R2.7` — all values are greater than 0 and the skewness of the response is above 1 [BioStat]. For two groups the same signals lead to the leaf “Comparison on the log / √ / logit scale” — it is the same method. In a complete block experiment (role “block”), `B4.3` and `B4.4` lead not here but to ANOVA with blocks: there the transformation is a parameter of the method."
+  ],
+  "neighbours": [
+   {
+    "method": "one_way_anova",
+    "signals": [],
+    "when": "variances are homogeneous and residuals normal — the default leaf",
+    "advantage": "Means, SED and LSD on the original scale",
+    "cost": "When the variance grows with the mean, P and SED are wrong"
+   },
+   {
+    "method": "welch_anova",
+    "signals": [
+     "B4.5"
+    ],
+    "when": "variances are heterogeneous but do **not** grow with the means",
+    "advantage": "Means on the original scale, no transformation",
+    "cost": "Does not fix skewness; no common $MS_W$"
+   },
+   {
+    "method": "anova_permutation_test",
+    "signals": [
+     "B4.6"
+    ],
+    "when": "residuals are non-normal with homogeneous variances",
+    "advantage": "Means on the original scale; normality is not needed",
+    "cost": "Needs homogeneous variances"
+   },
+   {
+    "method": "kruskal_wallis",
+    "signals": [
+     "B4.8"
+    ],
+    "when": "the response takes a few integer values (scores)",
+    "advantage": "Ranks: the scale of the response does not matter",
+    "cost": "Compares distributions, not means; no CIs"
+   },
+   {
+    "method": "rcbd_anova",
+    "signals": [
+     "B1.2",
+     "B1.8"
+    ],
+    "when": "each treatment once in every block (or a column that looks like blocks)",
+    "advantage": "Accounts for blocks; the transformation can be set there too",
+    "cost": "Needs a block column"
+   }
+  ],
+  "checks": [
+   {
+    "signals": [
+     "DIAG.1"
+    ],
+    "text": "**Outlier first.** With an outlier candidate, `B4.3` is demoted to a hint “check the record in row N first” (Welham, p. 109–110)."
+   },
+   {
+    "signals": [
+     "B4.3"
+    ],
+    "text": "SDs grow with the means (four groups or more) — a strong signal [BioStat]."
+   },
+   {
+    "signals": [
+     "B4.3#three"
+    ],
+    "text": "The same with three groups — only a hint: over three points such a link is often accidental [BioStat: audit 01-07]."
+   },
+   {
+    "signals": [
+     "B4.4",
+     "R2.7"
+    ],
+    "text": "Strong skewness of residuals or of a positive response — a reason to try log."
+   },
+   {
+    "signals": [
+     "B4.2",
+     "B4.5"
+    ],
+    "text": "Heterogeneous variances (Bartlett) **without** a link between SD and the means lead not here but to Welch (`B4.5`)."
+   }
+  ],
+  "next": "The method itself gives all pairs: ratios with CIs without a multiplicity adjustment. For comparisons with an adjustment (Tukey, Dunnett) — the [comparisons of means](method:mean_comparisons) of the “After ANOVA” step with the same transformation in the method form [BioStat]. If the goal is to show that there are no differences, that is a different task: **[the equivalence test (TOST)](method:equivalence_test)** (Welham, p. 253).",
+  "sources": {
+   "model": "Welham et al. (2015), p. 113–126 (transformations, back-transformation, the log scale).",
+   "pros_cons": "Welham et al. (2015), p. 113–127; [BioStat].",
+   "assumptions": "Welham et al. (2015), p. 109–110, 113–116, 119–122."
+  },
+  "symbols": [
+   "y_ij",
+   "i_group",
+   "j_obs",
+   "z_ij",
+   "c_offset",
+   "zbar_i",
+   "GM_i",
+   "MS",
+   "df_BW",
+   "SED",
+   "LSD",
+   "P"
+  ]
+ },
+ "pt": {
+  "description": "ANOVA na escala log, √ ou logit: transformação da resposta, médias geométricas e razões — ideia, fórmulas, pressupostos e como o mapa do BioStat escolhe este método.",
+  "lead": "As médias dos grupos diferem quando a dispersão cresce com a média ou a distribuição é assimétrica à direita? A resposta passa para outra escala (quase sempre log), aí faz-se a ANOVA, e as médias e os IC voltam à escala original.",
+  "idea": [
+   "Massa, altura e abundância variam muitas vezes em proporção, e não num número fixo de unidades: um grupo com média 100 dispersa-se mais do que um grupo com média 30. O logaritmo aproxima os valores grandes e afasta os pequenos — as variâncias igualam-se, a assimetria à direita desaparece e um modelo multiplicativo torna-se aditivo (Welham, p. 113–118).",
+   "F, EPD e DMS calculam-se na escala log (nas fórmulas: SED e LSD). À escala original voltam só as médias e os limites dos IC: uma média na escala log passa a **média geométrica** do grupo, uma diferença de médias passa a **razão** («quantas vezes») e a DMS passa a um fator. O EP e o EPD não se retransformam: a transformação não é linear (Welham, p. 122–126)."
+  ],
+  "formulas": [
+   {
+    "text_before": "Transformação da resposta (c é o desvio para os zeros; no exemplo c = 0):",
+    "tex": "z_{ij} = \\log_{10}(y_{ij} + c)",
+    "text_after": "Outras opções: ln; √ — mais suave do que o logaritmo; logit — para proporções e percentagens (Welham, p. 119–121). Desvio para os zeros: c = 1 para contagens inteiras; caso contrário, metade do menor valor positivo (p. 116)."
+   },
+   {
+    "title": "ANOVA na escala z",
+    "tex": "F = \\frac{MS_B}{MS_W} = ⟦F:.2f⟧,\\qquad df = (⟦df_between⟧;\\ ⟦df_within⟧),\\qquad P ⟦p:rel⟧,\\qquad \\mathrm{SED}_z = ⟦log_sed:.4f⟧"
+   },
+   {
+    "title": "De volta à escala original",
+    "tex": "\\mathrm{GM}_i = 10^{\\bar z_{i\\cdot}},\\qquad \\frac{\\mathrm{GM}_k}{\\mathrm{GM}_i} = 10^{\\,\\bar z_{k\\cdot}-\\bar z_{i\\cdot}},\\qquad \\times/\\div\\ 10^{\\mathrm{LSD}_z} = ⟦lsd_factor:.2f⟧",
+    "text_after": "Uma média retransformada é uma média geométrica: não é maior do que a média aritmética, e a diferença cresce com a assimetria. Os limites dos IC retransformam-se da mesma forma, por isso os IC na escala original são assimétricos (Welham, p. 122–126)."
+   }
+  ],
+  "example_table": {
+   "labels": {
+    "Between": "Entre tratamentos (log₁₀)",
+    "Within": "Dentro dos tratamentos",
+    "Total": "Total"
+   },
+   "format": {
+    "ss": ".4f",
+    "ms": ".4f",
+    "F": ".2f"
+   },
+   "note": "Welham, Table 6.1: número de ovos de escaravelhos, 4 tratamentos de acasalamento com ⟦n_group⟧ fêmeas cada (cenário S07 do mapa). Médias geométricas ⟦mean_1:.1f⟧, ⟦mean_2:.1f⟧, ⟦mean_3:.1f⟧, ⟦mean_4:.1f⟧ contra as aritméticas ⟦arith_mean_1:.1f⟧, ⟦arith_mean_2:.1f⟧, ⟦arith_mean_3:.1f⟧, ⟦arith_mean_4:.1f⟧. O tratamento 4 é ⟦ratio_4_1:.2f⟧ vezes o tratamento 1, IC 95 % ⟦ratio_4_1_lo:.2f⟧…⟦ratio_4_1_hi:.2f⟧; o IC da média do tratamento 1 é ⟦mean_1_lo:.1f⟧…⟦mean_1_hi:.1f⟧, assimétrico em torno de ⟦mean_1:.1f⟧. Avisos sobre variâncias na escala log: ⟦n_variance_warnings:0=nenhum⟧; Shapiro–Wilk nos resíduos, P (valor de prova) = ⟦log_shapiro_p_residuals:.2f⟧. O mapa dá `B4.3` (os DP crescem com as médias) e `B4.2` (variâncias heterogéneas)."
+  },
+  "pros": [
+   "**Trata a causa e não o sintoma:** quando a variância cresce com a média, uma única transformação iguala as variâncias e elimina a assimetria (Welham, p. 113–118).",
+   "**Razões em vez de diferenças:** para log o resultado lê-se como «quantas vezes», com IC (Welham, p. 123–126).",
+   "**Fica todo o aparato da ANOVA:** F, EPD, DMS e comparações — na nova escala (Welham, p. 122).",
+   "**A mesma transformação existe na ANOVA com blocos (RCBD) e nas comparações de médias** — um parâmetro no formulário do método [BioStat]."
+  ],
+  "cons": [
+   "**O resultado fica noutra escala:** as médias geométricas não são as aritméticas, e o EP e o EPD não passam para a escala original (Welham, p. 122–126).",
+   "**O desvio c para os zeros afeta o resultado** (Welham, p. 116).",
+   "**Por vezes nenhuma transformação serve:** contagens com muitos zeros, proporções de amostras pequenas ou junto a 0 e 1 — é preciso um [GLM](method:glm_analysis) (Welham, p. 126–127).",
+   "**A retransformação com desvio pode sair da escala** (contagens negativas, proporções acima de 1) — o BioStat avisa (Welham, p. 122).",
+   "**As razões par a par do método não têm correção para multiplicidade** (DMS) [BioStat]."
+  ],
+  "assumptions": [
+   {
+    "name": "Independência",
+    "meaning": "Cada observação é uma unidade experimental separada.",
+    "biostat": "Não se verifica por cálculo — é uma propriedade do delineamento; o mapa pergunta pela estrutura antes deste passo."
+   },
+   {
+    "name": "Pressupostos da ANOVA — na nova escala",
+    "meaning": "Após a transformação, os resíduos são normais e as variâncias homogéneas.",
+    "biostat": "Na escala de análise o método verifica o mesmo que a ANOVA a um fator: homogeneidade de variâncias (Bartlett, relação entre DP e média) e normalidade dos resíduos (Shapiro–Wilk). Por vezes é precisa outra transformação, por vezes nenhuma serve (Welham, p. 113–114)."
+   },
+   {
+    "name": "Valores no domínio da transformação",
+    "meaning": "log — só para y + c > 0, logit — para 0 < y < 1 (ou 100 %), √ — para y + c ≥ 0.",
+    "biostat": "Valores fora do domínio dão erro; para log o BioStat propõe um desvio c pela regra do livro (p. 116)."
+   },
+   {
+    "name": "Sem erros grosseiros de registo",
+    "meaning": "Um ponto isolado não distorce as médias nem o quadrado médio residual (QMRE, $MS_W$).",
+    "biostat": "Teste de observação atípica nos resíduos Studentizados com correção de Bonferroni; verificado primeiro."
+   }
+  ],
+  "map_intro": [
+   "O mapa conduz a esta folha com o sinal `B4.3`: os DP dos grupos crescem com as médias — os DP extremos diferem pelo menos para o dobro, e a correlação do log DP com o log da média é r ≥ 0.8 [BioStat]. A partir de quatro grupos é um sinal fiável; com três, uma sugestão: com três pontos uma relação assim é muitas vezes casual [BioStat: auditoria 01-07]. Com uma candidata a observação atípica, `B4.3` passa a sugestão.",
+   "Sugestões: `B4.4` — resíduos fortemente assimétricos (|g₁| > 1); `R2.7` — todos os valores maiores do que 0 e assimetria da resposta acima de 1 [BioStat]. Para dois grupos os mesmos sinais levam à folha «Comparação na escala log / √ / logit» — é o mesmo método. Num ensaio em blocos completos (papel «bloco»), `B4.3` e `B4.4` não levam aqui, mas à ANOVA com blocos: aí a transformação é um parâmetro do método."
+  ],
+  "neighbours": [
+   {
+    "method": "one_way_anova",
+    "signals": [],
+    "when": "variâncias homogéneas e resíduos normais — folha por omissão",
+    "advantage": "Médias, EPD e DMS na escala original",
+    "cost": "Quando a variância cresce com a média, o P e o EPD estão errados"
+   },
+   {
+    "method": "welch_anova",
+    "signals": [
+     "B4.5"
+    ],
+    "when": "variâncias heterogéneas que **não** crescem com as médias",
+    "advantage": "Médias na escala original, sem transformação",
+    "cost": "Não corrige a assimetria; sem $MS_W$ comum"
+   },
+   {
+    "method": "anova_permutation_test",
+    "signals": [
+     "B4.6"
+    ],
+    "when": "resíduos não normais com variâncias homogéneas",
+    "advantage": "Médias na escala original; não é precisa normalidade",
+    "cost": "Exige variâncias homogéneas"
+   },
+   {
+    "method": "kruskal_wallis",
+    "signals": [
+     "B4.8"
+    ],
+    "when": "a resposta tem poucos valores inteiros (pontuações)",
+    "advantage": "Postos: a escala da resposta não importa",
+    "cost": "Compara distribuições, não médias; sem IC"
+   },
+   {
+    "method": "rcbd_anova",
+    "signals": [
+     "B1.2",
+     "B1.8"
+    ],
+    "when": "cada tratamento uma vez em cada bloco (ou uma coluna que parece blocos)",
+    "advantage": "Tem em conta os blocos; a transformação também se define aí",
+    "cost": "Precisa de uma coluna de blocos"
+   }
+  ],
+  "checks": [
+   {
+    "signals": [
+     "DIAG.1"
+    ],
+    "text": "**Observação atípica primeiro.** Com uma candidata a observação atípica, `B4.3` passa a sugestão «verifique primeiro o registo na linha N» (Welham, p. 109–110)."
+   },
+   {
+    "signals": [
+     "B4.3"
+    ],
+    "text": "Os DP crescem com as médias (quatro grupos ou mais) — sinal fiável [BioStat]."
+   },
+   {
+    "signals": [
+     "B4.3#three"
+    ],
+    "text": "O mesmo com três grupos — só sugestão: com três pontos uma relação assim é muitas vezes casual [BioStat: auditoria 01-07]."
+   },
+   {
+    "signals": [
+     "B4.4",
+     "R2.7"
+    ],
+    "text": "Assimetria forte dos resíduos ou de uma resposta positiva — motivo para experimentar log."
+   },
+   {
+    "signals": [
+     "B4.2",
+     "B4.5"
+    ],
+    "text": "Variâncias heterogéneas (Bartlett) **sem** relação entre DP e médias não levam aqui, mas a Welch (`B4.5`)."
+   }
+  ],
+  "next": "O próprio método dá todos os pares: razões com IC sem correção para multiplicidade. Para comparações com correção (Tukey, Dunnett) — as [comparações de médias](method:mean_comparisons) do passo «Após a ANOVA», com a mesma transformação no formulário do método [BioStat]. Se o objetivo for mostrar que não há diferenças, trata-se de outra tarefa: **[o teste de equivalência (TOST)](method:equivalence_test)** (Welham, p. 253).",
+  "sources": {
+   "model": "Welham et al. (2015), p. 113–126 (transformações, retransformação, escala log).",
+   "pros_cons": "Welham et al. (2015), p. 113–127; [BioStat].",
+   "assumptions": "Welham et al. (2015), p. 109–110, 113–116, 119–122."
+  },
+  "symbols": [
+   "y_ij",
+   "i_group",
+   "j_obs",
+   "z_ij",
+   "c_offset",
+   "zbar_i",
+   "GM_i",
+   "MS",
+   "df_BW",
+   "SED",
+   "LSD",
+   "P"
+  ]
  }
 }
